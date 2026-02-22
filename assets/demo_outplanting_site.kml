@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Demo Outplanting Site - Long Key</name>
+    <description>Coral outplanting monitoring site near Long Key Viaduct/Boy Scout Reef, Florida Keys. Approximately 10m x 20m plot at ~20ft depth. Site ID: LK-2025-001</description>
+    <Style id="outplantingStyle">
+      <LineStyle>
+        <color>ff00ffff</color>
+        <width>3</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4000ffff</color>
+      </PolyStyle>
+    </Style>
+    <Style id="centerStyle">
+      <IconStyle>
+        <color>ff0000ff</color>
+        <scale>1.2</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>
+        </Icon>
+      </IconStyle>
+      <LabelStyle>
+        <color>ff0000ff</color>
+        <scale>0.9</scale>
+      </LabelStyle>
+    </Style>
+    <Placemark>
+      <name>LK-2025-001 Center Point</name>
+      <description>Outplanting site center marker. Reference: Long Key Viaduct Artificial Reef (Boy Scout Reef, Sea Base). Depth: ~20ft (6m). Substrate: Mixed reef/sand.</description>
+      <styleUrl>#centerStyle</styleUrl>
+      <Point>
+        <coordinates>-80.8185,24.75683333,0</coordinates>
+      </Point>
+    </Placemark>
+    <Placemark>
+      <name>LK-2025-001 Outplanting Plot</name>
+      <description>Coral restoration outplanting area. Dimensions: approximately 10m x 20m. Species: Acropora cervicornis, Acropora palmata, Orbicella faveolata. Total corals planted: 150. Date established: 2025-01-15.</description>
+      <styleUrl>#outplantingStyle</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>
+              -80.81861,24.75692,0
+              -80.81858,24.75701,0
+              -80.81854,24.75709,0
+              -80.81848,24.75707,0
+              -80.81841,24.75703,0
+              -80.81838,24.75694,0
+              -80.81839,24.75685,0
+              -80.81841,24.75676,0
+              -80.81844,24.75668,0
+              -80.81849,24.75662,0
+              -80.81855,24.75660,0
+              -80.81862,24.75663,0
+              -80.81867,24.75670,0
+              -80.81869,24.75678,0
+              -80.81868,24.75686,0
+              -80.81864,24.75691,0
+              -80.81861,24.75692,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Folder>
+      <name>Transect Lines</name>
+      <description>Monitoring transects within the outplanting plot</description>
+      <Placemark>
+        <name>Transect A (North)</name>
+        <description>Northern monitoring transect - 20m length</description>
+        <LineString>
+          <coordinates>
+            -80.81864,24.75700,0
+            -80.81843,24.75698,0
+          </coordinates>
+        </LineString>
+      </Placemark>
+      <Placemark>
+        <name>Transect B (Center)</name>
+        <description>Central monitoring transect - 20m length</description>
+        <LineString>
+          <coordinates>
+            -80.81867,24.75683,0
+            -80.81840,24.75681,0
+          </coordinates>
+        </LineString>
+      </Placemark>
+      <Placemark>
+        <name>Transect C (South)</name>
+        <description>Southern monitoring transect - 20m length</description>
+        <LineString>
+          <coordinates>
+            -80.81862,24.75666,0
+            -80.81845,24.75665,0
+          </coordinates>
+        </LineString>
+      </Placemark>
+    </Folder>
+    <Folder>
+      <name>Corner Markers</name>
+      <description>Physical corner markers for site relocation</description>
+      <Placemark>
+        <name>NW Corner</name>
+        <Point>
+          <coordinates>-80.81858,24.75701,0</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>NE Corner</name>
+        <Point>
+          <coordinates>-80.81841,24.75703,0</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>SE Corner</name>
+        <Point>
+          <coordinates>-80.81844,24.75668,0</coordinates>
+        </Point>
+      </Placemark>
+      <Placemark>
+        <name>SW Corner</name>
+        <Point>
+          <coordinates>-80.81862,24.75663,0</coordinates>
+        </Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

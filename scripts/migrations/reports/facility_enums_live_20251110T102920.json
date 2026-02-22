@@ -1,0 +1,37 @@
+{
+  "startedAt": "2025-11-10T18:29:22.726Z",
+  "finishedAt": "2025-11-10T18:29:27.784Z",
+  "options": {
+    "dryRun": false,
+    "force": false,
+    "verbose": true,
+    "batchSize": 400,
+    "limit": null,
+    "organizationId": null,
+    "startAfter": null,
+    "collections": [
+      "sites",
+      "groups"
+    ],
+    "reportPath": "scripts/migrations/reports/facility_enums_live_20251110T102920.json"
+  },
+  "stats": {
+    "sites": {
+      "scanned": 9,
+      "updated": 9,
+      "skipped": 0,
+      "typeNormalized": 6,
+      "defaultedOrganisms": 9,
+      "missingType": 0,
+      "errors": 0
+    },
+    "groups": {
+      "scanned": 17,
+      "updated": 6,
+      "skipped": 11,
+      "typeNormalized": 6,
+      "missingType": 0,
+      "errors": 0
+    }
+  }
+}

@@ -1,0 +1,7 @@
+sf_csv_version,2.0.0
+sf_csv_template,SeaFoundry Universal CSV v2
+sf_translation_adapter,universal_csv_v2
+org_domain,reef.org
+generated_at,2025-01-02T00:00:00Z
+organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,lifeStageSubtype,provenanceType,physicalFormId,physicalForm,sizeBandId,measuredDimension,dimensionUnit,organismsPerUnit,volumeAmount,volumeUnit,eventType,eventDate,measurementUnit,quantityValue,groupId,siteId,siteName,enclosureId,provenanceId,provenanceKind,cohortId,structureType,permitType,permitId,issuingAuthority,validFrom,validTo,habitatType,siteJurisdiction,protectedAreaFlag,geometryFormat,geometryWkt,geometryGeojson,notes
+coral,Acropora palmata,AcPa,APAL-001,fuzzy-apal-001,fragment,,wild,fragment,Fragment,small,4,cm,,,,inventory_create,2025-01-03T15:45:00Z,count,24,/reef/sites/site-a/tray-01,site-reef-a,Sunrise Reef Nursery,,PID-APAL-001,genet,,tray,SpecialActivity,FKNMS-24-1001,NOAA-FKNMS,2025-01-01,2025-12-31,reef_patch,FKNMS,true,WKT,"POINT(-80.6543 25.1234)","{""type"":""Point"",""coordinates"":[-80.6543,25.1234]}","Fragments staged for outplant after thermal stress monitoring; permit + site metadata captured for CSR reporting."

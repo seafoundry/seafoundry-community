@@ -1,0 +1,112 @@
+# Training Gates Configuration
+# Mapping of action codes -> required training modules
+#
+# Format: 
+#   action_code:
+#     - module_id_1  # SOP or media ID
+#     - module_id_2
+#
+# Module IDs can reference:
+#   - sop_{id}: Standard Operating Procedure
+#   - media_{id}: Training video/document
+#
+# Action codes should align with EventType/HusbandryEventType ids.
+
+# ============================================
+# Outplanting Actions
+# ============================================
+outplant_event:
+  - sop_outplant_safety
+  - sop_outplant_protocol
+
+event_outplant:
+  - sop_outplant_safety
+  - sop_outplant_protocol
+
+# ============================================
+# Treatment & Chemical Handling
+# ============================================
+event_treatment:
+  - sop_treatment_safety
+  - sop_chemical_handling
+
+treatment_action:
+  - sop_treatment_safety
+  - sop_chemical_handling
+
+# ============================================
+# Environmental Management
+# ============================================
+event_environmental_adjustment:
+  - sop_environmental_management
+
+water_quality_action:
+  - sop_water_testing
+
+# ============================================
+# Structure & Equipment
+# ============================================
+event_structure_maintenance:
+  - sop_structure_safety
+  - sop_maintenance_protocol
+
+equipment_operation:
+  - sop_equipment_safety
+
+# ============================================
+# Organism Handling
+# ============================================
+fragment_action:
+  - sop_fragmentation_technique
+
+event_fragmentation:
+  - sop_fragmentation_technique
+
+move_action:
+  - sop_organism_handling
+
+# ============================================
+# Transfers
+# ============================================
+transfer_initiate:
+  - sop_transfer_protocol
+  - sop_packaging_guidelines
+
+transfer_receive:
+  - sop_transfer_protocol
+  - sop_quarantine_procedures
+
+# ============================================
+# Monitoring & Assessment
+# ============================================
+event_observation:
+  - sop_monitoring_protocol
+
+monitoring_action:
+  - sop_monitoring_protocol
+
+health_assessment:
+  - sop_health_assessment
+  - sop_disease_identification
+
+# ============================================
+# Spawning & Reproduction
+# ============================================
+spawning_action:
+  - sop_spawning_protocol
+  - sop_larval_care
+
+event_reproductive:
+  - sop_spawning_protocol
+
+# ============================================
+# Husbandry Actions
+# ============================================
+event_feeding:
+  - sop_feeding_protocol
+
+event_cleaning:
+  - sop_cleaning_protocol
+
+event_husbandry_log:
+  - sop_husbandry_basics

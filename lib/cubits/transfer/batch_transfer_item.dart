@@ -1,0 +1,101 @@
+// @tier: community
+import 'package:equatable/equatable.dart';
+import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
+import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
+
+/// A single item in the batch transfer cart.
+///
+/// Each item represents one (genet, organization) pair that will produce
+/// an independent [TransferEvent] via [TransferService.initiateTransfer].
+class BatchTransferItem extends Equatable {
+  const BatchTransferItem({
+    required this.genetId,
+    required this.genetLocalId,
+    required this.toOrganizationId,
+    required this.toOrganizationName,
+    required this.quantity,
+    this.ownershipType = TransferOwnershipType.fullTransfer,
+    this.originalOwnerOrganizationId,
+    this.status = BatchItemStatus.pending,
+    this.errorMessage,
+    this.resultTransferEventId,
+  });
+
+  /// The genet ID for this transfer item.
+  final String genetId;
+
+  /// Display name for the genet (e.g., "ACER-001").
+  final String genetLocalId;
+
+  /// Target organization ID.
+  final String toOrganizationId;
+
+  /// Target organization display name.
+  final String toOrganizationName;
+
+  /// Number of organisms to transfer.
+  final int quantity;
+
+  /// Per-item ownership type, auto-detected from organism custody.
+  final TransferOwnershipType ownershipType;
+
+  /// Original owner org ID for third-party transfers.
+  final String? originalOwnerOrganizationId;
+
+  /// Current submission status of this item.
+  final BatchItemStatus status;
+
+  /// Error message if submission failed.
+  final String? errorMessage;
+
+  /// The resulting TransferEvent ID on success.
+  final String? resultTransferEventId;
+
+  static const _sentinel = Object();
+
+  BatchTransferItem copyWith({
+    String? genetId,
+    String? genetLocalId,
+    String? toOrganizationId,
+    String? toOrganizationName,
+    int? quantity,
+    TransferOwnershipType? ownershipType,
+    Object? originalOwnerOrganizationId = _sentinel,
+    BatchItemStatus? status,
+    Object? errorMessage = _sentinel,
+    Object? resultTransferEventId = _sentinel,
+  }) {
+    return BatchTransferItem(
+      genetId: genetId ?? this.genetId,
+      genetLocalId: genetLocalId ?? this.genetLocalId,
+      toOrganizationId: toOrganizationId ?? this.toOrganizationId,
+      toOrganizationName: toOrganizationName ?? this.toOrganizationName,
+      quantity: quantity ?? this.quantity,
+      ownershipType: ownershipType ?? this.ownershipType,
+      originalOwnerOrganizationId: originalOwnerOrganizationId == _sentinel
+          ? this.originalOwnerOrganizationId
+          : originalOwnerOrganizationId as String?,
+      status: status ?? this.status,
+      errorMessage: errorMessage == _sentinel
+          ? this.errorMessage
+          : errorMessage as String?,
+      resultTransferEventId: resultTransferEventId == _sentinel
+          ? this.resultTransferEventId
+          : resultTransferEventId as String?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        genetId,
+        genetLocalId,
+        toOrganizationId,
+        toOrganizationName,
+        quantity,
+        ownershipType,
+        originalOwnerOrganizationId,
+        status,
+        errorMessage,
+        resultTransferEventId,
+      ];
+}

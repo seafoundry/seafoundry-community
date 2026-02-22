@@ -1,0 +1,229 @@
+{
+  "id": "sop-cr-005",
+  "organizationId": "template",
+  "title": "Coral Disease Treatment Protocols",
+  "description": "Standard operating procedure for coral disease treatment, including quarantine setup and management, treatment bath preparation, isolation procedures, topical treatments, and recovery monitoring. Early intervention significantly improves treatment outcomes. This SOP covers common Caribbean and Indo-Pacific coral diseases with evidence-based treatment approaches.",
+  "category": "Husbandry",
+  "organismKind": "coral",
+  "version": "1.0.0",
+  "createdBy": "seafoundry-system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "steps": [
+    {
+      "id": "step-005-1",
+      "order": 1,
+      "type": "warning",
+      "title": "Biosecurity Priority",
+      "description": "Coral diseases can be highly transmissible. NEVER handle diseased corals with tools or gloves that will contact healthy corals. Maintain complete separation of equipment, water systems, and personnel between healthy and diseased coral areas. Document all movements of diseased specimens. Wash hands thoroughly between handling different corals even with gloves.",
+      "isRequired": true,
+      "estimatedTime": 60
+    },
+    {
+      "id": "step-005-2",
+      "order": 2,
+      "type": "instruction",
+      "title": "Disease Identification and Triage",
+      "description": "Before initiating treatment, confirm disease identification using visual guides and photography comparison. Document: disease type, affected area size, rate of tissue loss progression, and percentage of colony affected. Triage diseased corals by severity - prioritize treatment for valuable genets and cases with >50% healthy tissue remaining. Corals with <20% living tissue may not justify treatment resources.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/disease/disease_identification_flowchart.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-005-3",
+      "order": 3,
+      "type": "checklist",
+      "title": "Quarantine System Setup",
+      "description": "Establish an isolated quarantine system with the following requirements:",
+      "checklistItems": [
+        "Separate tank or container (minimum 40L for individual treatment)",
+        "Independent water supply (no shared filtration with healthy systems)",
+        "Dedicated air pump and heater for quarantine",
+        "Lid or cover to prevent splash cross-contamination",
+        "Quarantine-only tools clearly labeled",
+        "Chemical treatment supplies accessible",
+        "Waste disposal containers (biohazard treatment)",
+        "Written quarantine log for tracking",
+        "PPE station (gloves, eye protection)"
+      ],
+      "isRequired": true,
+      "estimatedTime": 900
+    },
+    {
+      "id": "step-005-4",
+      "order": 4,
+      "type": "instruction",
+      "title": "Quarantine Water Parameters",
+      "description": "Maintain quarantine water parameters matching the source system as closely as possible to minimize additional stress. Temperature: within 1C of nursery. Salinity: 33-35 ppt. pH: 8.0-8.3. Alkalinity: 7-11 dKH. Ammonia/nitrite: 0 ppm. Perform daily water quality checks and 25% water changes every 2-3 days with clean, disease-free seawater.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-005-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Antibiotic Treatment Bath - General Protocol",
+      "description": "For bacterial diseases (white syndromes, SCTLD), antibiotic baths can halt disease progression. Prepare treatment solution: Amoxicillin paste at 100mg/mL concentration mixed into a gel consistency. Apply paste directly to disease margin, covering 1-2cm of healthy tissue beyond the visible lesion. Alternatively, use chloramphenicol base at 50mg/L for bath treatment (submerge coral for 24 hours). Always obtain veterinary guidance for antibiotic use.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/disease/antibiotic_paste_application.mp4",
+      "mediaType": "video",
+      "metadata": {
+        "treatmentNote": "Antibiotic use in corals should follow veterinary guidance and regional regulations. Some jurisdictions require permits for antibiotic application to marine organisms."
+      }
+    },
+    {
+      "id": "step-005-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "SCTLD-Specific Treatment Protocol",
+      "description": "For Stony Coral Tissue Loss Disease: Apply Base 2B amoxicillin paste (concentration: 6.25g amoxicillin per 100mL base) directly to disease margin. Create a 2cm-wide band covering the lesion edge and extending over healthy tissue. Apply paste underwater using a syringe or caulking applicator. Treatment may need to be repeated every 5-7 days if lesions continue to progress. Monitor daily and document tissue loss rates before and after treatment.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/disease/sctld_treatment_application.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-005-7",
+      "order": 7,
+      "type": "instruction",
+      "title": "Black Band Disease Treatment",
+      "description": "Black band disease can be treated by physically removing the cyanobacterial mat and applying aspiration or clay treatments. Using a syringe, carefully aspirate (suction) the dark band from the coral surface. Follow immediately with application of modeling clay or epoxy to cover the exposed skeleton and remaining band material. This creates an anaerobic environment that kills the pathogenic bacteria. Monitor for band reformation at 24-48 hour intervals.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/disease/black_band_aspiration.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-005-8",
+      "order": 8,
+      "type": "checklist",
+      "title": "Treatment Solution Preparation",
+      "description": "For chemical bath treatments, prepare solutions according to these protocols:",
+      "checklistItems": [
+        "Wear appropriate PPE (gloves, eye protection, lab coat)",
+        "Use reverse osmosis or deionized water for stock solutions",
+        "Mix stock solutions fresh daily when possible",
+        "Label all containers with chemical name, concentration, date",
+        "Store chemicals according to manufacturer specifications",
+        "Calculate treatment volume based on coral mass",
+        "Verify water temperature matches quarantine tank",
+        "Have neutralization agents available for spills",
+        "Document batch number and expiration dates"
+      ],
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-005-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Iodine Dip Treatment",
+      "description": "Iodine dips are effective against some fungal and protozoal infections. Prepare solution: 20 drops of Lugol's iodine solution per liter of seawater. Submerge affected coral for 10-15 minutes, gently agitating periodically. Rinse in clean seawater before returning to quarantine. Monitor for signs of tissue irritation - if excessive mucus production occurs, reduce dip time for subsequent treatments. Not recommended for severely stressed corals.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-005-10",
+      "order": 10,
+      "type": "warning",
+      "title": "Treatment Contraindications",
+      "description": "Do NOT apply treatments to corals showing active bleaching - wait for color recovery. Do NOT exceed recommended treatment concentrations - higher is not more effective and may cause tissue damage. Do NOT combine multiple chemical treatments without documented protocols. Do NOT treat corals within 24 hours of other stressful events (fragmentation, transport). Discontinue treatment if coral shows rapid tissue recession after application.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "step-005-11",
+      "order": 11,
+      "type": "instruction",
+      "title": "Isolation Period Requirements",
+      "description": "After treatment, maintain corals in quarantine for minimum 14 days observation with no new disease signs before returning to general population. Continue daily monitoring during isolation. Document tissue condition, disease progression or regression, and polyp behavior. Photograph lesion margins at consistent intervals to track healing. Only corals showing complete disease arrest and tissue recovery should be released from quarantine.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-005-12",
+      "order": 12,
+      "type": "checklist",
+      "title": "Recovery Assessment Criteria",
+      "description": "Before releasing corals from quarantine, verify all criteria are met:",
+      "checklistItems": [
+        "No active tissue loss for minimum 14 days",
+        "Lesion margin shows tissue healing or encrustation",
+        "Polyp extension returned to normal",
+        "No new lesions developed during quarantine",
+        "Color returned to species-typical range",
+        "No mucus overproduction observed",
+        "Feeding response positive (if applicable)",
+        "Adjacent corals in quarantine show no disease spread"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-005-13",
+      "order": 13,
+      "type": "instruction",
+      "title": "Equipment Decontamination",
+      "description": "All equipment used with diseased corals must be thoroughly decontaminated before any other use. Soak tools in 10% bleach solution for 30 minutes minimum. Rinse thoroughly with freshwater and allow to dry completely. For tanks and containers, drain, scrub with dilute bleach, rinse three times with freshwater, and allow to dry for 24+ hours. Dispose of treatment water appropriately - do not release to natural water systems.",
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-005-14",
+      "order": 14,
+      "type": "checklist",
+      "title": "Treatment Documentation Requirements",
+      "description": "Maintain complete records for all disease treatments:",
+      "checklistItems": [
+        "Coral ID, species, and genet information",
+        "Disease type and initial severity assessment",
+        "Date and time of treatment initiation",
+        "Treatment method and chemical concentrations",
+        "Duration of each treatment application",
+        "Pre- and post-treatment photographs",
+        "Daily monitoring observations",
+        "Water quality parameters during quarantine",
+        "Treatment outcome (successful/failed/ongoing)",
+        "Date released from quarantine or disposed"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-005-15",
+      "order": 15,
+      "type": "note",
+      "title": "When to Euthanize",
+      "description": "Some diseased corals cannot be saved and pose transmission risk to healthy populations. Consider euthanasia when: disease has consumed >80% of colony tissue, tissue loss continues despite multiple treatment attempts, disease type is highly transmissible and treatment options are limited, or coral is a common genet with healthier representatives available. Euthanize by removing from water and allowing to desiccate, then dispose of in sealed container. Never discard diseased coral tissue in natural water bodies.",
+      "isRequired": false,
+      "estimatedTime": 120
+    }
+  ],
+  "relatedMediaIds": [
+    "media-cr-014",
+    "media-cr-015",
+    "media-cr-016"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "references": [
+      "NOAA SCTLD Treatment Guidelines",
+      "Florida DEP Coral Disease Intervention Protocol",
+      "Coral Disease Handbook - Woodley et al.",
+      "Reef Futures Disease Response Standards",
+      "University of Florida SCTLD Research Protocols"
+    ],
+    "estimatedTotalTime": 6300,
+    "difficulty": "advanced",
+    "prerequisites": [
+      "Health monitoring SOP completion",
+      "Disease identification training",
+      "Chemical handling safety certification",
+      "Quarantine management fundamentals"
+    ],
+    "regulatoryNotes": "Antibiotic use in marine organisms may require permits or veterinary oversight depending on jurisdiction. Check local regulations before implementing antibiotic treatments."
+  }
+}

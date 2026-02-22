@@ -1,0 +1,54 @@
+coral:
+  - id: coral_disease_outbreak
+    label: Disease outbreak
+    lifeStage: life_stage_juvenile
+    description: Lesions or discoloration observed across fragments or trays.
+    recommendedAction: Isolate affected material, log pathogen sample, alert health partners.
+    severity: high
+    tags:
+      - disease
+      - quarantine
+  - id: coral_recent_frag_loss
+    label: Post-frag mortality
+    lifeStage: life_stage_juvenile
+    description: Recent fragmentation stress causing tissue loss.
+    recommendedAction: Reduce handling, increase flow/oxygenation, monitor for infection.
+    severity: medium
+    tags:
+      - handling
+
+kelp:
+  - id: kelp_line_overgrow
+    label: Overgrown seeded line
+    lifeStage: life_stage_juvenile
+    description: Biomass exceeded 8 kg/m causing whole-line loss.
+    recommendedAction: Split line segments sooner, adjust density plans.
+    severity: medium
+    tags:
+      - density
+  - id: kelp_predation
+    label: Herbivory or grazing loss
+    lifeStage: life_stage_adult
+    description: Grazing from fish/turtles removed biomass from longlines.
+    recommendedAction: Deploy deterrent gear, log predator sightings.
+    severity: medium
+    tags:
+      - predation
+
+oyster:
+  - id: oyster_dermo
+    label: Dermo disease mortality
+    lifeStage: life_stage_adult
+    description: Confirmed Perkinsus marinus infection causing losses.
+    recommendedAction: Increase monitoring frequency, coordinate lab testing, adjust site selection.
+    severity: high
+    tags:
+      - disease
+  - id: oyster_density
+    label: Spat bag over-density
+    lifeStage: life_stage_juvenile
+    description: Spat bags exceeded 2,000 spat and experienced die-off.
+    recommendedAction: Thin spat bags, schedule grading event, update husbandry plan.
+    severity: medium
+    tags:
+      - density

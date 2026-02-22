@@ -1,0 +1,551 @@
+// @tier: community
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:collection/collection.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:seafoundry_app/models/models.dart';
+import 'package:seafoundry_app/models/transfer_manifest.dart';
+import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
+import 'package:seafoundry_app/repositories/organization_repository.dart';
+import 'package:seafoundry_app/services/logging_service.dart';
+import 'package:seafoundry_app/services/outplant_geometry_parser.dart';
+import 'package:seafoundry_app/services/transfer_service.dart';
+import 'package:seafoundry_app/utils/validation_utils.dart';
+
+class TransferInitiateState extends Equatable {
+  TransferInitiateState({
+    this.recipientMode = RecipientMode.organization,
+    this.selectedOrganization,
+    this.recipientEmail = '',
+    this.selectingOrganization = false,
+    this.transferEvent,
+    this.manifest,
+    this.geometryText = '',
+    this.geometryInput,
+    this.geometryValidationMessage,
+    ProvenanceLifeStageSelection? provenanceSelection,
+    this.selectedPhysicalFormId = 'fragment',
+    this.sizeSpec = const SizeSpec(),
+    this.permitValidFrom,
+    this.permitValidTo,
+    this.ownershipType = TransferOwnershipType.fullTransfer,
+    this.isThirdPartyDetected = false,
+    this.originalOwnerOrganizationId,
+  }) : provenanceSelection = provenanceSelection ?? ProvenanceLifeStageSelection.fallback();
+
+  /// How the recipient is specified (organization lookup vs direct email)
+  final RecipientMode recipientMode;
+
+  /// Selected organization (used in organization mode)
+  final Organization? selectedOrganization;
+
+  /// Recipient email address (used in email mode)
+  final String recipientEmail;
+
+  final bool selectingOrganization;
+  final TransferEvent? transferEvent;
+  final TransferManifest? manifest;
+  final String geometryText;
+  final OutplantGeometryInput? geometryInput;
+  final String? geometryValidationMessage;
+
+  /// Provenance/life stage selection for the transfer.
+  final ProvenanceLifeStageSelection provenanceSelection;
+
+  /// Physical form ID (e.g., 'fragment', 'colony').
+  final String selectedPhysicalFormId;
+
+  /// Size specification for the transferred organisms.
+  final SizeSpec sizeSpec;
+
+  /// Permit valid-from date (optional).
+  final DateTime? permitValidFrom;
+
+  /// Permit valid-to date (optional).
+  final DateTime? permitValidTo;
+
+  /// Ownership type for the transfer (full, retained, or third-party).
+  final TransferOwnershipType ownershipType;
+
+  /// Whether a third-party transfer has been detected (organisms owned by another org).
+  final bool isThirdPartyDetected;
+
+  /// The original owner organization ID when third-party transfer is detected.
+  final String? originalOwnerOrganizationId;
+
+  bool get hasTransfer => transferEvent != null;
+
+  /// Whether the recipient is valid based on current mode
+  bool get hasValidRecipient {
+    return switch (recipientMode) {
+      RecipientMode.organization => selectedOrganization != null,
+      RecipientMode.email => ValidationUtils.isValidEmail(recipientEmail),
+    };
+  }
+
+  /// Display name for the recipient based on current mode
+  String? get recipientDisplayName {
+    return switch (recipientMode) {
+      RecipientMode.organization => selectedOrganization?.name,
+      RecipientMode.email =>
+        recipientEmail.isNotEmpty ? recipientEmail : null,
+    };
+  }
+
+  static const _sentinel = Object();
+
+  TransferInitiateState copyWith({
+    RecipientMode? recipientMode,
+    Object? selectedOrganization = _sentinel,
+    String? recipientEmail,
+    bool? selectingOrganization,
+    Object? transferEvent = _sentinel,
+    Object? manifest = _sentinel,
+    Object? geometryText = _sentinel,
+    Object? geometryInput = _sentinel,
+    Object? geometryValidationMessage = _sentinel,
+    ProvenanceLifeStageSelection? provenanceSelection,
+    String? selectedPhysicalFormId,
+    SizeSpec? sizeSpec,
+    Object? permitValidFrom = _sentinel,
+    Object? permitValidTo = _sentinel,
+    TransferOwnershipType? ownershipType,
+    bool? isThirdPartyDetected,
+    Object? originalOwnerOrganizationId = _sentinel,
+  }) {
+    return TransferInitiateState(
+      recipientMode: recipientMode ?? this.recipientMode,
+      selectedOrganization: selectedOrganization == _sentinel
+          ? this.selectedOrganization
+          : selectedOrganization as Organization?,
+      recipientEmail: recipientEmail ?? this.recipientEmail,
+      selectingOrganization:
+          selectingOrganization ?? this.selectingOrganization,
+      transferEvent: transferEvent == _sentinel
+          ? this.transferEvent
+          : transferEvent as TransferEvent?,
+      manifest: manifest == _sentinel
+          ? this.manifest
+          : manifest as TransferManifest?,
+      geometryText: geometryText == _sentinel
+          ? this.geometryText
+          : geometryText as String,
+      geometryInput: geometryInput == _sentinel
+          ? this.geometryInput
+          : geometryInput as OutplantGeometryInput?,
+      geometryValidationMessage:
+          geometryValidationMessage == _sentinel
+              ? this.geometryValidationMessage
+              : geometryValidationMessage as String?,
+      provenanceSelection: provenanceSelection ?? this.provenanceSelection,
+      selectedPhysicalFormId:
+          selectedPhysicalFormId ?? this.selectedPhysicalFormId,
+      sizeSpec: sizeSpec ?? this.sizeSpec,
+      permitValidFrom: permitValidFrom == _sentinel
+          ? this.permitValidFrom
+          : permitValidFrom as DateTime?,
+      permitValidTo: permitValidTo == _sentinel
+          ? this.permitValidTo
+          : permitValidTo as DateTime?,
+      ownershipType: ownershipType ?? this.ownershipType,
+      isThirdPartyDetected: isThirdPartyDetected ?? this.isThirdPartyDetected,
+      originalOwnerOrganizationId: originalOwnerOrganizationId == _sentinel
+          ? this.originalOwnerOrganizationId
+          : originalOwnerOrganizationId as String?,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        recipientMode,
+        selectedOrganization,
+        recipientEmail,
+        selectingOrganization,
+        transferEvent,
+        manifest,
+        geometryText,
+        geometryInput,
+        geometryValidationMessage,
+        provenanceSelection,
+        selectedPhysicalFormId,
+        sizeSpec,
+        permitValidFrom,
+        permitValidTo,
+        ownershipType,
+        isThirdPartyDetected,
+        originalOwnerOrganizationId,
+      ];
+}
+
+class TransferInitiateCubit extends Cubit<TransferInitiateState> {
+  TransferInitiateCubit({
+    required this.transferService,
+    required this.organizationRepository,
+    this.sourceStructureUrlPath,
+    this.originalEvent,
+    ProvenanceLifeStageSelection? initialProvenanceSelection,
+    String? initialPhysicalFormId,
+    SizeSpec? initialSizeSpec,
+    OutplantGeometryParser? geometryParser,
+  }) : _geometryParser = geometryParser ?? const OutplantGeometryParser(),
+       super(
+         TransferInitiateState(
+           recipientMode: _initialRecipientMode(originalEvent),
+           recipientEmail: originalEvent?.toOrganizationEmail ?? '',
+           geometryText: _initialGeometryText(originalEvent),
+           geometryInput: _initialGeometryInput(originalEvent),
+           provenanceSelection: _initialProvenanceSelection(
+             originalEvent,
+             initialProvenanceSelection,
+           ),
+           selectedPhysicalFormId: _initialPhysicalFormId(
+             originalEvent,
+             initialPhysicalFormId,
+           ),
+           sizeSpec: _initialSizeSpec(originalEvent, initialSizeSpec),
+           permitValidFrom: originalEvent?.permitMetadata.validFrom,
+           permitValidTo: originalEvent?.permitMetadata.validTo,
+         ),
+       ) {
+    if (originalEvent != null && originalEvent!.toOrganizationId != null) {
+      _hydrateOrganization(originalEvent!.toOrganizationId!);
+    }
+  }
+
+  final TransferService transferService;
+  final OrganizationRepository organizationRepository;
+  final String? sourceStructureUrlPath;
+  final TransferEvent? originalEvent;
+  final OutplantGeometryParser _geometryParser;
+
+  /// Sets the recipient mode (organization lookup vs email)
+  void setRecipientMode(RecipientMode mode) {
+    emit(state.copyWith(recipientMode: mode));
+  }
+
+  /// Sets the recipient email address (for email mode)
+  void setRecipientEmail(String email) {
+    emit(state.copyWith(recipientEmail: email));
+  }
+
+  void setSelectedOrganization(Organization organization) {
+    emit(state.copyWith(selectedOrganization: organization));
+  }
+
+  void setSelectingOrganization(bool selecting) {
+    emit(state.copyWith(selectingOrganization: selecting));
+  }
+
+  /// Update the provenance/life stage selection.
+  void updateProvenanceSelection(ProvenanceLifeStageSelection selection) {
+    emit(state.copyWith(provenanceSelection: selection));
+  }
+
+  /// Update the physical form ID.
+  void updatePhysicalForm(String physicalFormId) {
+    emit(state.copyWith(selectedPhysicalFormId: physicalFormId));
+  }
+
+  /// Update the size specification.
+  void updateSizeSpec(SizeSpec sizeSpec) {
+    emit(state.copyWith(sizeSpec: sizeSpec));
+  }
+
+  /// Update permit dates.
+  void updatePermitDates({DateTime? validFrom, DateTime? validTo}) {
+    emit(state.copyWith(
+      permitValidFrom: validFrom,
+      permitValidTo: validTo,
+    ));
+  }
+
+  /// Sets the ownership type for the transfer.
+  /// Only allowed when third-party transfer is not detected.
+  void setOwnershipType(TransferOwnershipType type) {
+    if (!state.isThirdPartyDetected) {
+      emit(state.copyWith(ownershipType: type));
+    }
+  }
+
+  /// Detects if any organisms are owned by a different organization.
+  /// If so, sets the transfer to third-party mode automatically.
+  void detectThirdPartyTransfer(
+    List<OrganismRecord> organisms,
+    String currentOrgId,
+  ) {
+    final thirdPartyOrganism = organisms.firstWhereOrNull(
+      (o) =>
+          o.ownerOrganizationId != null &&
+          o.ownerOrganizationId!.isNotEmpty &&
+          o.ownerOrganizationId != currentOrgId,
+    );
+
+    if (thirdPartyOrganism != null) {
+      emit(state.copyWith(
+        isThirdPartyDetected: true,
+        originalOwnerOrganizationId: thirdPartyOrganism.ownerOrganizationId,
+        ownershipType: TransferOwnershipType.thirdPartyTransfer,
+      ));
+    }
+  }
+
+  /// Resets the third-party detection state.
+  /// Called when the organism selection changes.
+  void resetThirdPartyDetection() {
+    emit(state.copyWith(
+      isThirdPartyDetected: false,
+      originalOwnerOrganizationId: null,
+      ownershipType: TransferOwnershipType.fullTransfer,
+    ));
+  }
+
+  Future<void> _hydrateOrganization(String organizationId) async {
+    try {
+      final org = await organizationRepository.getById(organizationId);
+      if (isClosed) return;
+      if (org != null) {
+        emit(state.copyWith(selectedOrganization: org));
+      }
+    } on FirebaseException catch (e, stackTrace) {
+      LoggingService.instance.error(
+        'Firebase error loading organization $organizationId: ${e.message}',
+        e,
+        stackTrace,
+      );
+    } catch (e, stackTrace) {
+      LoggingService.instance.warning(
+        'Failed to load organization $organizationId: $e',
+        {'stackTrace': stackTrace.toString()},
+      );
+    }
+  }
+
+  /// Submits the transfer based on current recipient mode.
+  /// For organization mode, uses the selected organization.
+  /// For email mode, uses the recipient email address.
+  Future<TransferEvent> submitTransfer({
+    required String genetId,
+    required int quantity,
+    required ProvenanceLifeStageSelection provenanceSelection,
+    required String physicalFormId,
+    required SizeSpec sizeSpec,
+    String? comment,
+    EventPermitMetadata? permitMetadata,
+    OutplantGeometryInput? geometryInput,
+    Map<String, int>? inventorySelection,
+  }) async {
+    // Handle edit mode - updates always go through updatePendingTransfer
+    if (originalEvent != null) {
+      final transfer = await transferService.updatePendingTransfer(
+        transferEventId: originalEvent!.id,
+        quantity: quantity,
+        comment: comment?.isEmpty == true ? null : comment,
+        permitMetadata: permitMetadata,
+        provenanceTypeOverride: provenanceSelection.provenanceType,
+        lifeStageOverride: provenanceSelection.lifeStage,
+        physicalFormOverride: physicalFormId,
+        sizeSpecOverride: sizeSpec,
+        geometryInput: geometryInput,
+      );
+      _emitSuccess(transfer);
+      LoggingService.instance.info('Transfer updated: ${transfer.id}');
+      return transfer;
+    }
+
+    // Handle new transfers based on recipient mode
+    final TransferEvent transfer;
+
+    switch (state.recipientMode) {
+      case RecipientMode.organization:
+        final destination = state.selectedOrganization;
+        if (destination == null) {
+          throw StateError(
+            'Destination organization required for organization mode',
+          );
+        }
+        transfer = await transferService.initiateTransfer(
+          genetId: genetId,
+          toOrganizationId: destination.id,
+          quantity: quantity,
+          sourceStructureUrlPath: sourceStructureUrlPath,
+          comment: comment?.isEmpty == true ? null : comment,
+          permitMetadata: permitMetadata ?? const EventPermitMetadata.empty(),
+          provenanceTypeOverride: provenanceSelection.provenanceType,
+          lifeStageOverride: provenanceSelection.lifeStage,
+          physicalFormOverride: physicalFormId,
+          sizeSpecOverride: sizeSpec,
+          geometryInput: geometryInput,
+          inventorySelection: inventorySelection,
+          ownershipType: state.ownershipType,
+          originalOwnerOrganizationId: state.originalOwnerOrganizationId,
+        );
+        if (isClosed) return transfer;
+        _emitSuccess(transfer);
+        LoggingService.instance.info(
+          'Transfer initiated: ${transfer.id} to ${destination.name}',
+        );
+
+      case RecipientMode.email:
+        final email = state.recipientEmail.trim();
+        if (email.isEmpty) {
+          throw StateError('Recipient email required for email mode');
+        }
+        transfer = await transferService.initiateTransferToEmail(
+          genetId: genetId,
+          toOrganizationEmail: email,
+          quantity: quantity,
+          sourceStructureUrlPath: sourceStructureUrlPath,
+          comment: comment?.isEmpty == true ? null : comment,
+          permitMetadata: permitMetadata ?? const EventPermitMetadata.empty(),
+          provenanceTypeOverride: provenanceSelection.provenanceType,
+          lifeStageOverride: provenanceSelection.lifeStage,
+          physicalFormOverride: physicalFormId,
+          sizeSpecOverride: sizeSpec,
+          geometryInput: geometryInput,
+          inventorySelection: inventorySelection,
+          ownershipType: state.ownershipType,
+          originalOwnerOrganizationId: state.originalOwnerOrganizationId,
+        );
+        if (isClosed) return transfer;
+        _emitSuccess(transfer);
+        LoggingService.instance.info(
+          'Email transfer initiated: ${transfer.id} to $email',
+        );
+    }
+
+    return transfer;
+  }
+
+  static RecipientMode _initialRecipientMode(TransferEvent? event) {
+    if (event == null) return RecipientMode.organization;
+    // If event has email but no org ID, it's email mode
+    if (event.toOrganizationEmail != null &&
+        event.toOrganizationEmail!.isNotEmpty &&
+        event.toOrganizationId == null) {
+      return RecipientMode.email;
+    }
+    return RecipientMode.organization;
+  }
+
+  void _emitSuccess(TransferEvent transfer) {
+    emit(
+      state.copyWith(
+        transferEvent: transfer,
+        manifest: _extractManifest(transfer),
+      ),
+    );
+  }
+
+  TransferManifest? _extractManifest(TransferEvent transfer) {
+    try {
+      if (transfer.manifest != null) {
+        return TransferManifest.fromJson(transfer.manifest!);
+      }
+      final payload = transfer.qrPayload;
+      if (payload == null || payload.isEmpty) {
+        return null;
+      }
+      return transferService.decodeManifestPayload(payload);
+    } catch (e, stackTrace) {
+      LoggingService.instance.error(
+        'Failed to decode transfer manifest for ${transfer.id}',
+        e,
+        stackTrace,
+      );
+      return null;
+    }
+  }
+
+  void updateGeometryText(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      emit(
+        state.copyWith(
+          geometryText: '',
+          geometryInput: null,
+          geometryValidationMessage: null,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final parsed = _geometryParser.parseManual(value);
+      emit(
+        state.copyWith(
+          geometryText: value,
+          geometryInput: parsed.input,
+          geometryValidationMessage: null,
+        ),
+      );
+    } on FormatException catch (error) {
+      emit(
+        state.copyWith(
+          geometryText: value,
+          geometryInput: null,
+          geometryValidationMessage: error.message,
+        ),
+      );
+    }
+  }
+
+  static String _initialGeometryText(TransferEvent? event) {
+    final geometry = event?.geometry;
+    if (geometry == null || geometry.coordinates.isEmpty) {
+      return '';
+    }
+    return geometry.coordinates
+        .map((coord) => '${coord.latitude},${coord.longitude}')
+        .join('\n');
+  }
+
+  static OutplantGeometryInput? _initialGeometryInput(TransferEvent? event) {
+    final geometry = event?.geometry;
+    if (geometry == null || geometry.coordinates.isEmpty) return null;
+    return OutplantGeometryInput(
+      type: geometry.type,
+      coordinates: List<GeoCoordinate>.from(geometry.coordinates),
+      source: geometry.source,
+      kmlAttachment: geometry.kmlAttachment,
+    );
+  }
+
+  static ProvenanceLifeStageSelection _initialProvenanceSelection(
+    TransferEvent? event,
+    ProvenanceLifeStageSelection? fallback,
+  ) {
+    if (event != null) {
+      final metadata = event.metadata;
+      if (metadata != null && metadata.isNotEmpty) {
+        return ProvenanceLifeStageSelection.fromCanonicalSources(
+          sources: [Map<String, dynamic>.from(metadata)],
+        );
+      }
+    }
+    return fallback ?? ProvenanceLifeStageSelection.fallback();
+  }
+
+  static String _initialPhysicalFormId(
+    TransferEvent? event,
+    String? fallback,
+  ) {
+    final metadata = event?.metadata;
+    final raw = metadata?['physicalFormId'];
+    if (raw is String && raw.isNotEmpty) {
+      return raw;
+    }
+    return fallback ?? 'fragment';
+  }
+
+  static SizeSpec _initialSizeSpec(
+    TransferEvent? event,
+    SizeSpec? fallback,
+  ) {
+    final metadata = event?.metadata;
+    final raw = metadata?['size'];
+    if (raw is Map<String, dynamic>) {
+      return SizeSpec.fromJson(Map<String, dynamic>.from(raw));
+    }
+    return fallback ?? const SizeSpec();
+  }
+}

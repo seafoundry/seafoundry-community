@@ -1,0 +1,206 @@
+{
+  "id": "sop-cr-002",
+  "organizationId": "template",
+  "title": "Coral Fragmentation Techniques",
+  "description": "Standard operating procedure for coral fragmentation and microfragmentation, including tool sterilization, donor colony selection criteria, cutting techniques for different coral morphologies, fragment mounting on plugs, and post-fragmentation care. Microfragmentation enables corals to grow 25-50x faster than natural rates by stimulating tissue regeneration.",
+  "category": "Propagation",
+  "organismKind": "coral",
+  "version": "1.0.0",
+  "createdBy": "seafoundry-system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "steps": [
+    {
+      "id": "step-002-1",
+      "order": 1,
+      "type": "warning",
+      "title": "Biosecurity and Cross-Contamination Prevention",
+      "description": "Fragmentation tools can transmit coral diseases between colonies. NEVER use the same tools on different genets without complete sterilization between uses. Work from healthiest to least healthy corals if processing multiple colonies. Maintain separate tool sets for each genet when possible.",
+      "isRequired": true,
+      "estimatedTime": 60
+    },
+    {
+      "id": "step-002-2",
+      "order": 2,
+      "type": "checklist",
+      "title": "Tool Preparation and Sterilization",
+      "description": "Prepare and sterilize all fragmentation tools before beginning. Tools must be completely dry before use to prevent freshwater stress to corals.",
+      "checklistItems": [
+        "Bone cutters (for branching corals) - sharpened and oiled",
+        "Diamond band saw (for massive corals) - blade inspected",
+        "Tile saw or wet saw (for large colonies)",
+        "Coral plugs or discs (appropriate size for species)",
+        "Two-part marine epoxy or cyanoacrylate gel",
+        "10% bleach solution for sterilization",
+        "Freshwater rinse station",
+        "Drying towels or air compressor",
+        "Latex or nitrile gloves",
+        "Safety glasses",
+        "Dust mask (for dry cutting operations)"
+      ],
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-002-3",
+      "order": 3,
+      "type": "instruction",
+      "title": "Sterilization Protocol",
+      "description": "Immerse all cutting tools in 10% bleach solution for minimum 10 minutes. Rinse thoroughly with freshwater to remove all bleach residue. Allow tools to air dry completely or use compressed air. Between genets, wipe tools with isopropyl alcohol if full sterilization is not practical. Never skip sterilization between donor colonies.",
+      "isRequired": true,
+      "estimatedTime": 900,
+      "mediaUrl": "gs://seafoundry-training/coral/fragmentation/tool_sterilization.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-002-4",
+      "order": 4,
+      "type": "instruction",
+      "title": "Donor Colony Selection",
+      "description": "Select donor colonies based on the following criteria: robust health with no signs of disease or bleaching, active growth margins visible, polyps extending normally, no tissue recession. Prioritize genetically diverse colonies to maximize population resilience. Document the genet ID and collection location of each donor. Never remove more than 10% of a wild donor colony's tissue in a single fragmentation event.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/fragmentation/donor_selection_criteria.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-002-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Branching Coral Fragmentation",
+      "description": "For branching species (Acropora, Pocillopora, Stylophora): Use sharp bone cutters to make clean cuts at branch intersections. Fragment size should be 3-5 cm with at least 2-3 branch tips when possible. Cut at 45-degree angles to maximize surface area for attachment. Avoid crushing tissue - if cuts are not clean, sharpen tools before continuing. Place fragments immediately in flow-through seawater.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/fragmentation/branching_coral_cutting.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-002-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "Massive Coral Fragmentation",
+      "description": "For massive/boulder species (Orbicella, Montastraea, Porites): Use a diamond band saw or tile saw with continuous water flow to prevent heat damage. Cut fragments approximately 3-5 cm square and 1-2 cm thick. Ensure each fragment has living tissue on the top surface. Work quickly to minimize air exposure. For very large colonies, score the colony in situ before removing sections.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/fragmentation/massive_coral_cutting.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-002-7",
+      "order": 7,
+      "type": "instruction",
+      "title": "Microfragmentation Technique",
+      "description": "Microfragmentation uses very small fragments (1-2 cm or smaller) to maximize growth rate through wound-healing response. Cut fragments into 1 cm squares or smaller pieces using diamond band saw. Space microfragments 1-2 cm apart on substrate to allow fusion as they grow. This technique is particularly effective for slow-growing massive species and can accelerate colony growth by 25-50x. Monitor for tissue fusion at 2-4 week intervals.",
+      "isRequired": false,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/fragmentation/microfragmentation_technique.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-002-8",
+      "order": 8,
+      "type": "checklist",
+      "title": "Fragment Quality Assessment",
+      "description": "Before mounting, assess each fragment against these quality criteria:",
+      "checklistItems": [
+        "Fragment has clean cut edges (no crushing or tearing)",
+        "Living tissue covers majority of surface area",
+        "No visible signs of tissue damage or stress",
+        "Fragment size meets minimum requirements (species-specific)",
+        "No attached pests or parasites",
+        "Fragment retains normal coloration",
+        "Skeleton is structurally sound (no fractures)"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-002-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Mounting Fragments on Plugs",
+      "description": "Select plug or disc size appropriate for fragment. For epoxy mounting: mix two-part marine epoxy until uniform color, form a small ball, press onto center of plug. Position fragment with living tissue facing up and base embedded in epoxy. For gel adhesive: apply a small amount to plug, press fragment firmly for 30 seconds. Ensure fragment is elevated 2-3mm above plug surface to prevent sediment contact with tissue. Avoid getting adhesive on living tissue.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/fragmentation/mounting_on_plugs.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-002-10",
+      "order": 10,
+      "type": "warning",
+      "title": "Fragment Handling Precautions",
+      "description": "Minimize air exposure during all fragmentation operations - tissue damage increases significantly after 60 seconds of air exposure. Keep fragments submerged in seawater between processing steps. Handle fragments by the skeleton only, never touch living tissue. Water temperature during processing should match nursery conditions within 1C.",
+      "isRequired": true,
+      "estimatedTime": 60
+    },
+    {
+      "id": "step-002-11",
+      "order": 11,
+      "type": "instruction",
+      "title": "Post-Fragmentation Care",
+      "description": "Place mounted fragments in low-flow recovery area for 24-48 hours. Reduce light intensity to 50% of normal for first 3-5 days to reduce stress. Monitor daily for signs of tissue recession, mucus production, or bleaching. Transfer to normal nursery conditions once fragments show polyp extension and stable coloration. Document fragment ID, genet source, and processing date.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-002-12",
+      "order": 12,
+      "type": "checklist",
+      "title": "Documentation Requirements",
+      "description": "Complete the following documentation for each fragmentation session:",
+      "checklistItems": [
+        "Donor colony genet ID and collection site",
+        "Number of fragments produced",
+        "Fragment sizes and physical form notes",
+        "Date and time of fragmentation",
+        "Personnel performing fragmentation",
+        "Tools used and sterilization method",
+        "Initial fragment photographs",
+        "Nursery placement location",
+        "Recovery period start date"
+      ],
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-002-13",
+      "order": 13,
+      "type": "note",
+      "title": "Species-Specific Considerations",
+      "description": "Fragment survival rates vary by species. Acropora species typically show higher fragmentation success (>80%) but are more susceptible to white-band disease. Massive species like Orbicella have lower initial survival but higher long-term persistence. Adjust fragment size and recovery protocols based on species-specific requirements. Consult species care sheets for detailed guidance.",
+      "isRequired": false,
+      "estimatedTime": 60,
+      "metadata": {
+        "speciesNotes": {
+          "acropora": "3-5cm fragments, high light tolerance, watch for white-band",
+          "orbicella": "2-3cm squares, slower recovery, excellent long-term survival",
+          "pocillopora": "Small fragments viable, rapid initial growth",
+          "porites": "Very resilient, tolerates smaller fragment sizes"
+        }
+      }
+    }
+  ],
+  "relatedMediaIds": [
+    "media-cr-004",
+    "media-cr-005",
+    "media-cr-006"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "references": [
+      "NOAA Coral Restoration Guidelines 2023",
+      "Reef Futures Microfragmentation Protocol",
+      "Florida Fish and Wildlife Coral Propagation Standards",
+      "Page et al. 2018 - Microfragmentation Growth Rates"
+    ],
+    "estimatedTotalTime": 5280,
+    "difficulty": "advanced",
+    "prerequisites": [
+      "Coral biology fundamentals",
+      "Species identification training",
+      "Basic nursery operations SOP completion"
+    ]
+  }
+}

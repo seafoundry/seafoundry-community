@@ -1,0 +1,228 @@
+{
+  "id": "sop-aq-001",
+  "organizationId": "template",
+  "title": "Water Quality Management",
+  "description": "Comprehensive standard operating procedure for maintaining optimal water quality in aquaculture systems. Covers daily parameter testing, equipment calibration, species-specific optimal ranges, and emergency response protocols for out-of-range conditions. Applicable across all organism types including coral, oyster, kelp, finfish, and seagrass.",
+  "category": "Husbandry",
+  "organismKind": null,
+  "version": "1.0",
+  "createdBy": "SeaFoundry",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "isArchived": false,
+  "steps": [
+    {
+      "id": "wqm-step-1",
+      "order": 1,
+      "type": "warning",
+      "title": "Safety First",
+      "description": "Before beginning water quality testing, ensure you are wearing appropriate personal protective equipment (PPE). Chemical reagents used in water testing can cause skin and eye irritation. Never taste or ingest any testing solutions.",
+      "isRequired": true,
+      "estimatedTime": 120,
+      "checklistItems": [
+        "Safety glasses or goggles on",
+        "Chemical-resistant gloves worn",
+        "Lab coat or protective clothing on",
+        "First aid kit location confirmed",
+        "Eye wash station accessible"
+      ]
+    },
+    {
+      "id": "wqm-step-2",
+      "order": 2,
+      "type": "instruction",
+      "title": "Prepare Testing Equipment",
+      "description": "Gather all necessary testing equipment and ensure probes are properly calibrated. Inaccurate equipment leads to incorrect readings and poor management decisions. Check calibration dates on all meters and replace expired reagents.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/water-quality/testing-equipment-overview.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "wqm-step-3",
+      "order": 3,
+      "type": "checklist",
+      "title": "Equipment Calibration Verification",
+      "description": "Verify that all testing equipment has been calibrated within the required timeframe. Document any equipment requiring recalibration before proceeding with testing.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "checklistItems": [
+        "pH meter calibrated within last 24 hours using pH 4.0 and 7.0 buffers",
+        "Salinity refractometer zeroed with distilled water",
+        "Temperature probe verified against reference thermometer",
+        "Dissolved oxygen meter calibrated in air-saturated water",
+        "Ammonia test kit reagents within expiration date",
+        "Nitrate test kit reagents within expiration date",
+        "Alkalinity test kit reagents within expiration date"
+      ]
+    },
+    {
+      "id": "wqm-step-4",
+      "order": 4,
+      "type": "instruction",
+      "title": "Collect Water Samples",
+      "description": "Collect water samples from representative locations in each system. For large systems, collect samples from at least 3 locations: inlet, middle, and outlet. Use clean sampling containers rinsed with sample water before collection. Record exact sampling locations for consistency.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/water-quality/sample-collection-technique.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "wqm-step-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Temperature Measurement",
+      "description": "Measure water temperature at each sampling location. Temperature affects all other water quality parameters and organism metabolism. Record both ambient air temperature and water temperature. Note any significant temperature stratification in deep systems.",
+      "isRequired": true,
+      "estimatedTime": 180
+    },
+    {
+      "id": "wqm-step-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "pH Measurement",
+      "description": "Measure pH using a calibrated meter. Rinse probe with sample water before measurement. Wait for reading to stabilize (typically 30-60 seconds). Record pH to one decimal place. pH affects nutrient availability and organism stress levels.",
+      "isRequired": true,
+      "estimatedTime": 180
+    },
+    {
+      "id": "wqm-step-7",
+      "order": 7,
+      "type": "instruction",
+      "title": "Salinity Measurement",
+      "description": "Measure salinity using a refractometer or digital meter. For refractometers, apply 2-3 drops to the prism and read the scale against natural light. Salinity is critical for osmoregulation in all aquatic organisms.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "wqm-step-8",
+      "order": 8,
+      "type": "instruction",
+      "title": "Dissolved Oxygen Measurement",
+      "description": "Measure dissolved oxygen (DO) using a calibrated DO meter. Submerge probe at least 10cm below surface and gently agitate to ensure accurate reading. Record in mg/L and % saturation. Low DO is one of the most immediate threats to organism health.",
+      "isRequired": true,
+      "estimatedTime": 180
+    },
+    {
+      "id": "wqm-step-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Ammonia Testing",
+      "description": "Test for total ammonia nitrogen (TAN) using appropriate test kit or meter. Ammonia is highly toxic to aquatic organisms. Note: toxicity increases with higher pH and temperature. Calculate unionized ammonia (NH3) using provided conversion tables if TAN is elevated.",
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "wqm-step-10",
+      "order": 10,
+      "type": "instruction",
+      "title": "Nitrate and Nitrite Testing",
+      "description": "Test nitrite (NO2) and nitrate (NO3) levels. Nitrite is toxic and indicates incomplete nitrification. Nitrate is less toxic but high levels indicate poor water exchange or overfeeding. Both parameters help assess biofilter performance.",
+      "isRequired": true,
+      "estimatedTime": 900
+    },
+    {
+      "id": "wqm-step-11",
+      "order": 11,
+      "type": "note",
+      "title": "Optimal Parameter Ranges",
+      "description": "Reference optimal ranges for your specific organisms. General marine ranges: Temperature 24-28C (coral/tropical), 15-20C (temperate), pH 7.8-8.4, Salinity 32-36 ppt, DO >6mg/L (>80% saturation), Ammonia <0.02mg/L, Nitrite <0.1mg/L, Nitrate <20mg/L. Freshwater systems have different requirements. Always consult species-specific guidelines.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "wqm-step-12",
+      "order": 12,
+      "type": "checklist",
+      "title": "Record All Results",
+      "description": "Document all test results in the daily log with timestamp, location, and operator initials. Compare against baseline and previous readings to identify trends.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "checklistItems": [
+        "All parameter values recorded",
+        "Date and time documented",
+        "System/tank ID clearly noted",
+        "Operator initials added",
+        "Any anomalies flagged",
+        "Results entered into digital tracking system"
+      ]
+    },
+    {
+      "id": "wqm-step-13",
+      "order": 13,
+      "type": "warning",
+      "title": "Emergency Response for Critical Values",
+      "description": "If any parameter is outside critical thresholds, initiate emergency response immediately. Critical thresholds: DO <4mg/L, pH <7.2 or >8.8, Ammonia >0.5mg/L, Temperature deviation >3C from normal. Notify supervisor immediately and begin corrective action.",
+      "isRequired": true,
+      "estimatedTime": 60,
+      "checklistItems": [
+        "Identify affected systems",
+        "Notify supervisor immediately",
+        "Initiate appropriate corrective action",
+        "Increase monitoring frequency",
+        "Document incident and response actions",
+        "Monitor organisms for stress signs"
+      ]
+    },
+    {
+      "id": "wqm-step-14",
+      "order": 14,
+      "type": "instruction",
+      "title": "Corrective Actions for Low Dissolved Oxygen",
+      "description": "For low DO: Increase aeration immediately. Check air pump operation. Reduce feeding temporarily. Check for dead organisms. Consider partial water exchange with well-oxygenated water. Reduce stocking density if chronic issue.",
+      "isRequired": false,
+      "estimatedTime": 300
+    },
+    {
+      "id": "wqm-step-15",
+      "order": 15,
+      "type": "instruction",
+      "title": "Corrective Actions for Ammonia Spike",
+      "description": "For elevated ammonia: Reduce or stop feeding immediately. Perform 25-50% water exchange with treated water. Check biofilter media and flow. Inspect for dead organisms. Add zeolite or ammonia-removing media if available. Increase monitoring to every 4 hours.",
+      "isRequired": false,
+      "estimatedTime": 600
+    },
+    {
+      "id": "wqm-step-16",
+      "order": 16,
+      "type": "instruction",
+      "title": "Clean and Store Equipment",
+      "description": "After testing, rinse all probes with distilled water. Store pH probes in storage solution (never allow to dry). Return reagents to proper storage. Clean spills immediately. Dispose of used test samples appropriately.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "wqm-step-17",
+      "order": 17,
+      "type": "checklist",
+      "title": "Daily Water Quality Completion Checklist",
+      "description": "Verify all daily water quality tasks have been completed before signing off.",
+      "isRequired": true,
+      "estimatedTime": 120,
+      "checklistItems": [
+        "All systems tested",
+        "All results recorded and entered digitally",
+        "Any out-of-range values addressed",
+        "Equipment cleaned and stored properly",
+        "Reagent inventory checked",
+        "Supervisor notified of any concerns",
+        "Handoff notes completed for next shift"
+      ]
+    }
+  ],
+  "relatedMediaIds": [
+    "media-aq-001",
+    "media-aq-002",
+    "media-aq-003"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "estimatedTotalMinutes": 95,
+    "difficulty": "intermediate",
+    "prerequisites": [
+      "Basic chemistry knowledge",
+      "Facility orientation completed"
+    ]
+  }
+}

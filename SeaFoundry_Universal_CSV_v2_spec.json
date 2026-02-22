@@ -1,0 +1,594 @@
+{
+  "template": "SeaFoundry Universal CSV v2",
+  "version": "2.0.0-beta",
+  "inputFormat": "CSV-only",
+  "defaultOrganization": "current-session",
+  "required": [
+    "organismKind",
+    "speciesScientific",
+    "speciesCode",
+    "localId",
+    "record_name",
+    "lifeStage",
+    "eventType",
+    "eventDate",
+    "quantity_value",
+    "measurementUnit"
+  ],
+  "mergePrecedence": [
+    "provenanceId",
+    "cohortId",
+    "localId",
+    "record_name",
+    "alias:*",
+    "id:*"
+  ],
+  "hardFailOnIdConflict": true,
+  "examples": {
+    "coral": "docs/csv/fixtures/v2/coral_inventory_sample.csv",
+    "kelp": "docs/csv/fixtures/v2/kelp_longline_sample.csv",
+    "oyster": "docs/csv/fixtures/v2/oyster_reef_sample.csv"
+  },
+  "lookups": {
+    "organismKinds": [
+      "coral",
+      "oyster",
+      "seagrass",
+      "kelp",
+      "mangrove",
+      "echinoid",
+      "crab",
+      "finfish",
+      "seaCucumber"
+    ],
+    "lifeStages": {
+      "coral": [
+        "gamete",
+        "larvae",
+        "recruit",
+        "juvenile",
+        "colony",
+        "fragment"
+      ],
+      "oyster": [
+        "larvae",
+        "spat",
+        "growOut",
+        "reef"
+      ],
+      "seagrass": [
+        "seed",
+        "shoot",
+        "plot"
+      ],
+      "kelp": [
+        "spore",
+        "seededTwine",
+        "longline",
+        "harvest"
+      ],
+      "mangrove": [
+        "propagule",
+        "nursery",
+        "sapling",
+        "adult"
+      ],
+      "echinoid": [
+        "broodstock",
+        "larvae",
+        "juvenile",
+        "adult"
+      ],
+      "crab": [
+        "broodstock",
+        "larvae",
+        "zoea",
+        "megalopa",
+        "juvenile",
+        "adult"
+      ],
+      "finfish": [
+        "egg",
+        "larvae",
+        "fry",
+        "fingerling",
+        "juvenile",
+        "adult"
+      ],
+      "seaCucumber": [
+        "broodstock",
+        "larvae",
+        "juvenile",
+        "adult"
+      ]
+    },
+    "structureTypes": {
+      "shared": [
+        "tank",
+        "tray",
+        "group",
+        "plot",
+        "grid",
+        "gridCell",
+        "tag"
+      ],
+      "aquaculture": [
+        "longline",
+        "raft",
+        "dropperLine",
+        "pen",
+        "pond",
+        "raceway",
+        "bag",
+        "rack",
+        "cage"
+      ],
+      "reef": [
+        "reefPatch",
+        "intertidalPlot",
+        "beltTransect",
+        "quadrat"
+      ]
+    },
+    "measurementUnits": {
+      "count": [
+        "count",
+        "colonies",
+        "fragments",
+        "individuals"
+      ],
+      "length": [
+        "mm",
+        "cm",
+        "m"
+      ],
+      "area": [
+        "m2",
+        "ha"
+      ],
+      "volume": [
+        "L",
+        "m3"
+      ],
+      "mass": [
+        "g",
+        "kg",
+        "kg_per_m"
+      ],
+      "environmental": [
+        "degC",
+        "ppt",
+        "psu",
+        "mg_per_L",
+        "percent"
+      ]
+    },
+    "permitMetadata": {
+      "requiredWhenProtected": [
+        "permitId",
+        "issuingAuthority",
+        "validFrom",
+        "validTo"
+      ]
+    }
+  },
+  "geometry": {
+    "acceptedFormats": [
+      "WKT",
+      "GeoJSON"
+    ],
+    "storeAs": "GeoJSON",
+    "columns": [
+      "geometry_format",
+      "geometry_wkt",
+      "geometry_geojson",
+      "geometry_source",
+      "geometry_updatedAt"
+    ]
+  },
+  "types": {
+    "organismKind": {
+      "enumRef": "organismKinds"
+    },
+    "speciesScientific": "string",
+    "speciesCode": "string",
+    "speciesId": "string",
+    "eventType": "string",
+    "eventDate": "datetime",
+    "eventTimeZone": "string",
+    "localId": "string",
+    "record_name": "string",
+    "accessionId": "string",
+    "provenanceId": "string",
+    "provenanceKind": "string",
+    "provenanceLabel": "string",
+    "cohortId": "string",
+    "lifeStage": {
+      "enumRef": "lifeStages"
+    },
+    "measurementUnit": {
+      "enumRef": "measurementUnits"
+    },
+    "quantity_value": "number",
+    "quality_flag": {
+      "enum": [
+        "measured",
+        "estimated",
+        "modeled"
+      ]
+    },
+    "siteId": "string",
+    "siteName": "string",
+    "enclosureId": "string",
+    "groupId": "string",
+    "structureType": {
+      "enumRef": "structureTypes"
+    },
+    "inSituRow": "string",
+    "inSituCol": "string",
+    "geometry_format": {
+      "enum": [
+        "WKT",
+        "GeoJSON"
+      ]
+    },
+    "geometry_wkt": "string",
+    "geometry_geojson": "string",
+    "geometry_source": "string",
+    "geometry_updatedAt": "datetime",
+    "lineId": "string",
+    "dropperId": "string",
+    "permitId": "string",
+    "issuingAuthority": "string",
+    "validFrom": "date",
+    "validTo": "date",
+    "permitType": "string",
+    "protectedAreaFlag": "boolean",
+    "habitatType": "string",
+    "siteJurisdiction": "string",
+    "carbonPool.total": "number",
+    "carbonPool.aboveGround": "number",
+    "carbonPool.belowGround": "number",
+    "stock_tCO2e": "number",
+    "flux_tCO2e_yr": "number",
+    "uncertaintyPct": "number",
+    "permanenceRiskScore": "number",
+    "volunteerHours": "number",
+    "trainingHours": "number",
+    "credentialId": "string",
+    "irisMetricIds[]": {
+      "type": "array",
+      "items": "string"
+    },
+    "sdgTargets[]": {
+      "type": "array",
+      "items": "string"
+    },
+    "observer": "string",
+    "sourceSystem": "string",
+    "notes": "string",
+    "photoUrl": "string",
+    "environmentalPanel.temperature_c": "number",
+    "environmentalPanel.salinity_psu": "number",
+    "environmentalPanel.dissolvedOxygen_mgL": "number",
+    "environmentalPanel.ammonia_mgL": "number",
+    "environmentalPanel.nitrite_mgL": "number",
+    "environmentalPanel.nitrate_mgL": "number",
+    "environmentalPanel.alkalinity_mgL_as_CaCO3": "number",
+    "environmentalPanel.pH": "number",
+    "bleachingState": "string",
+    "diseaseCode": "string",
+    "partialMortality_pct": "number",
+    "benthicCover_pct": "number",
+    "shellHeight_mm": "number",
+    "oysterDensity_per_m2": "number",
+    "reefArea_m2": "number",
+    "reefHeight_cm": "number",
+    "lineBiomass_kg_per_m": "number",
+    "bladeLength_cm": "number",
+    "foulingIndex_0_5": "number",
+    "grazingDamageIndex": "number",
+    "shootDensity_per_m2": "number",
+    "cover_pct_or_class": "string",
+    "secchiDepth_m": "number",
+    "dbh_cm": "number",
+    "height_cm": "number",
+    "survival_pct": "number",
+    "carapaceWidth_mm": "number",
+    "length_mm": "number",
+    "weight_g": "number",
+    "moltStage": "string",
+    "eggsVisible_bool": "boolean",
+    "eggColor": "string",
+    "eggCount_est": "number",
+    "feedType": "string",
+    "feedRate_pctBW": "number",
+    "FCR": "number",
+    "mortality_pct": "number",
+    "density_per_m2": "number",
+    "releaseCount": "integer",
+    "healthCertificateId": "string"
+  },
+  "sections": {
+    "identity": [
+      "organismKind",
+      "speciesScientific",
+      "speciesCode",
+      "speciesId",
+      "provenanceId",
+      "provenanceKind",
+      "provenanceLabel",
+      "cohortId",
+      "provenanceId",
+      "lifeStage",
+      "localId",
+      "record_name"
+    ],
+    "quantity": [
+      "measurementUnit",
+      "quantity_value",
+      "quality_flag"
+    ],
+    "site": [
+      "siteId",
+      "siteName",
+      "enclosureId",
+      "groupId",
+      "structureType",
+      "inSituRow",
+      "inSituCol",
+      "geometry_format",
+      "geometry_wkt",
+      "geometry_geojson",
+      "geometry_source",
+      "geometry_updatedAt",
+      "lineId",
+      "dropperId"
+    ],
+    "event": [
+      "eventType",
+      "eventDate",
+      "eventTimeZone",
+      "observer",
+      "sourceSystem",
+      "notes",
+      "photoUrl"
+    ],
+    "permits": [
+      "permitId",
+      "permitType",
+      "issuingAuthority",
+      "validFrom",
+      "validTo",
+      "siteJurisdiction",
+      "habitatType",
+      "protectedAreaFlag"
+    ],
+    "mrv": [
+      "carbonPool.total",
+      "carbonPool.aboveGround",
+      "carbonPool.belowGround",
+      "stock_tCO2e",
+      "flux_tCO2e_yr",
+      "uncertaintyPct",
+      "permanenceRiskScore"
+    ],
+    "csr": [
+      "volunteerHours",
+      "trainingHours",
+      "credentialId",
+      "irisMetricIds[]",
+      "sdgTargets[]"
+    ],
+    "environmentalPanel": [
+      "environmentalPanel.temperature_c",
+      "environmentalPanel.salinity_psu",
+      "environmentalPanel.dissolvedOxygen_mgL",
+      "environmentalPanel.ammonia_mgL",
+      "environmentalPanel.nitrite_mgL",
+      "environmentalPanel.nitrate_mgL",
+      "environmentalPanel.alkalinity_mgL_as_CaCO3",
+      "environmentalPanel.pH"
+    ],
+    "organismSpecific": {
+      "coral": [
+        "bleachingState",
+        "diseaseCode",
+        "partialMortality_pct",
+        "benthicCover_pct"
+      ],
+      "oyster": [
+        "shellHeight_mm",
+        "oysterDensity_per_m2",
+        "reefArea_m2",
+        "reefHeight_cm"
+      ],
+      "kelp": [
+        "lineBiomass_kg_per_m",
+        "bladeLength_cm",
+        "foulingIndex_0_5",
+        "grazingDamageIndex"
+      ],
+      "seagrass": [
+        "shootDensity_per_m2",
+        "cover_pct_or_class",
+        "secchiDepth_m"
+      ],
+      "mangrove": [
+        "dbh_cm",
+        "height_cm",
+        "survival_pct"
+      ],
+      "echinoid": [
+        "density_per_m2"
+      ],
+      "crab": [
+        "carapaceWidth_mm",
+        "weight_g",
+        "moltStage",
+        "eggsVisible_bool",
+        "eggColor",
+        "eggCount_est",
+        "feedType",
+        "feedRate_pctBW",
+        "mortality_pct"
+      ],
+      "finfish": [
+        "weight_g",
+        "length_mm",
+        "FCR",
+        "releaseCount",
+        "healthCertificateId"
+      ]
+    }
+  },
+  "coherence": [
+    {
+      "if": {
+        "protectedAreaFlag": true
+      },
+      "then": {
+        "require": [
+          "permitId",
+          "issuingAuthority",
+          "validFrom",
+          "validTo"
+        ]
+      }
+    },
+    {
+      "if": {
+        "measurementUnit": "count"
+      },
+      "then": {
+        "ensureNumeric": [
+          "quantity_value"
+        ]
+      }
+    },
+    {
+      "if": {
+        "organismKind": "kelp"
+      },
+      "then": {
+        "require": [
+          "structureType",
+          "lineId",
+          "geometry_wkt"
+        ],
+        "structureTypeIn": [
+          "longline",
+          "raft",
+          "dropperLine"
+        ]
+      }
+    },
+    {
+      "if": {
+        "organismKind": "oyster"
+      },
+      "then": {
+        "require": [
+          "structureType",
+          "reefArea_m2"
+        ],
+        "structureTypeIn": [
+          "reefPatch",
+          "bag",
+          "rack",
+          "cage"
+        ]
+      }
+    },
+    {
+      "if": {
+        "organismKind": "finfish",
+        "eventType": "release"
+      },
+      "then": {
+        "require": [
+          "healthCertificateId",
+          "releaseCount",
+          "siteName"
+        ]
+      }
+    },
+    {
+      "if": {
+        "carbonPool.total": {
+          ">": 0
+        }
+      },
+      "then": {
+        "require": [
+          "stock_tCO2e",
+          "flux_tCO2e_yr",
+          "uncertaintyPct"
+        ]
+      }
+    },
+    {
+      "dateFormat": [
+        "eventDate",
+        "validFrom",
+        "validTo",
+        "geometry_updatedAt"
+      ]
+    }
+  ],
+  "synonyms": {
+    "organismKind": [
+      "organism",
+      "speciesGroup"
+    ],
+    "speciesScientific": [
+      "species",
+      "taxon",
+      "latinName"
+    ],
+    "speciesCode": [
+      "speciesCode",
+      "taxonCode"
+    ],
+    "measurementUnit": [
+      "quantityUnit",
+      "unit"
+    ],
+    "quantity_value": [
+      "quantity",
+      "count",
+      "qty"
+    ],
+    "eventDate": [
+      "dateTime",
+      "timestamp"
+    ],
+    "geometry_wkt": [
+      "geometry",
+      "wkt"
+    ],
+    "notes": [
+      "comments",
+      "remarks"
+    ],
+    "volunteerHours": [
+      "volHours",
+      "csr_volunteer_hours"
+    ],
+    "trainingHours": [
+      "training",
+      "csr_training_hours"
+    ],
+    "record_name": [
+      "recordName",
+      "record name"
+    ]
+  },
+  "notes": [
+    "CSV v2 is organism-agnostic: every row must declare its organismKind, speciesScientific, speciesCode, lifeStage, and measurementUnit.",
+    "When migrating coral CSV v1 files, map `quantity` → `quantity_value`, set `measurementUnit=count`, and populate `lifeStage` from `coralType`.",
+    "Arrays such as `irisMetricIds[]` and `sdgTargets[]` accept comma-delimited values; adapters expand them into arrays.",
+    "Geometry accepts WKT or GeoJSON payloads; multipoint strings must be quoted.",
+    "Permit metadata is mandatory for deployments in protected areas or when `permitType` is supplied."
+  ]
+}

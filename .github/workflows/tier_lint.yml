@@ -1,0 +1,40 @@
+# Tier Lints Quality Gate
+#
+# This workflow enforces tier manifest compliance across all branches.
+# All PRs must pass this check before merging.
+
+name: Tier Lints
+
+on:
+  pull_request:
+    branches: [ "**" ]
+  push:
+    branches: [ main, community, pro, scale ]
+
+jobs:
+  lint-tiers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-main-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Run tier checker
+        run: |
+          echo "Validating tier manifest compliance..."
+          dart run tool/bin/tier_check.dart
+          if [ $? -ne 0 ]; then
+            echo "::error::Tier manifest check failed - fix tier annotations before merging"
+            exit 1
+          fi
+          echo "✓ Tier manifest compliance verified"

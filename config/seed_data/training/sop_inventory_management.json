@@ -1,0 +1,200 @@
+{
+  "id": "sop-app-003",
+  "organizationId": "template",
+  "createdBy": "system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "title": "Managing Organism Inventory",
+  "description": "This SOP covers comprehensive inventory management in SeaFoundry, including adding new organisms, recording fragmentation (propagation) events, executing transfers between sites, and managing mortality and archival workflows. Proper inventory management ensures accurate tracking of organism holdings across your restoration program.",
+  "category": "Administration",
+  "organismKind": null,
+  "version": "1.0",
+  "isPublished": true,
+  "isArchived": false,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "type": "instruction",
+      "title": "Accessing the Inventory Workspace",
+      "description": "Navigate to the Inventory screen (InventoryScreen) from the main navigation menu. The Inventory workspace is organized into three tabs at the top: 'Events' shows a chronological spreadsheet of all inventory events, 'Analytics' displays charts and metrics about your holdings, and 'Holdings' shows the current inventory spreadsheet with filtering capabilities. The CSV tools menu (download icon in the app bar) provides import and export functionality.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/inventory_screen_tabs.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "type": "instruction",
+      "title": "Holdings Spreadsheet Overview",
+      "description": "The Holdings Spreadsheet (HoldingsSpreadsheet) displays all organisms with comprehensive filtering. Use the Organism Selector at the top-right to switch between organism types (Coral, Seagrass, etc.). Filter dropdowns allow cascading filtering: Site > Structure > Species > Provenance Type > Life Stage > Health Status > Local ID > Provenance ID. Each downstream filter narrows based on your upstream selections. Columns include Local ID, Provenance Type, Physical Form, Size, Quantity, Location, Species, Life Stage, Tissue Volume, Health Status, Outplant Status, and Propagation Status.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/holdings_spreadsheet.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "type": "instruction",
+      "title": "Adding New Organisms",
+      "description": "To add a new organism, navigate to the desired Group (structure) where the organism will be housed. Open the action dock and select the 'Add Organism' option from the inventory actions. The organism creation form requires: Species (select from dropdown), Provenance/Genet ID (link to existing or create new), Physical Form, Size specifications, Quantity, and initial Health Status. After entering required fields, tap Save to create the organism record. The new organism appears in the Holdings spreadsheet immediately.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/add_organism_dialog.png",
+      "mediaType": "image",
+      "estimatedTime": 300,
+      "isRequired": true
+    },
+    {
+      "id": "step-4",
+      "order": 4,
+      "type": "checklist",
+      "title": "Recording Fragmentation Events",
+      "description": "Fragmentation (propagation) events create new organism records from an existing parent. To record a fragmentation:",
+      "checklistItems": [
+        "Navigate to the parent organism in the holdings or directly via navigation",
+        "Open the action dock and select 'Fragment' or 'Propagate' from inventory actions",
+        "In the Fragging Dialog, specify the number of fragments created",
+        "Assign each fragment to a destination structure (can be same or different from parent)",
+        "Set the physical form for new fragments (typically 'Fragment' at creation)",
+        "Enter initial size measurements for new fragments",
+        "Add any notes about the fragmentation event",
+        "Tap Save - new organism records are created linked to the parent genet"
+      ],
+      "mediaUrl": "gs://seafoundry-training/app/inventory/fragging_dialog.png",
+      "mediaType": "image",
+      "estimatedTime": 360,
+      "isRequired": true
+    },
+    {
+      "id": "step-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Understanding Provenance and Genets",
+      "description": "Provenance records track the genetic lineage of organisms. Each genet (genetic individual) has a Provenance ID and Local ID (display name like 'ACER-001'). When fragmenting, all resulting organisms share the same genet ID, maintaining lineage tracking. The Provenance Type indicates the source: Wild Collection, Nursery Propagation, Rescue Collection, etc. View genet details including all related fragments in the Genetics workspace. The Provenance ID column in Holdings shows the system identifier while Local ID shows the user-friendly name.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/provenance_detail.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-6",
+      "order": 6,
+      "type": "checklist",
+      "title": "Transfer Workflows",
+      "description": "Transfers move organisms between organizations or sites. SeaFoundry supports multiple transfer types via the Transfer Dialog system:",
+      "checklistItems": [
+        "Transfer Initiate: Start a transfer by selecting organisms and specifying the receiving organization/site. Creates a pending transfer record.",
+        "Transfer Receive: Accept incoming transfers. Use TransferReceiveDialog to review and confirm receipt of organisms.",
+        "Manual Register: Use TransferManualRegisterDialog to register organisms received outside the system (e.g., from external sources).",
+        "Pending Transfers: View all pending incoming/outgoing transfers in the PendingTransfersDialog. Accept or reject with documentation.",
+        "Permit Metadata: When permits are required, transfer dialogs capture permit numbers and compliance information."
+      ],
+      "mediaUrl": "gs://seafoundry-training/app/inventory/transfer_initiate_dialog.png",
+      "mediaType": "image",
+      "estimatedTime": 360,
+      "isRequired": true
+    },
+    {
+      "id": "step-7",
+      "order": 7,
+      "type": "instruction",
+      "title": "Internal Moves Between Structures",
+      "description": "To move organisms between structures within the same site, use the internal move function rather than a full transfer. Select the organism(s) to move, open the action dock, and choose 'Move'. Select the destination structure from the picker. Internal moves update the organism's group assignment immediately without creating transfer records. Use this for routine nursery reorganization such as moving fragments between trees or tables.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/internal_move.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": false
+    },
+    {
+      "id": "step-8",
+      "order": 8,
+      "type": "instruction",
+      "title": "Recording Mortality",
+      "description": "When an organism dies, record the mortality event to maintain accurate inventory counts. Navigate to the organism record, open the action dock, and select 'Record Mortality'. In the mortality dialog, select the mortality cause from the dropdown (options defined in mortality_causes.defaults.yaml include disease, predation, thermal stress, storm damage, etc.). Add detailed notes about the circumstances. The organism is marked as deceased and excluded from active holdings counts while remaining in the historical record for analysis.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/mortality_dialog.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Archiving Organisms",
+      "description": "Archive organisms that are no longer actively tracked but should be retained for historical records. Common archive reasons include: transferred to external organization (when not using formal transfer), permanently lost but not confirmed dead, or data cleanup for duplicate records. Navigate to the organism, open actions, select 'Archive'. Provide an archive reason and notes. Archived organisms are hidden from default views but can be shown by toggling archive visibility filters. Archived records maintain all historical observations and events.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/archive_options.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": false
+    },
+    {
+      "id": "step-10",
+      "order": 10,
+      "type": "instruction",
+      "title": "Editing Organism Records",
+      "description": "To edit an existing organism's details, click the edit icon (pencil) in the Actions column of the Holdings Spreadsheet, or navigate to the organism and use the edit action. The edit dialog (accessed via InventoryEditingCoordinator) allows updating: Species, Physical Form, Size measurements, Health Status, Life Stage, Provenance links, and other metadata. Changes are tracked with timestamps and user attribution. Use editing for corrections; use events (fragmentation, mortality, transfer) for lifecycle changes.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/inventory/edit_organism.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-11",
+      "order": 11,
+      "type": "checklist",
+      "title": "Inventory Events Spreadsheet",
+      "description": "The Events tab in the Inventory workspace (InventoryEventsView) shows a chronological log of all inventory changes. Event types include:",
+      "checklistItems": [
+        "Creation: New organism added to inventory",
+        "Fragmentation: Propagation event creating new specimens",
+        "Transfer Out: Organisms sent to another organization",
+        "Transfer In: Organisms received from another organization",
+        "Internal Move: Relocation within the same site",
+        "Mortality: Death recorded",
+        "Archive: Record archived",
+        "Update: Field values modified"
+      ],
+      "mediaUrl": "gs://seafoundry-training/app/inventory/inventory_events_spreadsheet.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-12",
+      "order": 12,
+      "type": "warning",
+      "title": "Inventory Data Integrity",
+      "description": "Always verify organism identity before recording inventory events. Fragmentation creates permanent lineage links - ensure the correct parent is selected. Mortality and archive actions cannot be easily undone. When performing bulk operations via CSV import, review the preview carefully before confirming. If you notice inventory discrepancies, document them with observations rather than immediately correcting records - this preserves audit trails. Contact your organization administrator for corrections to historical records.",
+      "checklistItems": null,
+      "mediaUrl": null,
+      "mediaType": null,
+      "estimatedTime": 120,
+      "isRequired": true
+    }
+  ],
+  "relatedMediaIds": [
+    "media-app-009",
+    "media-app-010",
+    "media-app-011",
+    "media-app-012"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "appVersion": "2.0",
+    "lastReviewDate": "2024-01-15",
+    "targetAudience": "Inventory Managers",
+    "prerequisites": [
+      "sop-app-001"
+    ],
+    "estimatedTotalTimeMinutes": 46
+  }
+}

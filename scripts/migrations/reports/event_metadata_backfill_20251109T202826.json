@@ -1,0 +1,110 @@
+{
+  "planPath": "/Users/scottmacdonald/Desktop/CursorGitClones/seafoundry_app/scripts/migrations/event_metadata_backfill.plan.json",
+  "startIndex": 0,
+  "status": "success",
+  "generatedAt": "2025-11-09T20:29:09.514Z",
+  "steps": [
+    {
+      "label": "production dry-run – SeaFoundry",
+      "args": [
+        "--organization",
+        "E4yVJEa3Q4Roh9DQb8CL",
+        "--dry-run",
+        "--force",
+        "--limit",
+        "1000",
+        "--batch-size",
+        "250"
+      ],
+      "envKeys": [
+        "FIREBASE_PROJECT_ID"
+      ],
+      "startedAt": "2025-11-09T20:28:26.596Z",
+      "durationMs": 7173,
+      "status": "success"
+    },
+    {
+      "label": "production live – SeaFoundry",
+      "args": [
+        "--organization",
+        "E4yVJEa3Q4Roh9DQb8CL",
+        "--batch-size",
+        "400"
+      ],
+      "envKeys": [
+        "FIREBASE_PROJECT_ID"
+      ],
+      "startedAt": "2025-11-09T20:28:33.769Z",
+      "durationMs": 25068,
+      "status": "success"
+    },
+    {
+      "label": "production dry-run – SeaFoundry Research Institute",
+      "args": [
+        "--organization",
+        "org_001",
+        "--dry-run",
+        "--force",
+        "--limit",
+        "1000",
+        "--batch-size",
+        "250"
+      ],
+      "envKeys": [
+        "FIREBASE_PROJECT_ID"
+      ],
+      "startedAt": "2025-11-09T20:28:58.837Z",
+      "durationMs": 1955,
+      "status": "success"
+    },
+    {
+      "label": "production live – SeaFoundry Research Institute",
+      "args": [
+        "--organization",
+        "org_001",
+        "--batch-size",
+        "400"
+      ],
+      "envKeys": [
+        "FIREBASE_PROJECT_ID"
+      ],
+      "startedAt": "2025-11-09T20:29:00.792Z",
+      "durationMs": 5140,
+      "status": "success"
+    },
+    {
+      "label": "production dry-run – Test Research Institute",
+      "args": [
+        "--organization",
+        "test_org_001",
+        "--dry-run",
+        "--force",
+        "--limit",
+        "1000",
+        "--batch-size",
+        "250"
+      ],
+      "envKeys": [
+        "FIREBASE_PROJECT_ID"
+      ],
+      "startedAt": "2025-11-09T20:29:05.932Z",
+      "durationMs": 808,
+      "status": "success"
+    },
+    {
+      "label": "production live – Test Research Institute",
+      "args": [
+        "--organization",
+        "test_org_001",
+        "--batch-size",
+        "400"
+      ],
+      "envKeys": [
+        "FIREBASE_PROJECT_ID"
+      ],
+      "startedAt": "2025-11-09T20:29:06.740Z",
+      "durationMs": 2774,
+      "status": "success"
+    }
+  ]
+}

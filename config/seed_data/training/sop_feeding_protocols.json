@@ -1,0 +1,269 @@
+{
+  "id": "sop-aq-002",
+  "organizationId": "template",
+  "title": "Feeding and Nutrition Management",
+  "description": "Standard operating procedure for proper feed storage, handling, and administration in aquaculture operations. Covers species-specific feeding schedules, feed quantity calculations, feeding observation protocols, and nutritional management for optimal organism growth and health. Applicable to all cultured organism types.",
+  "category": "Husbandry",
+  "organismKind": null,
+  "version": "1.0",
+  "createdBy": "SeaFoundry",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "isArchived": false,
+  "steps": [
+    {
+      "id": "feed-step-1",
+      "order": 1,
+      "type": "warning",
+      "title": "Feed Quality and Safety",
+      "description": "Only use feed that meets quality standards. Never use moldy, rancid, or expired feed as it can cause disease, mortality, and contaminate systems. Compromised feed is a biosecurity risk and economic loss.",
+      "isRequired": true,
+      "estimatedTime": 60,
+      "checklistItems": [
+        "Check feed expiration date before use",
+        "Inspect feed for mold, discoloration, or off-odors",
+        "Verify feed storage conditions were maintained",
+        "Confirm feed type matches species requirements",
+        "Discard any compromised feed immediately"
+      ]
+    },
+    {
+      "id": "feed-step-2",
+      "order": 2,
+      "type": "instruction",
+      "title": "Feed Storage Requirements",
+      "description": "Proper feed storage is critical for maintaining nutritional value and preventing contamination. Store dry feeds in cool, dry conditions below 25C (77F) with humidity under 70%. Frozen feeds must remain at -20C or below. Refrigerated feeds at 2-4C. Use FIFO (First In, First Out) inventory management.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/feeding/feed-storage-facility.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "feed-step-3",
+      "order": 3,
+      "type": "checklist",
+      "title": "Daily Feed Storage Inspection",
+      "description": "Perform daily inspection of feed storage areas to ensure proper conditions and inventory levels.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "checklistItems": [
+        "Storage area temperature within acceptable range",
+        "Humidity levels acceptable for dry feed storage",
+        "Freezer temperatures verified for frozen feeds",
+        "No signs of pest activity (rodents, insects)",
+        "Feed containers properly sealed",
+        "Inventory levels adequate for upcoming needs",
+        "Storage area clean and organized",
+        "FIFO rotation being followed"
+      ]
+    },
+    {
+      "id": "feed-step-4",
+      "order": 4,
+      "type": "instruction",
+      "title": "Feed Handling Hygiene",
+      "description": "Maintain strict hygiene when handling feed to prevent cross-contamination. Wash hands before handling feed. Use clean, dry scoops and containers. Never return uneaten feed to storage containers. Clean up spills immediately.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "feed-step-5",
+      "order": 5,
+      "type": "note",
+      "title": "Species-Specific Feed Types",
+      "description": "Different organisms require different feed types. Finfish: Pelleted feeds sized to mouth gape. Coral: Microalgae, rotifers, copepods, and coral-specific feeds. Oysters/Bivalves: Live microalgae or algae paste. Kelp/Seagrass: Nutrient supplementation via water. Always confirm appropriate feed type for your species and life stage.",
+      "isRequired": true,
+      "estimatedTime": 180
+    },
+    {
+      "id": "feed-step-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "Calculate Daily Feed Ration",
+      "description": "Calculate the appropriate daily feed ration based on organism biomass, species, life stage, water temperature, and growth targets. General formula: Daily ration = (Total biomass kg) x (% body weight feed rate). Feed rates typically range from 1-10% body weight depending on species and temperature. Document calculations.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/feeding/feed-calculation-chart.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "feed-step-7",
+      "order": 7,
+      "type": "checklist",
+      "title": "Pre-Feeding System Check",
+      "description": "Before feeding, verify system conditions are appropriate. Feeding during stress or poor water quality wastes feed and can exacerbate problems.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "checklistItems": [
+        "Water quality parameters within acceptable range",
+        "Dissolved oxygen adequate (>5 mg/L)",
+        "No recent chemical treatments",
+        "No signs of disease outbreak",
+        "Organisms appear active and healthy",
+        "System pumps and aeration functioning",
+        "Previous feeding debris cleared"
+      ]
+    },
+    {
+      "id": "feed-step-8",
+      "order": 8,
+      "type": "warning",
+      "title": "Do Not Feed If",
+      "description": "Withhold feeding if organisms show signs of stress, disease, or if water quality is compromised. Feeding stressed animals wastes feed and can accelerate health decline. Common signs to watch for: lethargy, loss of color, rapid respiration, surface gasping, or abnormal behavior.",
+      "isRequired": true,
+      "estimatedTime": 60,
+      "checklistItems": [
+        "DO NOT feed if DO is below 4 mg/L",
+        "DO NOT feed during disease treatment unless directed",
+        "DO NOT feed if ammonia exceeds 0.5 mg/L",
+        "DO NOT feed if organisms show disease symptoms",
+        "DO NOT feed during extreme temperature events",
+        "Document reason for skipped feeding"
+      ]
+    },
+    {
+      "id": "feed-step-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Prepare Feed",
+      "description": "Weigh out the calculated feed ration using calibrated scales. For frozen feeds, thaw in clean, refrigerated conditions before use. For live feeds, culture and harvest according to separate protocols. Never over-prepare feed as quality degrades quickly once opened or thawed.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "feed-step-10",
+      "order": 10,
+      "type": "instruction",
+      "title": "Feeding Technique - Broadcast Feeding",
+      "description": "For broadcast feeding (common with finfish and coral): Distribute feed evenly across the water surface or growing area. Feed slowly in small amounts, allowing organisms to consume before adding more. Total feeding time should be 5-15 minutes depending on species. Avoid dumping large amounts at once.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/feeding/broadcast-feeding-technique.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "feed-step-11",
+      "order": 11,
+      "type": "instruction",
+      "title": "Feeding Technique - Automated Systems",
+      "description": "For automated feeding systems: Verify hopper is loaded correctly. Check feed size matches dispenser settings. Confirm timer settings are correct. Observe at least one automated feeding cycle daily to verify proper operation. Clean feeders weekly or as needed.",
+      "isRequired": false,
+      "estimatedTime": 300
+    },
+    {
+      "id": "feed-step-12",
+      "order": 12,
+      "type": "instruction",
+      "title": "Feeding Technique - Filter Feeders",
+      "description": "For filter-feeding organisms (oysters, mussels, coral): Introduce microalgae or particulate feeds into the water column. Maintain appropriate flow rates to suspend feed particles. Monitor water clarity to gauge feeding response. Too much feed causes water quality degradation.",
+      "isRequired": false,
+      "estimatedTime": 300
+    },
+    {
+      "id": "feed-step-13",
+      "order": 13,
+      "type": "checklist",
+      "title": "Feeding Observation",
+      "description": "Observe organisms during and immediately after feeding. Feeding behavior is an important indicator of health and appropriate ration size.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "checklistItems": [
+        "Organisms respond actively to feed",
+        "All areas of tank/system receiving feed",
+        "No aggressive competition preventing feeding",
+        "Feed being consumed within appropriate time",
+        "No excessive uneaten feed accumulating",
+        "No abnormal behavior during feeding",
+        "Document any concerns or anomalies"
+      ]
+    },
+    {
+      "id": "feed-step-14",
+      "order": 14,
+      "type": "instruction",
+      "title": "Adjust Feed Ration Based on Observations",
+      "description": "Adjust feeding amounts based on observations. If feed is consumed rapidly with organisms still actively searching, consider slight increase. If significant feed remains after 15-20 minutes, reduce ration. Document adjustments and rationale.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "feed-step-15",
+      "order": 15,
+      "type": "instruction",
+      "title": "Remove Uneaten Feed",
+      "description": "Remove uneaten feed from systems to prevent water quality degradation. Use nets, siphons, or mechanical removal as appropriate. Excessive uneaten feed indicates overfeeding or health/appetite issues requiring investigation.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "feed-step-16",
+      "order": 16,
+      "type": "note",
+      "title": "Feeding Schedule Guidelines",
+      "description": "Feeding frequency varies by organism and life stage. Larvae: 4-6 times daily. Juveniles: 2-4 times daily. Adults: 1-2 times daily. Coral: 2-3 times weekly to daily depending on species. Cold water species: Reduce frequency at lower temperatures. Maintain consistent feeding times when possible.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "feed-step-17",
+      "order": 17,
+      "type": "checklist",
+      "title": "Post-Feeding Documentation",
+      "description": "Document all feeding activities for tracking, analysis, and regulatory compliance.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "checklistItems": [
+        "Date and time of feeding recorded",
+        "System/tank ID documented",
+        "Feed type and lot number logged",
+        "Amount fed recorded (weight)",
+        "Feeding response noted",
+        "Any abnormalities documented",
+        "Adjustments to future rations noted",
+        "Feed inventory updated"
+      ]
+    },
+    {
+      "id": "feed-step-18",
+      "order": 18,
+      "type": "instruction",
+      "title": "Clean Feeding Equipment",
+      "description": "Clean all feeding equipment after use. Rinse scoops, buckets, and feeders with freshwater. Allow to dry completely before storage. Regular cleaning prevents biofilm buildup and cross-contamination between systems.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "feed-step-19",
+      "order": 19,
+      "type": "warning",
+      "title": "Feed Contamination Response",
+      "description": "If feed contamination is suspected or confirmed, immediately remove all affected feed from use. Quarantine and inspect remaining inventory from the same lot. Notify supervisor and document incident. Monitor organisms for adverse effects for 48-72 hours.",
+      "isRequired": true,
+      "estimatedTime": 60,
+      "checklistItems": [
+        "Remove contaminated feed from all systems",
+        "Quarantine same-lot inventory",
+        "Notify supervisor immediately",
+        "Document contamination details",
+        "Contact supplier if product defect suspected",
+        "Monitor organisms for adverse effects",
+        "Complete incident report"
+      ]
+    }
+  ],
+  "relatedMediaIds": [
+    "media-aq-004",
+    "media-aq-005",
+    "media-aq-006"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "estimatedTotalMinutes": 80,
+    "difficulty": "beginner",
+    "prerequisites": [
+      "Facility orientation completed",
+      "Species identification training"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+# SeaFoundry CSV v2 finfish pen holdings
+# Use `averageWeightGrams` to record the mean individual weight at stocking; StructureCapacityService relies on the biomass implied by `quantityValue * averageWeightGrams`.
+# `groupId` should point at the specific pen/raceway path so future transfers and CSV exports line up with the GraphNode hierarchy.
+# Include the health/permit metadata that accompanied the cohort (e.g., CA DFW transport permits) for compliance logging.
+holdingKind,provenanceId,organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,eventType,eventDate,measurementUnit,quantityValue,structureType,groupId,genetProvenanceId,cohortId,averageWeightGrams,permitId,permitType,issuingAuthority,validFrom,validTo,habitatType,siteJurisdiction,protectedAreaFlag,siteName,geometryFormat,geometryWkt,observer,sourceSystem,notes
+finfishPenHolding,PID-FINFISH-00001,finfish,Seriola dorsalis,SeDo,SEDO-001,swift-sedo-001,juvenile,inventory_create,2025-11-08T06:00:00Z,count,1200,pen,/orgs/demo/sites/offshore-hatchery/groups/pen-north,HATCH-LOT-2025,COHORT-SD-2025,35.5,CA-DFW-PEN-2025,inventory,CDFW,2025-01-01,2025-12-31,hatchery,California,false,Humboldt Offshore Pen 3,WKT,"POINT (-124.18 40.78)",K.Nguyen,HatcheryLog,"Juveniles stocked with average 35.5 g weight"

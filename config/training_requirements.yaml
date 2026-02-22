@@ -1,0 +1,126 @@
+# Training Requirements Configuration
+# Maps features/actions to required training modules (SOPs and media)
+#
+# Structure:
+#   action_code:
+#     - module_id: required training module ID
+#       type: sop | media
+#       description: human-readable description
+#
+# Action codes are used by TrainingGateRegistry to gate actions
+# until users complete the required training.
+
+# Outplanting requires safety and protocol training
+outplant_action:
+  - module_id: sop_outplant_safety
+    type: sop
+    description: Outplanting Safety Procedures
+  - module_id: sop_outplant_protocol
+    type: sop
+    description: Outplanting Standard Protocol
+  - module_id: media_outplant_demo
+    type: media
+    description: Outplanting Video Demonstration
+
+# Chemical treatments require hazmat training
+treatment_action:
+  - module_id: sop_chemical_safety
+    type: sop
+    description: Chemical Handling Safety
+  - module_id: sop_treatment_protocol
+    type: sop
+    description: Treatment Application Protocol
+  - module_id: media_ppe_training
+    type: media
+    description: PPE Usage Training Video
+
+# Fragmentation requires technique training
+fragment_action:
+  - module_id: sop_fragmentation
+    type: sop
+    description: Fragmentation Best Practices
+  - module_id: media_frag_technique
+    type: media
+    description: Fragmentation Technique Video
+
+# Transfer handling requires chain of custody training
+transfer_initiate:
+  - module_id: sop_transfer_protocol
+    type: sop
+    description: Transfer Chain of Custody
+  - module_id: sop_packaging
+    type: sop
+    description: Organism Packaging Guidelines
+
+transfer_receive:
+  - module_id: sop_transfer_protocol
+    type: sop
+    description: Transfer Chain of Custody
+  - module_id: sop_quarantine
+    type: sop
+    description: Quarantine Procedures
+
+# Monitoring requires methodology training
+monitoring_action:
+  - module_id: sop_monitoring_protocol
+    type: sop
+    description: Monitoring Standard Protocol
+  - module_id: media_monitoring_demo
+    type: media
+    description: Monitoring Methodology Video
+
+# Health assessments require disease identification
+health_assessment:
+  - module_id: sop_disease_identification
+    type: sop
+    description: Disease Identification Guide
+  - module_id: media_health_assessment
+    type: media
+    description: Health Assessment Training
+
+# Husbandry actions
+feeding_action:
+  - module_id: sop_feeding_protocol
+    type: sop
+    description: Feeding Schedule and Protocol
+
+cleaning_action:
+  - module_id: sop_cleaning_protocol
+    type: sop
+    description: Tank/Structure Cleaning Protocol
+
+water_quality:
+  - module_id: sop_water_testing
+    type: sop
+    description: Water Quality Testing Protocol
+  - module_id: media_water_testing
+    type: media
+    description: Water Testing Video Guide
+
+# Spawning requires specialized training
+spawning_action:
+  - module_id: sop_spawning_protocol
+    type: sop
+    description: Spawning Collection Protocol
+  - module_id: sop_larval_care
+    type: sop
+    description: Larval Care and Settlement
+  - module_id: media_spawning_demo
+    type: media
+    description: Spawning Event Video
+
+# Equipment operation
+equipment_operation:
+  - module_id: sop_equipment_safety
+    type: sop
+    description: Equipment Safety Guidelines
+  - module_id: media_equipment_training
+    type: media
+    description: Equipment Operation Video
+
+# Data entry (basic training for all users)
+data_entry:
+  - module_id: media_data_entry_basics
+    type: media
+    description: Data Entry Best Practices
+

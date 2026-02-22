@@ -1,0 +1,112 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "seafoundryapp",
+          "appId": "1:599860030371:android:3448844faa75594e2bc816",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "seafoundryapp",
+          "appId": "1:599860030371:ios:a2c114086e4f00bd2bc816",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "seafoundryapp",
+          "appId": "1:599860030371:ios:a2c114086e4f00bd2bc816",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "seafoundryapp",
+          "configurations": {
+            "android": "1:599860030371:android:3448844faa75594e2bc816",
+            "ios": "1:599860030371:ios:a2c114086e4f00bd2bc816",
+            "macos": "1:599860030371:ios:a2c114086e4f00bd2bc816",
+            "web": "1:599860030371:web:0137b5ec02a3ac3e2bc816",
+            "windows": "1:599860030371:web:3cc07443b32135312bc816"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "us-east1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ],
+  "hosting": [
+    {
+      "site": "seafoundryapp",
+      "public": "build/web",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    },
+    {
+      "site": "seafoundry-landing",
+      "public": "landing",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    }
+  ],
+  "emulators": {
+    "auth": {
+      "host": "localhost",
+      "port": 9555
+    },
+    "firestore": {
+      "host": "localhost",
+      "port": 58080
+    },
+    "storage": {
+      "host": "localhost",
+      "port": 59199
+    },
+    "functions": {
+      "host": "localhost",
+      "port": 5001
+    },
+    "ui": {
+      "enabled": true,
+      "host": "localhost",
+      "port": 54001
+    }
+  }
+}

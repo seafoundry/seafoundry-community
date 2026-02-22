@@ -1,0 +1,242 @@
+# Main CI Pipeline with Tiered Testing Strategy
+#
+# Test Tiers:
+# 1. Unit Tests: Fast unit tests, run on every PR (5-10 min)
+# 2. Widget Tests: Widget tests with sharding, run on PR (15-20 min)
+# 3. Integration Tests: Full workflow tests, run nightly only (30+ min)
+#
+# RECOMMENDED BRANCH PROTECTION SETTINGS:
+# Enable the following in GitHub Repository Settings > Branches > Branch protection rules for 'main':
+# - Require status checks to pass before merging
+#   - Require branches to be up to date before merging
+#   - Status checks that are required:
+#     * analyze (from this workflow)
+#     * unit-tests (from this workflow)
+#     * widget-tests (1) through widget-tests (4) (from this workflow)
+#     * lint-tiers (from tier_lint.yml)
+# - Require pull request reviews before merging (1 approval recommended)
+# - Require conversation resolution before merging
+# - Do not allow bypassing the above settings
+
+name: CI Quality Gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run comprehensive tests nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  FLUTTER_VERSION: stable
+
+jobs:
+  # ===========================================
+  # Stage 1: Static Analysis (Fast, required)
+  # ===========================================
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-key: flutter-analyze-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tier manifest check
+        run: dart run tool/bin/tier_check.dart
+
+      - name: Analyze code for errors
+        run: |
+          echo "Running Flutter analyze..."
+          flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee analyze_output.txt
+          # Check for errors excluding tool/wasm_overrides (expected override errors)
+          if grep "error •" analyze_output.txt | grep -v "tool/wasm_overrides" | grep -q .; then
+            echo "::error::Flutter analyze found errors that must be fixed"
+            exit 1
+          fi
+          echo "✓ Analysis passed with 0 errors"
+
+  # ===========================================
+  # Stage 2: Unit Tests (Fast, required)
+  # ===========================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: analyze
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-key: flutter-test-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run unit tests
+        run: |
+          echo "Running unit tests (excluding integration and comprehensive)..."
+          flutter test test/unit/ test/blocs/ test/cubits/ test/services/ \
+            --exclude-tags integration,comprehensive,golden \
+            --concurrency=4 \
+            --reporter expanded
+
+  # ===========================================
+  # Stage 3: Widget Tests (Sharded, required)
+  # ===========================================
+  widget-tests:
+    name: Widget Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: analyze
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-key: flutter-widget-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run widget tests (shard ${{ matrix.shard }}/4)
+        run: |
+          echo "Running widget tests shard ${{ matrix.shard }} of 4..."
+          flutter test test/widget/ test/widgets/ \
+            --exclude-tags integration,comprehensive,golden \
+            --total-shards=4 \
+            --shard-index=$((${{ matrix.shard }} - 1)) \
+            --concurrency=2 \
+            --reporter expanded
+
+  # ===========================================
+  # Stage 4: Integration Tests (Nightly only)
+  # ===========================================
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: [unit-tests, widget-tests]
+    # Only run on schedule (nightly) or manual dispatch
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-key: flutter-integration-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests..."
+          flutter test test/integration/ \
+            --tags integration \
+            --concurrency=2 \
+            --reporter expanded
+
+  # ===========================================
+  # Stage 5: Comprehensive Tests (Nightly only)
+  # ===========================================
+  comprehensive-tests:
+    name: Comprehensive Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [unit-tests, widget-tests]
+    # Only run on schedule (nightly) or manual dispatch
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-key: flutter-comprehensive-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run comprehensive tests
+        run: |
+          echo "Running comprehensive edge case tests..."
+          flutter test \
+            --tags comprehensive \
+            --concurrency=2 \
+            --reporter expanded
+
+  # ===========================================
+  # Coverage Report (PR only)
+  # ===========================================
+  coverage:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [unit-tests, widget-tests]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: ${{ env.FLUTTER_VERSION }}
+          cache: true
+          cache-key: flutter-coverage-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate coverage report
+        run: |
+          flutter test test/unit/ test/blocs/ test/cubits/ \
+            --exclude-tags integration,comprehensive,golden \
+            --coverage \
+            --concurrency=4
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14

@@ -1,0 +1,325 @@
+{
+  "id": "sop-aq-003",
+  "organizationId": "template",
+  "title": "Equipment Maintenance",
+  "description": "Standard operating procedure for preventive maintenance, inspection, and repair of aquaculture equipment. Covers pump systems, filtration equipment, aeration systems, backup power, and monitoring equipment. Regular maintenance prevents catastrophic failures that can result in organism mortality.",
+  "category": "Administration",
+  "organismKind": null,
+  "version": "1.0",
+  "createdBy": "SeaFoundry",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "isArchived": false,
+  "steps": [
+    {
+      "id": "equip-step-1",
+      "order": 1,
+      "type": "warning",
+      "title": "Electrical Safety",
+      "description": "Working with aquaculture equipment involves electrical hazards near water. Always disconnect power before servicing equipment. Use ground fault circuit interrupters (GFCI) on all outlets. Never operate electrical equipment with wet hands or while standing in water.",
+      "isRequired": true,
+      "estimatedTime": 120,
+      "checklistItems": [
+        "Confirm equipment is powered off before maintenance",
+        "Lock out/tag out electrical connections when required",
+        "Verify GFCI protection is functional",
+        "Keep hands dry when handling electrical components",
+        "Inspect power cords for damage before each use",
+        "Report any electrical hazards immediately"
+      ]
+    },
+    {
+      "id": "equip-step-2",
+      "order": 2,
+      "type": "checklist",
+      "title": "Daily Equipment Visual Inspection",
+      "description": "Perform visual inspection of all critical equipment daily. Early detection of problems prevents equipment failure and organism loss.",
+      "isRequired": true,
+      "estimatedTime": 900,
+      "checklistItems": [
+        "All pumps running and producing expected flow",
+        "Air pumps and blowers functioning normally",
+        "No unusual sounds from motors or pumps",
+        "No water leaks at connections or fittings",
+        "Electrical panels dry and doors closed",
+        "Emergency equipment accessible and ready",
+        "Backup systems in standby mode",
+        "Alarm systems functional",
+        "Temperature control systems operating",
+        "All timers and controllers set correctly"
+      ]
+    },
+    {
+      "id": "equip-step-3",
+      "order": 3,
+      "type": "instruction",
+      "title": "Pump Inspection and Maintenance",
+      "description": "Pumps are critical life support equipment. Inspect pump performance regularly by monitoring flow rates, listening for unusual sounds, and checking for vibration. Most pumps require impeller inspection and bearing lubrication on a scheduled basis.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/equipment/pump-components-diagram.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "equip-step-4",
+      "order": 4,
+      "type": "checklist",
+      "title": "Weekly Pump Maintenance",
+      "description": "Perform weekly pump maintenance tasks to ensure reliable operation.",
+      "isRequired": true,
+      "estimatedTime": 1800,
+      "checklistItems": [
+        "Check pump intake screens for debris buildup",
+        "Clean strainer baskets on all pumps",
+        "Verify pump priming (no air in lines)",
+        "Check mechanical seals for leaks",
+        "Listen for bearing noise or vibration",
+        "Verify flow rates match expected values",
+        "Check motor temperature (should not be hot to touch)",
+        "Inspect pump mounting and secure if loose",
+        "Document pump hours if meter installed"
+      ]
+    },
+    {
+      "id": "equip-step-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Filter Maintenance Overview",
+      "description": "Filtration systems require regular maintenance to function properly. Mechanical filters need frequent cleaning. Biological filters require monitoring but minimal intervention. UV sterilizers need bulb replacement and quartz sleeve cleaning. Follow manufacturer schedules and observe system performance.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/equipment/filtration-system-overview.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "equip-step-6",
+      "order": 6,
+      "type": "checklist",
+      "title": "Mechanical Filter Maintenance",
+      "description": "Clean mechanical filters regularly to maintain proper flow and water quality.",
+      "isRequired": true,
+      "estimatedTime": 1200,
+      "checklistItems": [
+        "Check filter pressure gauge (clean when pressure rises 5-10 psi above clean)",
+        "Backwash sand filters according to schedule",
+        "Replace or clean cartridge filters",
+        "Inspect filter media for channeling or degradation",
+        "Clean filter housing and O-rings",
+        "Verify bypass valves are closed after maintenance",
+        "Document filter cleaning and media replacement",
+        "Rinse cleaned media with system water before returning to service"
+      ]
+    },
+    {
+      "id": "equip-step-7",
+      "order": 7,
+      "type": "warning",
+      "title": "Biological Filter Protection",
+      "description": "Biological filters contain beneficial bacteria essential for water quality. Never clean biological media with chlorinated water or allow it to dry out. Avoid disturbing biological media unnecessarily. If cleaning is required, rinse with system water only and return to service immediately.",
+      "isRequired": true,
+      "estimatedTime": 60,
+      "checklistItems": [
+        "NEVER use chlorinated water on biofilter media",
+        "Keep biofilter media wet at all times",
+        "Minimize disturbance to biofilter beds",
+        "Clean only 25-50% of media at one time",
+        "Monitor ammonia/nitrite after any biofilter maintenance",
+        "Document any biofilter cleaning or media replacement"
+      ]
+    },
+    {
+      "id": "equip-step-8",
+      "order": 8,
+      "type": "instruction",
+      "title": "UV Sterilizer Maintenance",
+      "description": "UV sterilizers require regular maintenance to remain effective. Clean quartz sleeves monthly or when visibly fouled. Replace UV bulbs according to manufacturer schedule (typically annually) or when output drops below effective levels. Always disconnect power before servicing.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "checklistItems": [
+        "Disconnect power before any UV maintenance",
+        "Check UV output indicator if equipped",
+        "Clean quartz sleeve with appropriate cleaner",
+        "Inspect O-rings and seals for wear",
+        "Track bulb hours and replace on schedule",
+        "Verify proper flow rate through unit",
+        "Never look directly at UV light when energized"
+      ]
+    },
+    {
+      "id": "equip-step-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Aeration System Maintenance",
+      "description": "Aeration provides critical dissolved oxygen. Inspect air pumps, blowers, diffusers, and airlines regularly. Air pumps require diaphragm replacement periodically. Diffusers become clogged and need cleaning or replacement. Airlines can develop leaks or blockages.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/aquaculture/equipment/aeration-system-components.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "equip-step-10",
+      "order": 10,
+      "type": "checklist",
+      "title": "Weekly Aeration System Check",
+      "description": "Inspect aeration components weekly to ensure adequate oxygen supply.",
+      "isRequired": true,
+      "estimatedTime": 900,
+      "checklistItems": [
+        "Air pump/blower running normally (listen for strain)",
+        "Check air filter on blower intake (clean/replace as needed)",
+        "Verify all diffusers producing fine bubbles",
+        "Inspect airlines for kinks, cracks, or blockages",
+        "Check airline connections are secure",
+        "Clean or replace clogged diffusers",
+        "Verify check valves preventing backflow",
+        "Test backup aeration can be activated quickly",
+        "Document any diffusers replaced or cleaned"
+      ]
+    },
+    {
+      "id": "equip-step-11",
+      "order": 11,
+      "type": "warning",
+      "title": "Backup System Testing",
+      "description": "Backup systems must be tested regularly to ensure they work when needed. A failed backup during an emergency results in catastrophic losses. Test generators, backup pumps, emergency aeration, and alarm systems according to schedule.",
+      "isRequired": true,
+      "estimatedTime": 120,
+      "checklistItems": [
+        "Generator tested under load monthly",
+        "Generator fuel level adequate",
+        "Automatic transfer switch tested",
+        "Backup pumps tested monthly",
+        "Emergency aeration tested monthly",
+        "Battery backup systems charged",
+        "Alarm notification system tested",
+        "Emergency contact list current",
+        "Document all backup system tests"
+      ]
+    },
+    {
+      "id": "equip-step-12",
+      "order": 12,
+      "type": "instruction",
+      "title": "Generator Maintenance",
+      "description": "Backup generators require regular maintenance to ensure reliability. Check oil levels weekly. Run generator under load monthly for at least 30 minutes. Maintain fuel supply with stabilizer for extended storage. Service according to manufacturer schedule.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "checklistItems": [
+        "Check oil level and condition weekly",
+        "Verify coolant level (if applicable)",
+        "Inspect belts and hoses",
+        "Test battery and charging system",
+        "Run under load for 30+ minutes monthly",
+        "Check fuel level and add stabilizer",
+        "Clean air filter",
+        "Document run hours and service history"
+      ]
+    },
+    {
+      "id": "equip-step-13",
+      "order": 13,
+      "type": "checklist",
+      "title": "Monthly Preventive Maintenance Schedule",
+      "description": "Complete comprehensive monthly maintenance to prevent equipment failures.",
+      "isRequired": true,
+      "estimatedTime": 3600,
+      "checklistItems": [
+        "Inspect and clean all pump impellers",
+        "Lubricate pump and motor bearings as specified",
+        "Check belt tension on belt-driven equipment",
+        "Inspect all electrical connections for corrosion",
+        "Test all float switches and level sensors",
+        "Calibrate flow meters and sensors",
+        "Clean heat exchangers and cooling coils",
+        "Inspect valve operation and replace worn components",
+        "Test emergency shutoff systems",
+        "Review equipment logs for trending issues",
+        "Update maintenance records",
+        "Order replacement parts for upcoming needs"
+      ]
+    },
+    {
+      "id": "equip-step-14",
+      "order": 14,
+      "type": "instruction",
+      "title": "Spare Parts Inventory",
+      "description": "Maintain adequate spare parts inventory to enable rapid repairs. Critical spares include pump impellers, motor capacitors, diaphragms, O-rings, fuses, and UV bulbs. Know lead times for replacement parts and order before stock is depleted.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "checklistItems": [
+        "Critical spare parts list maintained",
+        "Minimum stock levels defined",
+        "Inventory checked monthly",
+        "Parts organized and accessible",
+        "Supplier contacts current",
+        "Long lead-time items identified",
+        "Parts storage conditions appropriate"
+      ]
+    },
+    {
+      "id": "equip-step-15",
+      "order": 15,
+      "type": "note",
+      "title": "Maintenance Documentation",
+      "description": "Thorough maintenance records enable predictive maintenance and troubleshooting. Document all maintenance activities, parts replaced, observations, and equipment hours. Review records periodically to identify patterns and optimize maintenance schedules.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "equip-step-16",
+      "order": 16,
+      "type": "checklist",
+      "title": "Maintenance Log Entry",
+      "description": "Complete maintenance log entry for all work performed.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "checklistItems": [
+        "Date and time documented",
+        "Equipment ID recorded",
+        "Work performed described",
+        "Parts replaced listed with part numbers",
+        "Equipment hours noted if applicable",
+        "Observations and findings documented",
+        "Technician name/initials recorded",
+        "Follow-up actions noted if needed",
+        "Entry added to digital maintenance system"
+      ]
+    },
+    {
+      "id": "equip-step-17",
+      "order": 17,
+      "type": "warning",
+      "title": "Emergency Equipment Failure Response",
+      "description": "If critical equipment fails, immediately assess impact on organism life support. Activate backup systems. Notify supervisor. Begin troubleshooting while monitoring organism welfare. Document timeline of failure and response.",
+      "isRequired": true,
+      "estimatedTime": 60,
+      "checklistItems": [
+        "Assess immediate risk to organisms",
+        "Activate appropriate backup systems",
+        "Notify supervisor immediately",
+        "Begin troubleshooting cause",
+        "Monitor water quality parameters",
+        "Implement manual backup procedures if needed",
+        "Document failure timeline",
+        "Prepare incident report",
+        "Conduct post-incident review"
+      ]
+    }
+  ],
+  "relatedMediaIds": [
+    "media-aq-007",
+    "media-aq-008",
+    "media-aq-009"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "estimatedTotalMinutes": 210,
+    "difficulty": "intermediate",
+    "prerequisites": [
+      "Basic mechanical aptitude",
+      "Electrical safety training",
+      "Facility orientation completed"
+    ]
+  }
+}

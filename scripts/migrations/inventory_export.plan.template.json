@@ -1,0 +1,27 @@
+{
+  "steps": [
+    {
+      "label": "seafoundryapp dry-run – demo org",
+      "organizationId": "org_demo_001",
+      "userId": "user_demo_admin",
+      "organismKind": "kelp",
+      "out": "exports/staging_demo_kelp.csv",
+      "filename": "inventory_demo_kelp.csv",
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/service-account.json",
+        "FIREBASE_PROJECT_ID": "seafoundryapp"
+      }
+    },
+    {
+      "label": "seafoundryapp – demo org (coral)",
+      "organizationId": "org_demo_001",
+      "userId": "user_demo_admin",
+      "organismKind": "coral",
+      "out": "exports/prod_demo_coral.csv",
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/service-account.json",
+        "FIREBASE_PROJECT_ID": "seafoundryapp"
+      }
+    }
+  ]
+}

@@ -1,0 +1,157 @@
+{
+  "id": "sop-app-001",
+  "organizationId": "template",
+  "createdBy": "system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "title": "Getting Started with SeaFoundry",
+  "description": "This SOP provides new users with a comprehensive introduction to the SeaFoundry application, covering account setup, organization membership, navigation fundamentals, and an overview of key features for coral research and restoration tracking.",
+  "category": "Administration",
+  "organismKind": null,
+  "version": "1.0",
+  "isPublished": true,
+  "isArchived": false,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "type": "instruction",
+      "title": "Account Setup and Authentication",
+      "description": "SeaFoundry uses secure authentication to protect your organization's data. When you first access the application, you will be prompted to sign in. SeaFoundry supports Single Sign-On (SSO), OAuth, and passwordless authentication methods depending on your organization's configuration. Contact your organization administrator if you need assistance with initial account access.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/auth/login_screen.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "type": "instruction",
+      "title": "Profile Configuration",
+      "description": "After signing in, navigate to your profile settings by tapping the user avatar in the top navigation bar. Here you can update your display name, notification preferences, and view your organization membership. Your profile information appears on records you create, so ensure your name is correctly displayed for proper attribution of observations and inventory events.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/profile/profile_settings.png",
+      "mediaType": "image",
+      "estimatedTime": 120,
+      "isRequired": true
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "type": "instruction",
+      "title": "Understanding Organization Membership",
+      "description": "SeaFoundry organizes data by Organization. Your organization contains all your sites, groups (structures), and organisms. Each organization has a unique domain identifier that appears in URL paths. Users can belong to multiple organizations, and you can switch between them using the organization selector in the navigation menu. Your role within each organization determines what actions you can perform.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/org/organization_selector.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-4",
+      "order": 4,
+      "type": "media",
+      "title": "Dashboard Overview - Holdings Map",
+      "description": "The Organization Map Dashboard (OrgMapDashboard) is your central hub for viewing all sites. The map displays markers for each site, color-coded by site type: blue for nurseries, orange for outplanting sites. You can toggle overlay layers using the buttons in the top-right corner: the thermostat icon enables weather overlay, the health icon shows health status coloring, and the calendar icon allows date range filtering. Tap any site marker to view current conditions and navigate to site details.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/dashboard/org_map_dashboard.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Navigation Structure - Sites, Groups, and Organisms",
+      "description": "SeaFoundry uses a hierarchical navigation structure: Organization > Sites > Groups (Structures) > Organisms. Sites represent physical locations like nurseries or outplanting reefs. Groups (also called structures) are containers within sites, such as trees, tables, or reef sections. Organisms are individual coral colonies, genets, or fragments tracked within groups. Navigate through this hierarchy by tapping on items in lists or using the breadcrumb trail at the top of the screen.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/nav/hierarchy_diagram.png",
+      "mediaType": "image",
+      "estimatedTime": 300,
+      "isRequired": true
+    },
+    {
+      "id": "step-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "Activity Feed",
+      "description": "The Activity Feed panel slides up from the bottom of the Organization Dashboard. It displays recent activities across your organization including observations, inventory events, and team member actions. Use the calendar filter in the map controls to narrow the date range of displayed activities. This feed provides a quick way to see what has been happening across all your sites without navigating to individual locations.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/dashboard/activity_feed.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": false
+    },
+    {
+      "id": "step-7",
+      "order": 7,
+      "type": "checklist",
+      "title": "Key Features Overview",
+      "description": "SeaFoundry includes several integrated workspaces accessible from the main navigation. Familiarize yourself with these key areas:",
+      "checklistItems": [
+        "Inventory Workspace: Track organism holdings, events, and analytics via the Holdings, Events, and Analytics tabs",
+        "Observations: Record field observations including health status, biofouling, disease, and photo documentation",
+        "Monitoring: Schedule and track regular monitoring tasks with the husbandry scheduler",
+        "Genetics: Manage provenance records and genetic lineage tracking",
+        "Reporting Dashboard: Generate reports with KPI cards, trend charts, and export capabilities",
+        "Team Dashboard: View team activity and manage collaboration"
+      ],
+      "mediaUrl": null,
+      "mediaType": null,
+      "estimatedTime": 300,
+      "isRequired": true
+    },
+    {
+      "id": "step-8",
+      "order": 8,
+      "type": "instruction",
+      "title": "Using the Organism Selector",
+      "description": "Many screens feature an Organism Selector dropdown that allows you to switch between organism types (Coral, Seagrass, Mangrove, etc.). The fields and options displayed change based on the selected organism kind. When recording observations or viewing holdings, always verify the correct organism type is selected at the top of the form to ensure you see the appropriate data fields.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/common/organism_selector.png",
+      "mediaType": "image",
+      "estimatedTime": 120,
+      "isRequired": true
+    },
+    {
+      "id": "step-9",
+      "order": 9,
+      "type": "warning",
+      "title": "Data Synchronization and Offline Mode",
+      "description": "SeaFoundry supports offline operation with data syncing when connectivity is restored. When working offline, a sync indicator appears in the navigation bar. Avoid closing the application while syncing is in progress to prevent data loss. Large uploads such as photos may take additional time to sync when connectivity returns. If you notice sync issues, try refreshing the page or contact your administrator.",
+      "checklistItems": null,
+      "mediaUrl": null,
+      "mediaType": null,
+      "estimatedTime": 120,
+      "isRequired": true
+    },
+    {
+      "id": "step-10",
+      "order": 10,
+      "type": "note",
+      "title": "Getting Help and Support",
+      "description": "If you encounter issues or have questions, look for the help icon (question mark) in the app bar of most screens. The Reports and Analytics screen includes a built-in help dialog explaining available features. For technical issues, contact your organization administrator who can escalate to SeaFoundry support. Training materials including these SOPs are available in the Training section.",
+      "checklistItems": null,
+      "mediaUrl": null,
+      "mediaType": null,
+      "estimatedTime": 120,
+      "isRequired": false
+    }
+  ],
+  "relatedMediaIds": [
+    "media-app-001",
+    "media-app-002",
+    "media-app-003",
+    "media-app-004"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "appVersion": "2.0",
+    "lastReviewDate": "2024-01-15",
+    "targetAudience": "New Users",
+    "prerequisites": [],
+    "estimatedTotalTimeMinutes": 31
+  }
+}

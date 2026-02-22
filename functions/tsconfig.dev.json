@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "rootDir": "./",
+    "outDir": "lib",
+  },
+  "include": [
+    "src",
+    "tests",
+    "scripts",
+    "jest.config.js"
+  ]
+}

@@ -1,0 +1,984 @@
+{
+  "mediaLibrary": {
+    "description": "Training media references for coral restoration SOPs. These entries represent stock photos, videos, and documents that organizations can use as templates or import into their training libraries.",
+    "version": "1.0",
+    "lastUpdated": "2024-01-15"
+  },
+  "media": [
+    {
+      "id": "media-cr-001",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Coral Nursery Floating Tree Structure",
+      "description": "Overhead and underwater views of a floating coral tree nursery structure showing PVC frame construction, monofilament hanging lines, and properly spaced coral fragments. Demonstrates optimal fragment arrangement for water flow and light exposure.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1546026423-cc4642628d2b?w=300&fit=crop",
+      "tags": [
+        "nursery",
+        "infrastructure",
+        "floating tree",
+        "coral tree"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-001"
+      ],
+      "category": "Nursery Infrastructure"
+    },
+    {
+      "id": "media-cr-002",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Fixed Coral Nursery Table",
+      "description": "Underwater photograph of a fixed nursery table showing concrete or rebar construction, fragment plug holders, and coral growth progression over time. Includes close-up of attachment hardware and table leg stability features.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=300&fit=crop",
+      "tags": [
+        "nursery",
+        "infrastructure",
+        "table",
+        "fixed structure"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-001"
+      ],
+      "category": "Nursery Infrastructure"
+    },
+    {
+      "id": "media-cr-003",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Nursery Cleaning Demonstration Video",
+      "description": "5-minute instructional video showing proper technique for cleaning coral nursery structures. Demonstrates soft brush usage, algae removal around fragments, predator identification and removal, and sediment clearing without disturbing coral tissue.",
+      "type": "video",
+      "contentUrl": "https://player.vimeo.com/external/403280068.sd.mp4?s=fa5ffcb9e4f8f4c8f4c8f4c8f4c8f4c8&profile_id=139",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=1200&fit=crop",
+      "duration": 300,
+      "tags": [
+        "nursery",
+        "cleaning",
+        "maintenance",
+        "husbandry",
+        "tutorial"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-001"
+      ],
+      "category": "Husbandry Techniques"
+    },
+    {
+      "id": "media-cr-004",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Fragmentation Tool Sterilization Protocol",
+      "description": "Step-by-step video demonstrating proper sterilization of fragmentation tools including bone cutters, saws, and handling equipment. Shows bleach solution preparation, immersion timing, rinsing, and drying procedures.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/8823449/8823449-sd_640_360_25fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200&fit=crop",
+      "duration": 420,
+      "tags": [
+        "fragmentation",
+        "sterilization",
+        "biosecurity",
+        "tools"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-002"
+      ],
+      "category": "Biosecurity"
+    },
+    {
+      "id": "media-cr-005",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Branching Coral Fragmentation Technique",
+      "description": "Detailed video tutorial showing proper cutting techniques for branching corals (Acropora, Pocillopora). Demonstrates bone cutter positioning, cut angle, fragment handling, and immediate post-cut care. Includes common mistakes to avoid.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/5358755/5358755-sd_640_360_25fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&fit=crop",
+      "duration": 600,
+      "tags": [
+        "fragmentation",
+        "branching coral",
+        "acropora",
+        "cutting technique"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-002"
+      ],
+      "category": "Propagation Techniques"
+    },
+    {
+      "id": "media-cr-006",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Microfragmentation Process",
+      "description": "Comprehensive video demonstrating microfragmentation technique for massive corals. Shows diamond band saw setup, fragment cutting to 1cm squares, optimal spacing on substrate, and fusion monitoring over 4-week period with time-lapse footage.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/4359612/4359612-sd_640_360_25fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=1200&fit=crop",
+      "duration": 900,
+      "tags": [
+        "microfragmentation",
+        "massive coral",
+        "growth acceleration",
+        "propagation"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-002"
+      ],
+      "category": "Propagation Techniques"
+    },
+    {
+      "id": "media-cr-007",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Coral Watch Color Reference Card",
+      "description": "High-resolution image of the Coral Watch bleaching assessment color card showing D1-D6 and C1-C6 color scales. Includes instructions for proper use and interpretation of bleaching severity levels.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=300&fit=crop",
+      "tags": [
+        "bleaching",
+        "monitoring",
+        "color chart",
+        "assessment"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003"
+      ],
+      "category": "Monitoring Tools"
+    },
+    {
+      "id": "media-cr-008",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Healthy vs Stressed Coral Comparison",
+      "description": "Side-by-side comparison images showing healthy coral characteristics (extended polyps, vibrant color, active growth margins) versus stressed coral indicators (retracted polyps, pale tissue, algae overgrowth). Multiple species represented.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?w=300&fit=crop",
+      "tags": [
+        "health assessment",
+        "stress indicators",
+        "polyp extension",
+        "monitoring"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003",
+        "sop-cr-001"
+      ],
+      "category": "Health Assessment"
+    },
+    {
+      "id": "media-cr-009",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "White Syndrome Disease Examples",
+      "description": "Photo compilation showing various white syndrome presentations including white band disease, white plague, and white pox. Each image labeled with disease type, affected species, and characteristic progression patterns.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=300&fit=crop",
+      "tags": [
+        "disease",
+        "white syndrome",
+        "white band",
+        "white plague",
+        "identification"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003",
+        "sop-cr-005"
+      ],
+      "category": "Disease Identification"
+    },
+    {
+      "id": "media-cr-010",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "SCTLD Identification Guide",
+      "description": "Detailed photo guide for Stony Coral Tissue Loss Disease identification. Shows characteristic lesion patterns, affected species, progression rates, and differentiating features from other white syndromes. Includes early vs advanced stage comparisons.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=300&fit=crop",
+      "tags": [
+        "SCTLD",
+        "disease",
+        "tissue loss",
+        "Caribbean",
+        "identification"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003",
+        "sop-cr-005"
+      ],
+      "category": "Disease Identification"
+    },
+    {
+      "id": "media-cr-011",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Outplant Site Assessment Criteria",
+      "description": "Visual guide showing optimal and suboptimal outplanting site characteristics. Includes substrate types, sediment levels, current indicators, and habitat quality examples. Annotated photographs explain selection criteria.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=300&fit=crop",
+      "tags": [
+        "outplanting",
+        "site selection",
+        "substrate",
+        "habitat assessment"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-004"
+      ],
+      "category": "Outplanting"
+    },
+    {
+      "id": "media-cr-012",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Underwater Cement Mixing and Application",
+      "description": "Tutorial video demonstrating underwater cement preparation and application for coral attachment. Shows proper mixing ratios, consistency testing, application technique, and fragment positioning with elevation above substrate.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/1456686/1456686-sd_640_360_30fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=1200&fit=crop",
+      "duration": 480,
+      "tags": [
+        "outplanting",
+        "cement",
+        "attachment",
+        "underwater technique"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-004"
+      ],
+      "category": "Outplanting Techniques"
+    },
+    {
+      "id": "media-cr-013",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Proper Fragment Elevation Technique",
+      "description": "Close-up images showing correct fragment elevation above substrate (2-3cm clearance) versus common errors (tissue contact with substrate, insufficient elevation). Demonstrates importance of elevation for sediment avoidance and water circulation.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&fit=crop",
+      "tags": [
+        "outplanting",
+        "elevation",
+        "attachment",
+        "fragment placement"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-004"
+      ],
+      "category": "Outplanting Techniques"
+    },
+    {
+      "id": "media-cr-014",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Quarantine System Setup",
+      "description": "Photo series showing proper quarantine system configuration including isolated tank setup, separate filtration, dedicated equipment storage, and biosecurity labeling. Includes flow diagram for water handling.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=300&fit=crop",
+      "tags": [
+        "quarantine",
+        "biosecurity",
+        "disease treatment",
+        "isolation"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-005"
+      ],
+      "category": "Disease Management"
+    },
+    {
+      "id": "media-cr-015",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Antibiotic Paste Application for SCTLD",
+      "description": "Step-by-step video demonstrating Base 2B amoxicillin paste preparation and underwater application to SCTLD lesions. Shows proper coverage technique, tools used, and expected treatment results over 7-day monitoring period.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/3996705/3996705-sd_640_360_25fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1518467166778-b88f373ffec7?w=1200&fit=crop",
+      "duration": 720,
+      "tags": [
+        "SCTLD",
+        "treatment",
+        "antibiotic",
+        "paste application"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-005"
+      ],
+      "category": "Disease Treatment"
+    },
+    {
+      "id": "media-cr-016",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Black Band Disease Aspiration Treatment",
+      "description": "Video tutorial showing black band disease treatment using aspiration technique. Demonstrates syringe aspiration of cyanobacterial mat, clay/epoxy coverage application, and monitoring for band reformation.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/13949303/13949303-sd_640_360_30fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=1200&fit=crop",
+      "duration": 540,
+      "tags": [
+        "black band disease",
+        "treatment",
+        "aspiration",
+        "clay treatment"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-005"
+      ],
+      "category": "Disease Treatment"
+    },
+    {
+      "id": "media-cr-017",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Water Quality Parameter Reference Chart",
+      "description": "Comprehensive reference chart showing optimal ranges for all key water quality parameters (temperature, salinity, pH, alkalinity, calcium, magnesium, nutrients) with color-coded acceptable vs concerning vs critical ranges.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1559825481-12a05cc00344?w=300&fit=crop",
+      "tags": [
+        "water quality",
+        "parameters",
+        "reference",
+        "monitoring"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-006"
+      ],
+      "category": "Water Quality"
+    },
+    {
+      "id": "media-cr-018",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "pH Meter Calibration Procedure",
+      "description": "Instructional video showing proper pH meter calibration using standard buffer solutions. Includes probe cleaning, two-point calibration technique, slope verification, and storage procedures.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/16430487/16430487-sd_640_360_30fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200&fit=crop",
+      "duration": 360,
+      "tags": [
+        "water quality",
+        "pH",
+        "calibration",
+        "equipment"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-006"
+      ],
+      "category": "Equipment Maintenance"
+    },
+    {
+      "id": "media-cr-019",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Water Change Procedure Video",
+      "description": "Complete water change tutorial showing saltwater mixing, parameter matching, slow addition technique, and post-change verification. Emphasizes importance of temperature and salinity matching before introduction.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/water_quality/water_change_procedure.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/water_quality/water_change_procedure_thumb.jpg",
+      "duration": 600,
+      "tags": [
+        "water quality",
+        "water change",
+        "maintenance",
+        "husbandry"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-006"
+      ],
+      "category": "Husbandry Techniques"
+    },
+    {
+      "id": "media-cr-020",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "BWRAF Buddy Check Demonstration",
+      "description": "Video demonstrating complete pre-dive buddy check procedure using BWRAF system (BCD, Weights, Releases, Air, Final check). Two divers show proper inspection points and verbal confirmation process.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/safety/bwraf_buddy_check.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/safety/bwraf_buddy_check_thumb.jpg",
+      "duration": 300,
+      "tags": [
+        "dive safety",
+        "buddy check",
+        "pre-dive",
+        "BWRAF"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-007"
+      ],
+      "category": "Dive Safety"
+    },
+    {
+      "id": "media-cr-021",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Standard Dive Hand Signals Reference",
+      "description": "Visual reference guide showing standard recreational and scientific diving hand signals. Includes OK, problems, directional signals, air status, and emergency signals with clear underwater photography examples.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1582967788606-a171c1080cb0?w=300&fit=crop",
+      "tags": [
+        "dive safety",
+        "hand signals",
+        "communication",
+        "underwater"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-007"
+      ],
+      "category": "Dive Safety"
+    },
+    {
+      "id": "media-cr-022",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Diver Rescue Techniques",
+      "description": "Comprehensive rescue technique video covering distressed diver approach, establishing positive buoyancy, controlled ascent with unconscious diver, surface rescue, and emergency oxygen administration.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/safety/diver_rescue_techniques.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/safety/diver_rescue_techniques_thumb.jpg",
+      "duration": 1200,
+      "tags": [
+        "dive safety",
+        "rescue",
+        "emergency",
+        "first aid"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-007"
+      ],
+      "category": "Dive Safety"
+    },
+    {
+      "id": "media-cr-023",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Coral Species Identification Guide - Caribbean",
+      "description": "Comprehensive photo guide covering major Caribbean coral species used in restoration. Includes Acropora cervicornis, A. palmata, Orbicella species complex, Diploria labyrinthiformis, Porites astreoides, and others. Features identification tips and species-specific care notes.",
+      "type": "document",
+      "contentUrl": "https://www.noaa.gov/sites/default/files/2022-03/NOAA_CoralRestoration_508.pdf",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=1200&fit=crop",
+      "tags": [
+        "species ID",
+        "Caribbean",
+        "coral identification",
+        "taxonomy"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-001",
+        "sop-cr-002",
+        "sop-cr-003"
+      ],
+      "category": "Species Identification"
+    },
+    {
+      "id": "media-cr-024",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Coral Species Identification Guide - Indo-Pacific",
+      "description": "Comprehensive photo guide covering major Indo-Pacific coral species used in restoration. Includes Acropora species, Pocillopora, Porites, Montipora, Stylophora, and others. Features growth forms, identification tips, and regional variations.",
+      "type": "document",
+      "contentUrl": "https://oceanservice.noaa.gov/education/tutorial_corals/coral07_importance.html",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=1200&fit=crop",
+      "tags": [
+        "species ID",
+        "Indo-Pacific",
+        "coral identification",
+        "taxonomy"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-001",
+        "sop-cr-002",
+        "sop-cr-003"
+      ],
+      "category": "Species Identification"
+    },
+    {
+      "id": "media-cr-025",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Coral Growth Measurement Techniques",
+      "description": "Tutorial video demonstrating various coral growth measurement methods including linear extension, photogrammetry, 3D modeling, and weight-based calculations. Compares accuracy and practical application of each method.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/monitoring/growth_measurement_techniques.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/monitoring/growth_measurement_techniques_thumb.jpg",
+      "duration": 840,
+      "tags": [
+        "monitoring",
+        "growth",
+        "measurement",
+        "photogrammetry"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003"
+      ],
+      "category": "Monitoring Techniques"
+    },
+    {
+      "id": "media-cr-026",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Fragment Mounting on Plugs",
+      "description": "Detailed video showing proper technique for mounting coral fragments on ceramic plugs and concrete discs. Demonstrates epoxy vs gel adhesive application, proper positioning, and elevation above plug surface.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/fragmentation/mounting_on_plugs.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/fragmentation/mounting_on_plugs_thumb.jpg",
+      "duration": 480,
+      "tags": [
+        "fragmentation",
+        "mounting",
+        "plugs",
+        "attachment"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-002"
+      ],
+      "category": "Propagation Techniques"
+    },
+    {
+      "id": "media-cr-027",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Donor Colony Selection Criteria",
+      "description": "Visual guide showing characteristics of ideal donor colonies for fragmentation. Demonstrates assessment of health indicators, growth margins, size requirements, and genetic diversity considerations.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=300&fit=crop",
+      "tags": [
+        "fragmentation",
+        "donor selection",
+        "health assessment",
+        "genetics"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-002"
+      ],
+      "category": "Propagation Techniques"
+    },
+    {
+      "id": "media-cr-028",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Substrate Preparation for Outplanting",
+      "description": "Video demonstration of substrate cleaning and preparation procedures including wire brushing, algae removal, and optimal attachment point selection on natural reef substrate.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/outplanting/substrate_preparation.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/outplanting/substrate_preparation_thumb.jpg",
+      "duration": 420,
+      "tags": [
+        "outplanting",
+        "substrate",
+        "preparation",
+        "cleaning"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-004"
+      ],
+      "category": "Outplanting Techniques"
+    },
+    {
+      "id": "media-cr-029",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Proper Coral Tagging Methods",
+      "description": "Photo guide showing waterproof tag types, attachment methods, and positioning guidelines for coral identification tagging. Includes numbering systems and database integration best practices.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1544551763-77ef2d0cfc6c?w=300&fit=crop",
+      "tags": [
+        "tagging",
+        "identification",
+        "tracking",
+        "documentation"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-004"
+      ],
+      "category": "Documentation"
+    },
+    {
+      "id": "media-cr-030",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Marine Life Hazards for Divers",
+      "description": "Identification guide for potentially hazardous marine life encountered during restoration diving. Includes sharks, jellyfish, fire coral, sea urchins, stingrays with avoidance strategies and first aid for encounters.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1517627043994-b991abb62fc8?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1517627043994-b991abb62fc8?w=300&fit=crop",
+      "tags": [
+        "dive safety",
+        "marine hazards",
+        "first aid",
+        "identification"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-007"
+      ],
+      "category": "Dive Safety"
+    },
+    {
+      "id": "media-cr-031",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Controlled Ascent Demonstration",
+      "description": "Video showing proper controlled ascent technique including ascent rate monitoring, safety stop procedure, buddy positioning during ascent, and surface marker buoy deployment.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/safety/controlled_ascent.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/safety/controlled_ascent_thumb.jpg",
+      "duration": 360,
+      "tags": [
+        "dive safety",
+        "ascent",
+        "decompression",
+        "safety stop"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-007"
+      ],
+      "category": "Dive Safety"
+    },
+    {
+      "id": "media-cr-032",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Equipment Failure Drill Scenarios",
+      "description": "Training video demonstrating responses to common equipment failures: free-flowing regulator, BCD malfunction, mask loss, weight system failure. Includes controlled practice scenarios.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/safety/equipment_failure_drills.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/safety/equipment_failure_drills_thumb.jpg",
+      "duration": 900,
+      "tags": [
+        "dive safety",
+        "equipment failure",
+        "emergency response",
+        "training"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-007"
+      ],
+      "category": "Dive Safety"
+    },
+    {
+      "id": "media-cr-033",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Disease Identification Flowchart",
+      "description": "Decision-tree flowchart for coral disease identification based on visual symptoms. Guides observer through lesion characteristics, progression patterns, and affected species to determine likely disease type.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1583212292454-1fe6229603b7?w=300&fit=crop",
+      "tags": [
+        "disease",
+        "identification",
+        "diagnosis",
+        "flowchart"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003",
+        "sop-cr-005"
+      ],
+      "category": "Disease Identification"
+    },
+    {
+      "id": "media-cr-034",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Black Band Disease Characteristics",
+      "description": "Detailed photographs of black band disease showing cyanobacterial mat appearance, progression direction, affected species, and seasonal occurrence patterns.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=300&fit=crop",
+      "tags": [
+        "disease",
+        "black band",
+        "cyanobacteria",
+        "identification"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003",
+        "sop-cr-005"
+      ],
+      "category": "Disease Identification"
+    },
+    {
+      "id": "media-cr-035",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Photo Documentation Setup",
+      "description": "Visual guide showing proper setup for coral photography including camera positioning, color reference card placement, scale bar usage, and lighting considerations for consistent documentation.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1571752726703-5e7d1f6a986d?w=300&fit=crop",
+      "tags": [
+        "monitoring",
+        "photography",
+        "documentation",
+        "standardization"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003"
+      ],
+      "category": "Documentation"
+    },
+    {
+      "id": "media-cr-036",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Massive Coral Cutting with Band Saw",
+      "description": "Tutorial video demonstrating proper technique for cutting massive coral species using a diamond band saw. Shows water flow management, cutting depth control, and fragment handling.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/fragmentation/massive_coral_cutting.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/fragmentation/massive_coral_cutting_thumb.jpg",
+      "duration": 600,
+      "tags": [
+        "fragmentation",
+        "massive coral",
+        "band saw",
+        "cutting"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-002"
+      ],
+      "category": "Propagation Techniques"
+    },
+    {
+      "id": "media-cr-037",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Initial Site Assessment Procedure",
+      "description": "Video showing systematic site assessment methodology from surface observation through underwater survey. Demonstrates checklist usage, hazard identification, and go/no-go decision making.",
+      "type": "video",
+      "contentUrl": "gs://seafoundry-training/coral/nursery/initial_site_assessment.mp4",
+      "thumbnailUrl": "gs://seafoundry-training/coral/nursery/initial_site_assessment_thumb.jpg",
+      "duration": 480,
+      "tags": [
+        "site assessment",
+        "survey",
+        "planning",
+        "safety"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-001",
+        "sop-cr-004"
+      ],
+      "category": "Site Assessment"
+    },
+    {
+      "id": "media-cr-038",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Temperature Control Systems Overview",
+      "description": "Photo documentation of various temperature control systems used in coral aquaculture including chillers, heaters, heat exchangers, and monitoring equipment with installation best practices.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1589308078059-be1415eab4c3?w=300&fit=crop",
+      "tags": [
+        "water quality",
+        "temperature",
+        "equipment",
+        "climate control"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-006"
+      ],
+      "category": "Equipment"
+    },
+    {
+      "id": "media-cr-039",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Visual Health Indicators Reference",
+      "description": "Comprehensive photo reference showing full spectrum of coral health indicators from excellent to critical condition. Includes polyp extension patterns, tissue coloration, growth characteristics, and stress responses.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=300&fit=crop",
+      "tags": [
+        "health assessment",
+        "visual indicators",
+        "monitoring",
+        "condition scoring"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-003",
+        "sop-cr-001"
+      ],
+      "category": "Health Assessment"
+    },
+    {
+      "id": "media-cr-040",
+      "organizationId": "template",
+      "createdBy": "system",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "title": "Coral Restoration Field Guide",
+      "description": "Comprehensive PDF field guide combining species identification, health assessment protocols, disease identification, and emergency procedures into a waterproof-printable format for field use.",
+      "type": "document",
+      "contentUrl": "gs://seafoundry-training/coral/general/restoration_field_guide.pdf",
+      "thumbnailUrl": "gs://seafoundry-training/coral/general/restoration_field_guide_thumb.jpg",
+      "tags": [
+        "field guide",
+        "reference",
+        "comprehensive",
+        "waterproof"
+      ],
+      "relatedSOPIds": [
+        "sop-cr-001",
+        "sop-cr-002",
+        "sop-cr-003",
+        "sop-cr-004",
+        "sop-cr-005",
+        "sop-cr-006",
+        "sop-cr-007"
+      ],
+      "category": "Reference Documents"
+    }
+  ],
+  "categories": [
+    {
+      "id": "nursery-infrastructure",
+      "name": "Nursery Infrastructure",
+      "description": "Images and videos of coral nursery structures and equipment"
+    },
+    {
+      "id": "husbandry-techniques",
+      "name": "Husbandry Techniques",
+      "description": "Training materials for daily care and maintenance procedures"
+    },
+    {
+      "id": "propagation-techniques",
+      "name": "Propagation Techniques",
+      "description": "Fragmentation, microfragmentation, and fragment mounting tutorials"
+    },
+    {
+      "id": "health-assessment",
+      "name": "Health Assessment",
+      "description": "Visual guides for coral health evaluation and condition scoring"
+    },
+    {
+      "id": "disease-identification",
+      "name": "Disease Identification",
+      "description": "Disease recognition guides and identification flowcharts"
+    },
+    {
+      "id": "disease-treatment",
+      "name": "Disease Treatment",
+      "description": "Treatment protocols and intervention techniques"
+    },
+    {
+      "id": "monitoring-tools",
+      "name": "Monitoring Tools",
+      "description": "Equipment and methodology for coral monitoring programs"
+    },
+    {
+      "id": "monitoring-techniques",
+      "name": "Monitoring Techniques",
+      "description": "Methods for growth measurement and data collection"
+    },
+    {
+      "id": "outplanting",
+      "name": "Outplanting",
+      "description": "Site assessment and coral transplantation procedures"
+    },
+    {
+      "id": "outplanting-techniques",
+      "name": "Outplanting Techniques",
+      "description": "Detailed outplanting methodology and attachment methods"
+    },
+    {
+      "id": "water-quality",
+      "name": "Water Quality",
+      "description": "Water chemistry monitoring and management"
+    },
+    {
+      "id": "equipment-maintenance",
+      "name": "Equipment Maintenance",
+      "description": "Calibration and maintenance procedures for monitoring equipment"
+    },
+    {
+      "id": "dive-safety",
+      "name": "Dive Safety",
+      "description": "Diving protocols, emergency procedures, and safety training"
+    },
+    {
+      "id": "species-identification",
+      "name": "Species Identification",
+      "description": "Coral taxonomy and species recognition guides"
+    },
+    {
+      "id": "documentation",
+      "name": "Documentation",
+      "description": "Photography, tagging, and data recording standards"
+    },
+    {
+      "id": "biosecurity",
+      "name": "Biosecurity",
+      "description": "Sterilization, quarantine, and contamination prevention"
+    },
+    {
+      "id": "site-assessment",
+      "name": "Site Assessment",
+      "description": "Evaluation procedures for nursery and outplanting sites"
+    },
+    {
+      "id": "equipment",
+      "name": "Equipment",
+      "description": "Aquaculture and monitoring equipment guides"
+    },
+    {
+      "id": "reference-documents",
+      "name": "Reference Documents",
+      "description": "Comprehensive guides and field references"
+    }
+  ]
+}

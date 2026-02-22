@@ -1,0 +1,7 @@
+FirstName,LastName,Email,Groups
+John,Doe,john.doe@example.com,Beta Testers
+Jane,Smith,jane.smith@example.com,Alpha Testers;Beta Testers
+Mike,Johnson,mike.j@coralresearch.org,Coral Researchers
+Sarah,Williams,sarah@partnerorg.com,Partner Organizations
+Test,User,testuser@seafoundry.com,Internal Team;Alpha Testers
+Demo,Account,demo@seafoundry.com,Beta Testers

@@ -1,0 +1,6 @@
+# SeaFoundry CSV v2 urchin examples
+organismKind,eventType,eventDate,speciesScientific,speciesCode,localId,recordName,provenanceId,sizeMm,sizeClassMm,densityPerM2,transectId,nh3MgL,no2MgL,no3MgL,alkalinityMgLAsCaCo3,temperatureC,salinityPsu,dissolvedOxygenMgL,siteName,permitId,permitType,issuingAuthority,validFrom,validTo,habitatType,siteJurisdiction,protectedAreaFlag,geometryFormat,geometryWkt,observer,sourceSystem,notes
+
+echinoid,deployment,2025-11-08T08:30:00Z,Mesocentrotus franciscanus,MeFr,MEFR-001,shore-mefr-001,PID-MeFr-00001,,30-50,2,KELP-T1,,,,,12.1,33,8.5,Monterey Kelp Site B,CA-DFW-URCHIN-2025,deployment,CDFW,2025-04-01,2026-03-31,kelp_forest,California,false,WKT,"POINT (-121.90 36.62)",B.Liu,ReefCheckCA,"Pilot restocking"
+
+echinoid,monitoring,2025-11-08T09:00:00Z,Mesocentrotus franciscanus,MeFr,MEFR-001,shore-mefr-001,PID-MeFr-00001,42,40-45,3,KELP-T1,0.02,0.01,0.2,120,12.3,33,8.2,Monterey Kelp Site B,CA-DFW-URCHIN-2025,monitoring,CDFW,2025-04-01,2026-03-31,kelp_forest,California,false,WKT,"POINT (-121.9005 36.6205)",B.Liu,ReefCheckCA,"Stable conditions"

@@ -1,0 +1,234 @@
+# Declares tier visibility for structured payloads. Shared/community fields are
+# available to every tier. Pro-only fields are filtered for Community exports,
+# while Scale-only fields represent automation/geometry overlays that should be
+# hidden from both Community and Pro snapshots.
+models:
+  inventory_export_row:
+    community:
+      - provenanceId
+      - localId
+      - recordName
+      - speciesId
+      - organismKind
+      - groupId
+      - groupIdRaw
+      - siteId
+      - siteName
+      - lifeStage
+      - lifeStageLabel
+      - lifeStageId
+      - quantityValue
+      - measurementUnit
+      - eventDate
+      - eventType
+      - holdingKind
+      - readyForOutplant
+      - provenanceType
+      - provenanceKind
+      - structureType
+    pro:
+      - healthStatus
+      - size
+      - notes
+      - lastEventAt
+      - ownerOrganizationId
+      - managingOrganizationId
+      - foreignKeys
+      - aliases
+      - aliasesJson
+      - lifeStageSubtype
+      - physicalFormId
+      - physicalForm
+      - sizeBandId
+      - permitId
+      - permitType
+      - issuingAuthority
+      - validFrom
+      - validTo
+      - siteJurisdiction
+      - habitatType
+      - protectedAreaFlag
+      - outplantPointsCsv
+      - outplantKmlUrl
+    scale:
+      - geometryUpdatedAt
+      - siteCenterLat
+      - siteCenterLng
+      - siteBboxNwLat
+      - siteBboxNwLng
+      - siteBboxSeLat
+      - siteBboxSeLng
+  genetics_row:
+    community:
+      - organismKind
+      - provenanceId
+      - name
+      - speciesId
+      - genetTypeId
+      - clonalId
+      - parentGameteIds
+      - donorGenotypeId
+      - archived
+      - provenance.habitatType
+      - provenance.collectionDate
+      - provenance.notes
+      - aliases
+      - provenanceTypeId
+      - provenanceTypeLabel
+      - lifeStageId
+      - lifeStageLabel
+    pro:
+      - organismKind
+      - archivedAt
+      - metadata
+      - metadataSummary
+      - metadataNotes
+      - gameteDonorGenotypeId
+      - genotypeProvenance
+      - genetNotes
+      - parentProvenanceId
+    scale:
+      - organismKind
+      - imageUrls
+  monitoring_event_row:
+    community:
+      - monitoringId
+      - monitoringDate
+      - siteId
+      - siteName
+      - structureId
+      - structureName
+      - healthStatus
+      - percentCover
+      - percentBleaching
+      - percentDisease
+      - notes
+      - coralIds
+      - organismKind
+    pro:
+      - imageUrl
+      - imageUrls
+      - measurements
+      - healthIssueTypeId
+      - newHealthStatus
+      - oldHealthStatus
+      - outplantEventId
+      - outplantEventName
+      - createTask
+      - totalCount
+    scale:
+      - geometryLat
+      - geometryLng
+      - outplantGeometry
+  inventory_record_snapshot:
+    community:
+      - id
+      - modelType
+      - createdAt
+      - createdById
+      - updatedAt
+      - updatedById
+      - organizationId
+      - urlPath
+      - internalPath
+      - slug
+      - name
+      - displayName
+      - label
+      - description
+      - organismKind
+      - holdingKind
+      - structureType
+      - speciesId
+      - genetId
+      - siteId
+      - siteName
+      - groupId
+      - localId
+      - coralTypeId
+      - lifeStage
+      - lifeStageId
+      - lifeStageLabel
+      - quantityValue
+      - population
+      - populationMeasurement
+      - measurement
+      - measurementUnit
+      - measurementValue
+      - readyForOutplant
+      - readyForFragging
+      - provenanceType
+      - provenanceAttributes
+      - siteCenter
+      - siteCenterLat
+      - siteCenterLng
+      - location
+      - geometryCenter
+    pro:
+      - healthStatus
+      - size
+      - sizeSpec
+      - physicalFormId
+      - sizeBandId
+      - lifeStageSubtype
+      - actualSizeCm
+      - notes
+      - ownerOrganizationId
+      - managingOrganizationId
+      - foreignKeys
+      - aliases
+      - aliasLabels
+      - metadata
+      - measurementHistory
+      - lifeStageHistory
+      - permitId
+      - permitType
+      - permitMetadata
+      - provenanceNotes
+    scale:
+      - geometry
+      - geometryUpdatedAt
+      - siteCenterPrecision
+      - geofence
+  monitoring_event_record:
+    community:
+      - id
+      - createdAt
+      - createdById
+      - updatedAt
+      - updatedById
+      - organizationId
+      - recordId
+      - recordModelType
+      - urlPath
+      - internalPath
+      - slug
+      - siteId
+      - siteName
+      - eventTypeId
+      - healthStatus
+      - notes
+      - percentCover
+      - percentBleaching
+      - percentDisease
+      - monitoringDate
+      - coralIds
+      - entries
+      - metadata
+      - base
+      - organismKind
+    pro:
+      - comment
+      - imageUrl
+      - oldHealthStatus
+      - newHealthStatus
+      - healthIssueTypeId
+      - measurements
+      - outplantEventId
+      - outplantEventName
+      - permitMetadata
+      - createTask
+      - totalCount
+      - imageAttachments
+    scale:
+      - outplantGeometry

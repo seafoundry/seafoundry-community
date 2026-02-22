@@ -1,0 +1,1620 @@
+// @tier: community
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:seafoundry_app/constants/transfer_constants.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
+import 'package:seafoundry_app/cubits/outplant/organism_selection_cubit.dart';
+import 'package:seafoundry_app/cubits/outplant/organism_selection_state.dart';
+import 'package:seafoundry_app/cubits/transfer/transfer_initiate_cubit.dart';
+import 'package:seafoundry_app/models/models.dart';
+import 'package:seafoundry_app/services/tier.dart';
+import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
+import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
+import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
+import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
+import 'package:seafoundry_app/services/genet_id_resolver.dart';
+import 'package:seafoundry_app/services/logging_service.dart';
+import 'package:seafoundry_app/services/organism_holding_loader.dart';
+import 'package:seafoundry_app/services/outplant/site_loading_service.dart';
+import 'package:seafoundry_app/utils/human_sort.dart';
+import 'package:seafoundry_app/widgets/common/five_axis_editor.dart';
+import 'package:seafoundry_app/widgets/common/step_progress_indicator.dart';
+import 'package:seafoundry_app/widgets/dialogs/base_async_dialog.dart';
+import 'package:seafoundry_app/widgets/dialogs/base_search_dialog.dart';
+import 'package:seafoundry_app/widgets/dialogs/components/permit_selector_widget.dart';
+import 'package:seafoundry_app/widgets/dialogs/components/transfer_initiate_form.dart';
+import 'package:seafoundry_app/widgets/dialogs/components/transfer_manifest_summary.dart';
+import 'package:seafoundry_app/widgets/dialogs/outplant_batch/outplant_coral_selection.dart';
+import 'package:seafoundry_app/widgets/dialogs/transfer/transfer_shared.dart';
+import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
+
+import '../../common/organism_reference_links.dart';
+import '../components/dialog_scroll_view.dart';
+
+/// Dialog for initiating a genet transfer to another organization
+class TransferInitiateDialog extends BaseAsyncDialog {
+  final String genetName;
+  final String genetId;
+  final String speciesId;
+  final TransferEvent? originalEvent; // For edit mode
+  final OrganismContext organismContext;
+  final OrganismHoldingLoader? holdingsLoaderOverride;
+  final bool Function(OrganismKind kind)? holdingsSupportOverride;
+  final Future<List<Map<String, dynamic>>> Function(OrganismKind kind)?
+  holdingsRowsOverride;
+  final ProvenanceLifeStageSelection initialProvenanceSelection;
+  final bool allowLocalIdSelection;
+
+  const TransferInitiateDialog({
+    super.key,
+    required this.genetName,
+    required this.genetId,
+    required this.speciesId,
+    this.originalEvent,
+    required this.organismContext,
+    this.holdingsLoaderOverride,
+    this.holdingsSupportOverride,
+    this.holdingsRowsOverride,
+    required this.initialProvenanceSelection,
+    this.allowLocalIdSelection = false,
+  });
+
+  @override
+  State<TransferInitiateDialog> createState() => _TransferInitiateDialogState();
+}
+
+/// Hosts the initiate/edit workflow while deferring most business logic to
+/// [TransferInitiateCubit]. Site loading is performed directly via
+/// [SiteLoadingService] for responsive lazy-load UX.
+class _TransferInitiateDialogState
+    extends BaseAsyncDialogState<TransferInitiateDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _quantityController;
+  late final TextEditingController _commentController;
+  late final TextEditingController _recipientEmailController;
+  late final TextEditingController _permitIdController;
+  late final TextEditingController _permitTypeController;
+  late final TextEditingController _issuingAuthorityController;
+  late final TextEditingController _attachmentUrlsController;
+  late final TextEditingController _selectionSearchController;
+  late final bool _hadInitialPermit;
+  late final OrganismSelectionCubit _selectionCubit;
+  final Map<String, TextEditingController> _selectionQuantityControllers = {};
+  late String _selectedGenetId;
+  late String _selectedGenetName;
+  StreamSubscription<List<Genet>>? _genetSubscription;
+  List<Genet> _availableGenets = const [];
+  bool _genetLoading = false;
+  String? _genetError;
+  bool _selectionLoading = false;
+  String? _selectionError;
+  int _excludedPendingOutplant = 0;
+  int _excludedPendingTransfer = 0;
+  Map<String, String> _siteNameById = {};
+  Map<String, String> _groupNameById = {};
+  List<Site> _availableSites = const [];
+  Site? _selectedSite;
+  bool _siteLoading = false;
+  String? _siteError;
+  bool _showQrCode = false;
+
+  /// True when editing an existing pending transfer.
+  late final bool _isEditMode;
+
+  bool get _allowsLocalIdSelection =>
+      widget.allowLocalIdSelection && !_isEditMode;
+
+  bool get _hasSelectedLocalId =>
+      !_allowsLocalIdSelection || _selectedGenetId.isNotEmpty;
+
+  String get _genetDisplayName {
+    if (_selectedGenetName.isNotEmpty) {
+      return _selectedGenetName;
+    }
+    if (_selectedGenetId.isNotEmpty) {
+      return _selectedGenetId;
+    }
+    return _allowsLocalIdSelection ? 'Select Local ID' : 'Unknown Genet';
+  }
+
+  /// Step labels for the multi-step transfer workflow
+  static const List<String> _stepLabels = ['Selection', 'Permits'];
+
+  @override
+  void initState() {
+    super.initState();
+    _isEditMode = widget.originalEvent != null;
+    _selectedGenetId = widget.genetId.trim();
+    _selectedGenetName = widget.genetName.trim();
+    _selectionCubit = OrganismSelectionCubit();
+    _quantityController = TextEditingController(
+      text: _isEditMode ? widget.originalEvent!.quantity.toString() : '',
+    );
+    _commentController = TextEditingController(
+      text: _isEditMode ? widget.originalEvent!.comment ?? '' : '',
+    );
+    _recipientEmailController = TextEditingController(
+      text: widget.originalEvent?.toOrganizationEmail ?? '',
+    )..addListener(_onRecipientEmailChanged);
+    final permit =
+        widget.originalEvent?.permitMetadata ??
+        const EventPermitMetadata.empty();
+    _permitIdController = TextEditingController(text: permit.permitId ?? '');
+    _permitTypeController = TextEditingController(
+      text: permit.permitType ?? '',
+    );
+    _issuingAuthorityController = TextEditingController(
+      text: permit.issuingAuthority ?? '',
+    );
+    _attachmentUrlsController = TextEditingController(
+      text: permit.attachmentUrls.join('\n'),
+    );
+    _hadInitialPermit = !permit.isEmpty;
+    _selectionSearchController = TextEditingController()
+      ..addListener(_onSelectionSearchChanged);
+    if (_allowsLocalIdSelection) {
+      _startLocalIdStream();
+    }
+    if (!_isEditMode && widget.organismContext.kind == OrganismKind.coral) {
+      _loadAvailableSites();
+      if (!_allowsLocalIdSelection || _selectedGenetId.isNotEmpty) {
+        _loadOrganismSelection();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _quantityController.dispose();
+    _commentController.dispose();
+    _recipientEmailController
+      ..removeListener(_onRecipientEmailChanged)
+      ..dispose();
+    _permitIdController.dispose();
+    _permitTypeController.dispose();
+    _issuingAuthorityController.dispose();
+    _attachmentUrlsController.dispose();
+    _selectionSearchController
+      ..removeListener(_onSelectionSearchChanged)
+      ..dispose();
+    for (final controller in _selectionQuantityControllers.values) {
+      controller.dispose();
+    }
+    _genetSubscription?.cancel();
+    _selectionCubit.close();
+    super.dispose();
+  }
+
+  PopulationMeasurement get _measurement =>
+      const PopulationMeasurement(value: 1, unit: MeasurementUnit.count);
+
+  @override
+  String get title {
+    // In edit mode, genet name may not be loaded yet, use genet ID as fallback
+    final displayName = _genetDisplayName;
+    final baseTitle = _isEditMode ? 'Edit Transfer' : 'Transfer';
+    if (_allowsLocalIdSelection && !_hasSelectedLocalId) {
+      return baseTitle;
+    }
+    return '$baseTitle $displayName';
+  }
+
+  @override
+  Widget? get titleIcon => const Icon(Icons.swap_horiz, color: Colors.blue);
+
+  @override
+  double? get dialogWidth => 600;
+
+  @override
+  double? get dialogMaxHeight => 520;
+
+  @override
+  Widget buildContent(BuildContext context) {
+    return BlocBuilder<TransferInitiateCubit, TransferInitiateState>(
+      builder: (context, state) {
+        if (state.hasTransfer) {
+          return _buildSuccessContent(state);
+        }
+        return _buildTransferForm(state);
+      },
+    );
+  }
+
+  /// Renders the info banner plus the `TransferInitiateForm`.
+  Widget _buildTransferForm(TransferInitiateState state) {
+    return BlocBuilder<OrganismSelectionCubit, OrganismSelectionState>(
+      bloc: _selectionCubit,
+      builder: (context, selectionState) {
+        final useSelection = !_isEditMode;
+        return Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Transfer genetic material to another organization for collaborative research.',
+                        style: TextStyle(color: Colors.blue[900], fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              StepProgressIndicator(
+                steps: _stepLabels,
+                currentStep: _getCurrentStep(state, selectionState),
+              ),
+              const SizedBox(height: 8),
+              TransferInitiateForm(
+                genetName: _genetDisplayName,
+                localIdSelector:
+                    _allowsLocalIdSelection ? _buildLocalIdSelector() : null,
+                selectedOrganization: state.selectedOrganization,
+                quantityController: _quantityController,
+                commentController: _commentController,
+                isSelectingOrganization: state.selectingOrganization,
+                isBusy: isLoading,
+                isEditMode: _isEditMode,
+                onSelectOrganization: _selectOrganization,
+                provenanceSelection: state.provenanceSelection,
+                selectedPhysicalFormId: state.selectedPhysicalFormId,
+                sizeSpec: state.sizeSpec,
+                measurement: _measurement,
+                isFiveAxisReadOnly: true,
+                quantitySection: useSelection
+                    ? _buildSelectionSection(selectionState)
+                    : null,
+                onFiveAxisChanged: (FiveAxisSelection selection) {
+                  final cubit = context.read<TransferInitiateCubit>();
+                  cubit.updateProvenanceSelection(selection.provenanceSelection);
+                  cubit.updatePhysicalForm(
+                    selection.physicalFormSelection.physicalFormId,
+                  );
+                  cubit.updateSizeSpec(selection.physicalFormSelection.sizeSpec);
+                },
+                recipientMode: state.recipientMode,
+                onRecipientModeChanged: (mode) {
+                  context.read<TransferInitiateCubit>().setRecipientMode(mode);
+                },
+                recipientEmailController: _recipientEmailController,
+                recipientEmail: state.recipientEmail,
+                ownershipType: state.ownershipType,
+                isThirdPartyDetected: state.isThirdPartyDetected,
+                onOwnershipTypeChanged: (type) {
+                  context.read<TransferInitiateCubit>().setOwnershipType(type);
+                },
+              ),
+              const SizedBox(height: 20),
+              _buildPermitSection(context),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _startLocalIdStream() {
+    if (_genetSubscription != null) return;
+    final genetRepository = context.maybeRead<GenetRepository>();
+    if (genetRepository == null) {
+      _genetError = 'Local IDs unavailable';
+      _genetLoading = false;
+      return;
+    }
+
+    _genetLoading = true;
+    _genetError = null;
+
+    _genetSubscription = genetRepository.streamAll.listen(
+      (genets) {
+        if (!mounted) return;
+        setState(() {
+          _availableGenets = List<Genet>.from(genets);
+          _genetLoading = false;
+          _genetError = null;
+        });
+      },
+      onError: (_) {
+        if (!mounted) return;
+        setState(() {
+          _genetLoading = false;
+          _genetError = 'Error loading Local IDs';
+        });
+      },
+    );
+  }
+
+  Widget _buildLocalIdSelector() {
+    if (_genetLoading) {
+      return const SizedBox(
+        height: 48,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_genetError != null) {
+      return _buildLocalIdUnavailable(_genetError!);
+    }
+
+    final genets = List<Genet>.from(_availableGenets);
+    if (genets.isEmpty) {
+      return _buildLocalIdUnavailable('No Local IDs available');
+    }
+
+    genets.sort(
+      (a, b) => compareHumanReadable(_genetLabel(a), _genetLabel(b)),
+    );
+
+    Genet? selected;
+    for (final genet in genets) {
+      if (genet.id == _selectedGenetId) {
+        selected = genet;
+        break;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<Genet>(
+          initialValue: selected,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Local ID',
+            hintText: 'Select local ID',
+            isDense: true,
+          ),
+          items: genets
+              .map(
+                (genet) => DropdownMenuItem(
+                  value: genet,
+                  child: Text(_genetLabel(genet)),
+                ),
+              )
+              .toList(),
+          onChanged: isLoading
+              ? null
+              : (genet) {
+                  if (genet == null) return;
+                  _onGenetSelected(genet);
+                },
+        ),
+        if (_allowsLocalIdSelection && _selectedGenetId.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 6, left: 12),
+            child: Text(
+              'Required',
+              style: TextStyle(color: Colors.red, fontSize: 12),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildLocalIdUnavailable(String message) {
+    return InputDecorator(
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        labelText: 'Local ID',
+        isDense: true,
+      ),
+      child: Text(
+        message,
+        style: const TextStyle(color: Colors.grey),
+      ),
+    );
+  }
+
+  String _genetLabel(Genet genet) {
+    final localId = genet.localId?.trim();
+    if (localId != null && localId.isNotEmpty) {
+      return localId;
+    }
+    final name = genet.name.trim();
+    return name.isNotEmpty ? name : genet.id;
+  }
+
+  void _onGenetSelected(Genet genet) {
+    if (genet.id == _selectedGenetId) return;
+    setState(() {
+      _selectedGenetId = genet.id;
+      _selectedGenetName = _genetLabel(genet);
+      _selectionError = null;
+      _excludedPendingOutplant = 0;
+      _excludedPendingTransfer = 0;
+    });
+    _resetSelectionControllers();
+    _selectionCubit.clearSelection();
+    // Reset third-party detection when genet changes
+    context.read<TransferInitiateCubit>().resetThirdPartyDetection();
+    _loadOrganismSelection();
+    context
+        .read<TransferInitiateCubit>()
+        .updateProvenanceSelection(
+          ProvenanceLifeStageSelection.fromGenet(genet),
+        );
+  }
+
+  void _resetSelectionControllers() {
+    for (final controller in _selectionQuantityControllers.values) {
+      controller.dispose();
+    }
+    _selectionQuantityControllers.clear();
+  }
+
+  Widget _buildSelectionSection(OrganismSelectionState selectionState) {
+    if (_allowsLocalIdSelection && _selectedGenetId.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Quantity', style: TextStyle(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Text(
+            'Select a Local ID above to load available organisms.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      );
+    }
+    final filteredOrganisms = _filterOrganismsForSite(selectionState);
+    final selectedQuantity = _selectedQuantity(selectionState);
+    final selectedCount = selectionState.selectedOrganismIds.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Quantity', style: TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        Text(
+          'Select organism records and quantities to transfer.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 12),
+        if (_selectionLoading)
+          const LinearProgressIndicator()
+        else if (_selectionError != null)
+          Text(
+            _selectionError!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          )
+        else if (selectionState.availableOrganisms.isEmpty)
+          const Text('No organisms available for transfer.')
+        else if (filteredOrganisms.isEmpty)
+          const Text('No organisms match the current filters.'),
+        if (!_selectionLoading &&
+            _selectionError == null &&
+            filteredOrganisms.isNotEmpty)
+          _buildSelectionBody(selectionState, filteredOrganisms),
+        const SizedBox(height: 8),
+        if (selectedCount > 0)
+          Text(
+            'Selected: $selectedCount record${selectedCount == 1 ? '' : 's'}, '
+            '$selectedQuantity total',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        if (!_selectionLoading &&
+            _selectionError == null &&
+            filteredOrganisms.isNotEmpty &&
+            selectionState.selectedOrganismIds.isEmpty)
+          Text(
+            'Select at least one organism to continue.',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        if (selectionState.hasInvalidQuantities)
+          Text(
+            'One or more quantities are invalid.',
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+        if (_excludedPendingOutplant > 0 || _excludedPendingTransfer > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              _buildExcludedSummary(),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSelectionBody(
+    OrganismSelectionState selectionState,
+    List<OrganismRecord> organisms,
+  ) {
+    if (organisms.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSiteFilter(),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _selectionSearchController,
+          enabled: !isLoading,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: 'Search organisms...',
+            prefixIcon: Icon(Icons.search),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ..._buildOrganismRows(selectionState, organisms),
+      ],
+    );
+  }
+
+  List<Widget> _buildOrganismRows(
+    OrganismSelectionState selectionState,
+    List<OrganismRecord> organisms,
+  ) {
+    final sortedOrganisms = List<OrganismRecord>.from(organisms);
+    sortedOrganisms.sort((a, b) {
+      final locationCompare = _locationLabel(a).compareTo(_locationLabel(b));
+      if (locationCompare != 0) return locationCompare;
+      final aLabel = formatOrganismReferenceLabel(
+        localId: a.localId,
+        recordName: a.recordName,
+        fallback: a.id,
+      );
+      final bLabel = formatOrganismReferenceLabel(
+        localId: b.localId,
+        recordName: b.recordName,
+        fallback: b.id,
+      );
+      return aLabel.compareTo(bLabel);
+    });
+
+    final rows = <Widget>[];
+    String? lastLocation;
+    for (final organism in sortedOrganisms) {
+      final location = _locationLabel(organism);
+      if (location != lastLocation) {
+        rows.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6, top: 8),
+            child: Text(
+              location,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
+        );
+        lastLocation = location;
+      }
+      rows.add(_buildOrganismRow(selectionState, organism));
+    }
+    return rows;
+  }
+
+  Widget _buildOrganismRow(
+    OrganismSelectionState selectionState,
+    OrganismRecord organism,
+  ) {
+    final isSelected = selectionState.selectedOrganismIds.contains(organism.id);
+    final available =
+        organism.inventoryMetrics.count ?? organism.measurement.value.toInt();
+    final controller = _selectionQuantityControllers.putIfAbsent(
+      organism.id,
+      () => TextEditingController(
+        text: (selectionState.quantityByOrganism[organism.id] ?? 1).toString(),
+      ),
+    );
+    final currentQuantity = selectionState.quantityByOrganism[organism.id] ?? 1;
+    if (controller.text != currentQuantity.toString()) {
+      controller.value = controller.value.copyWith(
+        text: currentQuantity.toString(),
+        selection: TextSelection.collapsed(
+          offset: currentQuantity.toString().length,
+        ),
+      );
+    }
+
+    return OutplantOrganismSelectionRow(
+      organism: organism,
+      isSelected: isSelected,
+      quantityController: controller,
+      available: available,
+      isSubmitting: isLoading,
+      onSelectionChanged: (val) {
+        _selectionCubit.toggleSelection(organism.id, selected: val);
+      },
+      onQuantityChanged: (value) {
+        final parsed = int.tryParse(value) ?? 0;
+        _selectionCubit.setQuantity(organism.id, parsed);
+      },
+    );
+  }
+
+  Widget _buildSiteFilter() {
+    final sites = _availableSites;
+    final items = <DropdownMenuItem<Site?>>[
+      const DropdownMenuItem<Site?>(value: null, child: Text('All sites')),
+      ...sites.map(
+        (site) => DropdownMenuItem<Site?>(
+          value: site,
+          child: Text(site.name, overflow: TextOverflow.ellipsis),
+        ),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Source Site',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<Site?>(
+          initialValue: _selectedSite,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: 'Filter by site (optional)',
+          ),
+          items: items,
+          onChanged: (isLoading || _siteLoading) ? null : _onSiteSelected,
+        ),
+        if (_siteLoading) ...[
+          const SizedBox(height: 8),
+          const LinearProgressIndicator(),
+        ],
+        if (_siteError != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            _siteError!,
+            style: TextStyle(color: Theme.of(context).colorScheme.error),
+          ),
+          TextButton.icon(
+            onPressed: isLoading ? null : _loadAvailableSites,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Retry'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  List<OrganismRecord> _filterOrganismsForSite(
+    OrganismSelectionState selectionState,
+  ) {
+    if (_selectedSite == null) {
+      return selectionState.filteredOrganisms;
+    }
+    final selectedSiteId = _selectedSite!.id;
+    return selectionState.filteredOrganisms
+        .where((organism) {
+          final siteId = organism.siteId;
+          if (siteId == null || siteId.isEmpty || siteId == Missing.string) {
+            return false;
+          }
+          return siteId == selectedSiteId;
+        })
+        .toList(growable: false);
+  }
+
+  int _selectedQuantity(OrganismSelectionState selectionState) {
+    var total = 0;
+    for (final id in selectionState.selectedOrganismIds) {
+      total += selectionState.quantityByOrganism[id] ?? 0;
+    }
+    return total;
+  }
+
+  String _locationLabel(OrganismRecord organism) {
+    final siteId = organism.siteId;
+    final siteName = _siteNameById[siteId];
+    final groupId = organism.groupId;
+    final groupName = _groupNameById[groupId];
+    String normalize(String? value) {
+      if (value == null) return '';
+      final trimmed = value.trim();
+      if (trimmed.isEmpty || trimmed == Missing.string) return '';
+      return trimmed;
+    }
+
+    final resolvedSite = normalize(siteName ?? siteId);
+    final resolvedGroup = normalize(groupName ?? groupId);
+    if (resolvedSite.isEmpty && resolvedGroup.isEmpty) {
+      return 'Unknown Location';
+    }
+    if (resolvedGroup.isEmpty || resolvedGroup == resolvedSite) {
+      return resolvedSite.isEmpty ? 'Unknown Location' : resolvedSite;
+    }
+    return resolvedSite.isEmpty
+        ? resolvedGroup
+        : '$resolvedSite / $resolvedGroup';
+  }
+
+  String _buildExcludedSummary() {
+    final parts = <String>[];
+    if (_excludedPendingOutplant > 0) {
+      parts.add('$_excludedPendingOutplant pending outplant');
+    }
+    if (_excludedPendingTransfer > 0) {
+      parts.add('$_excludedPendingTransfer pending transfer');
+    }
+    final joined = parts.join(', ');
+    return 'Unavailable: $joined.';
+  }
+
+  /// Success view shown after initiating/updating a transfer.
+  Widget _buildSuccessContent(TransferInitiateState state) {
+    final transfer = state.transferEvent!;
+    final manifest = state.manifest;
+    final qrPayload = transfer.qrPayload;
+    String? manifestPayload;
+    if (manifest != null) {
+      try {
+        manifestPayload = manifest.encodePayload();
+      } catch (_) {
+        manifestPayload = null;
+      }
+    }
+    final destinationName =
+        state.selectedOrganization?.name ??
+        manifest?.toOrganization['name'] as String? ??
+        transfer.toOrganizationId ??
+        'destination organization';
+
+    return DialogScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.check_circle, size: 64, color: Colors.green),
+          const SizedBox(height: 16),
+          Text(
+            'Transfer Initiated!',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Transfer request sent to $destinationName',
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Transfer ID',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: Colors.green[900]),
+                ),
+                const SizedBox(height: 4),
+                SelectableText(
+                  transfer.id,
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Share this manifest with the receiving organization.',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          if (qrPayload != null && qrPayload.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            if (!_showQrCode)
+              OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _showQrCode = true;
+                  });
+                },
+                icon: const Icon(Icons.qr_code),
+                label: const Text('Show QR'),
+              )
+            else ...[
+              const SizedBox(height: 12),
+              _buildQrPayloadSection(qrPayload),
+            ],
+          ] else if (manifestPayload != null && manifestPayload.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildQrUnavailableCard(
+              'QR payload is too large to encode. Use Copy Payload to share.',
+            ),
+          ],
+          if (manifest != null) ...[
+            const SizedBox(height: 20),
+            TransferManifestSummary(manifest: manifest),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQrPayloadSection(String payload) {
+    QrValidationResult validation;
+    try {
+      validation = QrValidator.validate(
+        data: payload,
+        version: QrVersions.auto,
+        errorCorrectionLevel: QrErrorCorrectLevel.L,
+      );
+    } catch (error) {
+      return _buildQrUnavailableCard(
+        'QR code could not be generated. Use Copy Payload to share instead.',
+      );
+    }
+
+    if (validation.isValid && validation.qrCode != null) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.green[200]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: QrImageView.withQr(
+          qr: validation.qrCode!,
+          size: 180,
+          backgroundColor: Colors.white,
+        ),
+      );
+    }
+
+    final message = switch (validation.status) {
+      QrValidationStatus.contentTooLong =>
+        'Manifest payload is too large for a QR code. Use Copy Payload to share.',
+      QrValidationStatus.error =>
+        'QR code could not be generated. Use Copy Payload to share instead.',
+      _ => 'QR code is unavailable. Use Copy Payload to share instead.',
+    };
+
+    return _buildQrUnavailableCard(message);
+  }
+
+  Widget _buildQrUnavailableCard(String message) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.orange[800]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      BlocBuilder<TransferInitiateCubit, TransferInitiateState>(
+        builder: (context, state) {
+          if (state.hasTransfer) {
+            final qrPayload = state.transferEvent?.qrPayload;
+            String? manifestPayload;
+            if (state.manifest != null) {
+              try {
+                manifestPayload = state.manifest!.encodePayload();
+              } catch (_) {
+                manifestPayload = null;
+              }
+            }
+            final payload = (qrPayload != null && qrPayload.isNotEmpty)
+                ? qrPayload
+                : manifestPayload;
+            if (payload == null || payload.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return TextButton.icon(
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: payload));
+                if (!mounted) return;
+                showSnackbar('QR payload copied to clipboard');
+              },
+              icon: const Icon(Icons.copy),
+              label: const Text('Copy Payload'),
+            );
+          }
+          return TextButton(
+            onPressed: isLoading ? null : () => popDialog(false),
+            child: const Text('Cancel'),
+          );
+        },
+      ),
+      BlocBuilder<OrganismSelectionCubit, OrganismSelectionState>(
+        bloc: _selectionCubit,
+        builder: (context, selectionState) {
+          return BlocBuilder<TransferInitiateCubit, TransferInitiateState>(
+            builder: (context, state) {
+              if (state.hasTransfer) {
+                return ElevatedButton(
+                  onPressed: () => popDialog(true),
+                  child: const Text('Done'),
+                );
+              }
+              final selectionReady = _isEditMode
+                  ? true
+                  : selectionState.isValid;
+              final hasSelectedLocalId = _hasSelectedLocalId;
+              return ElevatedButton.icon(
+                onPressed:
+                    isLoading ||
+                        !state.hasValidRecipient ||
+                        _isSelfRecipient(state) ||
+                        !selectionReady ||
+                        !hasSelectedLocalId
+                    ? null
+                    : _performTransfer,
+                icon: Icon(_isEditMode ? Icons.save : Icons.send),
+                label: Text(
+                  _isEditMode ? 'Update Transfer' : 'Initiate Transfer',
+                ),
+              );
+            },
+          );
+        },
+      ),
+    ];
+  }
+
+  /// Opens the organization search dialog and persists the selection.
+  Future<void> _selectOrganization() async {
+    final cubit = context.read<TransferInitiateCubit>();
+    final isSelecting = cubit.state.selectingOrganization;
+    if (isLoading || isSelecting) {
+      return;
+    }
+    cubit.setSelectingOrganization(true);
+
+    try {
+      // Get current organization to exclude from search results
+      final currentOrgId = context.read<Organization>().id;
+
+      final selected = await BaseSearchDialog.showSingle<Organization>(
+        context,
+        dialog: OrganizationSearchDialog(
+          repository: cubit.organizationRepository,
+          excludeOrganizationId: currentOrgId,
+        ),
+      );
+
+      if (selected != null) {
+        if (selected.id == currentOrgId) {
+          showSnackbar('Select a different organization for this transfer.');
+          return;
+        }
+        cubit.setSelectedOrganization(selected);
+      }
+    } finally {
+      cubit.setSelectingOrganization(false);
+    }
+  }
+
+  /// Validates the form before invoking [performAsyncOperation].
+  Future<void> _performTransfer() async {
+    final formState = _formKey.currentState;
+    if (formState == null) {
+      showSnackbar('Form not ready. Please try again.');
+      return;
+    }
+    if (!formState.validate()) return;
+    if (!_hasSelectedLocalId) {
+      showSnackbar('Select a Local ID to transfer');
+      return;
+    }
+    final cubit = context.read<TransferInitiateCubit>();
+    final currentState = cubit.state;
+    if (!currentState.hasValidRecipient) {
+      final message = currentState.recipientMode == RecipientMode.organization
+          ? 'Select a destination organization'
+          : 'Enter a valid recipient email address';
+      showSnackbar(message);
+      return;
+    }
+    if (currentState.recipientMode == RecipientMode.organization) {
+      final currentOrgId = context.read<Organization>().id;
+      final selectedOrgId = currentState.selectedOrganization?.id;
+      if (selectedOrgId != null && selectedOrgId == currentOrgId) {
+        showSnackbar('Select a different organization for this transfer.');
+        return;
+      }
+    }
+
+    final selectionState = _selectionCubit.state;
+    final quantity = _resolveTransferQuantity(selectionState);
+    if (quantity == null) return;
+    final inventorySelection = _buildInventorySelection(selectionState);
+
+    setLoading(true);
+    try {
+      final transfer = await cubit.submitTransfer(
+        genetId: _selectedGenetId,
+        quantity: quantity,
+        comment: _commentController.text.trim(),
+        permitMetadata: _buildPermitMetadata(currentState),
+        provenanceSelection: currentState.provenanceSelection,
+        physicalFormId: currentState.selectedPhysicalFormId,
+        sizeSpec: currentState.sizeSpec,
+        geometryInput: currentState.geometryInput,
+        inventorySelection: inventorySelection,
+      );
+      if (_isEditMode) {
+        if (!mounted) return;
+        popDialog(transfer);
+        showSnackbar('Transfer updated successfully');
+      } else {
+        showSnackbar('Transfer initiated successfully');
+      }
+    } catch (e) {
+      onError(e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  bool _isSelfRecipient(TransferInitiateState state) {
+    if (state.recipientMode != RecipientMode.organization) {
+      return false;
+    }
+    final currentOrgId = context.read<Organization>().id;
+    return state.selectedOrganization?.id == currentOrgId;
+  }
+
+  /// Parses the quantity field (edit mode) and surfaces validation feedback.
+  int? _parseQuantity() {
+    final trimmed = _quantityController.text.trim();
+    final parsed = int.tryParse(trimmed);
+    if (parsed == null || parsed <= 0) {
+      showSnackbar('Enter a valid quantity greater than zero');
+      return null;
+    }
+    return parsed;
+  }
+
+  int? _resolveTransferQuantity(OrganismSelectionState selectionState) {
+    if (_isEditMode) {
+      return _parseQuantity();
+    }
+    if (selectionState.selectedOrganismIds.isEmpty) {
+      showSnackbar('Select at least one organism to transfer');
+      return null;
+    }
+    if (selectionState.hasInvalidQuantities) {
+      showSnackbar('One or more quantities are invalid');
+      return null;
+    }
+    final total = _selectedQuantity(selectionState);
+    if (total <= 0) {
+      showSnackbar('Enter a valid quantity greater than zero');
+      return null;
+    }
+    return total;
+  }
+
+  Map<String, int>? _buildInventorySelection(
+    OrganismSelectionState selectionState,
+  ) {
+    if (_isEditMode) return null;
+    if (selectionState.selectedOrganismIds.isEmpty) {
+      return null;
+    }
+    final selection = <String, int>{};
+    for (final id in selectionState.selectedOrganismIds) {
+      final quantity = selectionState.quantityByOrganism[id] ?? 0;
+      if (quantity > 0) {
+        selection[id] = quantity;
+      }
+    }
+    return selection.isEmpty ? null : selection;
+  }
+
+  void _onRecipientEmailChanged() {
+    context.read<TransferInitiateCubit>().setRecipientEmail(
+      _recipientEmailController.text,
+    );
+  }
+
+  void _onSelectionSearchChanged() {
+    _selectionCubit.setSearchQuery(_selectionSearchController.text);
+  }
+
+  void _onSiteSelected(Site? site) {
+    setState(() {
+      _selectedSite = site;
+    });
+    _selectionCubit.clearSelection();
+  }
+
+  Future<void> _loadAvailableSites() async {
+    if (_siteLoading) return;
+    setState(() {
+      _siteLoading = true;
+      _siteError = null;
+    });
+
+    try {
+      final siteRepository = context.read<SiteRepository>();
+      final loader = SiteLoadingService(
+        siteRepository: siteRepository,
+        logger: LoggingService.instance,
+      );
+      final sites = List<Site>.from(await loader.loadSites())
+          .where(_isActiveNurserySite)
+          .toList(growable: false);
+      sites.sort((a, b) => a.name.compareTo(b.name));
+      if (!mounted) return;
+
+      final currentSelectionId = _selectedSite?.id;
+      Site? resolvedSelection;
+      if (currentSelectionId != null) {
+        for (final site in sites) {
+          if (site.id == currentSelectionId) {
+            resolvedSelection = site;
+            break;
+          }
+        }
+      }
+
+      resolvedSelection ??= _resolveSiteFromSourcePath(sites);
+
+      setState(() {
+        _availableSites = sites;
+        _selectedSite = resolvedSelection;
+        _siteLoading = false;
+        _siteNameById = {for (final site in sites) site.id: site.name};
+      });
+    } catch (error, stackTrace) {
+      LoggingService.instance.warning(
+        'Failed to load sites for transfer selection',
+        {'error': error.toString(), 'stackTrace': stackTrace.toString()},
+      );
+      if (!mounted) return;
+      setState(() {
+        _siteLoading = false;
+        _siteError = 'Failed to load sites. Please try again.';
+      });
+    }
+  }
+
+  bool _isActiveNurserySite(Site site) {
+    final metadata = site.metadata;
+    if (metadata?['archived'] == true || metadata?['isDeleted'] == true) {
+      return false;
+    }
+    return _nurserySiteTypeIds.contains(site.siteTypeId);
+  }
+
+  static final Set<String> _nurserySiteTypeIds = {
+    SiteType.nurseryExSitu.id,
+    SiteType.nurseryInSitu.id,
+    'nes',
+    'nis',
+  };
+
+  Future<void> _loadOrganismSelection() async {
+    if (_selectionLoading) return;
+    if (_allowsLocalIdSelection && _selectedGenetId.isEmpty) {
+      _selectionCubit.loadOrganisms(const []);
+      if (!mounted) return;
+      setState(() {
+        _selectionLoading = false;
+        _selectionError = null;
+        _excludedPendingOutplant = 0;
+        _excludedPendingTransfer = 0;
+      });
+      return;
+    }
+    setState(() {
+      _selectionLoading = true;
+      _selectionError = null;
+    });
+
+    try {
+      final sourceStructureUrlPath = context
+          .read<TransferInitiateCubit>()
+          .sourceStructureUrlPath;
+      final organisms = await _loadOrganismsForSelection();
+      final filtered = <OrganismRecord>[];
+      var pendingOutplantExcluded = 0;
+      var pendingTransferExcluded = 0;
+
+      for (final organism in organisms) {
+        if (!_matchesGenet(organism)) {
+          continue;
+        }
+        if (sourceStructureUrlPath != null &&
+            sourceStructureUrlPath.isNotEmpty &&
+            !organism.urlPath.startsWith(sourceStructureUrlPath)) {
+          continue;
+        }
+        final metadata = organism.metadata;
+        if (metadata != null) {
+          if (metadata['pendingOutplant'] == true) {
+            pendingOutplantExcluded += 1;
+            continue;
+          }
+          final pendingTransferId = metadata['pendingTransferId'];
+          if (pendingTransferId is String && pendingTransferId.isNotEmpty) {
+            pendingTransferExcluded += 1;
+            continue;
+          }
+        }
+        final available =
+            organism.inventoryMetrics.count ??
+            organism.measurement.value.toInt();
+        if (available <= 0) {
+          continue;
+        }
+        filtered.add(organism);
+      }
+
+      if (!mounted) return;
+
+      setState(() {
+        _selectionLoading = false;
+        _excludedPendingOutplant = pendingOutplantExcluded;
+        _excludedPendingTransfer = pendingTransferExcluded;
+      });
+      _selectionCubit.loadOrganisms(filtered);
+
+      // Detect if any organisms are owned by a different organization
+      final currentOrgId = context.read<Organization>().id;
+      context.read<TransferInitiateCubit>().detectThirdPartyTransfer(
+        filtered,
+        currentOrgId,
+      );
+
+      unawaited(_loadGroupNames());
+    } on TimeoutException {
+      if (!mounted) return;
+      setState(() {
+        _selectionLoading = false;
+        _selectionError = 'Loading organisms timed out. Please try again.';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _selectionLoading = false;
+        _selectionError = 'Failed to load organisms: $error';
+      });
+    }
+  }
+
+  Future<void> _loadGroupNames() async {
+    final groupRepository = context.read<GroupRepository>();
+    try {
+      final groups = await groupRepository.getAll().timeout(
+        TransferTimeouts.groupLoad,
+      );
+      if (!mounted) return;
+      setState(() {
+        _groupNameById = {for (final group in groups) group.id: group.name};
+      });
+    } catch (error, stackTrace) {
+      LoggingService.instance.warning(
+        'Failed to load group names for transfer selection',
+        {'error': error.toString(), 'stackTrace': stackTrace.toString()},
+      );
+    }
+  }
+
+  Future<List<OrganismRecord>> _loadOrganismsForSelection() async {
+    final organismRepository = context.read<OrganismRecordRepository>();
+    var sawTimeout = false;
+    var sawError = false;
+    try {
+      final organisms = await organismRepository.getAll().timeout(
+        TransferTimeouts.selectionLoad,
+      );
+      return organisms
+          .where(
+            (organism) => organism.organismKind == widget.organismContext.kind,
+          )
+          .toList(growable: false);
+    } on TimeoutException catch (error, stackTrace) {
+      sawTimeout = true;
+      LoggingService.instance.warning(
+        'Organism selection load timed out via getAll',
+        {'error': error.toString(), 'stackTrace': stackTrace.toString()},
+      );
+    } catch (error, stackTrace) {
+      sawError = true;
+      LoggingService.instance.warning(
+        'Failed to load organisms via getAll; falling back to stream',
+        {'error': error.toString(), 'stackTrace': stackTrace.toString()},
+      );
+    }
+
+    try {
+      // Use firstWhere with orElse to avoid indefinite waiting if stream
+      // only emits empty lists. The timeout provides an additional safeguard.
+      return await organismRepository
+          .streamByOrganism(widget.organismContext.kind)
+          .timeout(TransferTimeouts.streamFallback)
+          .firstWhere(
+            (records) => records.isNotEmpty,
+            orElse: () => <OrganismRecord>[],
+          );
+    } on TimeoutException catch (error, stackTrace) {
+      sawTimeout = true;
+      LoggingService.instance.warning(
+        'Organism selection stream fallback timed out',
+        {'error': error.toString(), 'stackTrace': stackTrace.toString()},
+      );
+    } catch (error, stackTrace) {
+      sawError = true;
+      LoggingService.instance.warning(
+        'Failed to load organisms from stream fallback',
+        {'error': error.toString(), 'stackTrace': stackTrace.toString()},
+      );
+    }
+
+    if (sawTimeout) {
+      throw TimeoutException('Organism selection load timed out');
+    }
+    if (sawError) {
+      throw StateError('Organism selection load failed');
+    }
+    return const <OrganismRecord>[];
+  }
+
+  Site? _resolveSiteFromSourcePath(List<Site> sites) {
+    final sourcePath = context
+        .read<TransferInitiateCubit>()
+        .sourceStructureUrlPath;
+    if (sourcePath == null || sourcePath.isEmpty) {
+      return null;
+    }
+    for (final site in sites) {
+      if (sourcePath.startsWith(site.urlPath)) {
+        return site;
+      }
+    }
+    return null;
+  }
+
+  bool _matchesGenet(OrganismRecord organism) {
+    final genetId = _selectedGenetId;
+    if (genetId.isEmpty) {
+      return !_allowsLocalIdSelection;
+    }
+
+    final resolved = GenetIdResolver.resolve(organism);
+    return resolved == genetId;
+  }
+
+  EventPermitMetadata? _buildPermitMetadata(TransferInitiateState state) {
+    return buildPermitMetadataFromTextInputs(
+      permitIdText: _permitIdController.text,
+      permitTypeText: _permitTypeController.text,
+      issuingAuthorityText: _issuingAuthorityController.text,
+      attachmentsText: _attachmentUrlsController.text,
+      validFrom: state.permitValidFrom,
+      validTo: state.permitValidTo,
+      hadInitialPermit: _hadInitialPermit,
+      isEditMode: _isEditMode,
+    );
+  }
+
+  Widget _buildPermitSection(BuildContext context) {
+    final organizationId = context.read<Organization>().id;
+    final cubit = context.read<TransferInitiateCubit>();
+    final cubitState = cubit.state;
+    final permitId = _permitIdController.text;
+
+    // Capture user context for permit creation
+    final currentUserState = context.read<CurrentUser>().state;
+    final userId = currentUserState is CurrentUserLoaded
+        ? currentUserState.user.id
+        : null;
+    final isPro = currentUserState is CurrentUserLoaded &&
+        (currentUserState.organization.tier == Tier.pro ||
+            currentUserState.organization.tier == Tier.scale);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Permit (Optional)',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        PermitSelectorWidget(
+          organizationId: organizationId,
+          userId: userId,
+          isPro: isPro,
+          selectedPermitId: permitId.isNotEmpty ? permitId : null,
+          enabled: !isLoading,
+          displayOptions: PermitSelectorDisplayOptions.compact,
+          onPermitSelected: (permit) {
+            if (permit == null) {
+              // Clear all permit fields
+              _permitIdController.text = '';
+              _permitTypeController.text = '';
+              _issuingAuthorityController.text = '';
+              _attachmentUrlsController.text = '';
+              cubit.updatePermitDates(validFrom: null, validTo: null);
+            } else {
+              // Populate all fields from the selected permit
+              _permitIdController.text = permit.permitNumber;
+              _permitTypeController.text = permit.type.displayName;
+              _issuingAuthorityController.text = permit.issuingAuthority;
+              _attachmentUrlsController.text = permit.attachmentUrls.join(
+                '\n',
+              );
+              cubit.updatePermitDates(
+                validFrom: permit.validFrom,
+                validTo: permit.validTo,
+              );
+            }
+          },
+        ),
+        // Show selected permit details if one is selected
+        if (permitId.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _buildSelectedPermitDetails(cubitState),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSelectedPermitDetails(TransferInitiateState state) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green.shade200),
+        borderRadius: BorderRadius.circular(4),
+        color: Colors.green.shade50,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified, color: Colors.green.shade700, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'Selected Permit',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green.shade700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildPermitDetailRow('Permit #', _permitIdController.text),
+          if (_permitTypeController.text.isNotEmpty)
+            _buildPermitDetailRow('Type', _permitTypeController.text),
+          if (_issuingAuthorityController.text.isNotEmpty)
+            _buildPermitDetailRow(
+              'Authority',
+              _issuingAuthorityController.text,
+            ),
+          if (state.permitValidFrom != null && state.permitValidTo != null)
+            _buildPermitDetailRow(
+              'Valid',
+              '${_formatPermitDate(state.permitValidFrom!)} - ${_formatPermitDate(state.permitValidTo!)}',
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPermitDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+            ),
+          ),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
+        ],
+      ),
+    );
+  }
+
+  String _formatPermitDate(DateTime date) {
+    return '${date.month}/${date.day}/${date.year}';
+  }
+
+  /// Determines the current step based on form completion state.
+  /// Step 0: Selection (recipient + quantity)
+  /// Step 1: Permits (permit metadata)
+  int _getCurrentStep(
+    TransferInitiateState state,
+    OrganismSelectionState selectionState,
+  ) {
+    if (_allowsLocalIdSelection && _selectedGenetId.isEmpty) {
+      return 0;
+    }
+    // If recipient not valid, still on step 0
+    if (!state.hasValidRecipient) {
+      return 0;
+    }
+
+    // If quantity is empty or invalid, still on step 0
+    if (_isEditMode) {
+      final quantity = double.tryParse(_quantityController.text.trim());
+      if (quantity == null || quantity <= 0) {
+        return 0;
+      }
+    } else if (!selectionState.isValid) {
+      return 0;
+    }
+
+    // If any permit field has content, on step 1
+    if (_permitIdController.text.isNotEmpty ||
+        _permitTypeController.text.isNotEmpty ||
+        _issuingAuthorityController.text.isNotEmpty ||
+        state.permitValidFrom != null ||
+        state.permitValidTo != null) {
+      return 1;
+    }
+
+    // Default: all basic details complete, ready for permits (step 1)
+    return 1;
+  }
+
+  @override
+  Future<void> performAsyncOperation(BuildContext context) async {
+    // Custom actions call [_performTransfer] directly; the base dialog buttons
+    // are not used in this implementation.
+  }
+}

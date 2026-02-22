@@ -1,0 +1,56 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://seafoundry.com/schemas/organization",
+    "title": "Organization",
+    "type": "object",
+    "required": ["id", "name", "domain", "createdAt"],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Unique identifier for the organization"
+        },
+        "name": {
+            "type": "string",
+            "description": "Organization name"
+        },
+        "domain": {
+            "type": "string",
+            "description": "Organization domain/subdomain"
+        },
+        "description": {
+            "type": "string",
+            "description": "Organization description"
+        },
+        "logoUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to organization logo"
+        },
+        "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "Organization website URL"
+        },
+        "activities": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            },
+            "description": "List of activities the organization performs"
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the organization was created"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the organization was last updated"
+        },
+        "createdById": {
+            "type": "string",
+            "description": "ID of user who created the organization"
+        }
+    }
+}

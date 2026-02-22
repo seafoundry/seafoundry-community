@@ -1,0 +1,137 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+node_modules
+firebase-service-account.json
+scripts/migrations/event_metadata_backfill.plan.json
+scripts/migrations/inventory_export.plan.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+.env.demo
+.env.community
+.env.staging
+dart_defines.json
+dart_defines.staging.json
+
+# Fastlane
+ios/fastlane/.env
+ios/fastlane/AuthKey_*.p8
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots
+ios/fastlane/test_output
+/ios/build
+/ios/fastlane/api_key.json
+/ios/fastlane/testers_log.json
+/scripts/data/latest.dump
+/scripts/data/latest.sql
+
+# Claude Code configuration
+.claude/
+.mcp.json
+.firebase/
+test_output*.txt
+
+# Data exports (large CSV files)
+crc_db/mote_exports/
+
+# Secrets and credentials
+secrets/
+*.key
+*.pem
+*.p12
+*credentials*.json
+*service-account*.json
+*api-key*.json
+*access-token*.txt
+
+# Local config overrides
+config/local.yaml
+config/*.local.yaml
+
+# Database dumps
+*.dump
+*.sql
+
+# ========================================
+# Community OSS Repository
+# ========================================
+
+# Firebase service account files (security sensitive)
+firebase-service-account*.json
+*-service-account.json
+service-account-*.json
+
+# Firebase deployment cache
+.firebase/
+firebase-debug*.log
+firestore-debug.log
+
+# Build outputs (web)
+/build/web/
+build/web.zip
+
+# IDE and editor files
+.vscode/settings.json
+.vscode/launch.json
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*~
+
+# Git worktrees
+/worktrees/
+/worktree-*/
+taxonomy-images/
+
+sentry.properties

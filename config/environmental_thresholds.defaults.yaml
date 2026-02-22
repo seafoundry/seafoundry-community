@@ -1,0 +1,19 @@
+coral:
+  - id: coral_temperature_warning
+    metric: temperature_c
+    max: 30
+    units: "°C"
+    severity: warning
+    action: Reduce shading, increase cooling flow
+  - id: coral_temperature_critical
+    metric: temperature_c
+    max: 32
+    units: "°C"
+    severity: critical
+    action: Deploy emergency cooling protocol
+oyster:
+  - id: oyster_salinity_low
+    metric: salinity_psu
+    min: 20
+    severity: warning
+    action: Reduce freshwater inflow and monitor pumps

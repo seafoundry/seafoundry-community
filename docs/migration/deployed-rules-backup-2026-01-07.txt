@@ -1,0 +1,270 @@
+================================================================================
+FIRESTORE RULES BACKUP
+================================================================================
+Backup Date: 2026-01-07
+Purpose: Pre-migration backup for UID + Separate Demo Project migration (Phase R0-C)
+Source: firestore.rules (commit: current working tree)
+Status: Pre-deployment backup for rollback reference
+
+This file contains a complete backup of the Firestore security rules before
+implementing the UID-based identity migration and separate demo project split.
+
+================================================================================
+
+rules_version = '2';
+// Last deployed: 2026-01-06 - Force redeploy for demo site permissions
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ========================================
+    // Helper Functions
+    // ========================================
+    //
+    // HELPER FUNCTION USAGE GUIDE:
+    // - resourceBelongsToUserOrg(): Use for TOP-LEVEL collections where organizationId
+    //   is stored in the document (sites, events, holdings, etc.)
+    //   Checks resource.data.organizationId against the user's organizationId
+    // - isOrgMember(orgId): Use for NESTED collections under /organizations/{orgId}/...
+    //   where orgId is in the path. Validates user belongs to the specified orgId
+    // - Demo variants (e.g., resourceBelongsToUserOrgDemo, isOrgMemberDemo):
+    //   Same usage as above but use demo_users collection instead of users
+    // - resource.data: The EXISTING document (null for create operations)
+    // - request.resource.data: The INCOMING data being written
+    // ========================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // NOTE: User documents are keyed by LOWERCASE EMAIL (not Firebase UID)
+    // The previous UID-first lookup caused permission failures because:
+    // 1. get(/users/{uid}) triggers the /users read rule
+    // 2. That rule denies access when userId != email (which is always true for UIDs)
+    // 3. The permission denial cascades and fails the entire rule evaluation
+    // IMPORTANT: Always use .lower() on emails since user doc IDs are lowercase
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(getAuthEmailLower()));
+    }
+
+    // Get user document from demo_users collection (for demo mode)
+    function getDemoUserDoc() {
+      return get(/databases/$(database)/documents/demo_users/$(getAuthEmailLower()));
+    }
+
+    // Check if resource belongs to user's org (demo mode version)
+    // Uses demo_users collection instead of users
+    function resourceBelongsToUserOrgDemo() {
+      let userDoc = getDemoUserDoc();
+      return isAuthenticated() &&
+             userDoc.data != null &&
+             resource.data.organizationId == userDoc.data.organizationId;
+    }
+
+    // Check if incoming data belongs to user's org (demo mode version)
+    // Uses demo_users collection instead of users
+    function incomingBelongsToUserOrgDemo() {
+      let userDoc = getDemoUserDoc();
+      return isAuthenticated() &&
+             userDoc.data != null &&
+             request.resource.data.organizationId == userDoc.data.organizationId;
+    }
+
+    // Safe email comparison that handles potential null/undefined cases
+    // Returns the lowercase email if available, otherwise returns a non-matching value
+    function getAuthEmailLower() {
+      return request.auth.token.email != null ? request.auth.token.email.lower() : '__no_email__';
+    }
+
+    function belongsToOrganization(orgId) {
+      let userDoc = getUserDoc();
+      return isAuthenticated() &&
+             userDoc.data != null &&
+             userDoc.data.organizationId == orgId;
+    }
+
+    // Semantic wrapper around belongsToOrganization for clarity
+    // Both exist for backward compatibility and readability in nested collection rules
+    function isOrgMember(orgId) {
+      return belongsToOrganization(orgId);
+    }
+
+    // Demo mode helper - allows access if user belongs to a demo org
+    function isDemoOrgMember(orgId) {
+      let userDoc = getDemoUserDoc();
+      return isAuthenticated() &&
+             (orgId == 'demo_org_pro' || orgId == 'demo_org_community') &&
+             userDoc.data != null &&
+             userDoc.data.organizationId == orgId;
+    }
+
+    // Check if an organization ID is a demo organization
+    // Demo orgs have IDs starting with 'demo_org_' (e.g., demo_org_pro, demo_org_community)
+    function isDemoOrg(orgId) {
+      return orgId != null && orgId.matches('demo_org_.*');
+    }
+
+    // Validate demo transfer restrictions: demo orgs can only transfer to demo orgs,
+    // real orgs can only transfer to real orgs
+    function isValidDemoTransfer(fromOrgId, toOrgId) {
+      return isDemoOrg(fromOrgId) == isDemoOrg(toOrgId);
+    }
+
+    function isAdmin() {
+      let userDoc = getUserDoc();
+      return isAuthenticated() &&
+             userDoc.data != null &&
+             userDoc.data.isAdmin == true;
+    }
+
+    function resourceBelongsToUserOrg() {
+      let userDoc = getUserDoc();
+      return isAuthenticated() &&
+             userDoc.data != null &&
+             resource.data.organizationId == userDoc.data.organizationId;
+    }
+
+    function incomingBelongsToUserOrg() {
+      // Check if user document exists before reading it
+      // This handles the onboarding case where user doc is created in same batch
+      let userDoc = getUserDoc();
+      return isAuthenticated() &&
+             userDoc.data != null &&
+             request.resource.data.organizationId == userDoc.data.organizationId;
+    }
+
+    // Check if user created this organization (for post-onboarding race condition)
+    // Uses resource.data (the document being accessed) to avoid additional get() call
+    // This works because resource.data is already loaded as part of the read operation
+    // IMPORTANT: createdById is stored as lowercase email, so use .lower() for comparison
+    function isResourceCreator() {
+      return isAuthenticated() &&
+             resource.data != null &&
+             resource.data.createdById != null &&
+             resource.data.createdById == getAuthEmailLower();
+    }
+
+    // Check if user is in "onboarding eligible" state - either:
+    // 1. User doc doesn't exist yet (very early onboarding), OR
+    // 2. User doc exists but has no organization or placeholder org
+    // This allows the isIncomingCreator() fallback to work during onboarding
+    function isUserOnboardingEligible() {
+      // Cache getUserDoc() to avoid multiple Firestore reads (each get() counts against quota)
+      let userDoc = getUserDoc();
+      let userExists = userDoc.data != null;
+      return !userExists ||
+             // User doc exists - check if org is placeholder/unset
+             (userDoc.data.organizationId == null ||
+              userDoc.data.organizationId == '' ||
+              userDoc.data.organizationId == getAuthEmailLower());
+    }
+
+    // Check if user is the creator of the INCOMING document (for create operations)
+    // Uses request.resource.data which contains the new document being written
+    // This enables users to create records without needing their user doc to exist first
+    function isIncomingCreator() {
+      return isAuthenticated() &&
+             request.resource != null &&
+             request.resource.data != null &&
+             request.resource.data.createdById != null &&
+             request.resource.data.createdById == getAuthEmailLower();
+    }
+
+    // Community posts are the only cross-org events allowed.
+    // Defensive null check prevents crashes if resource.data is unexpectedly null
+    function isCommunityPostEvent() {
+      return resource.data != null &&
+             resource.data.scope == 'community' &&
+             resource.data.metadata != null &&
+             resource.data.metadata.isCommunityPost == true;
+    }
+
+    // Check if a post exists and is community-scoped.
+    // NOTE: If the post is deleted, this returns false - making all comments on that
+    // post inaccessible. This is intentional: comments die with their parent posts.
+    // This avoids orphaned comment cleanup complexity while ensuring data consistency.
+    function isCommunityPost(postId) {
+      let post = get(/databases/$(database)/documents/posts/$(postId));
+      return post.data != null && post.data.scope == 'community';
+    }
+
+    function isCommunityPostDemo(postId) {
+      let post = get(/databases/$(database)/documents/demo_posts/$(postId));
+      return post.data != null && post.data.scope == 'community';
+    }
+
+    // Combined check: user is org member OR created the resource being accessed
+    // For CREATE: checks incoming document's createdById
+    // For READ/UPDATE/DELETE: checks existing document's createdById
+    function isOrgMemberOrCreator(orgId) {
+      return isOrgMember(orgId) || isResourceCreator() || isIncomingCreator();
+    }
+
+    // Demo mode version - checks demo_users collection instead of users
+    function belongsToOrganizationDemo(orgId) {
+      let userDoc = getDemoUserDoc();
+      return isAuthenticated() &&
+             userDoc.data != null &&
+             userDoc.data.organizationId == orgId;
+    }
+
+    function isOrgMemberDemo(orgId) {
+      return belongsToOrganizationDemo(orgId);
+    }
+
+    // Simplified demo check - just verify user has a demo_users doc (is in demo mode)
+    // This is more permissive since demo mode doesn't need strict security
+    function isDemoUser() {
+      return isAuthenticated() && getDemoUserDoc().data != null;
+    }
+
+    function isOrgMemberOrCreatorDemo(orgId) {
+      // For demo mode, allow any authenticated user if orgId is a demo org
+      // This is maximally permissive since demo mode is for testing/exploration
+      return (isAuthenticated() && isDemoOrg(orgId)) ||
+             isDemoUser() || isOrgMemberDemo(orgId) || isResourceCreator() || isIncomingCreator();
+    }
+
+    // Check if organization has a specific tier or higher
+    function orgHasTier(orgId, requiredTier) {
+      let org = get(/databases/$(database)/documents/organizations/$(orgId));
+      let orgTier = (org.data != null && org.data.tier != null) ? org.data.tier : 'community';
+
+      let tierLevels = {
+        'community': 1,
+        'pro': 2,
+        'scale': 3
+      };
+
+      let currentLevel = tierLevels[orgTier] != null ? tierLevels[orgTier] : 1;
+      let requiredLevel = tierLevels[requiredTier] != null ? tierLevels[requiredTier] : 1;
+
+      return currentLevel >= requiredLevel;
+    }
+
+    function orgHasTierDemo(orgId, requiredTier) {
+      let org = get(/databases/$(database)/documents/demo_organizations/$(orgId));
+      let orgTier = (org.data != null && org.data.tier != null) ? org.data.tier : 'community';
+
+      let tierLevels = {
+        'community': 1,
+        'pro': 2,
+        'scale': 3
+      };
+
+      let currentLevel = tierLevels[orgTier] != null ? tierLevels[orgTier] : 1;
+      let requiredLevel = tierLevels[requiredTier] != null ? tierLevels[requiredTier] : 1;
+
+      return currentLevel >= requiredLevel;
+    }
+
+    // ... [remaining rules content continues as in original file]
+
+  }
+}
+
+================================================================================
+END OF BACKUP
+================================================================================

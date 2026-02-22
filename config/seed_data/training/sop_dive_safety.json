@@ -1,0 +1,271 @@
+{
+  "id": "sop-cr-007",
+  "organizationId": "template",
+  "title": "Dive Safety and Emergency Procedures",
+  "description": "Comprehensive standard operating procedure for diving operations during coral restoration activities, including pre-dive buddy checks, emergency signal communication, equipment failure response, dive accident management, and site-specific hazard identification. All personnel conducting underwater restoration work must be familiar with these procedures. Safety is the highest priority - no coral is worth a diver's life.",
+  "category": "Safety",
+  "organismKind": "coral",
+  "version": "1.0.0",
+  "createdBy": "seafoundry-system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "steps": [
+    {
+      "id": "step-007-1",
+      "order": 1,
+      "type": "warning",
+      "title": "Mandatory Dive Certification",
+      "description": "All personnel conducting underwater coral restoration work must hold valid SCUBA certification from a recognized agency (PADI, SSI, NAUI, etc.) appropriate for the depth and conditions of planned operations. Advanced certifications (Advanced Open Water minimum) are recommended. Nitrox certification required if diving enriched air. Current first aid and rescue diver certifications are strongly recommended for all team members.",
+      "isRequired": true,
+      "estimatedTime": 60
+    },
+    {
+      "id": "step-007-2",
+      "order": 2,
+      "type": "instruction",
+      "title": "Dive Planning Fundamentals",
+      "description": "Before any dive, create a comprehensive dive plan including: maximum depth, planned bottom time, decompression limits, air consumption estimates, entry/exit points, emergency procedures, and contingency plans. Share the dive plan with all team members and surface support. Never dive alone - always use the buddy system. File a float plan with onshore personnel including expected return time and emergency contacts.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-007-3",
+      "order": 3,
+      "type": "checklist",
+      "title": "Pre-Dive Buddy Check (BWRAF)",
+      "description": "Complete the BWRAF buddy check with your dive partner before every dive:",
+      "checklistItems": [
+        "B - BCD: Inflate/deflate test, check dump valves function",
+        "B - BCD: Verify oral inflation backup works",
+        "W - Weights: Check weight belt/integrated weights secure",
+        "W - Weights: Confirm buddy knows your weight release mechanism",
+        "R - Releases: All buckles secured, quick-release locations known",
+        "R - Releases: Tank band tight, cylinder secure",
+        "A - Air: Turn valve fully on, check pressure gauge reads full",
+        "A - Air: Breathe from regulator, check alternate air source",
+        "F - Final check: Mask, fins, gauges, knife, lights secured",
+        "F - Final check: Review hand signals and emergency procedures"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/safety/bwraf_buddy_check.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-007-4",
+      "order": 4,
+      "type": "instruction",
+      "title": "Standard Hand Signals",
+      "description": "All dive team members must be proficient in standard dive hand signals. Critical signals include: OK (everything fine), NOT OK (problem), UP (ascend), DOWN (descend), LOW ON AIR (point to gauge then show 50 bar), OUT OF AIR (hand across throat), BUDDY BREATHE (point to regulator), CRAMP (grip affected leg), and STOP (flat palm). Review signals with buddy before each dive. Establish any site-specific signals needed for restoration work.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/safety/dive_hand_signals.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-007-5",
+      "order": 5,
+      "type": "checklist",
+      "title": "Emergency Signals and Responses",
+      "description": "Know these emergency signals and appropriate responses:",
+      "checklistItems": [
+        "OUT OF AIR: Approach buddy, signal, share alternate air source",
+        "EMERGENCY ASCENT: Controlled ascent if buddy unavailable, exhale continuously",
+        "BUDDY LOST: Search 1 minute, then ascend, reunite at surface",
+        "EQUIPMENT FAILURE: Signal buddy, ascend together",
+        "ENTANGLEMENT: Stop, signal buddy, cut free if necessary",
+        "DIVER DISTRESS: Support distressed diver, begin ascent",
+        "SURFACE EMERGENCY: Wave arm overhead, inflate BCD",
+        "BOAT PICKUP: Stay together, deploy surface marker"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-007-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "Air Management Protocol",
+      "description": "Monitor air supply constantly throughout the dive. Plan to return to the exit point with minimum 50 bar (700 psi) remaining. At 100 bar, signal buddy and begin return. At 50 bar, begin ascent regardless of dive plan. Share air consumption rates with team to plan appropriate buddy pairs. Surface with more air rather than less - you cannot predict emergencies. Never push your air limits for task completion.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-007-7",
+      "order": 7,
+      "type": "instruction",
+      "title": "Controlled Ascent Procedure",
+      "description": "All ascents must be controlled and gradual. Maximum ascent rate: 9 meters (30 feet) per minute - slower is better. Make a safety stop at 5 meters (15 feet) for 3-5 minutes on every dive exceeding 10 meters depth. Never hold your breath during ascent. Watch your computer or depth gauge constantly. If ascending too fast, stop, descend slightly, then resume slow ascent. Buddy teams ascend together maintaining visual contact.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/safety/controlled_ascent.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-007-8",
+      "order": 8,
+      "type": "warning",
+      "title": "Decompression Sickness Prevention",
+      "description": "Decompression sickness (DCS) is a serious and potentially fatal condition. To minimize risk: stay well within no-decompression limits, make safety stops on all dives, ascend slowly, stay hydrated, avoid flying within 18-24 hours after diving, limit repetitive dives, avoid alcohol before and after diving, maintain physical fitness. Know the symptoms: joint pain, numbness, fatigue, dizziness, breathing difficulty. If DCS suspected, administer oxygen and seek immediate medical attention.",
+      "isRequired": true,
+      "estimatedTime": 180
+    },
+    {
+      "id": "step-007-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Equipment Failure Response",
+      "description": "Equipment failures can occur at any time. Primary responses: Free-flowing regulator - breathe from the flow, switch to alternate, ascend. BCD failure - drop weights if necessary, use breath control for buoyancy, ascend with buddy support. Mask loss - close eyes, signal buddy, slow ascent breathing through regulator. Weight drop failure - maintain neutral buoyancy through breath control, buddy assistance. Tank band failure - buddy secures tank, controlled ascent together. Practice these responses in controlled conditions.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/safety/equipment_failure_drills.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-007-10",
+      "order": 10,
+      "type": "checklist",
+      "title": "Site-Specific Hazard Assessment",
+      "description": "Before diving any site, assess these potential hazards:",
+      "checklistItems": [
+        "Currents: direction, strength, variability",
+        "Visibility: limitations, potential for degradation",
+        "Marine life: sharks, jellyfish, fire coral, sea urchins",
+        "Entanglement hazards: fishing line, nets, mooring lines",
+        "Boat traffic: proximity to channels, need for dive flag",
+        "Weather: conditions, forecast changes during dive",
+        "Entry/exit: ease of access, wave action, surge",
+        "Depth: maximum depth, decompression requirements",
+        "Navigation: landmarks, compass bearings, GPS coordinates",
+        "Emergency resources: nearest hospital, recompression chamber location"
+      ],
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-007-11",
+      "order": 11,
+      "type": "instruction",
+      "title": "Current Diving Procedures",
+      "description": "When diving in current, plan to enter up-current of the work site and drift to the site. Always have a plan for current changes during the dive. If current becomes too strong: signal buddy, secure tools, begin ascent. Never fight a strong current - let it carry you and ascend when safe. Deploy surface marker buoy (SMB) before ascending in current for boat pickup. Shore dives in current may require alternative exit points.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-007-12",
+      "order": 12,
+      "type": "instruction",
+      "title": "Marine Life Hazard Management",
+      "description": "Respect marine life and maintain distance from potentially dangerous species. Sharks: remain calm, maintain eye contact, back away slowly. Jellyfish: avoid contact, wear full exposure suit, treat stings with vinegar (not freshwater). Fire coral: avoid contact, treat burns with vinegar and hydrocortisone. Sea urchins: wear gloves and boots, remove spines with tweezers if embedded. Stingrays: shuffle feet when walking on sandy bottom. Report any injuries immediately upon surfacing.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/safety/marine_life_hazards.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-007-13",
+      "order": 13,
+      "type": "checklist",
+      "title": "Surface Support Requirements",
+      "description": "All dive operations must have adequate surface support:",
+      "checklistItems": [
+        "Dive flag displayed and visible to boat traffic",
+        "Surface observer monitoring diver bubbles",
+        "Communication method between divers and surface",
+        "Emergency oxygen kit available on boat/shore",
+        "First aid kit including marine life treatment supplies",
+        "Emergency contact list and communication device",
+        "Rescue equipment: throw ring, rescue tube, line",
+        "Float plan filed with shore contact",
+        "Weather monitoring during dive operations",
+        "Vehicle/boat ready for emergency transport"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-007-14",
+      "order": 14,
+      "type": "instruction",
+      "title": "Diver Rescue Procedures",
+      "description": "If a diver is in distress: approach from front, establish positive contact, inflate their BCD, establish positive buoyancy. For an unconscious diver: secure regulator in mouth, inflate BCD, begin controlled ascent (skip safety stop if life-threatening). At surface: call for help, keep airway clear, begin rescue breathing if not breathing. Remove from water only if CPR needed. Administer emergency oxygen. Call emergency services immediately. Every team member should be rescue-trained.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/safety/diver_rescue_techniques.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-007-15",
+      "order": 15,
+      "type": "instruction",
+      "title": "Post-Dive Procedures",
+      "description": "After every dive: complete buddy debrief including air consumption and any incidents. Rinse and properly store all equipment. Log the dive including depth, time, air used, and observations. Report any equipment issues for maintenance. Monitor for delayed onset of DCS symptoms for 24 hours. Avoid strenuous activity and alcohol immediately post-dive. Stay hydrated. Do not fly within 18-24 hours of diving.",
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-007-16",
+      "order": 16,
+      "type": "checklist",
+      "title": "Emergency Contact Information",
+      "description": "Maintain current emergency contact information for your region:",
+      "checklistItems": [
+        "Local emergency services number (911 in US)",
+        "Coast Guard emergency frequency (VHF 16)",
+        "DAN (Divers Alert Network) emergency hotline",
+        "Nearest hyperbaric chamber location and contact",
+        "Nearest hospital with diving medicine capability",
+        "Organization emergency contact",
+        "Dive insurance policy number",
+        "Personal emergency contact for each team member"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300,
+      "metadata": {
+        "emergencyNumbers": {
+          "DAN_US": "+1-919-684-9111",
+          "DAN_International": "+1-919-684-9111 (accepts collect calls)",
+          "CoastGuard_VHF": "Channel 16",
+          "note": "Update with local numbers for your region"
+        }
+      }
+    },
+    {
+      "id": "step-007-17",
+      "order": 17,
+      "type": "note",
+      "title": "Fitness to Dive Self-Assessment",
+      "description": "Before every dive, honestly assess your fitness to dive. Do not dive if: you have consumed alcohol within 12 hours, you are feeling ill or fatigued, you have ear or sinus congestion, you are taking medication that may affect judgment or physical ability, you feel stressed or anxious, you have not slept adequately, or you have any doubt about your readiness. It is always acceptable to call a dive - peer pressure should never influence safety decisions. There will always be another dive day.",
+      "isRequired": false,
+      "estimatedTime": 120
+    }
+  ],
+  "relatedMediaIds": [
+    "media-cr-020",
+    "media-cr-021",
+    "media-cr-022"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "references": [
+      "PADI Rescue Diver Manual",
+      "DAN Diving Emergency Management Guidelines",
+      "NOAA Diving Program Manual",
+      "AAUS Standards for Scientific Diving",
+      "US Navy Diving Manual"
+    ],
+    "estimatedTotalTime": 5940,
+    "difficulty": "fundamental",
+    "prerequisites": [
+      "Open Water SCUBA certification",
+      "Current first aid certification",
+      "Swim competency assessment"
+    ],
+    "certificationRequirements": {
+      "minimum": "Open Water Diver (or equivalent)",
+      "recommended": "Advanced Open Water with Rescue Diver",
+      "scientific": "AAUS Scientific Diver certification for research operations"
+    }
+  }
+}

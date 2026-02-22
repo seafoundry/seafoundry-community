@@ -1,0 +1,220 @@
+{
+  "id": "sop-app-004",
+  "organizationId": "template",
+  "createdBy": "system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "title": "Generating Reports and Analytics",
+  "description": "This SOP covers the SeaFoundry reporting and analytics capabilities, including the reporting dashboard, KPI metrics, data visualization, filtering options, and export functionality. Effective use of reporting tools enables data-driven decision making for restoration program management.",
+  "category": "Administration",
+  "organismKind": null,
+  "version": "1.0",
+  "isPublished": true,
+  "isArchived": false,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "type": "instruction",
+      "title": "Accessing the Reporting Dashboard",
+      "description": "Navigate to the Reports & Analytics screen (ReportingDashboardScreen) from the main navigation menu. The reporting interface consists of three main areas: the top app bar with refresh and help actions, a collapsible sidebar on the left showing templates and saved reports, and the main content area with tabs for Dashboard, Report Builder, and Saved Reports. Use the menu icon in the app bar to toggle the sidebar visibility.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/reporting_dashboard_screen.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "type": "instruction",
+      "title": "Dashboard Tab - Quick Overview",
+      "description": "The Dashboard tab (ReportingDashboardTab) provides an at-a-glance view of your program's key metrics. The Quick Actions section at the top includes buttons for common tasks like generating Community Reports. Below that, Key Metrics displays KPI cards in a grid showing: Total Organisms, Healthy Percentage, Genet Count, and Ready for Outplant count. The charts section shows an Inventory Trend line chart and Health Distribution pie chart side by side on wider screens.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/dashboard_tab_overview.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "type": "checklist",
+      "title": "Understanding Key Performance Indicators (KPIs)",
+      "description": "The KPI cards (ReportKpiCard) display critical metrics with trend indicators. Standard KPIs include:",
+      "checklistItems": [
+        "Total Organisms: Count of all active organisms in inventory across all sites",
+        "Healthy Percentage: Proportion of organisms with 'Healthy' health status",
+        "Unique Genets: Count of distinct genetic lineages (provenance records) in your holdings",
+        "Ready for Outplant: Count of organisms flagged as ready for outplanting deployment",
+        "Pending Outplant: Count of organisms in pending outplant status",
+        "Ready for Propagation: Count of healthy organisms flagged for fragmentation"
+      ],
+      "mediaUrl": "gs://seafoundry-training/app/reporting/kpi_cards.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-4",
+      "order": 4,
+      "type": "instruction",
+      "title": "Inventory Trend Chart",
+      "description": "The Inventory Trend chart (TrendLineChart) visualizes organism counts over time. The X-axis shows the date range, and the Y-axis shows organism count. Data points are connected by lines to show trends. When fewer than 30 data points exist, individual dots are displayed for precise values. Hover over points to see exact values. This chart helps identify growth patterns, seasonal variations, and the impact of major events like outplanting campaigns.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/trend_line_chart.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Health Distribution Chart",
+      "description": "The Health Distribution chart (DistributionPieChart) shows the breakdown of organisms by health status. Each segment represents a health status category (Healthy, Stressed, Diseased, Recovering, Bleached, Damaged, Unknown) with proportional sizing. Colors follow standard health status coding: green for healthy, yellow for stressed, red for diseased, etc. This visualization quickly communicates the overall health profile of your holdings and highlights areas needing attention.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/health_distribution_pie.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "Site Comparison Section",
+      "description": "When your organization has multiple sites, the Site Comparison section appears below the main charts. This displays horizontal bar charts comparing organism counts across sites. Bars are proportionally scaled to the site with the highest count. Site names appear on the left, bars in the middle, and exact counts on the right. Use this comparison to balance holdings across facilities and identify capacity constraints.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/site_comparison_bars.png",
+      "mediaType": "image",
+      "estimatedTime": 120,
+      "isRequired": false
+    },
+    {
+      "id": "step-7",
+      "order": 7,
+      "type": "instruction",
+      "title": "Report Builder Tab",
+      "description": "The Report Builder tab (ReportingBuilderTab) allows creating custom reports. Start by selecting a template from the sidebar or click 'New Report' to start fresh. The builder interface includes: filter configuration for date ranges, sites, species, and other parameters; visualization selection for charts and tables; and preview of the resulting report. Use the template gallery in the sidebar for pre-configured report layouts suited to common use cases.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/report_builder_tab.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-8",
+      "order": 8,
+      "type": "checklist",
+      "title": "Applying Filters and Date Ranges",
+      "description": "The Report Filter Panel (ReportFilterPanel) allows narrowing report data. Available filters include:",
+      "checklistItems": [
+        "Date Range: Select start and end dates or use presets (Last 7 days, Last 30 days, Last Quarter, Year to Date)",
+        "Sites: Filter to specific sites or include all",
+        "Species: Filter by organism species",
+        "Health Status: Include only specific health categories",
+        "Life Stage: Filter by organism life stage",
+        "Provenance Type: Filter by provenance origin (Wild, Nursery Propagated, etc.)"
+      ],
+      "mediaUrl": "gs://seafoundry-training/app/reporting/filter_panel.png",
+      "mediaType": "image",
+      "estimatedTime": 240,
+      "isRequired": true
+    },
+    {
+      "id": "step-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Community Report Generation",
+      "description": "The Community Report is a specialized report format for sharing with stakeholders. Access it via the 'Community Report' button in Quick Actions or through the CommunityReportDialog. This report generates a summary suitable for external audiences, including key metrics, health summaries, and activity highlights without exposing sensitive operational details. Configure the report parameters, preview the output, and export or share directly.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/community_report_dialog.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": false
+    },
+    {
+      "id": "step-10",
+      "order": 10,
+      "type": "checklist",
+      "title": "Export Options",
+      "description": "SeaFoundry supports multiple export formats via the Report Export Cubit (ReportExportCubit). Export options include:",
+      "checklistItems": [
+        "CSV Export: Download tabular data for use in spreadsheet applications. Includes all filtered data with column headers.",
+        "JSON Export: Export chart configurations and data in JSON format for integration with other systems.",
+        "PDF Export: Generate formatted PDF reports for printing or sharing (feature availability may vary by tier).",
+        "Chart Image: Export individual charts as PNG images for presentations or documents.",
+        "Copy to Clipboard: Quick copy of data tables for pasting into other applications."
+      ],
+      "mediaUrl": "gs://seafoundry-training/app/reporting/export_options.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-11",
+      "order": 11,
+      "type": "instruction",
+      "title": "Saved Reports Tab",
+      "description": "The Saved Reports tab (ReportingSavedTab) displays previously configured reports. Reports are saved with their filter settings and visualization configurations. Select a saved report from the list to view it immediately with current data. Edit saved reports to update parameters, or delete reports no longer needed. Saved reports appear in the sidebar for quick access. An 'Unsaved changes' indicator appears if the current view has modifications not yet saved.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/saved_reports_tab.png",
+      "mediaType": "image",
+      "estimatedTime": 180,
+      "isRequired": true
+    },
+    {
+      "id": "step-12",
+      "order": 12,
+      "type": "instruction",
+      "title": "Using Report Templates",
+      "description": "The sidebar includes a Template Gallery showing pre-configured report templates. Templates are created by SeaFoundry and your organization administrators to address common reporting needs. Click a template to apply its configuration to your current report. Template categories may include: Inventory Summary, Health Assessment, Outplanting Progress, Genetics Diversity, and Site Comparison. Templates save time by pre-configuring appropriate filters and visualizations.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/template_gallery.png",
+      "mediaType": "image",
+      "estimatedTime": 120,
+      "isRequired": false
+    },
+    {
+      "id": "step-13",
+      "order": 13,
+      "type": "instruction",
+      "title": "Inventory Analytics View",
+      "description": "The Inventory workspace also includes an Analytics tab (InventoryAnalyticsView) with inventory-specific metrics and visualizations. Access it from the Inventory screen by selecting the Analytics tab. This view focuses on holdings metrics, growth trends, and fragmentation productivity. Use this in conjunction with the main Reporting Dashboard for comprehensive program analysis.",
+      "checklistItems": null,
+      "mediaUrl": "gs://seafoundry-training/app/reporting/inventory_analytics.png",
+      "mediaType": "image",
+      "estimatedTime": 120,
+      "isRequired": false
+    },
+    {
+      "id": "step-14",
+      "order": 14,
+      "type": "warning",
+      "title": "Report Data Considerations",
+      "description": "Reports display data based on your current filter settings and permissions. If you notice unexpected results, check that filters are correctly configured. Date ranges are inclusive of both start and end dates. Large date ranges may take longer to load. If a report shows 'No data available', verify that data exists matching your filter criteria. For the most accurate reporting, ensure all field staff have synced their observations before generating reports. Data refresh can be triggered using the refresh button in the app bar.",
+      "checklistItems": null,
+      "mediaUrl": null,
+      "mediaType": null,
+      "estimatedTime": 120,
+      "isRequired": true
+    }
+  ],
+  "relatedMediaIds": [
+    "media-app-013",
+    "media-app-014",
+    "media-app-015",
+    "media-app-016"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "appVersion": "2.0",
+    "lastReviewDate": "2024-01-15",
+    "targetAudience": "Program Managers",
+    "prerequisites": [
+      "sop-app-001"
+    ],
+    "estimatedTotalTimeMinutes": 42
+  }
+}

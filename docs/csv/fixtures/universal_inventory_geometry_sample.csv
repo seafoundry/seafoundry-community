@@ -1,0 +1,7 @@
+sf_csv_version,2025.10
+sf_csv_template,inventory
+sf_translation_adapter,universal_csv_v2
+org_domain,reef.org
+generated_at,2025-01-01T00:00:00Z
+organismKind,speciesScientific,speciesCode,localId,recordName,provenanceId,provenanceType,lifeStage,lifeStageSubtype,physicalFormId,physicalForm,sizeBandId,measuredDimension,dimensionUnit,organismsPerUnit,volumeAmount,volumeUnit,measurementUnit,quantityValue,groupId,siteId,siteName,structureType,geometryFormat,geometryWkt,geometryGeojson,notes
+coral,Acropora cervicornis,AcCe,INV-001,mossy-inv-001,PID-ACER-001,wild,fragment,,fragment,Fragment,small,6,cm,,,count,6,/reef/site/table-a,site-reef-a,Reef Nursery A,tray,WKT,"POINT(-80.6543 25.1234)","{""type"":""Point"",""coordinates"":[-80.6543,25.1234]}","Bounding polygon captured via field GPS"

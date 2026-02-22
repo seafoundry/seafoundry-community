@@ -1,0 +1,238 @@
+{
+  "id": "sop-cr-003",
+  "organizationId": "template",
+  "title": "Coral Health Assessment and Disease Identification",
+  "description": "Comprehensive standard operating procedure for coral health monitoring, including visual health indicators, bleaching assessment scales, common disease identification, photography documentation protocols, and data recording standards. Regular health assessments enable early detection and intervention, significantly improving restoration success rates.",
+  "category": "Monitoring",
+  "organismKind": "coral",
+  "version": "1.0.0",
+  "createdBy": "seafoundry-system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "steps": [
+    {
+      "id": "step-003-1",
+      "order": 1,
+      "type": "instruction",
+      "title": "Health Monitoring Fundamentals",
+      "description": "Coral health monitoring should be conducted at regular intervals: weekly for nursery fragments, bi-weekly for outplanted colonies, and immediately after environmental stress events (storms, heat waves, freshwater intrusions). Consistent timing and methodology enable trend detection. Always assess corals during similar conditions (time of day, tide state) for comparable results.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "step-003-2",
+      "order": 2,
+      "type": "checklist",
+      "title": "Monitoring Equipment Checklist",
+      "description": "Gather all necessary monitoring equipment before beginning assessments:",
+      "checklistItems": [
+        "Underwater writing slate with data sheets",
+        "Waterproof camera with macro capability",
+        "Color reference card (for accurate photo color)",
+        "Size reference scale (ruler or known-size marker)",
+        "Coral Watch bleaching reference card",
+        "Photoquad frame (for quadrat surveys)",
+        "Measuring tape or calipers",
+        "GPS or underwater positioning system",
+        "Spare batteries and memory cards"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-003-3",
+      "order": 3,
+      "type": "instruction",
+      "title": "Visual Health Indicator Assessment",
+      "description": "Systematically evaluate each coral for key health indicators. Healthy corals display: extended polyps (especially at night or when feeding), vibrant species-typical coloration, active growth margins showing white/pale growing edge, minimal algae coverage, and intact tissue covering skeleton. Score each indicator on a standardized scale for tracking over time.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/health/visual_health_indicators.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-003-4",
+      "order": 4,
+      "type": "checklist",
+      "title": "Stress Signs to Document",
+      "description": "Record presence and severity of these stress indicators:",
+      "checklistItems": [
+        "Polyp retraction (partial or complete)",
+        "Excess mucus production",
+        "Pale or bleached tissue areas",
+        "Tissue recession exposing skeleton",
+        "Algae overgrowth on living tissue",
+        "Sediment accumulation on polyps",
+        "Predation marks or bite scars",
+        "Unusual swelling or lesions",
+        "Color changes from baseline"
+      ],
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-003-5",
+      "order": 5,
+      "type": "instruction",
+      "title": "Bleaching Assessment Protocol",
+      "description": "Use the Coral Watch color reference card to assess bleaching severity. Hold the card adjacent to the coral (not touching) and match tissue color to the closest reference. Record the color code (D1-D6 or C1-C6 depending on species type). Note the percentage of colony affected if bleaching is patchy. Severe bleaching (color codes 1-2) requires increased monitoring frequency and potential intervention.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/health/coral_watch_color_chart.jpg",
+      "mediaType": "image",
+      "metadata": {
+        "bleachingScaleNotes": {
+          "D1-D2": "Severe bleaching - white or very pale tissue",
+          "D3-D4": "Moderate bleaching - noticeably pale",
+          "D5-D6": "Normal coloration for species",
+          "C1-C2": "Severe bleaching in branching corals",
+          "C3-C4": "Moderate stress in branching corals",
+          "C5-C6": "Healthy branching coral coloration"
+        }
+      }
+    },
+    {
+      "id": "step-003-6",
+      "order": 6,
+      "type": "warning",
+      "title": "Disease Recognition Priority",
+      "description": "Disease identification requires immediate attention. If you observe any of the following, document thoroughly and report immediately: rapidly progressing tissue loss (>5mm/day), white tissue-loss margins on apparently healthy corals, black or dark bands at tissue boundaries, distinct lesions with unusual coloration. Do not handle diseased corals without proper biosecurity protocols.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "step-003-7",
+      "order": 7,
+      "type": "instruction",
+      "title": "White Syndrome Identification",
+      "description": "White syndromes (white band, white plague, white pox) show bright white recently-exposed skeleton at the tissue margin. Tissue loss progresses across the colony, often in a defined pattern. White band disease typically moves from base to tips in Acropora. White plague affects multiple species and can progress rapidly (>2cm/day). Document the rate of progression by marking reference points and re-measuring at 24-hour intervals.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/disease/white_syndrome_examples.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-003-8",
+      "order": 8,
+      "type": "instruction",
+      "title": "Black Band Disease Identification",
+      "description": "Black band disease appears as a dark band of cyanobacterial mat that migrates across coral tissue, leaving dead skeleton behind. The band is typically 1-30mm wide and moves at 1-2cm per day. Most common in summer months and warm water conditions. Primarily affects massive species like Orbicella and Diploria. Can be treated if caught early - refer to Disease Treatment SOP.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/disease/black_band_disease.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-003-9",
+      "order": 9,
+      "type": "instruction",
+      "title": "Stony Coral Tissue Loss Disease (SCTLD) Identification",
+      "description": "SCTLD is a highly lethal disease affecting over 20 Caribbean coral species. Characterized by rapid tissue loss with bright white exposed skeleton and irregular lesion margins. Tissue loss can exceed 10cm per day in susceptible species. Highly transmissible between colonies. If SCTLD is suspected, implement emergency protocols: increase monitoring frequency, prepare treatment supplies, and notify regional disease response networks.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/disease/sctld_identification.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-003-10",
+      "order": 10,
+      "type": "instruction",
+      "title": "Photography Documentation Standards",
+      "description": "Photograph every coral assessed using standardized methodology. Include color reference card and scale bar in frame. Take photos from consistent angles: one overview shot and one close-up of any abnormalities. Use camera settings that minimize color distortion (white balance for underwater). Name files systematically: YYYYMMDD_SiteID_CoralID_sequence. Upload photos within 24 hours with proper metadata tags.",
+      "isRequired": true,
+      "estimatedTime": 600,
+      "mediaUrl": "gs://seafoundry-training/coral/monitoring/photo_documentation_setup.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-003-11",
+      "order": 11,
+      "type": "checklist",
+      "title": "Photo Documentation Checklist",
+      "description": "Ensure each documented coral includes:",
+      "checklistItems": [
+        "Overview photo showing entire colony",
+        "Color reference card visible in frame",
+        "Scale reference visible for size measurement",
+        "Close-up of any disease lesions or abnormalities",
+        "Photo of identification tag or marker",
+        "Camera white balance set for conditions",
+        "Focus sharp on coral tissue, not background",
+        "Multiple angles if lesion physical form unclear"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-003-12",
+      "order": 12,
+      "type": "instruction",
+      "title": "Growth Measurement Protocol",
+      "description": "Measure colony growth using appropriate methods for the physical form. For branching corals: measure total linear extension of selected branches. For massive corals: photograph with scale and use photogrammetry or measure maximum diameter. For encrusting corals: trace colony perimeter or photograph for area calculation. Take measurements at consistent intervals (monthly minimum) and at the same reference points.",
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-003-13",
+      "order": 13,
+      "type": "checklist",
+      "title": "Data Recording Requirements",
+      "description": "Record the following data for each assessment:",
+      "checklistItems": [
+        "Date, time, and environmental conditions",
+        "Coral ID and location coordinates",
+        "Species identification confirmation",
+        "Overall health score (1-5 scale)",
+        "Bleaching color code and percent affected",
+        "Disease presence/absence and type if present",
+        "Tissue loss rate if applicable",
+        "Predation or competitor observations",
+        "Photo file references",
+        "Growth measurements",
+        "Recommended actions or follow-up"
+      ],
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-003-14",
+      "order": 14,
+      "type": "note",
+      "title": "Reporting Thresholds",
+      "description": "Escalate findings immediately when: >10% of monitored corals show disease signs, tissue loss rate exceeds 5mm/day, bleaching affects >25% of nursery, new disease types are observed, or colony mortality occurs. Generate weekly summary reports for routine monitoring. Monthly comprehensive reports should include trend analysis and recommendations for management intervention.",
+      "isRequired": false,
+      "estimatedTime": 120,
+      "metadata": {
+        "reportingHierarchy": {
+          "routine": "Weekly summary to site manager",
+          "concern": "Same-day report to restoration coordinator",
+          "emergency": "Immediate notification to all stakeholders"
+        }
+      }
+    }
+  ],
+  "relatedMediaIds": [
+    "media-cr-007",
+    "media-cr-008",
+    "media-cr-009",
+    "media-cr-010"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "references": [
+      "NOAA Coral Disease Identification Guide",
+      "Florida DEP Coral Disease Response Protocol",
+      "Coral Watch Bleaching Monitoring Protocol",
+      "AGRRA Methodology for Health Assessments",
+      "Reef Check Monitoring Standards"
+    ],
+    "estimatedTotalTime": 5160,
+    "difficulty": "intermediate",
+    "prerequisites": [
+      "Coral species identification",
+      "Basic photography training",
+      "Data recording fundamentals"
+    ]
+  }
+}

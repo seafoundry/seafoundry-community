@@ -1,0 +1,485 @@
+{
+  "media": [
+    {
+      "id": "media-aq-001",
+      "organizationId": "template",
+      "title": "Water Quality Testing Equipment Overview",
+      "description": "Comprehensive guide to essential water quality testing equipment including pH meters, refractometers, dissolved oxygen meters, and colorimetric test kits. Covers proper handling, storage, and when to use each type of equipment.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=300&fit=crop",
+      "tags": [
+        "water-quality",
+        "equipment",
+        "testing",
+        "ph",
+        "salinity",
+        "dissolved-oxygen"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-001"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-002",
+      "organizationId": "template",
+      "title": "Water Sample Collection Techniques",
+      "description": "Demonstrates proper water sample collection techniques for accurate testing results. Shows collection container preparation, sampling locations, and avoiding contamination during the collection process.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1581093458791-9d42e3c2fd45?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1581093458791-9d42e3c2fd45?w=300&fit=crop",
+      "tags": [
+        "water-quality",
+        "sampling",
+        "technique",
+        "collection"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-001"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-003",
+      "organizationId": "template",
+      "title": "pH Meter Calibration Demonstration",
+      "description": "Step-by-step demonstration of two-point pH meter calibration using pH 4.0 and pH 7.0 buffer solutions. Includes tips for maintaining probe condition and recognizing when recalibration is needed.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/11836616/11836616-sd_640_360_30fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1200&fit=crop",
+      "duration": 480,
+      "tags": [
+        "water-quality",
+        "calibration",
+        "ph",
+        "technique",
+        "maintenance"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-001"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-004",
+      "organizationId": "template",
+      "title": "Feed Storage Facility Best Practices",
+      "description": "Overview of proper feed storage facilities including temperature control, humidity management, pest prevention, and FIFO inventory organization. Shows examples of well-organized storage areas.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=300&fit=crop",
+      "tags": [
+        "feeding",
+        "storage",
+        "facility",
+        "inventory",
+        "best-practices"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-002"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-005",
+      "organizationId": "template",
+      "title": "Feed Calculation Reference Chart",
+      "description": "Reference chart for calculating daily feed rations based on organism biomass, temperature, and growth stage. Includes conversion tables and example calculations for common aquaculture species.",
+      "type": "document",
+      "contentUrl": "https://www.fao.org/3/y4490e/y4490e00.htm",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&fit=crop",
+      "tags": [
+        "feeding",
+        "calculation",
+        "ration",
+        "reference",
+        "nutrition"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-002"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-006",
+      "organizationId": "template",
+      "title": "Broadcast Feeding Technique Demonstration",
+      "description": "Video demonstration of proper broadcast feeding technique showing even distribution, appropriate feeding pace, and observation of feeding response. Applicable to finfish and coral feeding applications.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/13192265/13192265-sd_640_360_30fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?w=1200&fit=crop",
+      "duration": 600,
+      "tags": [
+        "feeding",
+        "technique",
+        "broadcast",
+        "demonstration"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-002"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-007",
+      "organizationId": "template",
+      "title": "Pump Components and Maintenance Diagram",
+      "description": "Detailed diagram of common aquaculture pump components including impeller, volute, mechanical seal, and motor assembly. Identifies wear parts and common failure points for preventive maintenance.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=300&fit=crop",
+      "tags": [
+        "equipment",
+        "pump",
+        "maintenance",
+        "diagram",
+        "components"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-003"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-008",
+      "organizationId": "template",
+      "title": "Filtration System Overview",
+      "description": "Comprehensive overview of aquaculture filtration systems including mechanical filters, biological filters, and UV sterilizers. Explains function and maintenance requirements for each filter type.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=300&fit=crop",
+      "tags": [
+        "equipment",
+        "filtration",
+        "mechanical",
+        "biological",
+        "uv"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-003"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-009",
+      "organizationId": "template",
+      "title": "Aeration System Components",
+      "description": "Guide to aeration system components including regenerative blowers, air pumps, diffusers, airlines, and check valves. Covers maintenance requirements and troubleshooting common issues.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=300&fit=crop",
+      "tags": [
+        "equipment",
+        "aeration",
+        "dissolved-oxygen",
+        "components",
+        "maintenance"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-003"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-010",
+      "organizationId": "template",
+      "title": "Biosecurity Signage and Entry Requirements",
+      "description": "Examples of biosecurity signage for facility entry points. Shows required elements including visitor log, PPE requirements, footbath instructions, and contact information for facility personnel.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1581093458791-9d42e3c2fd45?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1581093458791-9d42e3c2fd45?w=300&fit=crop",
+      "tags": [
+        "biosecurity",
+        "signage",
+        "access-control",
+        "facility"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-004"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-011",
+      "organizationId": "template",
+      "title": "Footbath Station Setup and Maintenance",
+      "description": "Proper footbath station setup including appropriate depth, disinfectant selection, concentration, and change frequency. Shows examples of well-maintained entry point biosecurity stations.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=300&fit=crop",
+      "tags": [
+        "biosecurity",
+        "footbath",
+        "disinfection",
+        "entry-point"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-004"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-012",
+      "organizationId": "template",
+      "title": "Quarantine System Configuration",
+      "description": "Overview of proper quarantine system setup including physical isolation, dedicated equipment, separate water supply, and drainage. Shows ideal layout for minimizing cross-contamination risk.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1579154204601-01588f351e67?w=300&fit=crop",
+      "tags": [
+        "biosecurity",
+        "quarantine",
+        "isolation",
+        "new-stock"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-004"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-013",
+      "organizationId": "template",
+      "title": "Environmental Monitoring Station Setup",
+      "description": "Guide to setting up environmental monitoring stations with proper sensor placement, cable routing, and protection from physical damage. Shows examples of well-configured monitoring points.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=300&fit=crop",
+      "tags": [
+        "monitoring",
+        "sensors",
+        "installation",
+        "setup"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-005"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-014",
+      "organizationId": "template",
+      "title": "Multi-Parameter Sensor Calibration Process",
+      "description": "Video demonstration of calibrating multi-parameter water quality sensors including DO, pH, and conductivity. Shows proper technique, calibration solution handling, and verification procedures.",
+      "type": "video",
+      "contentUrl": "https://videos.pexels.com/video-files/855798/855798-sd_640_360_25fps.mp4",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1200&fit=crop",
+      "duration": 720,
+      "tags": [
+        "monitoring",
+        "calibration",
+        "sensors",
+        "technique"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-005"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-015",
+      "organizationId": "template",
+      "title": "Environmental Trend Analysis Examples",
+      "description": "Examples of environmental monitoring trend analysis showing how to identify gradual drift, seasonal patterns, and developing issues before they become emergencies. Includes graph interpretation guidance.",
+      "type": "image",
+      "contentUrl": "https://images.unsplash.com/photo-1581093458791-9d42e3c2fd45?w=1200&fit=crop",
+      "thumbnailUrl": "https://images.unsplash.com/photo-1581093458791-9d42e3c2fd45?w=300&fit=crop",
+      "tags": [
+        "monitoring",
+        "trend-analysis",
+        "data",
+        "graphs"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-005"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-016",
+      "organizationId": "template",
+      "title": "Personal Protective Equipment Guide",
+      "description": "Comprehensive guide to PPE used in aquaculture operations including safety glasses, chemical-resistant gloves, lab coats, and waterproof footwear. Shows proper donning and doffing procedures.",
+      "type": "document",
+      "contentUrl": "gs://seafoundry-training/aquaculture/safety/ppe-guide.pdf",
+      "thumbnailUrl": "gs://seafoundry-training/aquaculture/safety/ppe-guide-thumb.jpg",
+      "tags": [
+        "safety",
+        "ppe",
+        "protection",
+        "equipment"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-001",
+        "sop-aq-004"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-017",
+      "organizationId": "template",
+      "title": "Emergency Response Quick Reference Card",
+      "description": "Laminated quick reference card format covering emergency response procedures for common aquaculture emergencies including low DO, power failure, equipment failure, and disease outbreak. Suitable for posting at workstations.",
+      "type": "document",
+      "contentUrl": "gs://seafoundry-training/aquaculture/safety/emergency-response-card.pdf",
+      "thumbnailUrl": "gs://seafoundry-training/aquaculture/safety/emergency-response-card-thumb.jpg",
+      "tags": [
+        "safety",
+        "emergency",
+        "response",
+        "quick-reference"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-001",
+        "sop-aq-003",
+        "sop-aq-004",
+        "sop-aq-005"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-018",
+      "organizationId": "template",
+      "title": "Species-Specific Parameter Reference",
+      "description": "Reference document with optimal water quality parameters for common aquaculture species including coral, oyster, kelp, finfish, and seagrass. Includes warning and critical thresholds for each species group.",
+      "type": "document",
+      "contentUrl": "gs://seafoundry-training/aquaculture/reference/species-parameters.pdf",
+      "thumbnailUrl": "gs://seafoundry-training/aquaculture/reference/species-parameters-thumb.jpg",
+      "tags": [
+        "reference",
+        "species",
+        "parameters",
+        "coral",
+        "oyster",
+        "kelp",
+        "finfish",
+        "seagrass"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-001",
+        "sop-aq-002",
+        "sop-aq-005"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-019",
+      "organizationId": "template",
+      "title": "Disease Recognition Photo Guide",
+      "description": "Photo guide showing common disease signs across multiple aquaculture species. Includes lesions, discoloration, behavioral indicators, and parasite identification with clear high-resolution images.",
+      "type": "document",
+      "contentUrl": "gs://seafoundry-training/aquaculture/biosecurity/disease-recognition-guide.pdf",
+      "thumbnailUrl": "gs://seafoundry-training/aquaculture/biosecurity/disease-recognition-guide-thumb.jpg",
+      "tags": [
+        "biosecurity",
+        "disease",
+        "identification",
+        "health"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-004"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    },
+    {
+      "id": "media-aq-020",
+      "organizationId": "template",
+      "title": "Disinfectant Selection and Dilution Guide",
+      "description": "Reference guide for selecting and preparing disinfectant solutions for aquaculture biosecurity. Covers quaternary ammonium, iodophors, chlorine compounds, and hydrogen peroxide with dilution tables and contact times.",
+      "type": "document",
+      "contentUrl": "gs://seafoundry-training/aquaculture/biosecurity/disinfectant-guide.pdf",
+      "thumbnailUrl": "gs://seafoundry-training/aquaculture/biosecurity/disinfectant-guide-thumb.jpg",
+      "tags": [
+        "biosecurity",
+        "disinfection",
+        "chemicals",
+        "dilution"
+      ],
+      "relatedSOPIds": [
+        "sop-aq-004"
+      ],
+      "requiredRoles": [],
+      "createdBy": "SeaFoundry",
+      "createdAt": "2024-01-15T00:00:00.000Z",
+      "isPublished": true,
+      "viewCount": 0
+    }
+  ]
+}

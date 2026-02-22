@@ -1,0 +1,172 @@
+{
+  "id": "sop-cr-001",
+  "organizationId": "template",
+  "title": "Daily Coral Nursery Operations",
+  "description": "Comprehensive standard operating procedure for daily coral nursery maintenance, including pre-dive safety protocols, equipment verification, visual coral inspection, cleaning procedures, and environmental parameter logging. This SOP ensures consistent care and early detection of issues affecting coral health.",
+  "category": "Husbandry",
+  "organismKind": "coral",
+  "version": "1.0.0",
+  "createdBy": "seafoundry-system",
+  "createdAt": "2024-01-15T00:00:00.000Z",
+  "isPublished": true,
+  "steps": [
+    {
+      "id": "step-001-1",
+      "order": 1,
+      "type": "warning",
+      "title": "Safety First",
+      "description": "Never conduct nursery operations alone. Always work with a dive buddy and ensure surface support is aware of your dive plan. Check weather conditions and postpone operations if conditions are unsafe.",
+      "isRequired": true,
+      "estimatedTime": 60
+    },
+    {
+      "id": "step-001-2",
+      "order": 2,
+      "type": "checklist",
+      "title": "Pre-Dive Equipment Check",
+      "description": "Complete the following equipment verification before entering the water. All items must be functional and properly maintained.",
+      "checklistItems": [
+        "BCD inflates and deflates properly",
+        "Regulator delivers air smoothly at depth",
+        "Dive computer or gauges functioning",
+        "Mask seal is intact with no leaks",
+        "Fins secured with functioning straps",
+        "Weight system properly configured",
+        "Dive knife or cutting tool accessible",
+        "Underwater writing slate and pencil",
+        "Underwater camera charged (if documenting)",
+        "Cleaning brushes and tools secured"
+      ],
+      "isRequired": true,
+      "estimatedTime": 300
+    },
+    {
+      "id": "step-001-3",
+      "order": 3,
+      "type": "instruction",
+      "title": "Initial Site Assessment",
+      "description": "Upon arrival at the nursery site, conduct a visual survey from the surface. Note water clarity, current direction and strength, and any visible debris or hazards. Check that all nursery structures (trees, tables, or frames) are intact and properly anchored. Report any structural damage immediately.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "mediaUrl": "gs://seafoundry-training/coral/nursery/initial_site_assessment.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-001-4",
+      "order": 4,
+      "type": "instruction",
+      "title": "Coral Colony Visual Inspection",
+      "description": "Systematically inspect each coral fragment on the nursery structure. Work from one end to the other to ensure no fragments are missed. Look for signs of tissue recession, bleaching, algae overgrowth, predation marks, or disease lesions. Healthy corals should show extended polyps, vibrant coloration, and active growth at margins.",
+      "isRequired": true,
+      "estimatedTime": 1200,
+      "mediaUrl": "gs://seafoundry-training/coral/health/healthy_vs_stressed_comparison.jpg",
+      "mediaType": "image"
+    },
+    {
+      "id": "step-001-5",
+      "order": 5,
+      "type": "checklist",
+      "title": "Health Indicators Assessment",
+      "description": "For each nursery structure, document the following health indicators:",
+      "checklistItems": [
+        "Percentage of fragments showing active polyp extension",
+        "Any fragments with tissue recession (note locations)",
+        "Signs of bleaching (partial or complete)",
+        "Presence of algae competing with coral tissue",
+        "Evidence of predation (snail trails, fish bites)",
+        "Disease lesions (white band, black band, rapid tissue loss)",
+        "Sediment accumulation on tissue",
+        "Biofouling organisms requiring removal"
+      ],
+      "isRequired": true,
+      "estimatedTime": 600
+    },
+    {
+      "id": "step-001-6",
+      "order": 6,
+      "type": "instruction",
+      "title": "Cleaning Nursery Structures",
+      "description": "Use soft-bristled brushes to gently remove algae, sediment, and biofouling organisms from nursery structures. Focus on areas near coral attachment points but avoid direct contact with coral tissue. Remove any debris caught on lines or structures. Clean PVC frames, monofilament lines, and any hardware. Physically remove corallivorous snails (Coralliophila) and fireworms if present.",
+      "isRequired": true,
+      "estimatedTime": 1800,
+      "mediaUrl": "gs://seafoundry-training/coral/nursery/cleaning_techniques.mp4",
+      "mediaType": "video"
+    },
+    {
+      "id": "step-001-7",
+      "order": 7,
+      "type": "warning",
+      "title": "Disease Isolation Protocol",
+      "description": "If diseased fragments are identified, DO NOT handle them with the same tools used for healthy corals. Mark the location of diseased fragments on your slate. Use separate, sterilized tools for any necessary handling. Report disease observations immediately upon surfacing. Refer to SOP-CR-005 (Disease Treatment Protocol) for response procedures.",
+      "isRequired": true,
+      "estimatedTime": 120
+    },
+    {
+      "id": "step-001-8",
+      "order": 8,
+      "type": "instruction",
+      "title": "Environmental Parameter Recording",
+      "description": "Record ambient water parameters during each nursery visit using calibrated instruments. Measure temperature at multiple depths if nursery spans different levels. Note visibility and any unusual conditions such as turbidity, unusual odors at the surface, or fish behavior changes.",
+      "isRequired": true,
+      "estimatedTime": 300,
+      "metadata": {
+        "parametersToRecord": [
+          "Water temperature (C)",
+          "Salinity (ppt)",
+          "Visibility (m)",
+          "Current strength (weak/moderate/strong)",
+          "Weather conditions"
+        ]
+      }
+    },
+    {
+      "id": "step-001-9",
+      "order": 9,
+      "type": "checklist",
+      "title": "Post-Dive Documentation",
+      "description": "Complete the following documentation within 2 hours of surfacing:",
+      "checklistItems": [
+        "Transfer slate notes to digital log",
+        "Upload photographs with location tags",
+        "Record any fragments requiring attention",
+        "Document equipment issues or maintenance needs",
+        "Update growth measurement records if taken",
+        "Flag any fragments ready for outplanting",
+        "Report unusual observations to supervisor",
+        "Log dive time and max depth for records"
+      ],
+      "isRequired": true,
+      "estimatedTime": 900
+    },
+    {
+      "id": "step-001-10",
+      "order": 10,
+      "type": "note",
+      "title": "Frequency and Timing",
+      "description": "Daily nursery operations should be conducted at consistent times when possible to track coral behavior patterns. Early morning inspections often show better polyp extension. During heat stress periods (summer months), increase inspection frequency and consider morning-only operations to minimize handling during peak temperatures. Document any deviations from the standard schedule.",
+      "isRequired": false,
+      "estimatedTime": 60
+    }
+  ],
+  "relatedMediaIds": [
+    "media-cr-001",
+    "media-cr-002",
+    "media-cr-003"
+  ],
+  "metadata": {
+    "author": "SeaFoundry",
+    "lastReviewDate": "2024-01-15",
+    "references": [
+      "NOAA Coral Restoration Consortium Guidelines",
+      "Reef Resilience Network Best Practices",
+      "Florida Coral Disease Response Protocol"
+    ],
+    "estimatedTotalTime": 5640,
+    "difficulty": "intermediate",
+    "prerequisites": [
+      "Basic SCUBA certification",
+      "Coral identification training",
+      "Dive safety SOP completion"
+    ]
+  }
+}
