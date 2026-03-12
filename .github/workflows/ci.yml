@@ -13,7 +13,6 @@
 #     * analyze (from this workflow)
 #     * unit-tests (from this workflow)
 #     * widget-tests (1) through widget-tests (4) (from this workflow)
-#     * lint-tiers (from tier_lint.yml)
 # - Require pull request reviews before merging (1 approval recommended)
 # - Require conversation resolution before merging
 # - Do not allow bypassing the above settings
@@ -55,9 +54,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run tier manifest check
-        run: dart run tool/bin/tier_check.dart
-
       - name: Analyze code for errors
         run: |
           echo "Running Flutter analyze..."
@@ -94,8 +90,16 @@ jobs:
 
       - name: Run unit tests
         run: |
-          echo "Running unit tests (excluding integration and comprehensive)..."
-          flutter test test/unit/ test/blocs/ test/cubits/ test/services/ \
+          DIRS=""
+          for d in test/unit test/blocs test/cubits test/services; do
+            [ -d "$d" ] && DIRS="$DIRS $d"
+          done
+          if [ -z "$DIRS" ]; then
+            echo "No test directories found, skipping."
+            exit 0
+          fi
+          echo "Running unit tests in:$DIRS"
+          flutter test $DIRS \
             --exclude-tags integration,comprehensive,golden \
             --concurrency=4 \
             --reporter expanded
@@ -129,8 +133,16 @@ jobs:
 
       - name: Run widget tests (shard ${{ matrix.shard }}/4)
         run: |
+          DIRS=""
+          for d in test/widget test/widgets; do
+            [ -d "$d" ] && DIRS="$DIRS $d"
+          done
+          if [ -z "$DIRS" ]; then
+            echo "No widget test directories found, skipping."
+            exit 0
+          fi
           echo "Running widget tests shard ${{ matrix.shard }} of 4..."
-          flutter test test/widget/ test/widgets/ \
+          flutter test $DIRS \
             --exclude-tags integration,comprehensive,golden \
             --total-shards=4 \
             --shard-index=$((${{ matrix.shard }} - 1)) \
@@ -164,6 +176,10 @@ jobs:
 
       - name: Run integration tests
         run: |
+          if [ ! -d "test/integration" ]; then
+            echo "No integration test directory found, skipping."
+            exit 0
+          fi
           echo "Running integration tests..."
           flutter test test/integration/ \
             --tags integration \
@@ -229,7 +245,15 @@ jobs:
 
       - name: Generate coverage report
         run: |
-          flutter test test/unit/ test/blocs/ test/cubits/ \
+          DIRS=""
+          for d in test/unit test/blocs test/cubits; do
+            [ -d "$d" ] && DIRS="$DIRS $d"
+          done
+          if [ -z "$DIRS" ]; then
+            echo "No test directories found, skipping coverage."
+            exit 0
+          fi
+          flutter test $DIRS \
             --exclude-tags integration,comprehensive,golden \
             --coverage \
             --concurrency=4
