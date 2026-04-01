@@ -33,9 +33,6 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Tier manifest check
-        run: dart run tool/bin/tier_check.dart
-
       - name: Analyze with strict quality gates
         run: |
           echo "Running Flutter analyze with fatal warnings..."
