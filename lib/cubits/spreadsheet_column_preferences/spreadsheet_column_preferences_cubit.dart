@@ -6,8 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/column_preferences/column_preferences.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/column_preferences/spreadsheet_id.dart';
+import 'package:seafoundry_app/models/spreadsheet/column_preferences.dart';
+import 'package:seafoundry_app/models/spreadsheet/spreadsheet_id.dart';
 
 /// Cubit managing per-spreadsheet column order and visibility preferences.
 ///

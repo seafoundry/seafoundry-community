@@ -6,7 +6,7 @@ import 'package:seafoundry_app/widgets/spreadsheet/components/spreadsheet_state_
 import 'package:seafoundry_app/widgets/spreadsheet/components/toolbar_dropdown.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/genetics/genetics_summary_cards.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/genetics_columns.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/genetics_spreadsheet_helper.dart';
+import 'package:seafoundry_app/services/spreadsheet/genetics_spreadsheet_helper.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/spreadsheet_base.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/spreadsheet_scroll_view.dart';
 
