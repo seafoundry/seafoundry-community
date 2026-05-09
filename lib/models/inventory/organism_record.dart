@@ -50,7 +50,7 @@ class OrganismRecord extends InventoryRecord
     this.groupId,
     this.zoneId,
     this.subplotId,
-    this.tagId,
+    this.outplantTagId,
     this.provenanceType,
     ProvenanceAttributes? provenanceAttributes,
     this.physicalForm,
@@ -103,7 +103,7 @@ class OrganismRecord extends InventoryRecord
     String? groupId,
     String? zoneId,
     String? subplotId,
-    String? tagId,
+    String? outplantTagId,
     ProvenanceType? provenanceType,
     ProvenanceAttributes? provenanceAttributes,
     PhysicalFormInstance? physicalForm,
@@ -129,7 +129,7 @@ class OrganismRecord extends InventoryRecord
        groupId = groupId ?? json?['groupId'],
        zoneId = zoneId ?? json?['zoneId'],
        subplotId = subplotId ?? json?['subplotId'],
-       tagId = tagId ?? json?['tagId'],
+       outplantTagId = outplantTagId ?? json?['outplantTagId'],
        provenanceType =
            provenanceType ??
            ProvenanceTypeX.tryParse(json?['provenanceType']?.toString()),
@@ -186,7 +186,7 @@ class OrganismRecord extends InventoryRecord
       groupId = _asString(json['groupId']) ?? Missing.string,
       zoneId = _asString(json['zoneId']),
       subplotId = _asString(json['subplotId']),
-      tagId = _asString(json['tagId']),
+      outplantTagId = _asString(json['outplantTagId']),
       provenanceType = ProvenanceTypeX.tryParse(
         json['provenanceType']?.toString(),
       ),
@@ -225,7 +225,7 @@ class OrganismRecord extends InventoryRecord
     String? groupId,
     String? zoneId,
     String? subplotId,
-    String? tagId,
+    String? outplantTagId,
     ProvenanceType? provenanceType,
     ProvenanceAttributes? provenanceAttributes,
     PhysicalFormInstance? physicalForm,
@@ -256,7 +256,7 @@ class OrganismRecord extends InventoryRecord
       groupId: groupId,
       zoneId: zoneId,
       subplotId: subplotId,
-      tagId: tagId,
+      outplantTagId: outplantTagId,
       provenanceType: provenanceType,
       provenanceAttributes: provenanceAttributes,
       physicalForm: physicalForm,
@@ -332,7 +332,7 @@ class OrganismRecord extends InventoryRecord
 
   /// Individual tag identifier for this organism at an outplant site.
   /// Used to uniquely identify tagged organisms within a subplot.
-  final String? tagId;
+  final String? outplantTagId;
 
   final ProvenanceType? provenanceType;
   final ProvenanceAttributes provenanceAttributes;
@@ -456,7 +456,7 @@ class OrganismRecord extends InventoryRecord
     String? groupId,
     String? zoneId,
     String? subplotId,
-    String? tagId,
+    String? outplantTagId,
     ProvenanceType? provenanceType,
     ProvenanceAttributes? provenanceAttributes,
     LifeStageSpec? lifeStage,
@@ -491,7 +491,7 @@ class OrganismRecord extends InventoryRecord
       groupId: groupId ?? this.groupId,
       zoneId: zoneId ?? this.zoneId,
       subplotId: subplotId ?? this.subplotId,
-      tagId: tagId ?? this.tagId,
+      outplantTagId: outplantTagId ?? this.outplantTagId,
       provenanceType: provenanceType ?? this.provenanceType,
       provenanceAttributes: provenanceAttributes ?? this.provenanceAttributes,
       lifeStage: lifeStage ?? this.lifeStage,
@@ -531,7 +531,7 @@ class OrganismRecord extends InventoryRecord
     put('groupId', groupId);
     put('zoneId', zoneId);
     put('subplotId', subplotId);
-    put('tagId', tagId);
+    put('outplantTagId', outplantTagId);
     put('provenanceType', provenanceType?.id);
     if (provenanceType != null) {
       final attrs = provenanceAttributes.toJson();
@@ -1054,7 +1054,7 @@ class OrganismRecord extends InventoryRecord
         groupId,
         zoneId,
         subplotId,
-        tagId,
+        outplantTagId,
         provenanceType,
         provenanceAttributes,
         lifeStage,
@@ -1077,14 +1077,14 @@ class OrganismRecord extends InventoryRecord
   // ---------------------------------------------------------------------------
 
   /// Whether this organism has outplant hierarchy location data.
-  /// Returns true if zoneId, subplotId, or tagId is set.
+  /// Returns true if zoneId, subplotId, or outplantTagId is set.
   bool get hasOutplantLocation =>
-      zoneId != null || subplotId != null || tagId != null;
+      zoneId != null || subplotId != null || outplantTagId != null;
 
   /// Whether this organism has a complete outplant location hierarchy.
-  /// Returns true if all of zoneId, subplotId, and tagId are set.
+  /// Returns true if all of zoneId, subplotId, and outplantTagId are set.
   bool get hasCompleteOutplantLocation =>
-      zoneId != null && subplotId != null && tagId != null;
+      zoneId != null && subplotId != null && outplantTagId != null;
 }
 
 SizeMetrics _resolveInventoryMetrics(

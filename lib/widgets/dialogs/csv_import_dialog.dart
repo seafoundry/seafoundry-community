@@ -371,7 +371,7 @@ class _CsvImportDialogState extends State<CsvImportDialog>
                 'localId': organism.localId,
                 'recordName': organism.recordName,
                 'quantity': organism.measurement.value.round().toString(),
-                'tagId': '',
+                'outplantTagId': '',
               });
             }
             await ExportService.exportTemplate(
