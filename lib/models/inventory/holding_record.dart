@@ -19,10 +19,14 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// captures population, life stage, provenance references, and graph-node
 /// placement without depending on coral-only models.
 ///
-/// Identity, life-stage, measurement, and ownership data live on the embedded
-/// [organismRecord]. Top-level getters delegate to it so existing call sites
-/// keep working. Holding-level state (placement, foreign keys, attributes,
-/// metadata) remains as plain fields.
+/// Identity / life-stage / measurement / ownership are persisted as
+/// **denormalized display fields** on the holding (kept in sync with the
+/// canonical [OrganismRecord] doc identified by [organismRecordId]). Callers
+/// needing deep axes (aliases, physicalForm, lifeStageHistory, sizeSpec) must
+/// resolve the canonical record via
+/// [resolveOrganismRecord], which performs an async repository lookup. The
+/// embedded [organismRecord] field is currently retained for the in-flight
+/// migration; new code should treat it as private to this file.
 class HoldingRecord extends InventoryRecord
     with LifeStageProgressionMixin, MeasurableMixin {
   HoldingRecord({
@@ -42,6 +46,7 @@ class HoldingRecord extends InventoryRecord
     HoldingAttributes? attributes,
     Map<String, dynamic> metadata = const <String, dynamic>{},
     OrganismRecord? organismRecord,
+    String? organismRecordId,
     String? createdAt,
     String? createdById,
     String? updatedAt,
@@ -52,6 +57,11 @@ class HoldingRecord extends InventoryRecord
     String? slug,
   })  : foreignKeys = _normalizeForeignKeys(foreignKeys),
         attributes = _normalizeAttributes(attributes),
+        organismRecordId = _resolveOrganismRecordId(
+          explicit: organismRecordId,
+          base: organismRecord,
+          fallbackId: id,
+        ),
         organismRecord = _buildOrganismRecord(
           base: organismRecord,
           tagId: tagId,
@@ -83,6 +93,18 @@ class HoldingRecord extends InventoryRecord
   final String? structureId;
   final Map<String, ForeignKeyReference> foreignKeys;
   final HoldingAttributes attributes;
+
+  /// Foreign key to the canonical [OrganismRecord] document (the
+  /// `organism_records/{id}` Firestore doc). The current persistence flow
+  /// shares `holding.id == organismRecord.id`, so this defaults to [id] when
+  /// not explicitly provided. Always set by [fromJson] when present.
+  final String organismRecordId;
+
+  /// **Migration-only**. Embedded snapshot of the canonical
+  /// [OrganismRecord]. Will be removed in the final step of the deembedding
+  /// refactor; new readers should call [resolveOrganismRecord] for deep axes
+  /// or rely on the denormalized display fields ([tagId], [organismKind],
+  /// [lifeStage], [measurement], [ownerOrganizationId], [managingOrganizationId]).
   final OrganismRecord organismRecord;
 
   // Delegating getters: these fields previously lived on HoldingRecord as
@@ -151,6 +173,7 @@ class HoldingRecord extends InventoryRecord
     Map<String, dynamic>? metadata,
     HoldingAttributes? attributes,
     OrganismRecord? organismRecord,
+    String? organismRecordId,
     String? createdById,
     String? createdAt,
     String? updatedById,
@@ -178,6 +201,7 @@ class HoldingRecord extends InventoryRecord
       attributes: attributes ?? this.attributes,
       metadata: metadata ?? this.metadata ?? const <String, dynamic>{},
       organismRecord: organismRecord ?? this.organismRecord,
+      organismRecordId: organismRecordId ?? this.organismRecordId,
       createdAt: createdAt ?? this.createdAt,
       createdById: createdById ?? this.createdById,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -214,6 +238,7 @@ class HoldingRecord extends InventoryRecord
               key,
               ref.toJson(),
             )),
+      'organismRecordId': organismRecordId,
       'organismRecord': organismRecord.toJson(),
       if (!attributes.isEmpty) 'attributes': attributes.toJson(),
     });
@@ -287,6 +312,7 @@ class HoldingRecord extends InventoryRecord
       attributes: mergedAttributes,
       metadata: metadata,
       organismRecord: parsedOrganismRecord,
+      organismRecordId: readText(json['organismRecordId']),
     );
   }
 
@@ -300,8 +326,34 @@ class HoldingRecord extends InventoryRecord
     structureId,
     attributes,
     organismRecord,
+    organismRecordId,
     foreignKeys,
   ];
+
+  /// Resolves the canonical [OrganismRecord] for this holding by looking up
+  /// [organismRecordId] via [lookup]. Use when callers need axes that the
+  /// holding does not denormalize (aliases, physicalForm, lifeStageHistory,
+  /// sizeSpec, etc.). Returns null when [organismRecordId] is empty or no
+  /// matching record exists.
+  Future<OrganismRecord?> resolveOrganismRecord(
+    Future<OrganismRecord?> Function(String id) lookup,
+  ) async {
+    if (organismRecordId.isEmpty) return null;
+    return lookup(organismRecordId);
+  }
+
+  static String _resolveOrganismRecordId({
+    required String? explicit,
+    required OrganismRecord? base,
+    required String fallbackId,
+  }) {
+    final candidate = explicit?.trim().isNotEmpty == true
+        ? explicit!.trim()
+        : (base?.id.trim().isNotEmpty == true
+            ? base!.id.trim()
+            : fallbackId);
+    return candidate;
+  }
 
   static HoldingAttributes _normalizeAttributes(HoldingAttributes? value) =>
       value ?? const HoldingAttributes();
