@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:seafoundry_app/widgets/in_situ/grid_renderer.dart';
+import 'package:seafoundry_app/models/in_situ/in_situ_grid_cell.dart';
 
 class InSituGridState extends Equatable {
   const InSituGridState({

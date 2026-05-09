@@ -27,11 +27,11 @@ import 'package:seafoundry_app/services/organism_record_change_service.dart';
 import 'package:seafoundry_app/services/provenance_id_service.dart';
 import 'package:seafoundry_app/services/provenance_lookup_service.dart';
 import 'package:seafoundry_app/services/validation/organism_constraints_service.dart';
+import 'package:seafoundry_app/models/inventory/life_stage_transition_reason.dart';
+import 'package:seafoundry_app/models/inventory/local_id_edit_scope.dart';
+import 'package:seafoundry_app/models/inventory/physical_form_change_reason.dart';
+import 'package:seafoundry_app/models/inventory/quantity_change.dart';
 import 'package:seafoundry_app/utils/string_formatters.dart';
-import 'package:seafoundry_app/widgets/common/life_stage_transition_editor.dart';
-import 'package:seafoundry_app/widgets/common/physical_form_change_editor.dart';
-import 'package:seafoundry_app/widgets/common/quantity_change_editor.dart';
-import 'package:seafoundry_app/widgets/dialogs/local_id_edit_scope_dialog.dart';
 
 import 'organism_record_edit_state.dart';
 

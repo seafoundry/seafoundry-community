@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:seafoundry_app/models/inventory/physical_form_change_reason.dart';
 import 'package:seafoundry_app/models/inventory/physical_form_config.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/services/physical_form_registry.dart';
 
-enum PhysicalFormChangeReason {
-  growth('Growth / maturation'),
-  densityManagement('Density management'),
-  substrateChange('Substrate change'),
-  other('Other');
-
-  const PhysicalFormChangeReason(this.label);
-
-  final String label;
-}
+export 'package:seafoundry_app/models/inventory/physical_form_change_reason.dart';
 
 class PhysicalFormChangeEditor extends StatefulWidget {
   const PhysicalFormChangeEditor({
