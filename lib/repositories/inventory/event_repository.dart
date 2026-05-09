@@ -875,7 +875,7 @@ class EventRepository extends _EventRepositoryBase {
       slug: slug,
       recordId: recordId,
       recordModelType: ModelType.organismRecord,
-      organismRecordSnapshot: snapshot,
+      organismRecordSnapshot: PhysicalFormSnapshot.fromOrganismRecord(snapshot),
       oldFormId: oldFormId,
       newFormId: newFormId,
       metadata: metadata,
