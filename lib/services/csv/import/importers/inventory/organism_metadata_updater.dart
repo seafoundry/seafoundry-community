@@ -78,7 +78,7 @@ class OrganismMetadataUpdater {
         notes: currentValues.notes,
         readyForPropagation: currentValues.readyForPropagation,
         readyForOutplant: currentValues.readyForOutplant,
-        genetId: currentValues.genetId,
+        genetRecordId: currentValues.genetRecordId,
       );
       mutated = true;
     }
@@ -86,7 +86,7 @@ class OrganismMetadataUpdater {
     // Apply genet change
     if (row.updateGenet &&
         row.genet != null &&
-        row.genet!.id != currentValues.genetId) {
+        row.genet!.id != currentValues.genetRecordId) {
       updated = _applyGenetUpdate(updated, row.genet!);
       mutated = true;
     }
@@ -104,7 +104,7 @@ class OrganismMetadataUpdater {
         notes: currentValues.notes,
         readyForPropagation: currentValues.readyForPropagation,
         readyForOutplant: currentValues.readyForOutplant,
-        genetId: currentValues.genetId,
+        genetRecordId: currentValues.genetRecordId,
       );
       mutated = true;
     }
@@ -123,7 +123,7 @@ class OrganismMetadataUpdater {
         notes: currentValues.notes,
         readyForPropagation: currentValues.readyForPropagation,
         readyForOutplant: currentValues.readyForOutplant,
-        genetId: currentValues.genetId,
+        genetRecordId: currentValues.genetRecordId,
       );
       mutated = true;
     }
@@ -142,7 +142,7 @@ class OrganismMetadataUpdater {
           notes: desiredNotes,
           readyForPropagation: currentValues.readyForPropagation,
           readyForOutplant: currentValues.readyForOutplant,
-          genetId: currentValues.genetId,
+          genetRecordId: currentValues.genetRecordId,
         );
         mutated = true;
       }
@@ -178,7 +178,7 @@ class OrganismMetadataUpdater {
   }
 
   _CurrentValues _extractCurrentValues(OrganismRecord organism) {
-    final genetId = GenetIdResolver.resolve(organism);
+    final genetRecordId = GenetIdResolver.resolve(organism);
     final healthStatus = HealthStatus.fromId(
         organism.metadata?['healthStatus'] as String? ?? 'healthy');
     final notes = organism.metadata?['notes'] as String?;
@@ -193,7 +193,7 @@ class OrganismMetadataUpdater {
         organism.metadata?['readyForOutplant'] as bool? ?? false;
 
     return _CurrentValues(
-      genetId: genetId,
+      genetRecordId: genetRecordId,
       healthStatus: healthStatus,
       notes: notes,
       tagId: tagId,
@@ -214,7 +214,7 @@ class OrganismMetadataUpdater {
     required String? notes,
     required bool readyForPropagation,
     required bool readyForOutplant,
-    required String? genetId,
+    required String? genetRecordId,
     PopulationMeasurement? measurement,
   }) {
     final resolvedSizeBandId = _resolveSizeBandId(
@@ -237,7 +237,7 @@ class OrganismMetadataUpdater {
       ),
       sizeSpec: sizeSpec ?? organism.sizeSpec,
       metadata: updatedMetadata,
-      genetId: genetId ?? organism.genetId,
+      genetRecordId: genetRecordId ?? organism.genetRecordId,
       measurement: measurement ?? organism.measurement,
     );
   }
@@ -261,11 +261,11 @@ class OrganismMetadataUpdater {
       'provenanceId': genet.provenanceId,
       'displayName': genet.displayName,
     };
-    foreignKeys['genetId'] = ForeignKeyReference(
+    foreignKeys['genetRecordId'] = ForeignKeyReference(
       id: genet.id,
       metadata: foreignKeyMetadata,
     );
-    return organism.copyWith(foreignKeys: foreignKeys, genetId: genet.id);
+    return organism.copyWith(foreignKeys: foreignKeys, genetRecordId: genet.id);
   }
 
   bool _haveAliasesChanged(
@@ -319,7 +319,7 @@ class OrganismMetadataUpdater {
 /// Internal helper for current organism values.
 class _CurrentValues {
   const _CurrentValues({
-    required this.genetId,
+    required this.genetRecordId,
     required this.healthStatus,
     required this.notes,
     required this.tagId,
@@ -330,7 +330,7 @@ class _CurrentValues {
     required this.readyForOutplant,
   });
 
-  final String? genetId;
+  final String? genetRecordId;
   final HealthStatus healthStatus;
   final String? notes;
   final String tagId;

@@ -269,7 +269,7 @@ class InventoryRowParser {
     if (value.trim().isEmpty) return null;
 
     final isDocIdColumn = columnName == CsvColumnNames.organismId ||
-        columnName == CsvColumnNames.genetId ||
+        columnName == CsvColumnNames.genetRecordId ||
         columnName == CsvColumnNames.holdingId;
     final isLineageIdColumn = columnName == CsvColumnNames.provenanceId ||
         columnName == CsvColumnNames.genetProvenanceId;

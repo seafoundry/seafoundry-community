@@ -467,10 +467,10 @@ class OrganismMergeBloc
         notes: 'Merged into $newRecordName. $formattedNotes',
       );
 
-      // Check genetId - keep if all match, clear if any differ
+      // Check genetRecordId - keep if all match, clear if any differ
       final allGenetIds = [
-        targetOrganism.genetId,
-        ...absorbedOrganisms.map((o) => o.genetId),
+        targetOrganism.genetRecordId,
+        ...absorbedOrganisms.map((o) => o.genetRecordId),
       ].whereType<String>().toSet();
       final mergedGenetId = allGenetIds.length == 1 ? allGenetIds.first : null;
 
@@ -485,7 +485,7 @@ class OrganismMergeBloc
           mergeMeasurementSnapshot,
         ],
         lifeStageHistory: mergedLifeStageHistory,
-        genetId: mergedGenetId,
+        genetRecordId: mergedGenetId,
         updatedAt: now,
         updatedById: userId,
         metadata: {

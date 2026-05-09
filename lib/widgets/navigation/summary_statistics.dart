@@ -212,8 +212,8 @@ class _SummaryStatisticsViewState extends State<_SummaryStatisticsView> {
       if (siteId != null && siteId.isNotEmpty) siteIds.add(siteId);
       final speciesId = organism.speciesId?.trim();
       if (speciesId != null && speciesId.isNotEmpty) speciesIds.add(speciesId);
-      final genetId = GenetIdResolver.resolve(organism)?.trim();
-      if (genetId != null && genetId.isNotEmpty) genetIds.add(genetId);
+      final genetRecordId = GenetIdResolver.resolve(organism)?.trim();
+      if (genetRecordId != null && genetRecordId.isNotEmpty) genetIds.add(genetRecordId);
       final groupId = organism.groupId?.trim();
       if (groupId != null && groupId.isNotEmpty) structureIds.add(groupId);
     }
@@ -227,9 +227,9 @@ class _SummaryStatisticsViewState extends State<_SummaryStatisticsView> {
     // Genet labels: use the localGenetId from the first organism with that genet
     final genetLabels = <String, String>{};
     for (final organism in organisms) {
-      final genetId = GenetIdResolver.resolve(organism)?.trim();
-      if (genetId != null && genetId.isNotEmpty && !genetLabels.containsKey(genetId)) {
-        genetLabels[genetId] = organism.localGenetId ?? genetId;
+      final genetRecordId = GenetIdResolver.resolve(organism)?.trim();
+      if (genetRecordId != null && genetRecordId.isNotEmpty && !genetLabels.containsKey(genetRecordId)) {
+        genetLabels[genetRecordId] = organism.localGenetId ?? genetRecordId;
       }
     }
 

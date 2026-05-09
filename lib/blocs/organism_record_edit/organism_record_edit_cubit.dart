@@ -788,7 +788,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
         try {
           genetWideCount = await _organismRecordRepository
               .updateLocalIdGenetWide(
-                genetId: state.underlyingGenet!.id,
+                genetRecordId: state.underlyingGenet!.id,
                 newLocalId: state.localIdOverride!,
                 updatedById: state.pendingRecord.updatedById,
               );
@@ -927,25 +927,25 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
   /// Emits an identity change event at the genet level.
   Future<void> _emitGenetIdentityEvent({
     required EventType eventType,
-    required String? genetId,
+    required String? genetRecordId,
     required Map<String, dynamic> metadata,
   }) async {
-    if (_eventRepository == null || _organization == null || genetId == null) {
+    if (_eventRepository == null || _organization == null || genetRecordId == null) {
       return;
     }
 
     try {
       final now = DateTime.now();
-      final eventId = '${now.millisecondsSinceEpoch}_${genetId.substring(
+      final eventId = '${now.millisecondsSinceEpoch}_${genetRecordId.substring(
         0,
-        genetId.length < 8 ? genetId.length : 8,
+        genetRecordId.length < 8 ? genetRecordId.length : 8,
       )}';
 
       final event = Event.partial(
         id: eventId,
         organizationId: _organization.id,
         eventTypeId: eventType.id,
-        recordId: genetId,
+        recordId: genetRecordId,
         recordModelType: ModelType.genet,
         createdAt: now.toIso8601String(),
         updatedAt: now.toIso8601String(),
@@ -954,7 +954,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
       await _eventRepository.createEvent(event);
       LoggingService.instance.info(
-        'Emitted ${eventType.id} event for genet $genetId',
+        'Emitted ${eventType.id} event for genet $genetRecordId',
       );
     } catch (e) {
       LoggingService.instance.warning('Failed to emit genet identity event: $e');
@@ -1016,7 +1016,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
       await _emitGenetIdentityEvent(
         eventType: EventType.genetIdentityChange,
-        genetId: resolvedGenetId,
+        genetRecordId: resolvedGenetId,
         metadata: {
           'previousLocalId': originalRecord.localGenetId,
           'newLocalId': state.localIdOverride,
@@ -1106,7 +1106,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     OrganismRecord finalPending = pending;
     if (state.selectedGenetOverride != null) {
       final newFks = Map<String, ForeignKeyReference>.from(pending.foreignKeys);
-      newFks['genetId'] = ForeignKeyReference(
+      newFks['genetRecordId'] = ForeignKeyReference(
         id: state.selectedGenetOverride!.id,
         metadata: {'collection': 'genets'},
       );

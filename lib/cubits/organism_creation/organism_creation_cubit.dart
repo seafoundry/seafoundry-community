@@ -1107,7 +1107,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
         ownerOrganizationId: ownerOrganizationId ?? state.ownerOrganizationId,
         managingOrganizationId:
             managingOrganizationId ?? state.managingOrganizationId,
-        genetId: state.selectedGenet?.id,
+        genetRecordId: state.selectedGenet?.id,
         metadata: metadata.isNotEmpty ? metadata : null,
       );
 

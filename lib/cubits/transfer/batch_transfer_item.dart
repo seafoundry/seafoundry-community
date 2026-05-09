@@ -9,7 +9,7 @@ import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 /// an independent [TransferEvent] via [TransferService.initiateTransfer].
 class BatchTransferItem extends Equatable {
   const BatchTransferItem({
-    required this.genetId,
+    required this.genetRecordId,
     required this.genetLocalId,
     required this.toOrganizationId,
     required this.toOrganizationName,
@@ -22,7 +22,7 @@ class BatchTransferItem extends Equatable {
   });
 
   /// The genet ID for this transfer item.
-  final String genetId;
+  final String genetRecordId;
 
   /// Display name for the genet (e.g., "ACER-001").
   final String genetLocalId;
@@ -54,7 +54,7 @@ class BatchTransferItem extends Equatable {
   static const _sentinel = Object();
 
   BatchTransferItem copyWith({
-    String? genetId,
+    String? genetRecordId,
     String? genetLocalId,
     String? toOrganizationId,
     String? toOrganizationName,
@@ -66,7 +66,7 @@ class BatchTransferItem extends Equatable {
     Object? resultTransferEventId = _sentinel,
   }) {
     return BatchTransferItem(
-      genetId: genetId ?? this.genetId,
+      genetRecordId: genetRecordId ?? this.genetRecordId,
       genetLocalId: genetLocalId ?? this.genetLocalId,
       toOrganizationId: toOrganizationId ?? this.toOrganizationId,
       toOrganizationName: toOrganizationName ?? this.toOrganizationName,
@@ -87,7 +87,7 @@ class BatchTransferItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        genetId,
+        genetRecordId,
         genetLocalId,
         toOrganizationId,
         toOrganizationName,

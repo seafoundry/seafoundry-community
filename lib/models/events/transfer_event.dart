@@ -9,7 +9,7 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 
 /// Event representing a genetics transfer between organizations
 class TransferEvent extends Event {
-  final String? genetId;
+  final String? genetRecordId;
   final String? toOrganizationId;
   final String? toOrganizationEmail;
   final String? fromOrganizationId;
@@ -44,7 +44,7 @@ class TransferEvent extends Event {
     EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     OutplantGeometry? geometry,
     EventBaseParams base = const EventBaseParams(),
-    this.genetId,
+    this.genetRecordId,
     this.toOrganizationId,
     this.toOrganizationEmail,
     this.fromOrganizationId,
@@ -72,7 +72,7 @@ class TransferEvent extends Event {
        );
 
   TransferEvent.incomplete({required Map<String, dynamic> json})
-    : genetId = json['genetId'],
+    : genetRecordId = json['genetRecordId'],
       toOrganizationId = json['toOrganizationId'],
       toOrganizationEmail = json['toOrganizationEmail'] as String?,
       fromOrganizationId = json['fromOrganizationId'],
@@ -115,7 +115,7 @@ class TransferEvent extends Event {
 
   factory TransferEvent.initiate({
     required String id,
-    required String genetId,
+    required String genetRecordId,
     required String recordId,
     required String createdById,
     required String createdAt,
@@ -153,7 +153,7 @@ class TransferEvent extends Event {
       urlPath: urlPath,
       internalPath: internalPath,
       slug: slug,
-      genetId: genetId,
+      genetRecordId: genetRecordId,
       fromOrganizationId: organizationId,
       toOrganizationId: toOrganizationId,
       toOrganizationEmail: toOrganizationEmail,
@@ -172,7 +172,7 @@ class TransferEvent extends Event {
 
   factory TransferEvent.complete({
     required String id,
-    required String genetId,
+    required String genetRecordId,
     required String recordId,
     required String createdById,
     required String createdAt,
@@ -200,7 +200,7 @@ class TransferEvent extends Event {
       urlPath: urlPath,
       internalPath: internalPath,
       slug: slug,
-      genetId: genetId,
+      genetRecordId: genetRecordId,
       fromOrganizationId: fromOrganizationId,
       toOrganizationId: organizationId,
       toOrganizationEmail: null,
@@ -222,7 +222,7 @@ class TransferEvent extends Event {
   }
 
   TransferEvent.fromJson(super.json)
-    : genetId = json['genetId'],
+    : genetRecordId = json['genetRecordId'],
       toOrganizationId = json['toOrganizationId'],
       toOrganizationEmail = json['toOrganizationEmail'] as String?,
       fromOrganizationId = json['fromOrganizationId'],
@@ -257,7 +257,7 @@ class TransferEvent extends Event {
   Map<String, dynamic> toJson() {
     return {
       ...super.toJson(),
-      'genetId': genetId,
+      'genetRecordId': genetRecordId,
       'toOrganizationId': toOrganizationId,
       'toOrganizationEmail': toOrganizationEmail,
       'fromOrganizationId': fromOrganizationId,
@@ -282,10 +282,10 @@ class TransferEvent extends Event {
   bool validate() {
     // A valid transfer requires:
     // 1. Base event validation (required fields not missing)
-    // 2. A genetId (what is being transferred)
+    // 2. A genetRecordId (what is being transferred)
     // 3. A recipient: either toOrganizationId (direct) or toOrganizationEmail (email-based)
     return super.validate() &&
-        genetId != null &&
+        genetRecordId != null &&
         (toOrganizationId != null || toOrganizationEmail != null);
   }
 
@@ -303,7 +303,7 @@ class TransferEvent extends Event {
     String? internalPath,
     String? slug,
     ModelType? recordModelType,
-    String? genetId,
+    String? genetRecordId,
     String? toOrganizationId,
     String? toOrganizationEmail,
     String? fromOrganizationId,
@@ -343,7 +343,7 @@ class TransferEvent extends Event {
       ),
 
       recordModelType: recordModelType ?? this.recordModelType,
-      genetId: genetId ?? this.genetId,
+      genetRecordId: genetRecordId ?? this.genetRecordId,
       toOrganizationId: toOrganizationId ?? this.toOrganizationId,
       toOrganizationEmail: toOrganizationEmail ?? this.toOrganizationEmail,
       fromOrganizationId: fromOrganizationId ?? this.fromOrganizationId,

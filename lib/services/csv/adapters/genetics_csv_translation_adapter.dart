@@ -10,7 +10,7 @@ class GeneticsCsvTranslationAdapter extends CsvTranslationAdapter {
   const GeneticsCsvTranslationAdapter() : super(id: 'genetics_csv_translation');
 
   /// Keys to look for local ID in CSV files.
-  /// Phase 2 (2D.4): Removed 'genetId' alias — genetId is a Firestore
+  /// Phase 2 (2D.4): Removed 'genetRecordId' alias — genetRecordId is a Firestore
   /// document ID column, not a local ID. Use 'genetLocalId' instead.
   static final List<String> _localIdKeys = [
     ...GeneticsCsvKeys.localIdKeys,

@@ -59,7 +59,7 @@ class OrganismRecord extends InventoryRecord
     List<OrganismAlias>? aliases,
     this.ownerOrganizationId,
     this.managingOrganizationId,
-    this.genetId,
+    this.genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     List<LifeStageTransition>? lifeStageHistory,
     List<MeasurementSnapshot>? measurementHistory,
@@ -112,7 +112,7 @@ class OrganismRecord extends InventoryRecord
     List<OrganismAlias>? aliases,
     String? ownerOrganizationId,
     String? managingOrganizationId,
-    String? genetId,
+    String? genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     List<LifeStageTransition>? lifeStageHistory,
     List<MeasurementSnapshot>? measurementHistory,
@@ -158,7 +158,7 @@ class OrganismRecord extends InventoryRecord
            ownerOrganizationId ?? json?['ownerOrganizationId'],
        managingOrganizationId =
            managingOrganizationId ?? json?['managingOrganizationId'],
-       genetId = genetId ?? json?['genetId'],
+       genetRecordId = genetRecordId ?? json?['genetRecordId'],
        foreignKeys = foreignKeys ?? _parseForeignKeys(json?['foreignKeys']),
        lifeStageHistory =
            lifeStageHistory ??
@@ -204,7 +204,7 @@ class OrganismRecord extends InventoryRecord
       aliases = _parseAliases(json['aliases']),
       ownerOrganizationId = _asString(json['ownerOrganizationId']),
       managingOrganizationId = _asString(json['managingOrganizationId']),
-      genetId = _asString(json['genetId']),
+      genetRecordId = _asString(json['genetRecordId']),
       foreignKeys = _parseForeignKeys(json['foreignKeys']),
       lifeStageHistory = _parseLifeStageHistory(json['lifeStageHistory']),
       measurementHistory = _parseMeasurementHistory(json['measurementHistory']),
@@ -234,7 +234,7 @@ class OrganismRecord extends InventoryRecord
     List<OrganismAlias>? aliases,
     String? ownerOrganizationId,
     String? managingOrganizationId,
-    String? genetId,
+    String? genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     Map<String, dynamic>? metadata,
   }) {
@@ -265,7 +265,7 @@ class OrganismRecord extends InventoryRecord
       aliases: aliases,
       ownerOrganizationId: ownerOrganizationId,
       managingOrganizationId: managingOrganizationId,
-      genetId: genetId,
+      genetRecordId: genetRecordId,
       foreignKeys: foreignKeys,
       metadata: metadata,
     );
@@ -355,7 +355,7 @@ class OrganismRecord extends InventoryRecord
 
   /// Reference to the Genet record this organism belongs to.
   /// Used for five-axis provenance tracking (axis 2).
-  final String? genetId;
+  final String? genetRecordId;
 
   final Map<String, ForeignKeyReference> foreignKeys;
   @override
@@ -467,7 +467,7 @@ class OrganismRecord extends InventoryRecord
     List<OrganismAlias>? aliases,
     String? ownerOrganizationId,
     String? managingOrganizationId,
-    String? genetId,
+    String? genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     List<LifeStageTransition>? lifeStageHistory,
     List<MeasurementSnapshot>? measurementHistory,
@@ -504,7 +504,7 @@ class OrganismRecord extends InventoryRecord
       ownerOrganizationId: ownerOrganizationId ?? this.ownerOrganizationId,
       managingOrganizationId:
           managingOrganizationId ?? this.managingOrganizationId,
-      genetId: genetId ?? this.genetId,
+      genetRecordId: genetRecordId ?? this.genetRecordId,
       foreignKeys: foreignKeys ?? this.foreignKeys,
       lifeStageHistory: lifeStageHistory ?? this.lifeStageHistory,
       measurementHistory: measurementHistory ?? this.measurementHistory,
@@ -553,7 +553,7 @@ class OrganismRecord extends InventoryRecord
     }
     put('ownerOrganizationId', ownerOrganizationId);
     put('managingOrganizationId', managingOrganizationId);
-    put('genetId', genetId);
+    put('genetRecordId', genetRecordId);
     if (foreignKeys.isNotEmpty) {
       payload['foreignKeys'] = foreignKeys.map(
         (key, ref) => MapEntry(key, ref.toJson()),
@@ -1065,7 +1065,7 @@ class OrganismRecord extends InventoryRecord
         aliases,
         ownerOrganizationId,
         managingOrganizationId,
-        genetId,
+        genetRecordId,
         foreignKeys,
         lifeStageHistory,
         measurementHistory,

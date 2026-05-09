@@ -373,12 +373,12 @@ class SearchService {
           score = 0.85;
           matchedField = 'alias';
         }
-        // Check genetId directly
-        else if ((organism.genetId ?? '').toLowerCase().contains(query)) {
+        // Check genetRecordId directly
+        else if ((organism.genetRecordId ?? '').toLowerCase().contains(query)) {
           score = 0.75;
-          matchedField = 'genetId';
+          matchedField = 'genetRecordId';
         }
-        // Check foreignKeys (genetId, clonalId, accessionNumber, provenanceId)
+        // Check foreignKeys (genetRecordId, clonalId, accessionNumber, provenanceId)
         else if (_matchesForeignKeys(organism, query)) {
           score = 0.7;
           matchedField = 'foreignKey';
@@ -518,7 +518,7 @@ class SearchService {
   }
 
   /// Check if organism's foreign keys match the query
-  /// Includes genetId, clonalId, accessionNumber, provenanceId references
+  /// Includes genetRecordId, clonalId, accessionNumber, provenanceId references
   bool _matchesForeignKeys(OrganismRecord organism, String query) {
     final foreignKeys = organism.foreignKeys;
     if (foreignKeys.isEmpty) return false;
@@ -527,7 +527,7 @@ class SearchService {
       final key = entry.key.toLowerCase();
       final ref = entry.value;
 
-      // Check key name (e.g., "genetId", "clonalId", "accessionNumber")
+      // Check key name (e.g., "genetRecordId", "clonalId", "accessionNumber")
       if (key.contains(query)) {
         return true;
       }

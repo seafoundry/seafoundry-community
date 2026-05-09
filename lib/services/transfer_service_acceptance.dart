@@ -430,7 +430,7 @@ extension _TransferServiceAcceptance on TransferService {
         internalPath:
             'organizations/${organization.id}/sites/$destinationSiteId/$eventId',
         slug: slug,
-        genetId: createdGenet.id,
+        genetRecordId: createdGenet.id,
         fromOrganizationId: transfer.fromOrganizationId,
         toOrganizationId: organization.id,
         status: TransferStatus.received.value,
@@ -503,7 +503,7 @@ extension _TransferServiceAcceptance on TransferService {
         urlPath: '${organismRecord.urlPath}/$slug',
         internalPath: '${organismRecord.internalPath}/$eventId',
         slug: slug,
-        genetId: createdGenet.id,
+        genetRecordId: createdGenet.id,
         fromOrganizationId: transfer.fromOrganizationId,
         toOrganizationId: organization.id,
         status: TransferStatus.received.value,
@@ -830,10 +830,10 @@ extension _TransferServiceAcceptance on TransferService {
       }
 
       final genet = await _provenanceRepository.getRecordForId(
-        transfer.genetId!,
+        transfer.genetRecordId!,
       );
       if (genet == null) {
-        throw TransferWorkflowException('Genet not found: ${transfer.genetId}');
+        throw TransferWorkflowException('Genet not found: ${transfer.genetRecordId}');
       }
       final selection = resolveProvenanceSelection(
         genet: genet,
@@ -996,13 +996,13 @@ extension _TransferServiceAcceptance on TransferService {
         groupId: hasGroup ? destinationGroupId : null,
       );
 
-      // Sync foreignKeys['genetId'] from top-level genetId for consistency
+      // Sync foreignKeys['genetRecordId'] from top-level genetRecordId for consistency
       final foreignKeys = Map<String, ForeignKeyReference>.from(
         organismRecord.foreignKeys,
       );
-      if (organismRecord.genetId != null) {
-        foreignKeys['genetId'] = ForeignKeyReference(
-          id: organismRecord.genetId!,
+      if (organismRecord.genetRecordId != null) {
+        foreignKeys['genetRecordId'] = ForeignKeyReference(
+          id: organismRecord.genetRecordId!,
           metadata: {'source': 'transfer_acceptance', 'linkedAt': nowIso},
         );
       }

@@ -67,8 +67,8 @@ class GeneticsFilterService {
           // Genet filter
           if (genetFilter != null &&
               genetFilter.isNotEmpty) {
-            final genetId = _stringFor(row, const ['genetId', 'genet_id']);
-            if (genetId != genetFilter) {
+            final genetRecordId = _stringFor(row, const ['genetRecordId', 'genet_id']);
+            if (genetRecordId != genetFilter) {
               return false;
             }
           }
@@ -165,7 +165,7 @@ class GeneticsFilterService {
   List<String> extractAvailableGenetIds(List<Map<String, dynamic>> rows) {
     final ids = <String>{};
     for (final row in rows) {
-      final id = _stringFor(row, const ['genetId', 'genet_id']);
+      final id = _stringFor(row, const ['genetRecordId', 'genet_id']);
       if (id.isNotEmpty) {
         ids.add(id);
       }

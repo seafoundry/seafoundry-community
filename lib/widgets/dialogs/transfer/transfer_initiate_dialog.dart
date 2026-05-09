@@ -37,7 +37,7 @@ import '../components/dialog_scroll_view.dart';
 /// Dialog for initiating a genet transfer to another organization
 class TransferInitiateDialog extends BaseAsyncDialog {
   final String genetName;
-  final String genetId;
+  final String genetRecordId;
   final String speciesId;
   final TransferEvent? originalEvent; // For edit mode
   final OrganismContext organismContext;
@@ -51,7 +51,7 @@ class TransferInitiateDialog extends BaseAsyncDialog {
   const TransferInitiateDialog({
     super.key,
     required this.genetName,
-    required this.genetId,
+    required this.genetRecordId,
     required this.speciesId,
     this.originalEvent,
     required this.organismContext,
@@ -125,7 +125,7 @@ class _TransferInitiateDialogState
   void initState() {
     super.initState();
     _isEditMode = widget.originalEvent != null;
-    _selectedGenetId = widget.genetId.trim();
+    _selectedGenetId = widget.genetRecordId.trim();
     _selectedGenetName = widget.genetName.trim();
     _selectionCubit = OrganismSelectionCubit();
     _quantityController = TextEditingController(
@@ -960,7 +960,7 @@ class _TransferInitiateDialogState
     setLoading(true);
     try {
       final transfer = await cubit.submitTransfer(
-        genetId: _selectedGenetId,
+        genetRecordId: _selectedGenetId,
         quantity: quantity,
         comment: _commentController.text.trim(),
         permitMetadata: _buildPermitMetadata(currentState),
@@ -1303,13 +1303,13 @@ class _TransferInitiateDialogState
   }
 
   bool _matchesGenet(OrganismRecord organism) {
-    final genetId = _selectedGenetId;
-    if (genetId.isEmpty) {
+    final genetRecordId = _selectedGenetId;
+    if (genetRecordId.isEmpty) {
       return !_allowsLocalIdSelection;
     }
 
     final resolved = GenetIdResolver.resolve(organism);
-    return resolved == genetId;
+    return resolved == genetRecordId;
   }
 
   EventPermitMetadata? _buildPermitMetadata(TransferInitiateState state) {

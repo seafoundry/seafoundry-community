@@ -145,11 +145,11 @@ mixin _OrganismRecordRepositoryQueries
 
   /// Query organism records by genet ID using server-side Firestore filtering.
   ///
-  /// Creates a separate Firestore subscription with server-side genetId filter.
-  Stream<List<OrganismRecord>> queryByGenet(String genetId) {
+  /// Creates a separate Firestore subscription with server-side genetRecordId filter.
+  Stream<List<OrganismRecord>> queryByGenet(String genetRecordId) {
     final query = collectionRef
         .where('organizationId', isEqualTo: organization.id)
-        .where('genetId', isEqualTo: genetId);
+        .where('genetRecordId', isEqualTo: genetRecordId);
 
     return query.snapshots().map((snapshot) {
       return snapshot.docs
@@ -303,7 +303,7 @@ mixin _OrganismRecordRepositoryQueries
   /// Get organisms by genet provenance ID (PID- format).
   ///
   /// Matches against Genet records with the provided provenanceId and returns
-  /// organisms whose top-level genetId references those genets.
+  /// organisms whose top-level genetRecordId references those genets.
   ///
   /// Rejects input that does not match PID format to prevent
   /// accidental comparison against Firestore document IDs or legacy IDs.
@@ -336,7 +336,7 @@ mixin _OrganismRecordRepositoryQueries
     final allRecords = await getAll();
     return allRecords
         .where((record) {
-          final recordGenetId = record.genetId;
+          final recordGenetId = record.genetRecordId;
           if (recordGenetId == null || recordGenetId.isEmpty) {
             return false;
           }

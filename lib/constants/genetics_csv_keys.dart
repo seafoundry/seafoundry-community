@@ -25,7 +25,7 @@ class GeneticsCsvKeys {
   /// Firestore document ID for a Genet record.
   /// This is always a Firestore auto-generated ID, never a lineage/provenance ID.
   static const List<String> genetDocIdKeys = [
-    'genetId',
+    'genetRecordId',
     'Genet ID',
   ];
 

@@ -322,7 +322,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'notes': row['notes'] ?? '',
       'lastEventAt': row['eventDate'] ?? '',
       // genetProvenanceId requires an explicit lineage ID column.
-      // Do NOT fall back to genetId — those are Firestore doc IDs,
+      // Do NOT fall back to genetRecordId — those are Firestore doc IDs,
       // not lineage identifiers. (Phase 2, Team Delta — 2D.3)
       'genetProvenanceId': row['genetProvenanceId'] ?? '',
       'owner': '',
@@ -465,7 +465,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'siteId': _string(row['siteId']) ?? '',
       'siteName': _string(row['siteName']) ?? '',
       // Use the actual provenanceId field for lineage. Do NOT fall back to
-      // genetId which is a Firestore doc ID. (Phase 2, Team Delta — 2D.3)
+      // genetRecordId which is a Firestore doc ID. (Phase 2, Team Delta — 2D.3)
       'provenanceId': _string(row['provenanceId']) ?? '',
       'provenanceKind': _resolvedProvenanceKind(row, fallback: 'genet'),
       'cohortId': '',

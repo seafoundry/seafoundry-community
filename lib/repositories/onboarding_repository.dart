@@ -679,7 +679,7 @@ class OnboardingRepository {
       provenanceType: provenanceType, // Provenance - Axis 2
       physicalForm: physicalForm, // Organism-aware default from registry
       foreignKeys: {
-        'genetId': ForeignKeyReference(
+        'genetRecordId': ForeignKeyReference(
           id: genet.id,
           metadata: {
             'localGenetId': genet.localGenetId,

@@ -276,9 +276,9 @@ class OutplantAllocationsCsvImporter {
               organismId: allocation.organismId,
               tagId: allocation.tagId,
               speciesId: organism?.speciesId ?? previous?.speciesId ?? '',
-              genetId: organism != null
+              genetRecordId: organism != null
                   ? GenetIdResolver.resolve(organism)
-                  : previous?.genetId,
+                  : previous?.genetRecordId,
               outplantTagId: allocation.outplantTagId?.isEmpty ?? true
                   ? null
                   : allocation.outplantTagId,

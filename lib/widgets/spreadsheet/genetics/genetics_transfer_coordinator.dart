@@ -121,7 +121,7 @@ class GeneticsTransferCoordinator {
     final confirmed = await TransferDialog.showInitiate(
       context,
       genetName: '',
-      genetId: '',
+      genetRecordId: '',
       speciesId: '',
       allowLocalIdSelection: true,
     );

@@ -107,8 +107,8 @@ abstract final class SummaryFilterMatcher {
     }
 
     if (!ignoreGenet && filterState.selectedGenetIds.isNotEmpty) {
-      final genetId = normalizeId(GenetIdResolver.resolve(organism));
-      if (genetId == null || !filterState.selectedGenetIds.contains(genetId)) {
+      final genetRecordId = normalizeId(GenetIdResolver.resolve(organism));
+      if (genetRecordId == null || !filterState.selectedGenetIds.contains(genetRecordId)) {
         return false;
       }
     }

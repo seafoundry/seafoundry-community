@@ -66,7 +66,7 @@ abstract class GraphNodeChildCard<T extends GraphNode> extends StatelessWidget {
               tagId: record.tagId,
               localGenetId: record.localGenetId,
               urlPath: record.urlPath,
-              genetId: record.genetId,
+              genetRecordId: record.genetRecordId,
               showUnderline: true,
             );
             tagId = record.tagId.isNotEmpty
@@ -419,21 +419,21 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
     );
   }
 
-  /// Get a short genet identifier from the genetId
-  /// Returns null if genetId is redundant with displayName (to avoid duplication)
+  /// Get a short genet identifier from the genetRecordId
+  /// Returns null if genetRecordId is redundant with displayName (to avoid duplication)
   String? get _genetLabel {
-    final genetId = node.organism.genetId;
-    if (genetId == null || genetId.isEmpty) return null;
+    final genetRecordId = node.organism.genetRecordId;
+    if (genetRecordId == null || genetRecordId.isEmpty) return null;
 
     // Extract a short label from genet ID (e.g., "demo_genet_acer_001" -> "ACER-001")
     String label;
-    final parts = genetId.split('_');
+    final parts = genetRecordId.split('_');
     if (parts.length >= 2) {
       label = parts.sublist(parts.length - 2).join('-').toUpperCase();
     } else {
-      label = genetId.length > 10
-          ? genetId.substring(genetId.length - 8).toUpperCase()
-          : genetId.toUpperCase();
+      label = genetRecordId.length > 10
+          ? genetRecordId.substring(genetRecordId.length - 8).toUpperCase()
+          : genetRecordId.toUpperCase();
     }
 
     // Don't show genet chip if it's redundant with the display name
@@ -506,7 +506,7 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
         final isLockedForTransfer = node.organism.isLockedForTransfer;
         final isPendingOutplant = node.organism.isPendingOutplant;
         final organism = node.organism;
-        final genetId = GenetIdResolver.resolve(organism);
+        final genetRecordId = GenetIdResolver.resolve(organism);
         final prefs = context.select(
           (RecordDisplayPreferencesCubit cubit) => cubit.state,
         );
@@ -548,7 +548,7 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
                           tagId: displayInfo.tagId,
                           localGenetId: displayInfo.localGenetId,
                           urlPath: organism.urlPath,
-                          genetId: genetId,
+                          genetRecordId: genetRecordId,
                           showUnderline: true,
                         ),
                       SizedBox(height: 4),

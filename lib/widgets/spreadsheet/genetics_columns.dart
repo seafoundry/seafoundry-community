@@ -83,12 +83,12 @@ class GeneticsColumnBuilders {
 
       Widget child;
       if (column.key == 'row_actions') {
-        final dynamic rawGenetId = row['genetId'];
-        final genetId = rawGenetId?.toString();
+        final dynamic rawGenetId = row['genetRecordId'];
+        final genetRecordId = rawGenetId?.toString();
         child = rowActionsBuilder != null
             ? rowActionsBuilder(context, row)
             : Tooltip(
-              message: genetId == null || genetId.isEmpty
+              message: genetRecordId == null || genetRecordId.isEmpty
                   ? 'Edit unavailable for this row'
                   : 'Unlock to edit genet details',
               child: IconButton(
@@ -96,8 +96,8 @@ class GeneticsColumnBuilders {
                 visualDensity: VisualDensity.compact,
                 onPressed:
                     (!isExample &&
-                        genetId != null &&
-                        genetId.isNotEmpty &&
+                        genetRecordId != null &&
+                        genetRecordId.isNotEmpty &&
                         onEdit != null)
                     ? () => onEdit(context, row)
                     : null,

@@ -307,7 +307,7 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
       context: context,
       builder: (context) => RejectTransferDialog(
         transfer: transfer,
-        genet: transfer.genetId != null ? _genetCache[transfer.genetId!] : null,
+        genet: transfer.genetRecordId != null ? _genetCache[transfer.genetRecordId!] : null,
         fromOrganization: transfer.fromOrganizationId != null
             ? _organizationCache[transfer.fromOrganizationId!]
             : null,
@@ -413,8 +413,8 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
               final organization = transfer.fromOrganizationId != null
                   ? _organizationCache[transfer.fromOrganizationId!]
                   : null;
-              final genet = transfer.genetId != null
-                  ? _genetCache[transfer.genetId!]
+              final genet = transfer.genetRecordId != null
+                  ? _genetCache[transfer.genetRecordId!]
                   : null;
 
               return PendingTransferCard(
@@ -476,8 +476,8 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
               final organization = transfer.toOrganizationId != null
                   ? _organizationCache[transfer.toOrganizationId!]
                   : null;
-              final genet = transfer.genetId != null
-                  ? _genetCache[transfer.genetId!]
+              final genet = transfer.genetRecordId != null
+                  ? _genetCache[transfer.genetRecordId!]
                   : null;
               final recipientName =
                   organization?.name ??
@@ -559,23 +559,23 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
   }
 
   Future<void> _ensureGenetCached(TransferEvent transfer) async {
-    final genetId = transfer.genetId;
-    if (genetId == null || _genetCache.containsKey(genetId)) {
+    final genetRecordId = transfer.genetRecordId;
+    if (genetRecordId == null || _genetCache.containsKey(genetRecordId)) {
       return;
     }
     try {
       // TransferService.getSourceGenet returns ProvenanceRecord?
       final genet = await _transferService!.getSourceGenet(transfer);
       if (mounted) {
-        _genetCache[genetId] = genet;
+        _genetCache[genetRecordId] = genet;
       }
     } catch (e, stackTrace) {
       LoggingService.instance.error(
-        'Failed to load genet $genetId for transfer ${transfer.id}',
+        'Failed to load genet $genetRecordId for transfer ${transfer.id}',
         e,
         stackTrace,
       );
-      _genetCache[genetId] = null;
+      _genetCache[genetRecordId] = null;
     }
   }
 
@@ -658,8 +658,8 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
             ? _organizationCache[transfer.toOrganizationId!]?.name
             : transfer.toOrganizationEmail) ??
         'Unknown Recipient';
-    final genet = transfer.genetId != null
-        ? _genetCache[transfer.genetId!]
+    final genet = transfer.genetRecordId != null
+        ? _genetCache[transfer.genetRecordId!]
         : null;
     final reason = await showDialog<String?>(
       context: context,
