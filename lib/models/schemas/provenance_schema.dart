@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/models.dart';
 
 /// Typed facade for provenance metadata stored on [ProvenanceRecord].

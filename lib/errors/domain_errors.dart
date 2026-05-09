@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 

@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Touch target size constants per UI/UX spec
 class TouchTargetSizes {

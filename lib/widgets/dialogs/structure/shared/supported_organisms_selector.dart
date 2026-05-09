@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';

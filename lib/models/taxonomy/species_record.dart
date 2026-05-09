@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/taxonomy/organism_classification.dart';

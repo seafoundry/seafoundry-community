@@ -1,4 +1,3 @@
-// @tier: community
 // Stub implementation for non-web platforms
 
 /// Sets the URL hash fragment (no-op on non-web platforms)

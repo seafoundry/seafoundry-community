@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/providers/brand_theme_provider.dart';
 

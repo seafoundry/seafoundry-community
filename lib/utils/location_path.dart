@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/model_type.dart';
 
 List<String> _splitLocationSegments(

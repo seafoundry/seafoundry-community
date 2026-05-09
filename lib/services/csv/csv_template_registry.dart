@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/constants/csv_schema.dart';
 
 /// Registry that exposes the canonical schema for each CSV template. Keeping

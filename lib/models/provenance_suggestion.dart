@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 
 /// The type/source context of a provenance alias suggestion.

@@ -1,4 +1,3 @@
-// @tier: community
 // Barrel export for theme module
 export 'app_colors.dart';
 export 'app_theme.dart';

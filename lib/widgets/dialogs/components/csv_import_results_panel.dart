@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/constants/csv_schema.dart';
 import 'package:seafoundry_app/models/models.dart';

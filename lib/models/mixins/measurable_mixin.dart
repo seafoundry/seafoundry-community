@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/inventory/size_spec.dart';

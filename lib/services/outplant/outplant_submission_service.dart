@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/site.dart';

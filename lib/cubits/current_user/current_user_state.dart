@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/user.dart';

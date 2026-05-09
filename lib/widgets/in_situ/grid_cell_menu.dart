@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/widgets/in_situ/grid_renderer.dart';
 

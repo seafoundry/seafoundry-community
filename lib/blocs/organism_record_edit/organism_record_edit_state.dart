@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/forms/inputs/genet_form_inputs.dart';
 import 'package:seafoundry_app/models/genet.dart';

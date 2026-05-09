@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/event_type.dart';
 
 /// Event types for inter-organization loans/transfers of inventory records.

@@ -1,4 +1,3 @@
-// @tier: community
 /// Centralized service for URL path operations in SeaFoundry.
 ///
 /// URL paths in SeaFoundry follow a hierarchical structure:

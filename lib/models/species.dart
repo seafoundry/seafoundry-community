@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:collection';
 
 import 'package:seafoundry_app/constants/constants.dart';

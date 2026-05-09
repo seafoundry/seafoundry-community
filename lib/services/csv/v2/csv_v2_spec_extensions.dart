@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:collection';
 
 import 'package:seafoundry_app/models/types/organism_kind.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 
 /// Lightweight view of organism-specific defaults used by repositories,

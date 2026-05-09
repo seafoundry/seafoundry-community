@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
 import 'package:seafoundry_app/blocs/record_form/record_form_bloc.dart';

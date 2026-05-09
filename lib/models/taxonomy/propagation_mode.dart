@@ -1,4 +1,3 @@
-// @tier: community
 /// Describes how a species is commonly propagated so feature toggles can be
 /// applied by organism families.
 ///

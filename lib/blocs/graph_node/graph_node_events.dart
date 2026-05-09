@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/records/graph_node_record.dart';

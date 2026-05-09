@@ -1,4 +1,3 @@
-// @tier: community
 
 // ---------------------------------------------------------------------------
 // Schema constants: sentinel values and field defaults

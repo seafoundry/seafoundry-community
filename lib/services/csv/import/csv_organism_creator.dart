@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/errors/domain_errors.dart';
 import 'package:seafoundry_app/models/group.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:collection';
 
 import 'package:equatable/equatable.dart';

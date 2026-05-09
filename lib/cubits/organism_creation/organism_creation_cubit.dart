@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/cubits/organism_creation/organism_creation_state.dart';

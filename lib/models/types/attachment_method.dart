@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/record_type.dart';
 
 /// Builtin attachment methods that define how organisms are attached during outplanting.

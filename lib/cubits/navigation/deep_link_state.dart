@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 
 enum DeepLinkStatus { idle, handling, navigated, failed }

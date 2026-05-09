@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 
 /// Point-in-time snapshot of organization data for transfer manifests.

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/forms/inputs/genet_form_inputs.dart';
 import 'package:seafoundry_app/mixins/provenance_search_mixin.dart';

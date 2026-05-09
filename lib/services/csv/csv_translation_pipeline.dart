@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/constants/csv_schema.dart';
 import 'package:seafoundry_app/services/csv/adapters/csv_translation_adapter.dart';

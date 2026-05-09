@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 enum SpreadsheetColumnType { text, number, dropdown, date, boolean }

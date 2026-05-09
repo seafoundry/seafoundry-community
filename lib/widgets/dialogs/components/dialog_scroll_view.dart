@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// Dialog-friendly scroll view that preserves the user's scroll position

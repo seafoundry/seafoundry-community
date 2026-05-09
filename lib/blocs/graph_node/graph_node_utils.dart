@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/blocs/graph_node/group_node.dart';
 import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';

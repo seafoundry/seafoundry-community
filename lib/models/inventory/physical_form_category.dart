@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Category of physical form that determines how size is interpreted.
 ///

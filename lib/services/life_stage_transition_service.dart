@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/validation/validation_result.dart';

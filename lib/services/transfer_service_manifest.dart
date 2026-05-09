@@ -1,4 +1,3 @@
-// @tier: community
 part of 'transfer_service.dart';
 
 /// Manifest building and handling methods for [TransferService].

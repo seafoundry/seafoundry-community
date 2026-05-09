@@ -1,4 +1,3 @@
-// @tier: community
 /// Site dialog step widgets for the structure dialog.
 ///
 /// These widgets are extracted from structure_dialog.dart to reduce

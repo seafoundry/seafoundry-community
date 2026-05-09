@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:formz/formz.dart';
 import 'package:seafoundry_app/models/alias.dart';

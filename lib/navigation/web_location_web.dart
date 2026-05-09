@@ -1,4 +1,3 @@
-// @tier: community
 // Web-specific implementation for browser location manipulation
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;

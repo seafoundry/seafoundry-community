@@ -1,4 +1,3 @@
-// @tier: community
 part of 'inventory_spreadsheet_cubit.dart';
 
 /// State for the inventory spreadsheet view.

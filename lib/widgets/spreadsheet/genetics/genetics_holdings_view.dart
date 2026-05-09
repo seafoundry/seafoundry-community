@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/genetics_spreadsheet/genetics_spreadsheet_cubit.dart';

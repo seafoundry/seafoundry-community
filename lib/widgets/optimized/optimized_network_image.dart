@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// Optimized network image with caching-friendly hints, placeholders, fade-in,

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/services/csv/adapters/csv_translation_adapter.dart';
 
 /// Default adapter that simply clones the provided rows. Registered last so

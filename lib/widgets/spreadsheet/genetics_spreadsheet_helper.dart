@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/widgets.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/services/clonal_id_display_service.dart';

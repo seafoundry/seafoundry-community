@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 
 /// Canonical metadata for holdings that need to survive CSV v2 round-trips.

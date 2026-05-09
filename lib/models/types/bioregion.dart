@@ -1,4 +1,3 @@
-// @tier: community
 /// Geographic bioregions that drive species and organism availability.
 ///
 /// Organizations select one or more bioregions during onboarding; the union

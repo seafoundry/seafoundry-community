@@ -1,4 +1,3 @@
-// @tier: community
 part of 'transfer_service.dart';
 
 /// Transfer acceptance, rejection, and cancellation methods for [TransferService].

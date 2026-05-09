@@ -1,4 +1,3 @@
-// @tier: community
 part of 'onboarding_cubit.dart';
 
 sealed class OnboardingState extends Equatable {

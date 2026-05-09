@@ -1,4 +1,3 @@
-// @tier: community
 class CsvParsedData {
   const CsvParsedData({
     required this.metadata,

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/widgets/cards.dart';

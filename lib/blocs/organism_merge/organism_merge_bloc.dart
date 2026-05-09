@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/blocs/organism_merge/organism_merge_state.dart';

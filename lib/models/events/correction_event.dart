@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';

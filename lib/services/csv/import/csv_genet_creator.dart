@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/alias.dart';
 import 'package:seafoundry_app/models/genet.dart';
 import 'package:seafoundry_app/models/species.dart';

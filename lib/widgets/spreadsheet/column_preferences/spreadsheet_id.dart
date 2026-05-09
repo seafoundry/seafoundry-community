@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Identifies each spreadsheet type for column preference persistence.
 enum SpreadsheetId {

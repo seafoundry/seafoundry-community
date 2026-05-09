@@ -1,4 +1,3 @@
-// @tier: community
 part of 'universal_csv_adapter_v2.dart';
 
 /// Geometry parsing methods for [UniversalCsvAdapterV2].

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Cubit that ignores emit calls after close to avoid StateError from async work.

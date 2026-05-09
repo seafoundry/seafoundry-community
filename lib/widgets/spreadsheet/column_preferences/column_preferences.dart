@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 
 /// User's column preferences for a single spreadsheet type.

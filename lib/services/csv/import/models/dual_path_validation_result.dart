@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Result of dual-path migration validation
 class DualPathValidationResult {

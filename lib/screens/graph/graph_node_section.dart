@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';

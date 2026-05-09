@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:convert';
 
 import 'package:seafoundry_app/services/csv/downloaders/csv_download_interface.dart';

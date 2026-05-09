@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// A reusable widget for displaying empty states in the application.

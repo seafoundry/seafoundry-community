@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/events/event_snapshot_parser.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';

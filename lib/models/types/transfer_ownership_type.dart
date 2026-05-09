@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Transfer ownership type - determines the ownership model after transfer
 enum TransferOwnershipType {

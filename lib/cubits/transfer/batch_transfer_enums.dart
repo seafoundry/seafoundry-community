@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Mode for batch transfer: multiple genets to one org, or one genet to multiple orgs.
 enum BatchTransferMode {

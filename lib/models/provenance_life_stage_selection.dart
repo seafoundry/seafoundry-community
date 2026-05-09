@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/genet.dart';
 import 'package:seafoundry_app/models/taxonomy/provenance_record.dart';
 import 'package:seafoundry_app/models/transfer_manifest.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 /// Organism kind enum. Simplified to coral-only for the community edition.
 enum OrganismKind {
   coral,

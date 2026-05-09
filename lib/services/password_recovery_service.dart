@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/repositories/auth/auth_repository.dart';
 
 class PasswordRecoveryCooldownException implements Exception {

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/widgets/onboarding/five_axis_education_widget.dart';
 

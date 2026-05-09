@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// Centralized color palette for the app

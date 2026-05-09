@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/utils/location_path.dart';
 
 /// Centralized formatter for location labels across sheets and interfaces.

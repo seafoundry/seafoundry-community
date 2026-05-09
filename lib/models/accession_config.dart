@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 
 /// Configuration for auto-generating accession numbers within an organization.

@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:async';
 
 /// Generic stream caching helper that manages broadcast StreamControllers

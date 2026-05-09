@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/in_situ_grid/in_situ_grid_state.dart';
 import 'package:seafoundry_app/widgets/in_situ/grid_renderer.dart';

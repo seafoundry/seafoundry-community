@@ -1,4 +1,3 @@
-// @tier: community
 export 'alias.dart';
 export 'schemas/provenance_schema.dart';
 export 'cohort.dart';

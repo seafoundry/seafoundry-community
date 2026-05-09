@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/provenance_kind.dart';
 

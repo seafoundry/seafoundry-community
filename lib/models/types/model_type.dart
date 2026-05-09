@@ -1,4 +1,3 @@
-// @tier: community
 enum ModelType {
   user(collectionPath: 'users'),
   organization(collectionPath: 'organizations'),

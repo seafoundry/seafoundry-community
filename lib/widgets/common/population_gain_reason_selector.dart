@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/types/population_gain_reason.dart';
 import 'package:seafoundry_app/widgets/common/visual_selector.dart';

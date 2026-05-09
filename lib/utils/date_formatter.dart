@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// UI-focused date/time formatting for widgets.

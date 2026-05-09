@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Canonical tier enum for the SeaFoundry community platform.
 ///

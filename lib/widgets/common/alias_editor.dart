@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/forms/inputs/genet_form_inputs.dart';
 import 'package:seafoundry_app/services/alias_uniqueness_service.dart';

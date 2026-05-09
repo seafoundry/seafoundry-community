@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/errors/domain_errors.dart';
 
 /// Contract for crash and bug reporting services.

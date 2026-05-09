@@ -1,4 +1,3 @@
-// @tier: community
 // NOTE: This file is the community entry point template - patched during sync
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';

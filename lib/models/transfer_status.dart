@@ -1,4 +1,3 @@
-// @tier: community
 enum TransferStatus { draft, pending, shipped, received, rejected, cancelled }
 
 extension TransferStatusX on TransferStatus {

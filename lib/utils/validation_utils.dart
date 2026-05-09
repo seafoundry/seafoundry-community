@@ -1,4 +1,3 @@
-// @tier: community
 /// Shared validation utilities for the application.
 ///
 /// Centralizes common validation logic to maintain DRY principles.

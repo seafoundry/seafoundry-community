@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/provenance_suggestion.dart';
 import 'package:seafoundry_app/widgets/inputs/provenance_suggestion_tile.dart';

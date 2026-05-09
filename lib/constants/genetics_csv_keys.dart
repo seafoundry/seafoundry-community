@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Shared CSV column key aliases for the genetics import/export pipeline.
 /// Both the GeneticsCsvTranslationAdapter and GeneticsCsvImporter reference

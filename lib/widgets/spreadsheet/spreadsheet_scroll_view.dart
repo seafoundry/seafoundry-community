@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// Provides a consistent scaffold for spreadsheet views with scrollbars and headers.

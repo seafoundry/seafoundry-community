@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/blocs/organism_split/organism_split_state.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_events.dart';

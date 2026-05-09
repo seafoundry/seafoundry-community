@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 extension StringFieldStartsWith on Query {

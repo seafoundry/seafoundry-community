@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:shake_flutter/enums/log_level.dart';
 import 'package:shake_flutter/enums/shake_screen.dart';
 import 'package:shake_flutter/shake_flutter.dart';

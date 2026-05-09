@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:meta/meta.dart';
 
 /// Data representation for a metric rendered inside a summary card.

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/navigation_view_mode/navigation_view_mode_state.dart';
 

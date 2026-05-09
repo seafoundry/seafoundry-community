@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/inventory/physical_form_category.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';

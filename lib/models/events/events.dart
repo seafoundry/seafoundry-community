@@ -1,4 +1,3 @@
-// @tier: community
 export 'activity_event.dart';
 export 'correction_event.dart';
 export 'create_event.dart';

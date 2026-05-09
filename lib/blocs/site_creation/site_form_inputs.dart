@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/blocs/record_form/record_form_inputs.dart';
 import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';

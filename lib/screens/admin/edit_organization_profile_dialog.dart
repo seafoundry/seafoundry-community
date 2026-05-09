@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';

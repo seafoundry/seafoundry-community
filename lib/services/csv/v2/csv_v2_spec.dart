@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Canonical metadata for the SeaFoundry Universal CSV v2 template.
 ///
