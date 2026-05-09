@@ -4,7 +4,7 @@ import 'package:seafoundry_app/repositories/inventory/provenance_repository.dart
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/location_display_service.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/genetics_spreadsheet_helper.dart';
+import 'package:seafoundry_app/services/spreadsheet/genetics_spreadsheet_helper.dart';
 
 class GeneticsSpreadsheetDataLoader {
   const GeneticsSpreadsheetDataLoader({

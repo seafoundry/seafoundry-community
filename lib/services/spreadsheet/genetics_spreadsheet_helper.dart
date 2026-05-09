@@ -5,7 +5,7 @@ import 'package:seafoundry_app/services/location_display_service.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/spreadsheet_models.dart';
 
-import 'genetics_columns.dart';
+import 'package:seafoundry_app/widgets/spreadsheet/genetics_columns.dart';
 
 class GeneticsSpreadsheetHelper {
   static void populateSpeciesLookup(

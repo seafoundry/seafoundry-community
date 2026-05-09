@@ -15,9 +15,9 @@ import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/repositories/inventory/provenance_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/genetics/genetics_data_loader.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/genetics/genetics_filter_service.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/genetics_spreadsheet_helper.dart';
+import 'package:seafoundry_app/services/spreadsheet/genetics_data_loader.dart';
+import 'package:seafoundry_app/services/spreadsheet/genetics_filter_service.dart';
+import 'package:seafoundry_app/services/spreadsheet/genetics_spreadsheet_helper.dart';
 
 part 'genetics_spreadsheet_state.dart';
 
