@@ -245,6 +245,62 @@ class HoldingRecord extends InventoryRecord
     return payload;
   }
 
+  /// Builds a HoldingRecord whose denormalized display fields are derived
+  /// from [organism]. Use when constructing a holding from a freshly-built
+  /// OrganismRecord; this avoids redundant per-field plumbing at call sites.
+  /// Holding-specific fields (provenanceId, cohortId, siteId, groupId,
+  /// structureId, foreignKeys, attributes, metadata) and infrastructure
+  /// fields are provided separately.
+  factory HoldingRecord.fromOrganismRecord(
+    OrganismRecord organism, {
+    required String id,
+    String? provenanceId,
+    String? cohortId,
+    String? siteId,
+    String? groupId,
+    String? structureId,
+    Map<String, ForeignKeyReference>? foreignKeys,
+    HoldingAttributes? attributes,
+    Map<String, dynamic> metadata = const <String, dynamic>{},
+    String? organismRecordId,
+    String? createdAt,
+    String? createdById,
+    String? updatedAt,
+    String? updatedById,
+    String? organizationId,
+    String? urlPath,
+    String? internalPath,
+    String? slug,
+  }) {
+    return HoldingRecord(
+      id: id,
+      tagId: organism.tagId,
+      organismKind: organism.organismKind,
+      lifeStage: organism.lifeStage.stage,
+      measurement: organism.measurement,
+      provenanceId: provenanceId,
+      cohortId: cohortId,
+      siteId: siteId,
+      groupId: groupId,
+      structureId: structureId,
+      ownerOrganizationId: organism.ownerOrganizationId,
+      managingOrganizationId: organism.managingOrganizationId,
+      foreignKeys: foreignKeys,
+      attributes: attributes,
+      metadata: metadata,
+      organismRecord: organism,
+      organismRecordId: organismRecordId ?? organism.id,
+      createdAt: createdAt ?? organism.createdAt,
+      createdById: createdById ?? organism.createdById,
+      updatedAt: updatedAt ?? organism.updatedAt,
+      updatedById: updatedById ?? organism.updatedById,
+      organizationId: organizationId ?? organism.organizationId,
+      urlPath: urlPath,
+      internalPath: internalPath,
+      slug: slug,
+    );
+  }
+
   factory HoldingRecord.fromJson(Map<String, dynamic> json) {
     final organismKind = OrganismKind.values.firstWhere(
       (kind) => kind.name == json['organismKind'],
