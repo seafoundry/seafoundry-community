@@ -596,11 +596,11 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
 
   /// Changes the required record name (individual specimen identifier).
   /// This is separate from localId which identifies the genet.
-  void recordNameChanged(String? recordName) {
-    final normalized = (recordName == null || recordName.trim().isEmpty)
+  void recordNameChanged(String? tagId) {
+    final normalized = (tagId == null || tagId.trim().isEmpty)
         ? null
-        : recordName.trim();
-    emit(state.copyWith(recordName: normalized, error: null));
+        : tagId.trim();
+    emit(state.copyWith(tagId: normalized, error: null));
   }
 
   /// Changes the optional owner organization ID.
@@ -1070,8 +1070,8 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
       // This is the genet's name (e.g., "ACER-001"), used for the genet record.
       final genetLocalId = state.effectiveLocalId;
 
-      final recordName = (state.recordName?.trim().isNotEmpty ?? false)
-          ? state.recordName!.trim()
+      final tagId = (state.tagId?.trim().isNotEmpty ?? false)
+          ? state.tagId!.trim()
           : (genetLocalId ?? 'Unknown');
 
       final resolvedLifeStage = state.lifeStage ?? LifeStage.unknown;
@@ -1091,7 +1091,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
         createdById: createdById,
         lifeStage: LifeStageSpec(stage: resolvedLifeStage),
         measurement: state.measurement,
-        recordName: recordName,
+        tagId: tagId,
         speciesId: state.species?.id,
         // Store the genet/local ID as the organism's primary display identifier
         localId: genetLocalId,

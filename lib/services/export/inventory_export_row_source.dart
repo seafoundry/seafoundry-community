@@ -152,12 +152,12 @@ class InventoryExportRowSource {
     Group? group,
     String provenanceId,
   ) {
-    final recordName = organismRecord.recordName.trim();
+    final tagId = organismRecord.tagId.trim();
     return {
       'id': organismRecord.id,
       'provenanceId': provenanceId,
       'localId': organismRecord.localId ?? '',
-      'recordName': recordName,
+      'tagId': tagId,
       'organismKind': organismRecord.organismKind.name,
       'speciesId': organismRecord.speciesId,
       'siteId': organismRecord.siteId,

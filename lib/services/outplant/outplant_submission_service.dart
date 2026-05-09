@@ -120,13 +120,13 @@ class OutplantSubmissionService {
         allocationTags.add(item.tag!);
       }
 
-      final rawName = item.recordName?.trim();
+      final rawName = item.tagId?.trim();
       final allocationName =
           rawName != null && rawName.isNotEmpty ? rawName : item.organismId;
       allocations.add(
         OutplantAllocation(
           organismId: item.organismId,
-          recordName: allocationName,
+          tagId: allocationName,
           speciesId: item.speciesId ?? '',
           genetId: item.genetId,
           outplantTagId: item.tag,
@@ -385,7 +385,7 @@ class OutplantSelectedOrganism extends Equatable {
     this.groupName,
     this.groupPath,
     this.currentQuantity,
-    this.recordName,
+    this.tagId,
     this.speciesId,
     this.genetId,
     this.sourcePath,
@@ -403,7 +403,7 @@ class OutplantSelectedOrganism extends Equatable {
   final int? currentQuantity;
 
   /// Display name for the organism
-  final String? recordName;
+  final String? tagId;
 
   /// Species taxonomy ID
   final String? speciesId;
@@ -426,7 +426,7 @@ class OutplantSelectedOrganism extends Equatable {
     groupName,
     groupPath,
     currentQuantity,
-    recordName,
+    tagId,
     speciesId,
     genetId,
     sourcePath,

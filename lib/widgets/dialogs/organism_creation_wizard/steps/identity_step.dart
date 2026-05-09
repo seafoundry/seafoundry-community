@@ -91,7 +91,7 @@ class IdentityStep extends StatelessWidget {
           _LocalIdSelector(state: state),
           const SizedBox(height: 16),
           TextFormField(
-            initialValue: state.recordName,
+            initialValue: state.tagId,
             decoration: InputDecoration(
               labelText: 'Record Name',
               hintText: state.effectiveLocalId ?? 'e.g., Specimen-A',

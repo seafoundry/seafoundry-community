@@ -91,7 +91,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'holdingKind': holdingKind,
       'provenanceId': provenanceId,
       'localId': localId ?? '',
-      'recordName': row['recordName'] ?? '',
+      'tagId': row['tagId'] ?? '',
       'organismKind': row['organismKind'] ?? '',
       'speciesScientific': row['speciesScientific'] ?? '',
       'speciesCode': row['speciesCode'] ?? '',
@@ -309,7 +309,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'provenanceId': provenanceId,
       if (organismId.isNotEmpty) 'organismId': organismId,
       'localId': row['localId'] ?? '',
-      'recordName': row['recordName'] ?? '',
+      'tagId': row['tagId'] ?? '',
       'speciesId': speciesId,
       'physicalFormId': physicalFormId,
       'physicalForm': row['physicalForm'] ?? '',
@@ -428,7 +428,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
         _string(row['lifeStageName']);
     final resolvedLifeStage = providedLifeStage ?? LifeStage.unknown.name;
     final localId = _string(row['localId']);
-    final recordName = _string(row['recordName']);
+    final tagId = _string(row['tagId']);
 
     final measurement = _ExportMeasurement.fromRow(row);
     final eventDate = _resolveEventDate(row);
@@ -440,7 +440,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'speciesScientific': '${species.genus} ${species.species}',
       'speciesCode': species.code,
       'localId': localId ?? '',
-      'recordName': recordName ?? '',
+      'tagId': tagId ?? '',
       'lifeStage': resolvedLifeStage,
       'lifeStageId': LifeStageX.tryParse(resolvedLifeStage)?.id ?? '',
       'lifeStageSubtype': _string(row['lifeStageSubtype']) ?? '',
@@ -565,14 +565,14 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
     final physicalFormId = _string(row['physicalFormId']) ?? '';
     final provenanceTypeValue = _string(row['provenanceType']) ?? '';
     final localId = _string(row['localId']);
-    final recordName = _string(row['recordName']);
+    final tagId = _string(row['tagId']);
 
     final translation = <String, String>{
       'organismKind': organismKind,
       'speciesScientific': speciesScientific,
       'speciesCode': speciesCode,
       'localId': localId ?? '',
-      'recordName': recordName ?? '',
+      'tagId': tagId ?? '',
       'lifeStage': lifeStageValue,
       'lifeStageId': lifeStageValue,
       'lifeStageSubtype': _string(row['lifeStageSubtype']) ?? '',

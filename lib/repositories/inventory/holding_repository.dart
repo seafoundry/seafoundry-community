@@ -325,7 +325,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
   Map<String, dynamic> _eventMetadataForHolding(T holding) {
     return <String, dynamic>{
       'holdingKind': holdingKind,
-      'recordName': holding.recordName,
+      'tagId': holding.tagId,
       'siteId': holding.siteId,
       'groupId': holding.groupId,
       'structureId': holding.structureId,
@@ -357,7 +357,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
       internalPath: _organismRecordInternalPath(record.id),
       slug: _organismRecordSlug(record.id),
       metadata: _organismRecordMetadata(record),
-      displayName: record.recordName,
+      displayName: record.tagId,
       source: OrganismRecordSource.holding,
       sourceKind: holdingKind,
       organismRecord: record.organismRecord,

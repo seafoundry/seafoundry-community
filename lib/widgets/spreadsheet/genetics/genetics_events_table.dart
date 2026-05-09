@@ -76,7 +76,7 @@ const Map<String, String> _genetFieldLabels = {
 
 const Map<String, String> _coralFieldLabels = {
   'name': 'Record Name',
-  'recordName': 'Record Name',
+  'tagId': 'Record Name',
   'quantity': 'Quantity',
   'physicalForm.formId': 'Physical Form',
   'genetId': 'Genet ID',
@@ -909,7 +909,7 @@ class _GeneticsEventRow {
       } else if (snapshot is OrganismRecord) {
         recordDisplay = _asNonEmptyString(snapshot.name) ?? event.recordId;
         recordLink = OrganismReferenceLinks(
-          recordName: snapshot.recordName,
+          tagId: snapshot.tagId,
           localId: snapshot.localId,
           urlPath: snapshot.urlPath,
           genetId: snapshot.genetId,
@@ -969,13 +969,13 @@ class _GeneticsEventRow {
         recordDisplay = organism != null
             ? formatOrganismReferenceLabel(
                 localId: organism.localId,
-                recordName: organism.recordName,
+                tagId: organism.tagId,
                 fallback: organism.name,
               )
             : event.recordId;
         if (organism != null) {
           recordLink = OrganismReferenceLinks(
-            recordName: organism.recordName,
+            tagId: organism.tagId,
             localId: organism.localId,
             urlPath: organism.urlPath,
             genetId: organism.genetId,

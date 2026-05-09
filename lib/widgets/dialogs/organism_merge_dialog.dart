@@ -173,7 +173,7 @@ class OrganismMergeDialog extends StatelessWidget {
           if (merged != null) {
             showSafeDialogSnackBar(
               context,
-              'Merged ${state.absorbedOrganisms.length + 1} records into ${merged.recordName}',
+              'Merged ${state.absorbedOrganisms.length + 1} records into ${merged.tagId}',
               isSuccess: true,
             );
           }
@@ -323,7 +323,7 @@ class _SelectionStep extends StatelessWidget {
                       ),
                       title: Row(
                         children: [
-                          Expanded(child: Text(organism.recordName)),
+                          Expanded(child: Text(organism.tagId)),
                           if (isTarget)
                             Chip(
                               label: const Text('Target'),
@@ -397,7 +397,7 @@ class _DetailsStepState extends State<_DetailsStep> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(
-      text: widget.state.mergedRecordName ?? widget.state.targetOrganism?.recordName,
+      text: widget.state.mergedRecordName ?? widget.state.targetOrganism?.tagId,
     );
     _notesController = TextEditingController(
       text: widget.state.mergeNotes,
@@ -484,7 +484,7 @@ class _MergePreviewCard extends StatelessWidget {
                   children: [
                     Icon(Icons.add, size: 16, color: theme.colorScheme.outline),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(o.recordName)),
+                    Expanded(child: Text(o.tagId)),
                     Text('${o.measurement.value.toStringAsFixed(0)} $unit'),
                   ],
                 ),
@@ -501,7 +501,7 @@ class _MergePreviewCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    state.mergedRecordName ?? targetOrganism.recordName,
+                    state.mergedRecordName ?? targetOrganism.tagId,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -547,7 +547,7 @@ class _ReviewStep extends StatelessWidget {
               leading: Icon(Icons.star, color: theme.colorScheme.primary),
               title: const Text('Target Record'),
               subtitle: Text(
-                state.mergedRecordName ?? targetOrganism.recordName,
+                state.mergedRecordName ?? targetOrganism.tagId,
               ),
               trailing: Text(
                 '${targetOrganism.measurement.value.toStringAsFixed(0)} $unit',
@@ -566,7 +566,7 @@ class _ReviewStep extends StatelessWidget {
                   Icons.remove_circle_outline,
                   color: theme.colorScheme.error,
                 ),
-                title: Text(organism.recordName),
+                title: Text(organism.tagId),
                 subtitle: Text(
                   '${organism.measurement.value.toStringAsFixed(0)} $unit • '
                   'Will be archived',

@@ -148,7 +148,7 @@ class CsvSchemas {
     'organismKind',
     'speciesCode',
     'localId',
-    'recordName',
+    'tagId',
     'provenanceId',
     'lifeStage',
     'quantityValue',
@@ -190,7 +190,7 @@ class CsvSchemas {
     'eventId',
     'allocationIndex',
     'organismId',
-    'recordName',
+    'tagId',
     'quantity',
     'allocationVolumeCm3',
     'allocationTissueAreaCm2',
@@ -212,7 +212,7 @@ class CsvSchemas {
     // Allocation-level (unique per row)
     'structureName', // Optional, substructure
     'localId', // Required, links to inventory
-    'recordName', // Optional, display name
+    'tagId', // Optional, display name
     'quantity', // Required, positive integer
     'outplantTagId', // Optional
   ];

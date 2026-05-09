@@ -40,7 +40,7 @@ class OrganismRecord extends InventoryRecord
     required super.internalPath,
     required super.slug,
     super.metadata,
-    required this.recordName,
+    required this.tagId,
     required this.organismKind,
     required this.lifeStage,
     required this.measurement,
@@ -93,7 +93,7 @@ class OrganismRecord extends InventoryRecord
     super.internalPath,
     super.slug,
     super.metadata,
-    String? recordName,
+    String? tagId,
     OrganismKind? organismKind,
     LifeStageSpec? lifeStage,
     PopulationMeasurement? measurement,
@@ -120,7 +120,7 @@ class OrganismRecord extends InventoryRecord
            organismKind ??
            OrganismKindX.tryParse(json?['organismKind']?.toString()) ??
            OrganismKind.coral,
-       recordName = recordName ?? _readRecordName(json) ?? Missing.string,
+       tagId = tagId ?? _readRecordName(json) ?? Missing.string,
        lifeStage = lifeStage ?? _parseLifeStage(json ?? {}),
        measurement = measurement ?? _parseMeasurement(json?['measurement']),
        speciesId = speciesId ?? json?['speciesId'],
@@ -177,7 +177,7 @@ class OrganismRecord extends InventoryRecord
     : organismKind =
           OrganismKindX.tryParse(json['organismKind']?.toString()) ??
           OrganismKind.coral,
-      recordName = _readRecordName(json) ?? Missing.string,
+      tagId = _readRecordName(json) ?? Missing.string,
       lifeStage = _parseLifeStage(json),
       measurement = _parseMeasurement(json['measurement']),
       speciesId = _asString(json['speciesId']),
@@ -217,7 +217,7 @@ class OrganismRecord extends InventoryRecord
     required String createdById,
     required LifeStageSpec lifeStage,
     required PopulationMeasurement measurement,
-    required String recordName,
+    required String tagId,
     String? id,
     String? speciesId,
     String? localId,
@@ -249,7 +249,7 @@ class OrganismRecord extends InventoryRecord
       organismKind: organismKind,
       lifeStage: lifeStage,
       measurement: measurement,
-      recordName: recordName,
+      tagId: tagId,
       speciesId: speciesId,
       localId: localId,
       siteId: siteId,
@@ -274,10 +274,10 @@ class OrganismRecord extends InventoryRecord
   @override
   ModelType get modelType => ModelType.organismRecord;
 
-  /// Name derived from recordName/localId for GraphNodeRecord compatibility.
+  /// Name derived from tagId/localId for GraphNodeRecord compatibility.
   @override
   String get name {
-    final recordNameValue = recordName.trim();
+    final recordNameValue = tagId.trim();
     if (recordNameValue.isNotEmpty && recordNameValue != Missing.string) {
       return recordNameValue;
     }
@@ -302,9 +302,9 @@ class OrganismRecord extends InventoryRecord
   /// an optional numeric suffix for uniqueness.
   ///
   /// For the numeric identifier, reference [localId] directly rather than parsing
-  /// it from recordName. Users can override recordName with any unique value
+  /// it from tagId. Users can override tagId with any unique value
   /// within their organization.
-  final String recordName;
+  final String tagId;
 
   final OrganismKind organismKind;
 
@@ -313,7 +313,7 @@ class OrganismRecord extends InventoryRecord
 
   /// Required local ID for the organism's genet/lineage.
   /// This is the primary identifier used in UI and CSV exports.
-  /// Pair with recordName for human-friendly record labels.
+  /// Pair with tagId for human-friendly record labels.
   final String? localId;
 
   /// Site ID (for location tracking)
@@ -448,7 +448,7 @@ class OrganismRecord extends InventoryRecord
     String? internalPath,
     String? slug,
     Map<String, dynamic>? metadata,
-    String? recordName,
+    String? tagId,
     OrganismKind? organismKind,
     String? speciesId,
     String? localId,
@@ -483,7 +483,7 @@ class OrganismRecord extends InventoryRecord
       internalPath: internalPath ?? this.internalPath,
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
-      recordName: recordName ?? this.recordName,
+      tagId: tagId ?? this.tagId,
       organismKind: organismKind ?? this.organismKind,
       speciesId: speciesId ?? this.speciesId,
       localId: localId ?? this.localId,
@@ -515,7 +515,7 @@ class OrganismRecord extends InventoryRecord
   Map<String, dynamic> toJson() {
     final payload = <String, dynamic>{
       'organismKind': organismKind.name,
-      'recordName': recordName,
+      'tagId': tagId,
       'lifeStage': lifeStage.toJson(),
       'measurement': measurement.toJson(),
     };
@@ -650,7 +650,7 @@ class OrganismRecord extends InventoryRecord
     final resolvedAliases =
         aliases ?? _parseAliases(normalizedMetadata['aliases']);
     final resolvedLocalId = read(['localId', 'local_id']);
-    final resolvedRecordName = read(['recordName', 'record_name']);
+    final resolvedRecordName = read(['tagId']);
     final resolvedForeignKeys =
         foreignKeys ?? _parseForeignKeys(normalizedMetadata['foreignKeys']);
     final resolvedLifeStageHistory = _parseLifeStageHistory(
@@ -670,7 +670,7 @@ class OrganismRecord extends InventoryRecord
     // Use .partial() constructor since we don't have full InventoryRecord fields
     return OrganismRecord.partial(
       organismKind: organismKind,
-      recordName: resolvedRecordName ?? Missing.string,
+      tagId: resolvedRecordName ?? Missing.string,
       speciesId: resolvedSpeciesId,
       localId: resolvedLocalId,
       provenanceType: resolvedProvenanceType,
@@ -728,9 +728,8 @@ class OrganismRecord extends InventoryRecord
       final text = value.toString().trim();
       return text.isEmpty ? null : text;
     }
-    final direct = read(json['recordName']) ?? read(json['record_name']);
+    final direct = read(json['tagId']);
     if (direct != null) return direct;
-    // Fallback: use localId as recordName for backward compatibility
     return _readLocalId(json);
   }
 
@@ -1046,7 +1045,7 @@ class OrganismRecord extends InventoryRecord
   List<Object?> get props =>
       super.props +
       [
-        recordName,
+        tagId,
         organismKind,
         speciesId,
         localId,

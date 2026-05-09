@@ -21,7 +21,7 @@ class OrganismRawFields {
     required this.aliasesJson,
     required this.aliasesRaw,
     required this.genetProvenanceIdRaw,
-    this.recordName,
+    this.tagId,
   });
 
   final String provenanceId;
@@ -40,12 +40,12 @@ class OrganismRawFields {
   final String? aliasesJson;
   final String? aliasesRaw;
   final String genetProvenanceIdRaw;
-  String? recordName;
+  String? tagId;
 
   /// Derives the record name from localId if not already set.
   void deriveRecordNameIfEmpty() {
-    if (recordName == null || recordName!.isEmpty) {
-      recordName = localId.isNotEmpty ? localId : null;
+    if (tagId == null || tagId!.isEmpty) {
+      tagId = localId.isNotEmpty ? localId : null;
     }
   }
 }
@@ -75,8 +75,8 @@ class OrganismRawFieldExtractor {
     final populationValueRaw = (row['quantityValue'] ?? '').trim();
     final populationUnitRaw = (row['measurementUnit'] ?? '').trim();
     final localId = (row['localId'] ?? '').trim();
-    final rawRecordName = row['recordName'];
-    final recordName =
+    final rawRecordName = row['tagId'];
+    final tagId =
         rawRecordName != null && rawRecordName.trim().isNotEmpty
             ? rawRecordName.trim()
             : null;
@@ -97,7 +97,7 @@ class OrganismRawFieldExtractor {
       populationValueRaw: populationValueRaw,
       populationUnitRaw: populationUnitRaw,
       localId: localId,
-      recordName: recordName,
+      tagId: tagId,
       notes: notes,
       lastEventAtRaw: lastEventAtRaw,
       aliasesJson: aliasesJson,

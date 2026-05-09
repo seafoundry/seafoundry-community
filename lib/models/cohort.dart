@@ -202,7 +202,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   }) {
     return Cohort(
       id: holding.id,
-      name: holding.recordName,
+      name: holding.tagId,
       organismKind: holding.organismKind,
       lifeStage: holding.lifeStage,
       population: holding.measurement,

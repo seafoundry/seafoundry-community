@@ -10,8 +10,8 @@ import 'package:path_provider/path_provider.dart';
 /// Cubit managing user preferences for how organism records are displayed.
 ///
 /// Controls two independent settings:
-/// 1. showUuid: When true, displays recordUUID instead of recordName
-/// 2. showIdentifier: When false, hides both recordName and recordUUID entirely
+/// 1. showUuid: When true, displays recordUUID instead of tagId
+/// 2. showIdentifier: When false, hides both tagId and recordUUID entirely
 ///
 /// Preferences are persisted to local storage and restored on app restart.
 class RecordDisplayPreferencesCubit extends Cubit<RecordDisplayPreferencesState> {
@@ -67,7 +67,7 @@ class RecordDisplayPreferencesCubit extends Cubit<RecordDisplayPreferencesState>
     }
   }
 
-  /// Toggle between showing recordName and recordUUID.
+  /// Toggle between showing tagId and recordUUID.
   void toggleShowUuid() {
     emit(state.copyWith(showUuid: !state.showUuid));
     _savePreferences();
@@ -98,10 +98,10 @@ class RecordDisplayPreferencesState extends Equatable {
     required this.showIdentifier,
   });
 
-  /// When true, show recordUUID instead of recordName.
+  /// When true, show recordUUID instead of tagId.
   final bool showUuid;
 
-  /// When false, hide both recordName and recordUUID entirely.
+  /// When false, hide both tagId and recordUUID entirely.
   final bool showIdentifier;
 
   RecordDisplayPreferencesState copyWith({

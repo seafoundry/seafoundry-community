@@ -308,7 +308,7 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
               showUuid: displayPrefs.showUuid,
               showIdentifier: displayPrefs.showIdentifier,
               recordId: record.id,
-              recordName: record.recordName,
+              tagId: record.tagId,
               localId: record.localId,
             );
             return _OrganismListTile(
@@ -541,10 +541,10 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
       showUuid: displayPrefs.showUuid,
       showIdentifier: displayPrefs.showIdentifier,
       recordId: record.id,
-      recordName: record.recordName,
+      tagId: record.tagId,
       localId: record.localId,
     );
-    final label = displayInfo.recordName.trim();
+    final label = displayInfo.tagId.trim();
     if (label.isNotEmpty) {
       return label.toLowerCase();
     }
@@ -609,7 +609,7 @@ class _OrganismListTile extends StatelessWidget {
     final theme = Theme.of(context);
     final genetId = GenetIdResolver.resolve(record);
     final hasReference =
-        displayInfo.recordName.trim().isNotEmpty ||
+        displayInfo.tagId.trim().isNotEmpty ||
         (displayInfo.localId ?? '').trim().isNotEmpty;
 
     return ListTile(
@@ -619,7 +619,7 @@ class _OrganismListTile extends StatelessWidget {
           Expanded(
             child: hasReference
                 ? OrganismReferenceLinks(
-                    recordName: displayInfo.recordName,
+                    tagId: displayInfo.tagId,
                     localId: displayInfo.localId,
                     urlPath: record.urlPath,
                     genetId: genetId,
@@ -627,7 +627,7 @@ class _OrganismListTile extends StatelessWidget {
                     disableNavigation: true,
                   )
                 : Text(
-                    displayInfo.recordName,
+                    displayInfo.tagId,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

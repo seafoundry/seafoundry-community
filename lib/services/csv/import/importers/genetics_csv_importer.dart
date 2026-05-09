@@ -202,7 +202,7 @@ class GeneticsCsvImporter {
                   importedGenets.add(genet);
                 }
 
-                var recordName = (row['Record Name'] ?? '').trim();
+                var tagId = (row['Record Name'] ?? '').trim();
                 final organismLocalId =
                     (localId != null && localId.trim().isNotEmpty)
                         ? localId.trim()
@@ -219,13 +219,13 @@ class GeneticsCsvImporter {
                   return;
                 }
 
-                if (recordName.isEmpty) {
-                  recordName = organismLocalId;
+                if (tagId.isEmpty) {
+                  tagId = organismLocalId;
                 }
-                if (recordName.isEmpty) {
+                if (tagId.isEmpty) {
                   validation.addError(
                     field: 'Record Name',
-                    value: recordName,
+                    value: tagId,
                     message:
                         'Record Name is required for coral organism rows.',
                   );
@@ -234,8 +234,8 @@ class GeneticsCsvImporter {
 
                 if (!validation.validateValue(
                   'Record Name',
-                  recordName,
-                  ValidationService.recordName,
+                  tagId,
+                  ValidationService.tagId,
                 )) {
                   return;
                 }
@@ -370,7 +370,7 @@ class GeneticsCsvImporter {
                 final organismPartial = OrganismRecord.partial(
                   organismKind: organismKind,
                   speciesId: species.id,
-                  recordName: recordName,
+                  tagId: tagId,
                   localId: organismLocalId,
                   measurement: PopulationMeasurement(
                     value: quantity.toDouble(),
@@ -398,7 +398,7 @@ class GeneticsCsvImporter {
                   messageBuilder: (error) => _describeRecordCreationFailure(
                     error,
                     parentGroup: group,
-                    recordName: recordName,
+                    tagId: tagId,
                   ),
                 );
                 if (organism == null) {
@@ -532,10 +532,10 @@ class GeneticsCsvImporter {
   String _describeRecordCreationFailure(
     DomainError error, {
     required Group parentGroup,
-    required String recordName,
+    required String tagId,
   }) {
     final location = _formatGroupLocation(parentGroup);
-    final baseMessage = 'Failed to create record "$recordName" in $location';
+    final baseMessage = 'Failed to create record "$tagId" in $location';
     final underlying = error.originalError ?? error;
 
     if (underlying is FirebaseException) {

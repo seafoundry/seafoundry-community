@@ -155,7 +155,7 @@ class _OrganismEditDialogState extends State<OrganismEditDialog>
   void initState() {
     super.initState();
     _recordNameController = TextEditingController(
-      text: widget.organism.recordName,
+      text: widget.organism.tagId,
     );
     _localIdController = TextEditingController(
       text: widget.organism.localId ?? '',

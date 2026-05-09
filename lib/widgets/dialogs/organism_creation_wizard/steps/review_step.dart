@@ -113,8 +113,8 @@ class ReviewStep extends StatelessWidget {
                   ),
                   _buildReviewRow(
                     'Record Name',
-                    state.recordName?.trim().isNotEmpty == true
-                        ? state.recordName!.trim()
+                    state.tagId?.trim().isNotEmpty == true
+                        ? state.tagId!.trim()
                         : (state.effectiveLocalId ?? 'Unknown'),
                   ),
                   _buildReviewRow(

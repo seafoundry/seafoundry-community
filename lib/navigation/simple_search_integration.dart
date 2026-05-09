@@ -267,12 +267,12 @@ class _SimpleSearchBarState extends State<SimpleSearchBar> {
       showUuid: prefs?.showUuid ?? false,
       showIdentifier: prefs?.showIdentifier ?? true,
       recordId: organism.id,
-      recordName: organism.recordName,
+      tagId: organism.tagId,
       localId: organism.localId,
     );
 
     return OrganismReferenceLinks(
-      recordName: displayInfo.recordName,
+      tagId: displayInfo.tagId,
       localId: displayInfo.localId,
       urlPath: organism.urlPath,
       genetId: GenetIdResolver.resolve(organism),

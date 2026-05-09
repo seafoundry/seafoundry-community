@@ -293,7 +293,7 @@ class _InventoryEventsTableState extends State<InventoryEventsTable>
       organism = await _resolveOrganism(event.recordId, organismRepository);
     }
 
-    final recordDisplay = organism?.recordName ?? event.recordId;
+    final recordDisplay = organism?.tagId ?? event.recordId;
     final genetLocalId = organism?.localId;
     final siteName = organism?.siteId ?? '';
 

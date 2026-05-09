@@ -130,7 +130,7 @@ class OrganismMergeBloc
             title: step.title,
             inputs: [
               MergeRecordNameInput.dirty(
-                value: targetOrganism?.recordName,
+                value: targetOrganism?.tagId,
               ),
               const MergeReasonInput.pure(),
               const MergeNotesInput.pure(),
@@ -270,7 +270,7 @@ class OrganismMergeBloc
                 as MergeRecordNameInput?;
             return step.copyWith(
               copiedInput: MergeRecordNameInput.dirty(
-                value: targetOrganism?.recordName,
+                value: targetOrganism?.tagId,
                 existingNames: currentInput?.existingNames ?? const <String>{},
               ),
             );
@@ -429,12 +429,12 @@ class OrganismMergeBloc
           _organismRepository.collectionRef.doc(absorbed.id),
         );
         if (!absorbedDoc.exists) {
-          throw Exception('Organism ${absorbed.recordName} no longer exists');
+          throw Exception('Organism ${absorbed.tagId} no longer exists');
         }
         final absorbedData = absorbedDoc.data()!;
         if (absorbedData['updatedAt'] != absorbed.updatedAt) {
           throw Exception(
-            'Organism ${absorbed.recordName} was modified. Please refresh.',
+            'Organism ${absorbed.tagId} was modified. Please refresh.',
           );
         }
       }
@@ -476,7 +476,7 @@ class OrganismMergeBloc
 
       // Create updated target organism
       final updatedTarget = targetOrganism.copyWith(
-        recordName: newRecordName,
+        tagId: newRecordName,
         measurement: targetOrganism.measurement.copyWith(
           value: totalQuantity,
         ),

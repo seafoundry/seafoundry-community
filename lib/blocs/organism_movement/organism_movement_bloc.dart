@@ -279,7 +279,7 @@ class OrganismMovementBloc
         // Create new organism at target with partial quantity
         // Preserve provenance and track source organism
         final newOrganism = organism.copyWith(
-          recordName: organism.recordName,
+          tagId: organism.tagId,
           id: newOrganismId,
           slug: newOrganismSlug,
           urlPath: '${targetGroup.urlPath}/$newOrganismSlug',

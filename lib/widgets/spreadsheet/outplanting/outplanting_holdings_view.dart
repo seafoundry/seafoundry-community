@@ -110,7 +110,7 @@ class _OutplantingHoldingsViewState extends State<OutplantingHoldingsView>
   List<PlutoColumn> _buildColumns() => [
         PlutoColumn(
           title: 'Record',
-          field: 'recordName',
+          field: 'tagId',
           type: PlutoColumnType.text(),
           width: 160,
         ),
@@ -168,7 +168,7 @@ class _OutplantingHoldingsViewState extends State<OutplantingHoldingsView>
       );
 
       return PlutoRow(cells: {
-        'recordName': PlutoCell(value: record.recordName),
+        'tagId': PlutoCell(value: record.tagId),
         'localId': PlutoCell(value: record.localId ?? ''),
         'speciesName': PlutoCell(value: speciesName),
         'quantity': PlutoCell(value: record.inventoryMetrics.count ?? 0),

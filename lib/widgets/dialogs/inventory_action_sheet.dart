@@ -559,7 +559,7 @@ Future<void> _showOutplantDialog(
           organismId: organism.id,
           quantity: result.quantity,
           currentQuantity: organism.measurement.value.toInt(),
-          recordName: organism.name,
+          tagId: organism.name,
           speciesId: organism.speciesId,
           genetId: organism.genetId,
           sourcePath: organism.urlPath,

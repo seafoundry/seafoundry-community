@@ -293,11 +293,11 @@ class OutplantingCsvImporter {
   String _buildAllocationSummary(OutplantEvent event) {
     return event.allocations
         .map((allocation) {
-          final recordName = allocation.recordName;
+          final tagId = allocation.tagId;
           final quantity = allocation.quantity.toString();
           final source = allocation.sourcePath;
-          if (source.isEmpty) return '$recordName:$quantity';
-          return '$recordName:$quantity@$source';
+          if (source.isEmpty) return '$tagId:$quantity';
+          return '$tagId:$quantity@$source';
         })
         .where((value) => value.isNotEmpty)
         .join('; ');

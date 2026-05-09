@@ -570,12 +570,12 @@ class _TransferInitiateDialogState
       if (locationCompare != 0) return locationCompare;
       final aLabel = formatOrganismReferenceLabel(
         localId: a.localId,
-        recordName: a.recordName,
+        tagId: a.tagId,
         fallback: a.id,
       );
       final bLabel = formatOrganismReferenceLabel(
         localId: b.localId,
-        recordName: b.recordName,
+        tagId: b.tagId,
         fallback: b.id,
       );
       return aLabel.compareTo(bLabel);

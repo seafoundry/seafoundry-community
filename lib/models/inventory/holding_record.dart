@@ -23,7 +23,7 @@ class HoldingRecord extends InventoryRecord
     with LifeStageProgressionMixin, MeasurableMixin {
   HoldingRecord({
     required super.id,
-    required this.recordName,
+    required this.tagId,
     required this.organismKind,
     required this.lifeStage,
     required this.measurement,
@@ -63,7 +63,7 @@ class HoldingRecord extends InventoryRecord
           organismKind,
           lifeStage,
           measurement,
-          recordName: recordName,
+          tagId: tagId,
           ownerOrganizationId: ownerOrganizationId,
           managingOrganizationId: managingOrganizationId,
           foreignKeys: _normalizeForeignKeys(foreignKeys),
@@ -80,7 +80,7 @@ class HoldingRecord extends InventoryRecord
           metadata: UnmodifiableMapView(_normalizeMetadata(metadata)),
         );
 
-  final String recordName;
+  final String tagId;
   final OrganismKind organismKind;
   final LifeStage lifeStage;
   final PopulationMeasurement measurement;
@@ -135,7 +135,7 @@ class HoldingRecord extends InventoryRecord
   @override
   HoldingRecord copyWith({
     String? id,
-    String? recordName,
+    String? tagId,
     OrganismKind? organismKind,
     LifeStage? lifeStage,
     PopulationMeasurement? measurement,
@@ -169,7 +169,7 @@ class HoldingRecord extends InventoryRecord
       nextOrganismKind,
       nextLifeStage,
       nextMeasurement,
-      recordName: recordName ?? this.recordName,
+      tagId: tagId ?? this.tagId,
       ownerOrganizationId: ownerOrganizationId ?? this.ownerOrganizationId,
       managingOrganizationId:
           managingOrganizationId ?? this.managingOrganizationId,
@@ -178,7 +178,7 @@ class HoldingRecord extends InventoryRecord
 
     return HoldingRecord(
       id: id ?? this.id,
-      recordName: recordName ?? this.recordName,
+      tagId: tagId ?? this.tagId,
       organismKind: nextOrganismKind,
       lifeStage: nextLifeStage,
       measurement: nextMeasurement,
@@ -211,7 +211,7 @@ class HoldingRecord extends InventoryRecord
     // We merge our specific fields.
     final payload = super.toJson();
     payload.addAll({
-      'recordName': recordName,
+      'tagId': tagId,
       'organismKind': organismKind.name,
       'lifeStageId': lifeStage.id,
       'lifeStage': lifeStage.id, // legacy alias
@@ -282,15 +282,14 @@ class HoldingRecord extends InventoryRecord
         parsedOrganismRecord?.localId ??
         readText(json['id']);  // Last resort: use document ID as localId
     final resolvedRecordName =
-        readText(json['recordName']) ??
-        readText(json['record_name']) ??
-        parsedOrganismRecord?.recordName ??
+        readText(json['tagId']) ??
+        parsedOrganismRecord?.tagId ??
         localId ??
         json['id']?.toString();
 
     return HoldingRecord(
       id: json['id']?.toString() ?? Record.inferId(json) ?? Missing.string,
-      recordName: resolvedRecordName ?? Missing.string,  // Use Missing.string instead of empty string
+      tagId: resolvedRecordName ?? Missing.string,  // Use Missing.string instead of empty string
       organismKind: organismKind,
       lifeStage: lifeStage,
       measurement: measurement,
@@ -311,7 +310,7 @@ class HoldingRecord extends InventoryRecord
   @override
   List<Object?> get props => [
     ...super.props,
-    recordName,
+    tagId,
     organismKind,
     lifeStage,
     measurement,
@@ -338,9 +337,9 @@ class HoldingRecord extends InventoryRecord
     if (localId == null || localId.isEmpty || localId == Missing.string) {
       return 'localId is required for new holdings';
     }
-    final recordName = record.recordName.trim();
-    if (recordName.isEmpty || recordName == Missing.string) {
-      return 'recordName is required for new holdings';
+    final tagId = record.tagId.trim();
+    if (tagId.isEmpty || tagId == Missing.string) {
+      return 'tagId is required for new holdings';
     }
     return null;
   }
@@ -397,7 +396,7 @@ class HoldingRecord extends InventoryRecord
     OrganismKind organismKind,
     LifeStage lifeStage,
     PopulationMeasurement measurement, {
-    required String recordName,
+    required String tagId,
     String? ownerOrganizationId,
     String? managingOrganizationId,
     Map<String, ForeignKeyReference>? foreignKeys,
@@ -409,7 +408,7 @@ class HoldingRecord extends InventoryRecord
       organismKind: organismKind,
       lifeStage: lifeStageSpec,
       measurement: measurement,
-      recordName: recordName,
+      tagId: tagId,
       ownerOrganizationId: ownerOrganizationId ?? record.ownerOrganizationId,
       managingOrganizationId:
           managingOrganizationId ?? record.managingOrganizationId,

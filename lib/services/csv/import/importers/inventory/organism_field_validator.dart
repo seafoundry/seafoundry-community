@@ -21,7 +21,7 @@ class ValidatedOrganismFields {
     required this.organism,
     required this.targetGroup,
     required this.localId,
-    required this.recordName,
+    required this.tagId,
     required this.speciesId,
     required this.physicalFormId,
     required this.quantity,
@@ -41,7 +41,7 @@ class ValidatedOrganismFields {
   final OrganismRecord organism;
   final Group targetGroup;
   final String localId;
-  final String recordName;
+  final String tagId;
   final String speciesId;
   final String physicalFormId;
   final int quantity;
@@ -120,7 +120,7 @@ class OrganismFieldValidator {
       organism: lookupResult.organism,
       targetGroup: lookupResult.targetGroup,
       localId: rawFields.localId,
-      recordName: rawFields.recordName!,
+      tagId: rawFields.tagId!,
       speciesId: rawFields.speciesIdRaw,
       physicalFormId: parsedFields.canonicalPhysicalFormId!,
       quantity: parsedFields.quantity!,
@@ -227,11 +227,11 @@ class OrganismFieldValidator {
 
     // Derive record name if not provided
     fields.deriveRecordNameIfEmpty();
-    if (fields.recordName == null || fields.recordName!.isEmpty) {
+    if (fields.tagId == null || fields.tagId!.isEmpty) {
       rowErrors.add(CSVImportError(
         row: rowNumber,
-        field: 'recordName',
-        value: fields.recordName ?? '',
+        field: 'tagId',
+        value: fields.tagId ?? '',
         message: 'Missing record name for organism',
       ));
     }

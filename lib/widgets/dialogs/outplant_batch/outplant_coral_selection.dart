@@ -62,7 +62,7 @@ class OutplantOrganismSelectionRow extends StatelessWidget {
         value: isSelected,
         onChanged: isSubmitting ? null : (val) => onSelectionChanged(val),
         title: OrganismReferenceLinks(
-          recordName: organism.recordName,
+          tagId: organism.tagId,
           localId: organism.localId,
           urlPath: organism.urlPath,
           genetId: organism.genetId,

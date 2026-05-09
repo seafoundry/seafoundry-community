@@ -110,7 +110,7 @@ class OrganismSplitDialog extends StatelessWidget {
           if (newRecord != null) {
             showSafeDialogSnackBar(
               context,
-              'Created ${newRecord.recordName} with ${newRecord.measurement.value.toStringAsFixed(0)} ${newRecord.measurement.unit.symbol}',
+              'Created ${newRecord.tagId} with ${newRecord.measurement.value.toStringAsFixed(0)} ${newRecord.measurement.unit.symbol}',
               isSuccess: true,
             );
           }
@@ -175,7 +175,7 @@ class _QuantitySelectionStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          UIText.bodyMedium('Split from: ${sourceOrganism.recordName}'),
+          UIText.bodyMedium('Split from: ${sourceOrganism.tagId}'),
           UIText.caption(
             'Current quantity: ${sourceQuantity.toStringAsFixed(0)} $unit',
           ),
@@ -464,7 +464,7 @@ class _ReviewStep extends StatelessWidget {
             icon: Icons.inventory_2_outlined,
             iconColor: theme.colorScheme.primary,
             title: 'Source Record',
-            subtitle: sourceOrganism.recordName,
+            subtitle: sourceOrganism.tagId,
             trailing:
                 '${sourceOrganism.measurement.value.toStringAsFixed(0)} $unit → ${remainingQuantity.toStringAsFixed(0)} $unit',
           ),

@@ -48,7 +48,7 @@ class OutplantAllocationsCsvImporter {
       String read(String key) => (row[key] ?? '').trim();
 
       String readRecordName() {
-        final explicit = read('recordName');
+        final explicit = read('tagId');
         if (explicit.isNotEmpty) return explicit;
         unknownRecordCounter += 1;
         return 'Unknown $unknownRecordCounter';
@@ -228,7 +228,7 @@ class OutplantAllocationsCsvImporter {
         eventId: read('eventId'),
         allocationIndex: allocationIndex!,
         organismId: resolvedOrganismId,
-        recordName: readRecordName(),
+        tagId: readRecordName(),
         quantity: quantity!,
         sourcePath: read('sourcePath'),
         outplantTagId: read('outplantTagId'),
@@ -274,7 +274,7 @@ class OutplantAllocationsCsvImporter {
           replacement.add(
             OutplantAllocation(
               organismId: allocation.organismId,
-              recordName: allocation.recordName,
+              tagId: allocation.tagId,
               speciesId: organism?.speciesId ?? previous?.speciesId ?? '',
               genetId: organism != null
                   ? GenetIdResolver.resolve(organism)
@@ -335,7 +335,7 @@ class _OutplantAllocationRow {
     required this.eventId,
     required this.allocationIndex,
     required this.organismId,
-    required this.recordName,
+    required this.tagId,
     required this.quantity,
     required this.sourcePath,
     this.outplantTagId,
@@ -347,7 +347,7 @@ class _OutplantAllocationRow {
   final String eventId;
   final int allocationIndex;
   final String organismId;
-  final String recordName;
+  final String tagId;
   final int quantity;
   final String sourcePath;
   final String? outplantTagId;

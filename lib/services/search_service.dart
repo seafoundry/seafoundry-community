@@ -320,11 +320,11 @@ class SearchService {
         String matchedField = '';
 
         // Check record name first (primary label)
-        // Use null-safe access in case recordName is unexpectedly null
-        final recordName = organism.recordName.trim();
-        if (recordName.isNotEmpty && recordName.toLowerCase().contains(query)) {
-          score = recordName.toLowerCase().startsWith(query) ? 0.95 : 0.8;
-          matchedField = 'recordName';
+        // Use null-safe access in case tagId is unexpectedly null
+        final tagId = organism.tagId.trim();
+        if (tagId.isNotEmpty && tagId.toLowerCase().contains(query)) {
+          score = tagId.toLowerCase().startsWith(query) ? 0.95 : 0.8;
+          matchedField = 'tagId';
         }
         // Check local ID (genet label)
         else if ((organism.localId ?? '').toLowerCase().contains(query)) {

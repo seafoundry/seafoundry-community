@@ -248,7 +248,7 @@ class InventorySpreadsheetCubit extends Cubit<InventorySpreadsheetState>
     return {
       'id': organism.id,
       'localId': organism.localId,
-      'recordName': organism.recordName,
+      'tagId': organism.tagId,
       'speciesId': organism.speciesId,
       'speciesName':
           SpeciesRegistry.globalById(organism.speciesId)?.name ??

@@ -15,7 +15,7 @@ class InventoryImportRow {
     required this.organism,
     required this.targetGroup,
     required this.localId,
-    required this.recordName,
+    required this.tagId,
     required this.speciesId,
     required this.physicalFormId,
     required this.quantity,
@@ -36,7 +36,7 @@ class InventoryImportRow {
   final OrganismRecord organism;
   final Group targetGroup;
   final String localId;
-  final String recordName;
+  final String tagId;
   final String speciesId;
   final String physicalFormId;
   final int quantity;

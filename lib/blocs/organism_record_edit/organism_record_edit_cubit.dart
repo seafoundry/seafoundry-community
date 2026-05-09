@@ -525,7 +525,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
   void setRecordName(String value) {
     final trimmed = value.trim();
-    final current = state.originalRecord.recordName;
+    final current = state.originalRecord.tagId;
     final override = trimmed == current ? null : trimmed;
     emit(state.copyWith(recordNameOverride: override));
     _rebuildPendingRecord();
@@ -967,16 +967,16 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     OrganismRecord originalRecord,
     int? genetWideUpdateCount,
   ) async {
-    // recordName change
+    // tagId change
     final recordNameChanged =
         state.recordNameOverride != null &&
-        state.recordNameOverride != originalRecord.recordName;
+        state.recordNameOverride != originalRecord.tagId;
     if (recordNameChanged) {
       await _emitIdentityEvent(
         eventType: EventType.recordNameChange,
         recordId: savedRecord.id,
         metadata: {
-          'previousValue': originalRecord.recordName,
+          'previousValue': originalRecord.tagId,
           'newValue': state.recordNameOverride,
         },
       );
@@ -1082,7 +1082,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
         : managingInput;
     final pending = state.originalRecord.copyWith(
       localId: state.localIdOverride ?? state.originalRecord.localId,
-      recordName: state.recordNameOverride ?? state.originalRecord.recordName,
+      tagId: state.recordNameOverride ?? state.originalRecord.tagId,
       lifeStage: _resolveLifeStageSpec(),
       physicalForm: _resolvePhysicalForm(),
       measurement: _resolveMeasurement(),

@@ -559,14 +559,14 @@ class _WizardContent extends StatelessWidget {
   Future<void> _ensureSuggestedRecordName(BuildContext context) async {
     final cubit = context.read<OrganismCreationCubit>();
     final state = cubit.state;
-    if (state.recordName?.trim().isNotEmpty == true) return;
+    if (state.tagId?.trim().isNotEmpty == true) return;
 
     final localId = state.effectiveLocalId?.trim();
     if (localId == null || localId.isEmpty) return;
 
     // Use localId as the default record name
     final current = cubit.state;
-    if (current.recordName?.trim().isNotEmpty == true) return;
+    if (current.tagId?.trim().isNotEmpty == true) return;
     if (current.effectiveLocalId?.trim() != localId) return;
 
     cubit.recordNameChanged(localId);
@@ -645,8 +645,8 @@ class _WizardContent extends StatelessWidget {
         final enteredReview = !wasReview && isReview;
         final localIdChanged = prev.effectiveLocalId != curr.effectiveLocalId;
         final recordNameCleared =
-            (prev.recordName?.trim().isNotEmpty ?? false) &&
-            (curr.recordName?.trim().isEmpty ?? true);
+            (prev.tagId?.trim().isNotEmpty ?? false) &&
+            (curr.tagId?.trim().isEmpty ?? true);
 
         return enteredReview ||
             (wasReview && (localIdChanged || recordNameCleared));
