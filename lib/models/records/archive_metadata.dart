@@ -1,4 +1,3 @@
-// @tier: community
 /// Shared metadata keys for archived inventory records.
 ///
 /// These live in record metadata to avoid schema changes across models.

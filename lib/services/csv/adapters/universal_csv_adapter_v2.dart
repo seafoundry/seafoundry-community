@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:convert';
 
 import 'package:seafoundry_app/constants/csv_schema.dart';

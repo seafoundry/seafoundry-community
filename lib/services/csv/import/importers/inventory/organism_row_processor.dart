@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/csv/import/csv_import_models.dart';

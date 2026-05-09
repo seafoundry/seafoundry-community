@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/factories/event_factory.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';

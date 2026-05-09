@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';
 import 'package:seafoundry_app/blocs/graph_node/group_node.dart';

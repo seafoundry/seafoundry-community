@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:async';
 import 'dart:convert';
 

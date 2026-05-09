@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/transfer/transfer_manual_register_state.dart';
 import 'package:seafoundry_app/mixins/provenance_search_mixin.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:convert';
 import 'dart:io';
 

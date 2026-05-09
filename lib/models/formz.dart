@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:formz/formz.dart';
 
 enum UserNameError {

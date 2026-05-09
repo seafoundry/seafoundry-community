@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/services/csv/v2/csv_v2_spec_extensions.dart';
 

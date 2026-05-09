@@ -1,4 +1,3 @@
-// @tier: community
 // Barrel export for organism creation wizard steps
 export 'biometrics_step.dart';
 export 'gain_reason_step.dart';

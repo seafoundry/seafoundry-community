@@ -1,4 +1,3 @@
-// @tier: community
 export 'auth/auth_repository.dart';
 export 'auth_error_suppression_mixin.dart';
 export 'current_user_repository.dart';

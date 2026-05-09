@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/group.dart';
 import 'package:seafoundry_app/models/inventory/inventory_export_row.dart';
 import 'package:seafoundry_app/models/inventory/organism_extensions.dart';

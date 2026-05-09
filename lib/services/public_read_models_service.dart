@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/models/public_read_models/brand_profile.dart';
 

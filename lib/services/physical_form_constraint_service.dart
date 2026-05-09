@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/services/logging_service.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:collection/collection.dart';
 
 /// Identifies the type of provenance record captured in Firestore.

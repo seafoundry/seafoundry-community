@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/alias.dart';
 
 import 'package:seafoundry_app/models/taxonomy/provenance_record.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 class UserNamePage extends StatefulWidget {

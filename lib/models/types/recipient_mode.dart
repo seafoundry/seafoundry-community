@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Transfer recipient mode - determines how the recipient is specified
 enum RecipientMode {

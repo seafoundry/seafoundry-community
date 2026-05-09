@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_statistics_state.dart';
 import 'package:seafoundry_app/models/types/health_status.dart';

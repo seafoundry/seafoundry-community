@@ -1,4 +1,3 @@
-// @tier: community
 class PartialMoveSelection {
   final bool moveAll;
   final Set<String> selectedChildIds;

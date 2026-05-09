@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// Loading view for spreadsheets with optional progress indicator.

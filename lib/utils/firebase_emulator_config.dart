@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 

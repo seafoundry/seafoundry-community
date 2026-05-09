@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
 import 'package:seafoundry_app/utils/geo_utils.dart';

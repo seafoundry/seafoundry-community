@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/services/logging_service.dart';

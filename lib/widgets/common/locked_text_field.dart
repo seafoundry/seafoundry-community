@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// Displays a locked, read-only text field with a lock icon and tooltip.

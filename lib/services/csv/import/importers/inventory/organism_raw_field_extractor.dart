@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Extracted raw field values from a CSV row.
 ///

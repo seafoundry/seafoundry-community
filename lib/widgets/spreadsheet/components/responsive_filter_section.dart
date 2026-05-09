@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 /// Collapsible wrapper for spreadsheet filter toolbars on narrow screens.

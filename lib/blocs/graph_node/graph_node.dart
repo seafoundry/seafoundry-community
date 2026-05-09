@@ -1,4 +1,3 @@
-// @tier: community
 export 'graph_factory.dart';
 export 'graph_node_bloc.dart';
 export 'graph_node_events.dart';

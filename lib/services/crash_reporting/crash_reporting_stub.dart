@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/errors/domain_errors.dart';
 
 import 'crash_reporting_interface.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:seafoundry_app/models/group.dart';

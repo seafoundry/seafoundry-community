@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Base exception class for errors that occur during graph node loading.
 ///

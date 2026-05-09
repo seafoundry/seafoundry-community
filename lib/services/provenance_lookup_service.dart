@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/provenance_suggestion.dart';
 import 'package:seafoundry_app/services/clonal_id_display_service.dart';
 import 'package:seafoundry_app/services/logging_service.dart';

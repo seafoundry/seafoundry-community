@@ -1,4 +1,3 @@
-// @tier: community
 // This file is only compiled for web via conditional export in js_error_utils.dart.
 // ignore_for_file: uri_does_not_exist, avoid_web_libraries_in_flutter
 import 'dart:js_interop';

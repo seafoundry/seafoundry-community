@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 import '../../models/inventory/size_spec.dart';

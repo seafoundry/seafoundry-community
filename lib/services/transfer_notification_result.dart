@@ -1,4 +1,3 @@
-// @tier: community
 /// Result of a notification operation.
 enum TransferNotificationOutcome {
   success,

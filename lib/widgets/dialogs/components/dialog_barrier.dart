@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 
 const double kDialogBarrierOpacity = 0.45;

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';

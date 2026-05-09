@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart' as domain_errors;

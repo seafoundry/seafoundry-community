@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/widgets/ui.dart';
 import 'package:seafoundry_app/widgets/ui_text.dart';

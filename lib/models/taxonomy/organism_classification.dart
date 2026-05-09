@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 
 /// Captures the taxonomic hierarchy for a species so we can group organisms

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/events/move_event.dart';

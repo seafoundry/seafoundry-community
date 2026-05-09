@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/theme/theme.dart';

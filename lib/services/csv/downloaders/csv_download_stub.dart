@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/services/csv/downloaders/csv_download_interface.dart';
 
 CsvDownloadAdapter createCsvDownloadAdapter() =>

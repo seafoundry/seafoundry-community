@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 
 /// Result of the organism creation wizard.

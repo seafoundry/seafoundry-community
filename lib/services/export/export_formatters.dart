@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:typed_data';
 
 import 'package:csv/csv.dart';

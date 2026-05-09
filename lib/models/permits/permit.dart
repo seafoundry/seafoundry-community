@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/utils/date_time_converter.dart';

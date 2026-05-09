@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/constants/csv_schema.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/services/csv/csv_translation_pipeline.dart';

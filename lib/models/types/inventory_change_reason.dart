@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/record_type.dart';
 
 class LifeStageTransitionReason extends BuiltinRecordType {

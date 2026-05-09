@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/cubits/summary_statistics/summary_filter_matcher.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_statistics_state.dart';
 import 'package:seafoundry_app/models/group.dart';

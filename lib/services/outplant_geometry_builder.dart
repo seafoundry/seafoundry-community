@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/events/outplant_geometry.dart';
 import 'package:seafoundry_app/utils/geo_utils.dart';
 

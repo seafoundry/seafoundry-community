@@ -1,4 +1,3 @@
-// @tier: community
 // ignore_for_file: overridden_fields
 import 'package:seafoundry_app/models/legal/legal_document.dart';
 import 'package:seafoundry_app/models/model_interfaces.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/widgets/repositories/registry/disposable.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 part of 'transfer_service.dart';
 
 /// Transfer initiation methods for [TransferService].

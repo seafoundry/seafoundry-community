@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Centralized validation service for consistent validation across the app
 class ValidationService {

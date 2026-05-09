@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Interface for objects that require explicit cleanup/disposal.
 ///

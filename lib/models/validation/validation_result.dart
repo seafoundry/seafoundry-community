@@ -1,4 +1,3 @@
-// @tier: community
 enum ValidationSeverity { info, warning, error }
 
 class ValidationResult {

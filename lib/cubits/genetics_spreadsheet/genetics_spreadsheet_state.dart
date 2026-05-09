@@ -1,4 +1,3 @@
-// @tier: community
 part of 'genetics_spreadsheet_cubit.dart';
 
 /// State for the genetics spreadsheet view.

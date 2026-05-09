@@ -1,4 +1,3 @@
-// @tier: community
 //
 // ╔═══════════════════════════════════════════════════════════════════════════╗
 // ║  ⚠️  WARNING: PLACEHOLDER LEGAL DOCUMENTS - NOT FOR PRODUCTION USE  ⚠️  ║

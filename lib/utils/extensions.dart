@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/services/url_path_resolver.dart';
 
 /// String extension providing path utility methods.

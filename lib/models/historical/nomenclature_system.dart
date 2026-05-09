@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Nomenclature systems available for viewing genotype identifiers.
 ///

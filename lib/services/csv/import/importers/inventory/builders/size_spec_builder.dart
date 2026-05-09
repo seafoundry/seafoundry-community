@@ -1,4 +1,3 @@
-// @tier: community
 
 import 'package:seafoundry_app/models/inventory/size_spec.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';

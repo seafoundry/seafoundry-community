@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:seafoundry_app/models/events/outplant_geometry.dart';
 import 'package:seafoundry_app/services/logging_service.dart';

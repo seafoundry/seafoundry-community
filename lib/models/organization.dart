@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/accession_config.dart';
 import 'package:seafoundry_app/models/records/graph_node_record.dart';
 import 'package:seafoundry_app/models/records/inventory_record.dart';

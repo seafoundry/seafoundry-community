@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Type of validation rule.
 enum ValidationRuleType {

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/site.dart';

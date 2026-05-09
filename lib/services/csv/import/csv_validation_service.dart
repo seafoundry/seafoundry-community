@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/services/csv/import/csv_import_models.dart';
 
 /// Utility for validating a single CSV row while collecting structured errors.

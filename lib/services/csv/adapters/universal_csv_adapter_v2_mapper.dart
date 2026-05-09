@@ -1,4 +1,3 @@
-// @tier: community
 part of 'universal_csv_adapter_v2.dart';
 
 /// Row mapping/translation methods for [UniversalCsvAdapterV2].

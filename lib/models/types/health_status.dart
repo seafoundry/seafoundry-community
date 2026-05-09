@@ -1,4 +1,3 @@
-// @tier: community
 enum HealthStatus {
   healthy('healthy', 'Healthy'),
   stressed('stressed', 'Stressed'),

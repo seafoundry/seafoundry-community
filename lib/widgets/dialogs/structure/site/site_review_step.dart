@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/organization.dart';

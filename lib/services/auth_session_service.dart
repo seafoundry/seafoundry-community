@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Tracks transient auth session transitions like sign-out in progress.

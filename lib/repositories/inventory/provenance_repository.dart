@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/records/record.dart';

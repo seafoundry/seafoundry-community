@@ -1,4 +1,3 @@
-// @tier: community
 part of 'organism_record_repository.dart';
 
 /// Helper methods for OrganismRecordRepository.

@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:async';
 
 import 'package:seafoundry_app/blocs/record_form/record_form_bloc.dart';

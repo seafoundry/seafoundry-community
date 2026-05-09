@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:collection/collection.dart';
 
 /// Canonical coral morphology categories used for taxonomy + monitoring.

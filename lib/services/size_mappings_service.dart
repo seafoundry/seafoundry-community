@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:collection';
 
 import 'package:seafoundry_app/models/inventory/physical_form_config.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:collection/collection.dart';
 
 /// Measurement units supported by the neutral inventory model. These identifiers

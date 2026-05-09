@@ -1,4 +1,3 @@
-// @tier: community
 class UserIdentity {
   const UserIdentity._();
 

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
 import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/factories/record_factory.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/user.dart';

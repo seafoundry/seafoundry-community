@@ -1,4 +1,3 @@
-// @tier: community
 // ignore_for_file: overridden_fields
 import 'package:seafoundry_app/models/provenance_base.dart';
 import 'package:seafoundry_app/models/records/record.dart';

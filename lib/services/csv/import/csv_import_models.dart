@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:typed_data';
 
 import 'package:seafoundry_app/models/events/event.dart';

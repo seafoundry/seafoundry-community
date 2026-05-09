@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Shared JSON casting helpers for model parsing.
 ///

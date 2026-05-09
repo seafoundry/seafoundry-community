@@ -1,4 +1,3 @@
-// @tier: community
 /// Human-friendly alphanumeric sorting helpers.
 int compareHumanReadable(String a, String b) {
   final left = a.trim().toLowerCase();

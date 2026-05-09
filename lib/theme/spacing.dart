@@ -1,4 +1,3 @@
-// @tier: community
 /// Standardized spacing constants for the entire app
 class Spacing {
   Spacing._();

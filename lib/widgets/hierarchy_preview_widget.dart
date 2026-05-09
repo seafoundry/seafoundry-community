@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';
 import 'package:seafoundry_app/theme/theme.dart';

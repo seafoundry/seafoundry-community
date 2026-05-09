@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/cubits/base/safe_cubit.dart';
 import 'package:seafoundry_app/models/models.dart';

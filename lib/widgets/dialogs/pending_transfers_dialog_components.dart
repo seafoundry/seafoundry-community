@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/services/species_registry.dart';

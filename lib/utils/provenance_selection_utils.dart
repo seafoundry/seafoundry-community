@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/models.dart';
 
 /// Derives a canonical provenance/life-stage selection for organisms by

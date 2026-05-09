@@ -1,4 +1,3 @@
-// @tier: community
 part of 'transfer_service.dart';
 
 /// Validation and helper methods for [TransferService].

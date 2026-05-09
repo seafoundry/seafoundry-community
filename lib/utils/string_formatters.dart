@@ -1,4 +1,3 @@
-// @tier: community
 
 // Utility functions for string formatting and transformation.
 

@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import '../../components/dialog_scroll_view.dart';
 

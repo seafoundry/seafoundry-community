@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/population_measurement.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';

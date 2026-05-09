@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Defines the platform-specific contract for saving CSV content.
 abstract class CsvDownloadAdapter {

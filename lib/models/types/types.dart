@@ -1,4 +1,3 @@
-// @tier: community
 
 export 'attachment_method.dart';
 export 'coral_morphology.dart';

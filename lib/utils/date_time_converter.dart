@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/services/logging_service.dart';
 
 /// ISO 8601 date/time conversion for data layer serialization.

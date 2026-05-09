@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:seafoundry_app/models/site.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
 

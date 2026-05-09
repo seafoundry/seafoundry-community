@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:seafoundry_app/services/auth_session_service.dart';
 

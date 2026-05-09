@@ -1,4 +1,3 @@
-// @tier: community
 import 'dart:convert';
 
 import 'package:seafoundry_app/models/provenance_life_stage_selection.dart';

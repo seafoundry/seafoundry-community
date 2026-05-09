@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Registry package exports for repository management.
 ///

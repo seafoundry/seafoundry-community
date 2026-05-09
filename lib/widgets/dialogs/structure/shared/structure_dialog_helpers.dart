@@ -1,4 +1,3 @@
-// @tier: community
 
 /// Type of structure to create in the unified structure dialog.
 ///

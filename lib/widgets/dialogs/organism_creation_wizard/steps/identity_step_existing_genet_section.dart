@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/cubits/organism_creation/organism_creation_state.dart';
 import 'package:seafoundry_app/services/clonal_id_display_service.dart';

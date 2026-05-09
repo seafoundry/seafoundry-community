@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_item.dart';

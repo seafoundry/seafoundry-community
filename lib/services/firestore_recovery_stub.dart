@@ -1,4 +1,3 @@
-// @tier: community
 // Stub implementation for non-web platforms
 
 /// Clears the Firestore persistence cache.

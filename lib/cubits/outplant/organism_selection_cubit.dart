@@ -1,4 +1,3 @@
-// @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/outplant/organism_selection_state.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
