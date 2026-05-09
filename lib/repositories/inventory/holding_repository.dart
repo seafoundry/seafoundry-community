@@ -96,15 +96,22 @@ abstract class HoldingRepository<T extends HoldingRecord> {
       throw StateError('Holding ${holding.id} does not exist.');
     }
     _assertOrganism(holding.organismKind);
-    _changeService.assertImmutableFields(
-      previous: existing.organismRecord,
-      next: holding.organismRecord,
-    );
+    final previousOrganismRecord = await _fetchOrganismRecord(existing);
+    final nextOrganismRecord = await _fetchOrganismRecord(holding);
+    if (previousOrganismRecord != null && nextOrganismRecord != null) {
+      _changeService.assertImmutableFields(
+        previous: previousOrganismRecord,
+        next: nextOrganismRecord,
+      );
+    }
     await _ensureOccupantCapacity(holding: holding, previousHolding: existing);
-    final changeSet = _changeService.detectChanges(
-      previous: existing.organismRecord,
-      next: holding.organismRecord,
-    );
+    final changeSet =
+        (previousOrganismRecord != null && nextOrganismRecord != null)
+            ? _changeService.detectChanges(
+                previous: previousOrganismRecord,
+                next: nextOrganismRecord,
+              )
+            : null;
     final now = DateTimeConverter.nowAsIso8601String();
     final payload = _updatePayload(holding, now);
     await collectionRef.doc(holding.id).update(payload);
@@ -113,25 +120,44 @@ abstract class HoldingRepository<T extends HoldingRecord> {
       timestamp: now,
       preserveExistingAudit: true,
     );
-    
+
     // Snapshot the update
     // If events are emitted, we could link to the first one, or use a synthetic update ID
     // Since _emitOrganismRecordEvents creates multiple events, we'll use a synthetic ID or just the last event ID if possible.
     // For simplicity and safety, we use synthetic update ID.
     await _snapshotService.createAfterSnapshot(
-      record: holding, 
+      record: holding,
       eventId: 'update_${holding.id}_${DateTime.now().millisecondsSinceEpoch}'
     );
 
-    if (changeSet.hasChanges) {
+    if (changeSet != null && changeSet.hasChanges && nextOrganismRecord != null) {
       await _emitOrganismRecordEvents(
-        previous: existing,
         updated: holding,
+        snapshot: nextOrganismRecord,
         changeSet: changeSet,
         metadataOverrides: eventMetadataOverrides,
       );
     }
     return holding;
+  }
+
+  /// Fetches the canonical [OrganismRecord] document associated with [holding]
+  /// via its [HoldingRecord.organismRecordId]. Returns null when the FK is
+  /// empty or the doc is missing — callers must tolerate that for newly
+  /// constructed holdings whose organism record has not been written yet.
+  Future<OrganismRecord?> _fetchOrganismRecord(T holding) async {
+    final lookup = await holding.resolveOrganismRecord((id) async {
+      final snapshot = await _organismRecordsCollection.doc(id).get();
+      if (!snapshot.exists) return null;
+      final data = snapshot.data();
+      if (data == null) return null;
+      final entry = OrganismRecordEntry.fromJson(<String, dynamic>{
+        ...data,
+        'id': snapshot.id,
+      });
+      return entry.organismRecord;
+    });
+    return lookup;
   }
 
   /// Applies an updated canonical [OrganismRecord] snapshot to [holding] and
@@ -253,8 +279,8 @@ abstract class HoldingRepository<T extends HoldingRecord> {
   }
 
   Future<void> _emitOrganismRecordEvents({
-    required T previous,
     required T updated,
+    required OrganismRecord snapshot,
     required OrganismRecordChangeSet changeSet,
     Map<String, dynamic>? metadataOverrides,
   }) async {
@@ -264,7 +290,6 @@ abstract class HoldingRepository<T extends HoldingRecord> {
     if (metadataOverrides != null && metadataOverrides.isNotEmpty) {
       metadata.addAll(metadataOverrides);
     }
-    final snapshot = updated.organismRecord;
 
     final lifeStageChange = changeSet.lifeStageChange;
     if (lifeStageChange != null) {
