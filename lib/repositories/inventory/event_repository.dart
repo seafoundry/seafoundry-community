@@ -300,6 +300,21 @@ class EventRepository extends _EventRepositoryBase {
   ///
   /// Replaces time-window filtering with limit-based approach to avoid missing
   /// recent events when total event count exceeds window threshold.
+  /// Fetches the most recent [limit] events for the current organization,
+  /// ordered by createdAt descending. Used by spreadsheet event tables that
+  /// previously hit Firestore directly from the widget layer.
+  ///
+  /// Event-type filtering is applied by the caller (Firestore `whereIn` is
+  /// capped at 30 entries, so per-row filtering is more flexible).
+  Future<List<Event>> fetchRecentEventsForOrganization({int limit = 5000}) async {
+    final snapshot = await collectionRef
+        .where('organizationId', isEqualTo: organization.id)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .get();
+    return snapshot.docs.map(_parseEventSafe).whereType<Event>().toList();
+  }
+
   Stream<List<Event>> streamEventsForUrlPath(
     String urlPath, {
     String? recordId,
