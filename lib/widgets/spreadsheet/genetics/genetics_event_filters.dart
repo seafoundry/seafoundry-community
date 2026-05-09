@@ -1,11 +1,11 @@
 part of 'genetics_events_table.dart';
 
 /// Filtering, sorting, and search controls for the genetics events table.
-mixin _GeneticsEventFiltersMixin on State<GeneticsEventsTable> {
-  List<_GeneticsEventRow> get _rows;
-
-  List<_GeneticsEventRow> _filteredRows = const [];
-
+///
+/// Operates on the inherited [rows] and writes the result into
+/// [filteredRows] — both owned by [EventsTableScaffoldState].
+mixin _GeneticsEventFiltersMixin
+    on EventsTableScaffoldState<GeneticsEventsTable, _GeneticsEventRow> {
   String? _selectedEventType;
   ModelType? _selectedRecordType;
   DateTimeRange? _selectedDateRange;
@@ -20,21 +20,23 @@ mixin _GeneticsEventFiltersMixin on State<GeneticsEventsTable> {
       _selectedDateRange != null ||
       _searchTerm.isNotEmpty;
 
-  void _applyFilters({bool updateState = true}) {
-    Iterable<_GeneticsEventRow> rows = _rows;
+  @override
+  void applyFilters({bool updateState = true}) {
+    Iterable<_GeneticsEventRow> filtered = rows;
 
     if (_selectedEventType != null && _selectedEventType!.isNotEmpty) {
-      rows = rows.where((row) => row.eventTypeId == _selectedEventType);
+      filtered = filtered.where((row) => row.eventTypeId == _selectedEventType);
     }
 
     if (_selectedRecordType != null) {
-      rows = rows.where((row) => row.recordModelType == _selectedRecordType);
+      filtered =
+          filtered.where((row) => row.recordModelType == _selectedRecordType);
     }
 
     if (_selectedDateRange != null) {
       final start = DateRangePresets.startOfDay(_selectedDateRange!.start);
       final end = DateRangePresets.endOfDay(_selectedDateRange!.end);
-      rows = rows.where((row) {
+      filtered = filtered.where((row) {
         final createdAt = row.createdAt;
         if (createdAt == null) return false;
         return !createdAt.isBefore(start) && !createdAt.isAfter(end);
@@ -43,7 +45,7 @@ mixin _GeneticsEventFiltersMixin on State<GeneticsEventsTable> {
 
     if (_searchTerm.isNotEmpty) {
       final needle = _searchTerm.toLowerCase();
-      rows = rows.where((row) {
+      filtered = filtered.where((row) {
         final fields = [
           row.recordDisplay,
           row.description,
@@ -58,7 +60,7 @@ mixin _GeneticsEventFiltersMixin on State<GeneticsEventsTable> {
       });
     }
 
-    final sorted = rows
+    final sorted = filtered
         .sorted((a, b) {
           final aTime = a.createdAt ??
               DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
@@ -70,10 +72,10 @@ mixin _GeneticsEventFiltersMixin on State<GeneticsEventsTable> {
 
     if (updateState) {
       setState(() {
-        _filteredRows = sorted;
+        filteredRows = sorted;
       });
     } else {
-      _filteredRows = sorted;
+      filteredRows = sorted;
     }
   }
 
@@ -84,7 +86,7 @@ mixin _GeneticsEventFiltersMixin on State<GeneticsEventsTable> {
       _selectedDateRange = null;
       _searchTerm = '';
       _searchController.text = '';
-      _applyFilters(updateState: false);
+      applyFilters(updateState: false);
     });
   }
 }
