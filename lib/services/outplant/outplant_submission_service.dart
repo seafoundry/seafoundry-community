@@ -129,7 +129,7 @@ class OutplantSubmissionService {
           recordName: allocationName,
           speciesId: item.speciesId ?? '',
           genetId: item.genetId,
-          tagId: item.tag,
+          outplantTagId: item.tag,
           groupId: item.groupId,
           groupName: item.groupName,
           groupPath: item.groupPath,
@@ -294,7 +294,7 @@ class OutplantSubmissionService {
     String? existingTag,
   }) async {
     for (final allocation in allocations) {
-      if (allocation.tagId == null || allocation.tagId!.isEmpty) {
+      if (allocation.outplantTagId == null || allocation.outplantTagId!.isEmpty) {
         continue;
       }
 
@@ -313,14 +313,14 @@ class OutplantSubmissionService {
         // Update organism metadata with tag
         final updatedMetadata = {
           ...organism.metadata ?? {},
-          'outplantTag': allocation.tagId,
+          'outplantTag': allocation.outplantTagId,
         };
 
         final updatedOrganism = organism.copyWith(metadata: updatedMetadata);
         await _organismRepository.updateRecord(updatedOrganism);
 
         _logger.info(
-          'Updated organism ${organism.id} with tag ${allocation.tagId}',
+          'Updated organism ${organism.id} with tag ${allocation.outplantTagId}',
         );
       } catch (error, stackTrace) {
         _logger.error(

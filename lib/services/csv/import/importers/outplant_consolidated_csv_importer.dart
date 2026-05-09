@@ -262,7 +262,7 @@ class OutplantConsolidatedCsvImporter {
       recordName: read('recordName').isEmpty ? null : read('recordName'),
       quantity: quantity!,
       eventNotes: read('eventNotes').isEmpty ? null : read('eventNotes'),
-      tagId: read('tagId').isEmpty ? null : read('tagId'),
+      outplantTagId: read('outplantTagId').isEmpty ? null : read('outplantTagId'),
     );
   }
 
@@ -557,7 +557,7 @@ class OutplantConsolidatedCsvImporter {
       groupId: structure?.id,
       groupName: structure?.name,
       groupPath: structure?.urlPath,
-      tagId: row.tagId,
+      outplantTagId: row.outplantTagId,
     );
   }
 }
@@ -574,7 +574,7 @@ class _ParsedAllocationRow {
     this.recordName,
     required this.quantity,
     this.eventNotes,
-    this.tagId,
+    this.outplantTagId,
   });
 
   final int rowNumber;
@@ -586,7 +586,7 @@ class _ParsedAllocationRow {
   final String? recordName;
   final int quantity;
   final String? eventNotes;
-  final String? tagId;
+  final String? outplantTagId;
 }
 
 /// Grouped event with all allocations and resolved references.

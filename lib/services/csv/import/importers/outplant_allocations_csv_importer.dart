@@ -231,7 +231,7 @@ class OutplantAllocationsCsvImporter {
         recordName: readRecordName(),
         quantity: quantity!,
         sourcePath: read('sourcePath'),
-        tagId: read('tagId'),
+        outplantTagId: read('outplantTagId'),
         tagName: read('tagName'),
         tagPath: read('tagPath'),
       );
@@ -279,9 +279,9 @@ class OutplantAllocationsCsvImporter {
               genetId: organism != null
                   ? GenetIdResolver.resolve(organism)
                   : previous?.genetId,
-              tagId: allocation.tagId?.isEmpty ?? true
+              outplantTagId: allocation.outplantTagId?.isEmpty ?? true
                   ? null
-                  : allocation.tagId,
+                  : allocation.outplantTagId,
               tagName: allocation.tagName?.isEmpty ?? true
                   ? null
                   : allocation.tagName,
@@ -338,7 +338,7 @@ class _OutplantAllocationRow {
     required this.recordName,
     required this.quantity,
     required this.sourcePath,
-    this.tagId,
+    this.outplantTagId,
     this.tagName,
     this.tagPath,
   });
@@ -350,7 +350,7 @@ class _OutplantAllocationRow {
   final String recordName;
   final int quantity;
   final String sourcePath;
-  final String? tagId;
+  final String? outplantTagId;
   final String? tagName;
   final String? tagPath;
 }

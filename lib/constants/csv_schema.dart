@@ -195,7 +195,7 @@ class CsvSchemas {
     'allocationVolumeCm3',
     'allocationTissueAreaCm2',
     'sourcePath',
-    'tagId',
+    'outplantTagId',
     'tagName',
     'tagPath',
   ];
@@ -214,7 +214,7 @@ class CsvSchemas {
     'localId', // Required, links to inventory
     'recordName', // Optional, display name
     'quantity', // Required, positive integer
-    'tagId', // Optional
+    'outplantTagId', // Optional
   ];
 
 
