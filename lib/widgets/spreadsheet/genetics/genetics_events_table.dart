@@ -12,7 +12,6 @@ import 'package:seafoundry_app/models/events/update_event.dart';
 import 'package:seafoundry_app/models/genet.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/provenance_life_stage_selection.dart';
-import 'package:seafoundry_app/models/factories/record_factory.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/transfer_status.dart';
 import 'package:seafoundry_app/models/types/event_type.dart';
@@ -22,10 +21,10 @@ import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
+import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
-import 'package:seafoundry_app/repositories/utils/firestore_document_helpers.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/pagination_service.dart';
@@ -153,6 +152,7 @@ class _GeneticsEventsTableState extends State<GeneticsEventsTable>
 
     // Cache provider references before async operations
     final providerResult = safeReadProviders(() => (
+      context.read<EventRepository>(),
       context.read<RecordRepository>(),
       context.read<GenetRepository>(),
       context.read<OrganismRecordRepository>(),
@@ -168,8 +168,13 @@ class _GeneticsEventsTableState extends State<GeneticsEventsTable>
       return;
     }
 
-    final (recordRepository, genetRepository, organismRepository, currentUserState) =
-        providerResult.value!;
+    final (
+      eventRepository,
+      recordRepository,
+      genetRepository,
+      organismRepository,
+      currentUserState,
+    ) = providerResult.value!;
 
     String? organizationId;
     if (currentUserState is CurrentUserLoaded) {
@@ -189,36 +194,12 @@ class _GeneticsEventsTableState extends State<GeneticsEventsTable>
     try {
       if (!mounted) return;
 
-      // IMPORTANT: Filter by organizationId to satisfy Firestore security rules.
-      // Without this filter, Firestore will deny access because the rules require
-      // resource.data.organizationId to match the user's organizationId.
-      if (!mounted) return;
-      final query = recordRepository.db
-          .collection(ModelType.event.collectionPath)
-          .where('organizationId', isEqualTo: organizationId)
-          .orderBy('createdAt', descending: true)
-          .limit(_eventFetchLimit);
-
-      if (!mounted) return;
-      final snapshot = await query.get();
-      final events = <Event>[];
-      for (final doc in snapshot.docs) {
-        try {
-          // Inject doc.id since Firestore data() doesn't include document ID
-          final json = FirestoreDocumentHelpers.injectDocumentId(doc);
-          events.add(RecordFactory.eventFromJson(json));
-        } catch (error, stackTrace) {
-          LoggingService.instance.error('Event document data: ${doc.data()}');
-          LoggingService.instance.error(
-            'Failed to parse event document ${doc.id}',
-            error,
-            stackTrace,
-          );
-        }
-      }
+      final events = await eventRepository.fetchRecentEventsForOrganization(
+        limit: _eventFetchLimit,
+      );
 
       LoggingService.instance.info(
-        'GeneticsEventsTable: Parsed ${events.length} events from Firestore',
+        'GeneticsEventsTable: Loaded ${events.length} events from EventRepository',
       );
 
       final rows = <_GeneticsEventRow>[];

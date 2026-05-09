@@ -4,13 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
 import 'package:seafoundry_app/models/events/event.dart';
-import 'package:seafoundry_app/models/factories/record_factory.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/types/event_type.dart';
-import 'package:seafoundry_app/models/types/model_type.dart';
+import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
-import 'package:seafoundry_app/repositories/utils/firestore_document_helpers.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/pagination_service.dart';
 import 'package:seafoundry_app/utils/user_display_name.dart';
@@ -123,6 +121,7 @@ class _InventoryEventsTableState extends State<InventoryEventsTable>
     });
 
     final providerResult = safeReadProviders(() => (
+          context.read<EventRepository>(),
           context.read<RecordRepository>(),
           context.read<OrganismRecordRepository>(),
           context.read<CurrentUser>().state,
@@ -137,8 +136,12 @@ class _InventoryEventsTableState extends State<InventoryEventsTable>
       return;
     }
 
-    final (recordRepository, organismRepository, currentUserState) =
-        providerResult.value!;
+    final (
+      eventRepository,
+      recordRepository,
+      organismRepository,
+      currentUserState,
+    ) = providerResult.value!;
 
     String? organizationId;
     if (currentUserState is CurrentUserLoaded) {
@@ -158,30 +161,15 @@ class _InventoryEventsTableState extends State<InventoryEventsTable>
     try {
       if (!mounted) return;
 
-      // Fetch events from Firestore, filtered by organization and ordered by
-      // creation date descending. We apply event type filtering client-side
-      // since Firestore whereIn has a 30-item limit.
-      final query = recordRepository.db
-          .collection(ModelType.event.collectionPath)
-          .where('organizationId', isEqualTo: organizationId)
-          .orderBy('createdAt', descending: true)
-          .limit(_eventFetchLimit);
+      // Event-type filtering is applied client-side because Firestore's
+      // whereIn is capped at 30 entries.
+      final events = await eventRepository.fetchRecentEventsForOrganization(
+        limit: _eventFetchLimit,
+      );
 
-      if (!mounted) return;
-      final snapshot = await query.get();
-      final events = <Event>[];
-      for (final doc in snapshot.docs) {
-        try {
-          final json = FirestoreDocumentHelpers.injectDocumentId(doc);
-          events.add(RecordFactory.eventFromJson(json));
-        } catch (error, stackTrace) {
-          LoggingService.instance.error(
-            'Failed to parse event document ${doc.id}',
-            error,
-            stackTrace,
-          );
-        }
-      }
+      LoggingService.instance.info(
+        '$_title: Loaded ${events.length} events from EventRepository',
+      );
 
       LoggingService.instance.info(
         '$_title: Parsed ${events.length} events from Firestore',
