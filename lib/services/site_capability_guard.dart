@@ -1,5 +1,5 @@
-import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_streams.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
 import 'package:seafoundry_app/models/site.dart';
 import 'package:seafoundry_app/models/site_capabilities.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_state.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/models/site.dart';
 import 'package:seafoundry_app/models/site_capabilities.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';

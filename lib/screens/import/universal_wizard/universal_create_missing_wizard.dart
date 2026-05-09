@@ -1,7 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/models/site.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/site_repository.dart';

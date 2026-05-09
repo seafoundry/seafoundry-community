@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_streams.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/models/public_read_models/brand_profile.dart';
 import 'package:seafoundry_app/navigation/community_graph_scaffold.dart';
 import 'package:seafoundry_app/providers/brand_theme_provider.dart';

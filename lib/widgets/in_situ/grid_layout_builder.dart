@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
-import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
-import 'package:seafoundry_app/blocs/graph_node/group_node.dart';
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/organism_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_state.dart';
+import 'package:seafoundry_app/models/graph/group_node.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/group.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node.dart';
 import 'package:seafoundry_app/models/records/graph_node_record.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';

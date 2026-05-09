@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_events.dart';
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_events.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/cubits/in_situ_grid/in_situ_grid_cubit.dart';
 import 'package:seafoundry_app/cubits/in_situ_grid/in_situ_grid_state.dart';

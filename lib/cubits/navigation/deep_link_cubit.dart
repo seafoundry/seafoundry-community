@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node.dart';
 import 'package:seafoundry_app/patterns/navigation/deep_link_handler.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/services/deep_link_service.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
+import 'package:seafoundry_app/cubits/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/widgets/dialogs/structure/shared/review_field_row.dart';

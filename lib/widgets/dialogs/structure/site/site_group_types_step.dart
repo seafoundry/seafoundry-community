@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
+import 'package:seafoundry_app/cubits/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';
 import 'package:seafoundry_app/widgets/hierarchy_preview_widget.dart';

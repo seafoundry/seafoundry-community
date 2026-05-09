@@ -1,6 +1,6 @@
-import 'package:seafoundry_app/blocs/graph_node/graph_node_utils.dart';
-import 'package:seafoundry_app/blocs/graph_node/group_node.dart';
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_utils.dart';
+import 'package:seafoundry_app/models/graph/group_node.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/models/site_capabilities.dart';
 import 'package:seafoundry_app/models/types/event_type.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';

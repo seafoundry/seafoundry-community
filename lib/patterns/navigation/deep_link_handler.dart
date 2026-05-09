@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/inventory_record_repository.dart';
