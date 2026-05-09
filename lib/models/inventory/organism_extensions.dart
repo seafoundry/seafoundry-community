@@ -118,13 +118,13 @@ extension OrganismRecordCapabilities on OrganismRecord {
 
   /// Preferred label for UI display.
   ///
-  /// Uses tagId first, then falls back to localId, species code + short ID.
+  /// Uses tagId first, then falls back to localGenetId, species code + short ID.
   String get displayLabel {
     final recordValue = tagId.trim();
     if (_isMeaningful(recordValue)) {
       return recordValue;
     }
-    final localIdValue = localId?.trim();
+    final localIdValue = localGenetId?.trim();
     if (_isMeaningful(localIdValue)) {
       return localIdValue!;
     }

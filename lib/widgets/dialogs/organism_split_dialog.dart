@@ -350,7 +350,7 @@ class _RecordDetailsStepState extends State<_RecordDetailsStep> {
           UI.spacingVerticalMd,
           // Locked LocalID field - same organism, split into multiple records
           LockedTextField(
-            value: sourceOrganism?.localId,
+            value: sourceOrganism?.localGenetId,
             labelText: 'Local ID',
             tooltipMessage: 'Same organism, split into multiple records',
             prefixIcon: Icons.fingerprint,
@@ -491,7 +491,7 @@ class _ReviewStep extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: UIText.caption(
-                      'The new record will inherit: local ID (${sourceOrganism.localId}), '
+                      'The new record will inherit: local ID (${sourceOrganism.localGenetId}), '
                       'provenance, genetics, life stage history, and measurement history.',
                     ),
                   ),

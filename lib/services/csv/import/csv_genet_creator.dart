@@ -34,7 +34,7 @@ class CsvGenetCreator {
   Future<CsvGenetCreationResult?> ensureGenet({
     required int rowNumber,
     required String genetName,
-    String? localId,
+    String? localGenetId,
     String? provenanceId,
     String? clonalId,
     String? accessionNumber,
@@ -124,7 +124,7 @@ class CsvGenetCreator {
           Genet.partial(
             name: genetName,
             slug: slug,
-            localId: localId?.isNotEmpty == true ? localId : null,
+            localGenetId: localGenetId?.isNotEmpty == true ? localGenetId : null,
             provenanceId: null,
             clonalId: clonalId?.isNotEmpty == true ? clonalId : null,
             accessionNumber:
@@ -151,7 +151,7 @@ class CsvGenetCreator {
         'speciesId': species.id,
         'provenanceType': provenanceType.name,
         if (lifeStage != null) 'lifeStage': lifeStage.name,
-        if (localId != null && localId.isNotEmpty) 'localId': localId,
+        if (localGenetId != null && localGenetId.isNotEmpty) 'localGenetId': localGenetId,
       },
     );
   }

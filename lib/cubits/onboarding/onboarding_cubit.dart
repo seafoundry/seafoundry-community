@@ -613,7 +613,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
     final defaultLifeStage = _getDefaultLifeStage(organismKind);
     final defaultLocalId = _getDefaultLocalId(organismKind);
 
-    // Create and register tagId controller with localId as default.
+    // Create and register tagId controller with localGenetId as default.
     final recordNameCtrl = _registerController(
       TextEditingController(text: defaultLocalId),
     );
@@ -668,7 +668,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
 
     try {
       final organismUrlPath = await repository.createFirstGenetAndOrganism(
-        localId: organismState.localIdController.text.trim(),
+        localGenetId: organismState.localIdController.text.trim(),
         species: organismState.selectedSpecies!,
         siteId: organismState.siteId,
         groupId: organismState.groupId,
@@ -979,9 +979,9 @@ class OnboardingCubit extends Cubit<OnboardingState>
         _recordNameSuggestionTimer?.cancel();
         _recordNameSuggestionRequestId += 1;
       } else if (currentState.isRecordNameManuallyEdited) {
-        final localId = currentState.localIdController.text.trim();
-        if (localId.isNotEmpty) {
-          _scheduleRecordNameSuggestion(localId, debounce: false);
+        final localGenetId = currentState.localIdController.text.trim();
+        if (localGenetId.isNotEmpty) {
+          _scheduleRecordNameSuggestion(localGenetId, debounce: false);
         }
       }
       if (currentState.isRecordNameManuallyEdited != isManual) {
@@ -996,7 +996,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
   }
 
   /// Handle local ID edits and keep tagId auto-suggested when allowed.
-  void localIdChanged(String localId) {
+  void localIdChanged(String localGenetId) {
     if (state is! OnboardingFirstOrganismSetup) return;
     var currentState = state as OnboardingFirstOrganismSetup;
 
@@ -1004,20 +1004,20 @@ class OnboardingCubit extends Cubit<OnboardingState>
     if (!currentState.isLocalIdManuallyEdited) {
       emit(currentState.copyWith(isLocalIdManuallyEdited: true));
     }
-    _processLocalIdChange(localId);
+    _processLocalIdChange(localGenetId);
   }
 
   /// Update local ID from auto-suggestion (no manual edit flag).
-  void updateLocalIdFromAutoSuggestion(String localId) {
-    _processLocalIdChange(localId);
+  void updateLocalIdFromAutoSuggestion(String localGenetId) {
+    _processLocalIdChange(localGenetId);
   }
 
-  void _processLocalIdChange(String localId) {
+  void _processLocalIdChange(String localGenetId) {
     if (state is! OnboardingFirstOrganismSetup) return;
     final currentState = state as OnboardingFirstOrganismSetup;
 
     if (currentState.isRecordNameManuallyEdited) return;
-    final trimmed = localId.trim();
+    final trimmed = localGenetId.trim();
     if (trimmed.isEmpty) return;
     if (currentState.recordNameController != null) {
       currentState.recordNameController!.text = trimmed;
@@ -1025,26 +1025,26 @@ class OnboardingCubit extends Cubit<OnboardingState>
     _scheduleRecordNameSuggestion(trimmed);
   }
 
-  void _scheduleRecordNameSuggestion(String localId, {bool debounce = true}) {
+  void _scheduleRecordNameSuggestion(String localGenetId, {bool debounce = true}) {
     _recordNameSuggestionTimer?.cancel();
     if (!debounce) {
-      _suggestRecordName(localId);
+      _suggestRecordName(localGenetId);
       return;
     }
     _recordNameSuggestionTimer = Timer(
       const Duration(milliseconds: 300),
-      () => _suggestRecordName(localId),
+      () => _suggestRecordName(localGenetId),
     );
   }
 
-  Future<void> _suggestRecordName(String localId) async {
+  Future<void> _suggestRecordName(String localGenetId) async {
     if (state is! OnboardingFirstOrganismSetup) return;
     final currentState = state as OnboardingFirstOrganismSetup;
     if (currentState.isRecordNameManuallyEdited) return;
     final requestId = ++_recordNameSuggestionRequestId;
     final suggestion = await repository.suggestRecordName(
       organizationId: currentState.user.organizationId,
-      localId: localId,
+      localGenetId: localGenetId,
     );
     if (isClosed) return;
     if (requestId != _recordNameSuggestionRequestId) return;

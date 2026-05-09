@@ -309,7 +309,7 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
               showIdentifier: displayPrefs.showIdentifier,
               recordId: record.id,
               tagId: record.tagId,
-              localId: record.localId,
+              localGenetId: record.localGenetId,
             );
             return _OrganismListTile(
               record: record,
@@ -542,7 +542,7 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
       showIdentifier: displayPrefs.showIdentifier,
       recordId: record.id,
       tagId: record.tagId,
-      localId: record.localId,
+      localGenetId: record.localGenetId,
     );
     final label = displayInfo.tagId.trim();
     if (label.isNotEmpty) {
@@ -610,7 +610,7 @@ class _OrganismListTile extends StatelessWidget {
     final genetId = GenetIdResolver.resolve(record);
     final hasReference =
         displayInfo.tagId.trim().isNotEmpty ||
-        (displayInfo.localId ?? '').trim().isNotEmpty;
+        (displayInfo.localGenetId ?? '').trim().isNotEmpty;
 
     return ListTile(
       onTap: onTap,
@@ -620,7 +620,7 @@ class _OrganismListTile extends StatelessWidget {
             child: hasReference
                 ? OrganismReferenceLinks(
                     tagId: displayInfo.tagId,
-                    localId: displayInfo.localId,
+                    localGenetId: displayInfo.localGenetId,
                     urlPath: record.urlPath,
                     genetId: genetId,
                     showUnderline: false,

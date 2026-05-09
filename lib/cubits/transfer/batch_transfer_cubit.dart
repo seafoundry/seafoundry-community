@@ -149,14 +149,14 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
     ));
   }
 
-  void setFixedGenet(String genetId, String localId, int availableInventory) {
+  void setFixedGenet(String genetId, String localGenetId, int availableInventory) {
     // Clear cart when genet changes — items store the genet reference.
     final shouldClear = state.fixedGenetId != null &&
         state.fixedGenetId != genetId &&
         state.items.isNotEmpty;
     emit(state.copyWith(
       fixedGenetId: genetId,
-      fixedGenetLocalId: localId,
+      fixedGenetLocalId: localGenetId,
       availableInventory: availableInventory,
       items: shouldClear ? const [] : null,
     ));

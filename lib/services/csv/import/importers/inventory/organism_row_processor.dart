@@ -61,7 +61,7 @@ class OrganismRowProcessor {
       rowNumber: rowNumber,
       organism: validated.organism,
       targetGroup: validated.targetGroup,
-      localId: validated.localId,
+      localGenetId: validated.localGenetId,
       tagId: validated.tagId,
       speciesId: validated.speciesId,
       physicalFormId: validated.physicalFormId,

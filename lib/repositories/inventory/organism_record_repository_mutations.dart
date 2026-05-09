@@ -28,7 +28,7 @@ mixin _OrganismRecordRepositoryMutations
       );
     }
 
-    // Generate a user-friendly slug based on localId instead of generic "organismRecord"
+    // Generate a user-friendly slug based on localGenetId instead of generic "organismRecord"
     final slugBase = generateSlugBase(partialRecord);
     final recordSlug = await nextSlugForBase(slugBase);
 
@@ -271,7 +271,7 @@ mixin _OrganismRecordRepositoryMutations
       createdEvents.add(event);
     }
 
-    // Note: Identity change events (tagId, localId, ownership) are emitted
+    // Note: Identity change events (tagId, localGenetId, ownership) are emitted
     // by the cubit's _emitIdentityChangeEvents() with proper EventType constants.
     // Do NOT create observation events for these changes here to avoid duplicates.
 
@@ -743,7 +743,7 @@ mixin _OrganismRecordRepositoryMutations
     return record.copyWith(foreignKeys: updatedForeignKeys);
   }
 
-  /// Update the localId for all organism records sharing the same genet.
+  /// Update the localGenetId for all organism records sharing the same genet.
   ///
   /// Used when user chooses "All records" in the LocalID edit scope dialog.
   /// Returns the number of records updated.
@@ -767,7 +767,7 @@ mixin _OrganismRecordRepositoryMutations
 
     if (trimmedLocalId.isEmpty) {
       throw RepositoryError(
-        message: 'Cannot update localId to an empty value.',
+        message: 'Cannot update localGenetId to an empty value.',
         category: AppErrorCategory.validation,
       );
     }
@@ -797,7 +797,7 @@ mixin _OrganismRecordRepositoryMutations
         final updatedCount = await db.runTransaction<int>((transaction) async {
           for (final doc in snapshot.docs) {
             transaction.update(doc.reference, {
-              'localId': trimmedLocalId,
+              'localGenetId': trimmedLocalId,
               'updatedAt': now,
               'updatedById': updatedById,
             });
@@ -806,7 +806,7 @@ mixin _OrganismRecordRepositoryMutations
         });
 
         LoggingService.instance.info(
-          'Updated localId to "$trimmedLocalId" for $updatedCount records '
+          'Updated localGenetId to "$trimmedLocalId" for $updatedCount records '
           '(genetId: $trimmedGenetId) using transaction',
         );
 
@@ -824,7 +824,7 @@ mixin _OrganismRecordRepositoryMutations
 
         for (var j = i; j < endIndex; j++) {
           batch.update(snapshot.docs[j].reference, {
-            'localId': trimmedLocalId,
+            'localGenetId': trimmedLocalId,
             'updatedAt': now,
             'updatedById': updatedById,
           });
@@ -835,14 +835,14 @@ mixin _OrganismRecordRepositoryMutations
       }
 
       LoggingService.instance.info(
-        'Updated localId to "$trimmedLocalId" for $updatedCount records '
+        'Updated localGenetId to "$trimmedLocalId" for $updatedCount records '
         '(genetId: $trimmedGenetId) using ${(totalDocs / transactionLimit).ceil()} batches',
       );
 
       return updatedCount;
     } catch (e, stackTrace) {
       LoggingService.instance.error(
-        'Error updating localId genet-wide for genetId: $trimmedGenetId',
+        'Error updating localGenetId genet-wide for genetId: $trimmedGenetId',
         e,
         stackTrace,
       );

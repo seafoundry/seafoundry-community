@@ -86,7 +86,7 @@ class InventoryExportRow {
     final row = <String, dynamic>{
       'coralId': organism.id,
       'provenanceId': lineageProvenanceId,
-      'localId': organism.localId ?? '',
+      'localGenetId': organism.localGenetId ?? '',
       'tagId': tagId,
       'organismKind': organism.organismKind.name,
       'lifeStage': lifeStage.name,

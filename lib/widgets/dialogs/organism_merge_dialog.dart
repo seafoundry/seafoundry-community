@@ -107,8 +107,8 @@ class OrganismMergeDialog extends StatelessWidget {
       if (organism.metadata?['isDeleted'] == true) return false;
 
       if (resolvedLocalId != null && resolvedLocalId.isNotEmpty) {
-        final localId = organism.localId?.trim();
-        if (localId == null || localId != resolvedLocalId) {
+        final localGenetId = organism.localGenetId?.trim();
+        if (localGenetId == null || localGenetId != resolvedLocalId) {
           return false;
         }
       }
@@ -226,13 +226,13 @@ class _SelectionStep extends StatelessWidget {
     final targetId = state.targetOrganismId;
     final theme = Theme.of(context);
 
-    // Group organisms by localId for display
+    // Group organisms by localGenetId for display
     final organismsByLocalId = <String, List<OrganismRecord>>{};
     for (final organism in state.availableOrganisms) {
       final eligible = state.isOrganismEligible(organism);
-      final localId = organism.localId;
-      if (eligible && localId != null && localId.isNotEmpty) {
-        organismsByLocalId.putIfAbsent(localId, () => []).add(organism);
+      final localGenetId = organism.localGenetId;
+      if (eligible && localGenetId != null && localGenetId.isNotEmpty) {
+        organismsByLocalId.putIfAbsent(localGenetId, () => []).add(organism);
       }
     }
 
@@ -241,7 +241,7 @@ class _SelectionStep extends StatelessWidget {
         .where((e) => e.value.length >= 2)
         .toList();
 
-    final selectedLocalId = state.targetOrganism?.localId?.trim();
+    final selectedLocalId = state.targetOrganism?.localGenetId?.trim();
     final filteredLocalId =
         (selectedLocalId != null && selectedLocalId.isNotEmpty)
             ? selectedLocalId
@@ -296,12 +296,12 @@ class _SelectionStep extends StatelessWidget {
               itemCount: visibleLocalIds.length,
               itemBuilder: (context, index) {
                 final entry = visibleLocalIds[index];
-                final localId = entry.key;
+                final localGenetId = entry.key;
                 final organisms = entry.value;
 
                 return ExpansionTile(
                   initiallyExpanded: index == 0,
-                  title: Text('Local ID: $localId'),
+                  title: Text('Local ID: $localGenetId'),
                   subtitle: Text('${organisms.length} records'),
                   children: organisms.map((organism) {
                     final isSelected = selectedIds.contains(organism.id);

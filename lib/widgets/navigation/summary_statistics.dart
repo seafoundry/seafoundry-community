@@ -224,12 +224,12 @@ class _SummaryStatisticsViewState extends State<_SummaryStatisticsView> {
       speciesLabels[id] = species?.name ?? id;
     }
 
-    // Genet labels: use the localId from the first organism with that genet
+    // Genet labels: use the localGenetId from the first organism with that genet
     final genetLabels = <String, String>{};
     for (final organism in organisms) {
       final genetId = GenetIdResolver.resolve(organism)?.trim();
       if (genetId != null && genetId.isNotEmpty && !genetLabels.containsKey(genetId)) {
-        genetLabels[genetId] = organism.localId ?? genetId;
+        genetLabels[genetId] = organism.localGenetId ?? genetId;
       }
     }
 
@@ -870,7 +870,7 @@ class _SummaryStatisticsViewState extends State<_SummaryStatisticsView> {
       filterState: filterState,
       isOutplantingSite: (siteId) => _isExcludedFromInventoryCounts(siteId: siteId),
       onRecordSelected: (organism) {
-        LoggingService.instance.info('SummaryStatistics: Organism selected - ${organism.localId ?? organism.slug}');
+        LoggingService.instance.info('SummaryStatistics: Organism selected - ${organism.localGenetId ?? organism.slug}');
         LoggingService.instance.info('SummaryStatistics: Navigating to urlPath: ${organism.urlPath}');
         // Note: Bottom sheet pops itself using its own context before invoking this callback
         if (!navigationCubit.isClosed) {

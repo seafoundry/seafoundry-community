@@ -185,12 +185,12 @@ class UniqueNameValidationService {
   /// Local ID conflicts should block re-use even if the genet is archived.
   /// This mirrors the suggestion logic that never reuses archived IDs.
   Future<bool> isGenetLocalIdUnique({
-    required String localId,
+    required String localGenetId,
     required String organizationId,
     String? excludeRecordId,
   }) async {
     try {
-      final normalizedTarget = normalizeLocalId(localId);
+      final normalizedTarget = normalizeLocalId(localGenetId);
       if (normalizedTarget == null) {
         return true;
       }
@@ -200,16 +200,16 @@ class UniqueNameValidationService {
           .doc(organizationId)
           .collection(ModelType.genet.collectionPath);
 
-      // Fast path: exact localId matches.
+      // Fast path: exact localGenetId matches.
       final exactSnapshot = await scopedCollection
-          .where('localId', isEqualTo: localId)
+          .where('localGenetId', isEqualTo: localGenetId)
           .get();
 
       for (final doc in exactSnapshot.docs) {
         final docId = doc.data()['id'] as String? ?? doc.id;
         if (excludeRecordId == null || docId != excludeRecordId) {
           _logger.info(
-            'Genet local ID conflict found via indexed lookup: "$localId" '
+            'Genet local ID conflict found via indexed lookup: "$localGenetId" '
             'already exists for organization $organizationId',
           );
           return false;
@@ -225,8 +225,8 @@ class UniqueNameValidationService {
           continue;
         }
         final candidate =
-            data['localId']?.toString().trim().isNotEmpty == true
-                ? data['localId']?.toString()
+            data['localGenetId']?.toString().trim().isNotEmpty == true
+                ? data['localGenetId']?.toString()
                 : (data['name']?.toString() ?? data['displayName']?.toString());
         final normalizedCandidate = normalizeLocalId(candidate);
         if (normalizedCandidate == null) {
@@ -234,7 +234,7 @@ class UniqueNameValidationService {
         }
         if (normalizedCandidate == normalizedTarget) {
           _logger.info(
-            'Genet local ID conflict found: "$localId" already exists '
+            'Genet local ID conflict found: "$localGenetId" already exists '
             'for organization $organizationId',
           );
           return false;
@@ -325,12 +325,12 @@ class UniqueNameValidationService {
         // We want the next ID to be "Apal-002".
 
         // Genet Local ID is primarily stored in 'name', but check others for safety
-        final localId = (data['name'] ??
-                         data['localId'] ??
+        final localGenetId = (data['name'] ??
+                         data['localGenetId'] ??
                          data['displayName']) as String?;
 
-        if (localId != null) {
-          final match = pattern.firstMatch(localId);
+        if (localGenetId != null) {
+          final match = pattern.firstMatch(localGenetId);
           if (match != null) {
             final number = int.tryParse(match.group(1) ?? '0') ?? 0;
             if (number > maxNumber) {
@@ -421,12 +421,12 @@ class UniqueNameValidationService {
         // Do not skip archived genets - we never want to reuse generation IDs
 
         // Check all possible local ID storage locations
-        final localId = (data['localId'] ??
+        final localGenetId = (data['localGenetId'] ??
                 data['name'] ??
                 data['displayName']) as String?;
 
-        if (localId != null) {
-          final match = pattern.firstMatch(localId.trim());
+        if (localGenetId != null) {
+          final match = pattern.firstMatch(localGenetId.trim());
           if (match != null) {
             final generation = int.tryParse(match.group(1) ?? '0') ?? 0;
             if (generation > maxGeneration) {
@@ -446,9 +446,9 @@ class UniqueNameValidationService {
     }
   }
 
-  static String? normalizeLocalId(String? localId) {
-    if (localId == null) return null;
-    final trimmed = localId.trim();
+  static String? normalizeLocalId(String? localGenetId) {
+    if (localGenetId == null) return null;
+    final trimmed = localGenetId.trim();
     if (trimmed.isEmpty) return null;
     return trimmed.replaceAll(RegExp(r'\s+'), '-').toLowerCase();
   }

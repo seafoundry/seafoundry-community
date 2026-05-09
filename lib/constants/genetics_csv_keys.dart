@@ -17,7 +17,7 @@ class GeneticsCsvKeys {
   /// could be confused with a Firestore document ID. Use 'genetLocalId'
   /// instead. (Phase 2, Team Delta — 2D.4)
   static const List<String> localIdKeys = [
-    'localId',
+    'localGenetId',
     'Local ID',
     'genetLocalId',
   ];

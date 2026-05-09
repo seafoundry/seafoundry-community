@@ -421,9 +421,9 @@ class _TransferInitiateDialogState
   }
 
   String _genetLabel(Genet genet) {
-    final localId = genet.localId?.trim();
-    if (localId != null && localId.isNotEmpty) {
-      return localId;
+    final localGenetId = genet.localGenetId?.trim();
+    if (localGenetId != null && localGenetId.isNotEmpty) {
+      return localGenetId;
     }
     final name = genet.name.trim();
     return name.isNotEmpty ? name : genet.id;
@@ -569,12 +569,12 @@ class _TransferInitiateDialogState
       final locationCompare = _locationLabel(a).compareTo(_locationLabel(b));
       if (locationCompare != 0) return locationCompare;
       final aLabel = formatOrganismReferenceLabel(
-        localId: a.localId,
+        localGenetId: a.localGenetId,
         tagId: a.tagId,
         fallback: a.id,
       );
       final bLabel = formatOrganismReferenceLabel(
-        localId: b.localId,
+        localGenetId: b.localGenetId,
         tagId: b.tagId,
         fallback: b.id,
       );

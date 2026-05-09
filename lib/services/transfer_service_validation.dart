@@ -1090,7 +1090,7 @@ extension _TransferServiceValidation on TransferService {
         final isPendingOutplant = data['metadata']?['pendingOutplant'] == true;
         if (isPendingOutplant) {
           final displayName =
-              data['metadata']?['localId'] as String? ?? organismId;
+              data['metadata']?['localGenetId'] as String? ?? organismId;
           throw TransferWorkflowException(
             'Organism "$displayName" is allocated to a pending outplant batch and cannot be transferred. '
             'Remove it from the outplant batch first.',
@@ -1107,7 +1107,7 @@ extension _TransferServiceValidation on TransferService {
         final organismQty = resolveOrganismQuantity(data, fallback: 0);
         if (requestedQty > organismQty) {
           final displayName =
-              data['metadata']?['localId'] as String? ?? organismId;
+              data['metadata']?['localGenetId'] as String? ?? organismId;
           throw TransferWorkflowException(
             'Organism "$displayName" has only $organismQty available.',
           );
@@ -1309,12 +1309,12 @@ extension _TransferServiceValidation on TransferService {
 
       // Register the receiving organization's local ID as a new alias.
       // The PID is the shared index; aliases are org-specific local IDs.
-      localProvenanceId = createdGenet.localId?.trim();
+      localProvenanceId = createdGenet.localGenetId?.trim();
       receivingOrgId = _provenanceRepository.organization.id;
 
       if (localProvenanceId == null || localProvenanceId.isEmpty) {
         LoggingService.instance.debug(
-          'No receiving localId available - skipping crosswalk mapping',
+          'No receiving localGenetId available - skipping crosswalk mapping',
         );
         return;
       }

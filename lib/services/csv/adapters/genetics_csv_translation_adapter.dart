@@ -53,7 +53,7 @@ class GeneticsCsvTranslationAdapter extends CsvTranslationAdapter {
     }
 
     setIfPresent('provenanceId', _firstValue(row, GeneticsCsvKeys.provenanceIdKeys));
-    setIfPresent('localId', _firstValue(row, _localIdKeys));
+    setIfPresent('localGenetId', _firstValue(row, _localIdKeys));
     setIfPresent('name', _firstValue(row, GeneticsCsvKeys.nameKeys));
     setIfPresent('speciesId', _firstValue(row, GeneticsCsvKeys.speciesKeys));
     setIfPresent(

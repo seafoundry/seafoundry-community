@@ -100,7 +100,7 @@ class CsvImportDialog extends StatefulWidget {
             const SnackBar(
               content: Text(
                 'Import inventory data first. Outplanting import requires at '
-                'least one organism record (localId).',
+                'least one organism record (localGenetId).',
               ),
               duration: Duration(seconds: 4),
             ),
@@ -350,12 +350,12 @@ class _CsvImportDialogState extends State<CsvImportDialog>
         final organismRepo = widget.organismRecordRepository;
         if (organismRepo != null) {
           final organisms = await organismRepo.getAll();
-          // Filter to organisms with valid localId and positive quantity
+          // Filter to organisms with valid localGenetId and positive quantity
           final eligible = organisms
               .where(
                 (o) =>
-                    o.localId != null &&
-                    o.localId!.isNotEmpty &&
+                    o.localGenetId != null &&
+                    o.localGenetId!.isNotEmpty &&
                     o.measurement.value > 0,
               )
               .toList();
@@ -368,7 +368,7 @@ class _CsvImportDialogState extends State<CsvImportDialog>
                 'siteName': '',
                 'eventNotes': '',
                 'structureName': '',
-                'localId': organism.localId,
+                'localGenetId': organism.localGenetId,
                 'tagId': organism.tagId,
                 'quantity': organism.measurement.value.round().toString(),
                 'outplantTagId': '',

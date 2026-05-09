@@ -126,7 +126,7 @@ class InventoryHoldingRowBuilder {
         ? ''
         : aliases.map((alias) => alias.label ?? alias.value).join('; ');
 
-    final localId = holding.organismRecord.localId ?? '';
+    final localGenetId = holding.organismRecord.localGenetId ?? '';
     final tagId = holding.tagId;
     final urlPath = holding.urlPath.isNotEmpty
         ? holding.urlPath
@@ -134,7 +134,7 @@ class InventoryHoldingRowBuilder {
     final row = <String, dynamic>{
       'holdingKind': holdingKind,
       'holdingId': holding.id,
-      'localId': localId,
+      'localGenetId': localGenetId,
       'tagId': tagId,
       'urlPath': urlPath,
       'organismKind': holding.organismKind.name,

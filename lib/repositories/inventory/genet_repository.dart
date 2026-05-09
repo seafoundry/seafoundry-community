@@ -446,7 +446,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         recordId: record.id,
         provenanceId: record.provenanceId,
         organizationId: organizationId,
-        localId: record.name,
+        localGenetId: record.name,
       );
     } on AliasConflictException catch (error) {
       throw domainErrors.RepositoryError(message: error.toString());
@@ -529,7 +529,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         modelType: ModelType.genet,
         provenanceId: target.provenanceId,
         organizationId: organization.id,
-        localId: target.name,
+        localGenetId: target.name,
       );
     }
 

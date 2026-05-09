@@ -64,7 +64,7 @@ abstract class GraphNodeChildCard<T extends GraphNode> extends StatelessWidget {
           if (record is OrganismRecord) {
             recordNameWidget = OrganismReferenceLinks(
               tagId: record.tagId,
-              localId: record.localId,
+              localGenetId: record.localGenetId,
               urlPath: record.urlPath,
               genetId: record.genetId,
               showUnderline: true,
@@ -409,11 +409,11 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
 
   /// Override to show organism's record name (primary) with local ID context.
   /// The organism's `name` getter can be legacy-dependent, so we format
-  /// tagId/localId explicitly for display.
+  /// tagId/localGenetId explicitly for display.
   String get displayName {
     final organism = node.organism;
     return formatOrganismReferenceLabel(
-      localId: organism.localId,
+      localGenetId: organism.localGenetId,
       tagId: organism.tagId,
       fallback: organism.displayLabel,
     );
@@ -515,7 +515,7 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
           showIdentifier: prefs.showIdentifier,
           recordId: organism.id,
           tagId: organism.tagId,
-          localId: organism.localId,
+          localGenetId: organism.localGenetId,
         );
 
         return GestureDetector(
@@ -546,7 +546,7 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
                       else
                         OrganismReferenceLinks(
                           tagId: displayInfo.tagId,
-                          localId: displayInfo.localId,
+                          localGenetId: displayInfo.localGenetId,
                           urlPath: organism.urlPath,
                           genetId: genetId,
                           showUnderline: true,

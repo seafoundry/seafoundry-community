@@ -85,7 +85,7 @@ class OrganismRecordEditState extends Equatable {
   final String ownerOrganizationIdInput;
   final String managingOrganizationIdInput;
 
-  /// Override for the localId (genet identifier, e.g., "ACER-001").
+  /// Override for the localGenetId (genet identifier, e.g., "ACER-001").
   /// Maps to PID and by association to clonalID/alias/accession.
   final String? localIdOverride;
 
@@ -171,7 +171,7 @@ class OrganismRecordEditState extends Equatable {
   /// Whether the current user's org is a custodian (managing but not owning).
   ///
   /// A custodian can only edit location/quantity, NOT identity fields like
-  /// tagId, localId, ownership, or provenance/genetics.
+  /// tagId, localGenetId, ownership, or provenance/genetics.
   bool get isCustodian {
     final ownerOrgId = originalRecord.ownerOrganizationId;
     final managerOrgId = originalRecord.managingOrganizationId;
@@ -215,21 +215,21 @@ class OrganismRecordEditState extends Equatable {
   /// Whether the organism has no genet assigned and needs one selected.
   /// A genet is considered assigned if:
   /// - There's a selected genet override, OR
-  /// - There's a localId override, OR
+  /// - There's a localGenetId override, OR
   /// - There's an underlying genet, OR
-  /// - The original record has a localId
+  /// - The original record has a localGenetId
   bool get isMissingGenet =>
       selectedGenetOverride == null &&
       localIdOverride == null &&
       underlyingGenet == null &&
-      originalRecord.localId == null;
+      originalRecord.localGenetId == null;
 
   bool get canSubmit =>
       changeSet.hasChanges && !_hasBlockingValidation && !isSubmitting;
 
   /// Only block submission when there's a validation error for an actual change.
   /// This prevents stale validation messages from blocking unrelated edits.
-  /// Also blocks when no genet is assigned (localId is required).
+  /// Also blocks when no genet is assigned (localGenetId is required).
   bool get _hasBlockingValidation =>
       isMissingGenet ||
       (hasLifeStageChange && lifeStageValidationMessage != null) ||

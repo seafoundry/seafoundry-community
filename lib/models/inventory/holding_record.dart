@@ -275,16 +275,15 @@ class HoldingRecord extends InventoryRecord
                 deepNormalizeMap(organismRecordJson),
               )
             : null;
-    // Top-level localId is canonical; no metadata fallbacks
-    final localId =
-        readText(json['localId']) ??
-        readText(json['local_id']) ??
-        parsedOrganismRecord?.localId ??
-        readText(json['id']);  // Last resort: use document ID as localId
+    // Top-level localGenetId is canonical; no metadata fallbacks
+    final localGenetId =
+        readText(json['localGenetId']) ??
+        parsedOrganismRecord?.localGenetId ??
+        readText(json['id']);  // Last resort: use document ID as localGenetId
     final resolvedRecordName =
         readText(json['tagId']) ??
         parsedOrganismRecord?.tagId ??
-        localId ??
+        localGenetId ??
         json['id']?.toString();
 
     return HoldingRecord(
@@ -333,9 +332,9 @@ class HoldingRecord extends InventoryRecord
   /// Call this during creation flows, NOT during deserialization.
   /// Returns null if valid, or an error message if invalid.
   static String? validateForCreation(HoldingRecord record) {
-    final localId = record.organismRecord.localId?.trim();
-    if (localId == null || localId.isEmpty || localId == Missing.string) {
-      return 'localId is required for new holdings';
+    final localGenetId = record.organismRecord.localGenetId?.trim();
+    if (localGenetId == null || localGenetId.isEmpty || localGenetId == Missing.string) {
+      return 'localGenetId is required for new holdings';
     }
     final tagId = record.tagId.trim();
     if (tagId.isEmpty || tagId == Missing.string) {

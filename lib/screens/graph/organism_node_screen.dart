@@ -102,11 +102,11 @@ class _OrganismNodeBody extends StatelessWidget {
                               organism.name,
                               style: theme.textTheme.titleLarge,
                             ),
-                            if (organism.localId != null &&
-                                organism.localId!.isNotEmpty) ...[
+                            if (organism.localGenetId != null &&
+                                organism.localGenetId!.isNotEmpty) ...[
                               SizedBox(height: 2),
                               Text(
-                                'ID: ${organism.localId}',
+                                'ID: ${organism.localGenetId}',
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.w600,
