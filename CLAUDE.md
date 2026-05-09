@@ -42,8 +42,10 @@ Module docs live in `docs/modules/` with an index at `docs/modules/README.md`. K
 **User Identity**: All user documents live at `/users/{uid}` (Firebase Auth UID). Never use email as a document ID. Membership subcollection: `organizations/{orgId}/members/{uid}`. The `authorUid` field (not `authorEmail`) stores the comment/post author's UID.
 
 **Organism Record Identity** (Critical - Never Confuse These):
-- `localId`: The genet identifier (e.g., "ACER-001"). Maps to PID, clonalID, alias, accession. Shared by all records in the same genet.
-- `recordName`: User-friendly distinguishing adjective (e.g., "Fluffy"). Unique per record instance. Should ALWAYS differ from localId.
+- `localGenetId`: The genet identifier (e.g., "ACER-001"). Maps to PID, clonalID, alias, accession. Shared by all records in the same genet. (Was `localId` prior to seafoundry_app naming-parity rename.)
+- `tagId`: User-friendly distinguishing adjective (e.g., "Fluffy"). Unique per record instance. Should ALWAYS differ from localGenetId. (Was `recordName` prior to rename.)
+- `outplantTagId`: Per-organism outplant tag (distinct from `tagId`). Optional. (Was the previous community `tagId` prior to rename.)
+- `genetRecordId`: Foreign-key reference to a Genet document. (Was `genetId` prior to rename. Resolver class name is unchanged: `GenetIdResolver`.)
 - `id` (UUID): Immutable database record ID. Display last 8 chars when "show number" toggle is on.
 See `docs/modules/inventory/CLAUDE.md` for full details.
 
@@ -80,7 +82,7 @@ The size/volume system uses a 4-level chain: `Organism Kind -> Life Stage -> Phy
 Key components:
 - `PhysicalFormRegistry` (`lib/services/physical_form_registry.dart`) — loads coral physical forms from hardcoded Dart constants in `lib/services/physical_form_data.dart` (converted from the former YAML config)
 Access pattern: `organism.physicalForm?.formId` (primary).
-- `GenetIdResolver` (`lib/services/genet_id_resolver.dart`) — canonical genet ID resolution: `record.genetId ?? record.foreignKeys['genetId']?.id`. MUST be used for all business-logic genet ID resolution. Never access `foreignKeys['genetId']?.id` directly — always use `GenetIdResolver.resolve(record)`.
+- `GenetIdResolver` (`lib/services/genet_id_resolver.dart`) — canonical genet ID resolution: `record.genetRecordId ?? record.foreignKeys['genetRecordId']?.id`. MUST be used for all business-logic genet ID resolution. Never access `foreignKeys['genetRecordId']?.id` directly — always use `GenetIdResolver.resolve(record)`.
 
 ## Demo Seeding
 
