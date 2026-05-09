@@ -1,20 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:seafoundry_app/models/inventory/life_stage_transition_reason.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 
-/// Predefined reasons users can provide when advancing an organism to the next
-/// life stage. Keeping the list centralized makes it easier to map to enums or
-/// analytics later without hunting through multiple dialogs.
-enum LifeStageTransitionReason {
-  graduation('Graduation'),
-  environmentalTrigger('Environmental trigger'),
-  manualAdjustment('Manual adjustment'),
-  other('Other');
-
-  const LifeStageTransitionReason(this.label);
-
-  final String label;
-}
+export 'package:seafoundry_app/models/inventory/life_stage_transition_reason.dart';
 
 /// Structured inputs for editing life stage transitions. The surrounding bloc
 /// or parent widget owns the validation logic (LifeStageTransitionService,

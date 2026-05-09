@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:seafoundry_app/models/inventory/local_id_edit_scope.dart';
 
-/// Scope for applying localID changes.
-enum LocalIdEditScope {
-  /// Update only the current organism record.
-  recordOnly,
-
-  /// Update all organism records that share the same genet.
-  genetWide,
-}
+export 'package:seafoundry_app/models/inventory/local_id_edit_scope.dart';
 
 /// Dialog for choosing the scope of a localID edit.
 ///

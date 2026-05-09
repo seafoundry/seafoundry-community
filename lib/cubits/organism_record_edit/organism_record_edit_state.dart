@@ -6,13 +6,13 @@ import 'package:seafoundry_app/models/provenance_search_state.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/population_loss_reason.dart';
+import 'package:seafoundry_app/models/inventory/life_stage_transition_reason.dart';
+import 'package:seafoundry_app/models/inventory/local_id_edit_scope.dart';
+import 'package:seafoundry_app/models/inventory/physical_form_change_reason.dart';
+import 'package:seafoundry_app/models/inventory/quantity_change.dart';
 import 'package:seafoundry_app/services/identity_edit_service.dart';
 import 'package:seafoundry_app/services/measurement_metrics_service.dart';
 import 'package:seafoundry_app/services/organism_record_change_service.dart';
-import 'package:seafoundry_app/widgets/common/life_stage_transition_editor.dart';
-import 'package:seafoundry_app/widgets/common/physical_form_change_editor.dart';
-import 'package:seafoundry_app/widgets/common/quantity_change_editor.dart';
-import 'package:seafoundry_app/widgets/dialogs/local_id_edit_scope_dialog.dart';
 
 typedef OrganismRecordSaveCallback =
     Future<void> Function(
