@@ -2,35 +2,32 @@ part of 'genetics_events_table.dart';
 
 /// Hydration logic for genetics events: fetching, filtering candidates by
 /// supported types and record types, and resolving genets/organisms/users.
+///
+/// The lifecycle state ([isLoading], [loadingProgress], [loadingStatus],
+/// [error], [rows]) is owned by [EventsTableScaffoldState]; this mixin
+/// writes into those inherited fields directly.
 mixin _GeneticsEventHydrationMixin
-    on
-        State<GeneticsEventsTable>,
-        SafeProviderReadMixin<GeneticsEventsTable> {
+    on EventsTableScaffoldState<GeneticsEventsTable, _GeneticsEventRow> {
   static const _eventFetchLimit = 250;
   static const _eventHydrationBatchSize = 20;
 
-  bool _isLoading = true;
-  double? _loadingProgress;
-  String? _loadingStatus;
-  String? _error;
-
-  final List<_GeneticsEventRow> _rows = [];
   final Map<String, String> _userNameCache = {};
   final Map<String, Genet?> _genetCache = {};
   final Map<String, OrganismRecord?> _organismCache = {};
 
   /// Hook implemented by the table state to refresh derived/filtered rows
-  /// after the canonical [_rows] list changes.
+  /// after the canonical [rows] list changes.
   void _onRowsLoaded();
 
-  Future<void> _loadEvents() async {
+  @override
+  Future<void> loadEvents() async {
     if (!mounted) return;
 
     setState(() {
-      _isLoading = true;
-      _loadingProgress = null;
-      _loadingStatus = 'Loading genetics events...';
-      _error = null;
+      isLoading = true;
+      loadingProgress = null;
+      loadingStatus = 'Loading genetics events...';
+      error = null;
     });
 
     // Cache provider references before async operations
@@ -45,8 +42,8 @@ mixin _GeneticsEventHydrationMixin
     if (!providerResult.success) {
       if (!mounted) return;
       setState(() {
-        _error = providerResult.errorMessage;
-        _isLoading = false;
+        error = providerResult.errorMessage;
+        isLoading = false;
       });
       return;
     }
@@ -66,10 +63,10 @@ mixin _GeneticsEventHydrationMixin
     if (organizationId == null || organizationId.isEmpty) {
       if (!mounted) return;
       setState(() {
-        _error = 'Session expired. Please refresh the page.';
-        _isLoading = false;
-        _loadingProgress = null;
-        _loadingStatus = null;
+        error = 'Session expired. Please refresh the page.';
+        isLoading = false;
+        loadingProgress = null;
+        loadingStatus = null;
       });
       return;
     }
@@ -85,7 +82,7 @@ mixin _GeneticsEventHydrationMixin
         'GeneticsEventsTable: Loaded ${events.length} events from EventRepository',
       );
 
-      final rows = <_GeneticsEventRow>[];
+      final hydratedRows = <_GeneticsEventRow>[];
       final candidates = <_GeneticsEventCandidate>[];
       var skippedUnsupportedType = 0;
       var skippedIrrelevantRecord = 0;
@@ -111,8 +108,8 @@ mixin _GeneticsEventHydrationMixin
 
       if (!mounted) return;
       setState(() {
-        _loadingProgress = candidates.isEmpty ? null : 0;
-        _loadingStatus = candidates.isEmpty
+        loadingProgress = candidates.isEmpty ? null : 0;
+        loadingStatus = candidates.isEmpty
             ? 'No events to hydrate.'
             : 'Hydrating ${candidates.length} events...';
       });
@@ -144,10 +141,10 @@ mixin _GeneticsEventHydrationMixin
                 return null;
               }
               return row;
-            } catch (error, stackTrace) {
+            } catch (err, stackTrace) {
               LoggingService.instance.error(
                 'Failed to parse genetics event ${candidate.event.id}',
-                error,
+                err,
                 stackTrace,
               );
               return null;
@@ -155,20 +152,20 @@ mixin _GeneticsEventHydrationMixin
           }),
         );
 
-        rows.addAll(batchRows.whereType<_GeneticsEventRow>());
+        hydratedRows.addAll(batchRows.whereType<_GeneticsEventRow>());
         hydratedCount += batch.length;
         if (!mounted) return;
         if (candidates.isNotEmpty) {
           setState(() {
-            _loadingProgress = hydratedCount / candidates.length;
-            _loadingStatus =
+            loadingProgress = hydratedCount / candidates.length;
+            loadingStatus =
                 'Hydrating events $hydratedCount/${candidates.length}';
           });
         }
       }
 
       LoggingService.instance.info(
-        'GeneticsEventsTable: ${rows.length} events included, '
+        'GeneticsEventsTable: ${hydratedRows.length} events included, '
         '$skippedUnsupportedType unsupported type, '
         '$skippedIrrelevantRecord irrelevant record, '
         '$skippedNullRow null rows',
@@ -176,26 +173,26 @@ mixin _GeneticsEventHydrationMixin
 
       if (!mounted) return;
       setState(() {
-        _rows
+        rows
           ..clear()
-          ..addAll(rows);
+          ..addAll(hydratedRows);
         _onRowsLoaded();
-        _isLoading = false;
-        _loadingProgress = null;
-        _loadingStatus = null;
+        isLoading = false;
+        loadingProgress = null;
+        loadingStatus = null;
       });
-    } catch (error, stackTrace) {
+    } catch (err, stackTrace) {
       LoggingService.instance.error(
         'Failed to load genetics events',
-        error,
+        err,
         stackTrace,
       );
       if (!mounted) return;
       setState(() {
-        _error = 'Failed to load events: $error';
-        _isLoading = false;
-        _loadingProgress = null;
-        _loadingStatus = null;
+        error = 'Failed to load events: $err';
+        isLoading = false;
+        loadingProgress = null;
+        loadingStatus = null;
       });
     }
   }
@@ -229,10 +226,10 @@ mixin _GeneticsEventHydrationMixin
         _genetCache[id] = genet;
       }
       return genet;
-    } catch (error, stackTrace) {
+    } catch (err, stackTrace) {
       LoggingService.instance.error(
         'Failed to resolve genet $id',
-        error,
+        err,
         stackTrace,
       );
       if (mounted) {
@@ -260,10 +257,10 @@ mixin _GeneticsEventHydrationMixin
         _organismCache[id] = organism;
       }
       return organism;
-    } catch (error, stackTrace) {
+    } catch (err, stackTrace) {
       LoggingService.instance.error(
         'Failed to resolve organism $id',
-        error,
+        err,
         stackTrace,
       );
       if (mounted) {
