@@ -631,7 +631,7 @@ mixin _OrganismRecordRepositoryMutations
       slug: slug,
       recordId: updatedRecord.id,
       recordModelType: ModelType.organismRecord,
-      organismRecordSnapshot: updatedRecord,
+      organismRecordSnapshot: QuantityChangeSnapshot.fromOrganismRecord(updatedRecord),
       oldMeasurement: oldMeasurement,
       newMeasurement: newMeasurement,
       metadata: metadata.isEmpty ? null : metadata,

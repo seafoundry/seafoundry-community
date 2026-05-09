@@ -1,6 +1,5 @@
 import 'package:seafoundry_app/models/events/event.dart';
-import 'package:seafoundry_app/models/events/event_snapshot_parser.dart';
-import 'package:seafoundry_app/models/inventory/organism_record.dart';
+import 'package:seafoundry_app/models/events/quantity_change_snapshot.dart';
 import 'package:seafoundry_app/models/population_measurement.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/inventory_event_type.dart';
@@ -57,7 +56,9 @@ class QuantityChangeEvent extends Event {
       recordModelType: ModelType.values.byName(
         json['recordModelType'] ?? ModelType.organismRecord.name,
       ),
-      organismRecordSnapshot: parseOrganismSnapshot(json),
+      organismRecordSnapshot: QuantityChangeSnapshot.fromJson(
+        deepNormalizeMap(json['organismRecordSnapshot']),
+      ),
       oldMeasurement: PopulationMeasurement.fromJson(
         deepNormalizeMap(json['oldMeasurement']),
       ),
@@ -80,7 +81,7 @@ class QuantityChangeEvent extends Event {
     );
   }
 
-  final OrganismRecord organismRecordSnapshot;
+  final QuantityChangeSnapshot organismRecordSnapshot;
   final PopulationMeasurement oldMeasurement;
   final PopulationMeasurement newMeasurement;
 
@@ -127,7 +128,7 @@ class QuantityChangeEvent extends Event {
     String? slug,
     String? recordId,
     ModelType? recordModelType,
-    OrganismRecord? organismRecordSnapshot,
+    QuantityChangeSnapshot? organismRecordSnapshot,
     PopulationMeasurement? oldMeasurement,
     PopulationMeasurement? newMeasurement,
     int? oldCount,
