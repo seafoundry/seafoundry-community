@@ -241,18 +241,26 @@ class GroupRepository extends InventoryRecordRepository<Group> {
     String? excludeRecordId,
   }) async {
     try {
-      final snapshot = await collectionRef
+      // Compound aggregation query — server-side count, no doc reads.
+      final aggregation = await collectionRef
           .where('parentId', isEqualTo: parentId)
+          .where('groupTypeId', isEqualTo: childTypeId)
+          .count()
           .get()
           .timeout(const Duration(seconds: 10));
-      var count = 0;
-      for (final doc in snapshot.docs) {
-        if (excludeRecordId != null && doc.id == excludeRecordId) {
-          continue;
-        }
-        final data = doc.data();
-        if (data['groupTypeId'] == childTypeId) {
-          count += 1;
+      var count = aggregation.count ?? 0;
+      // Subtract the excluded record if it would have been counted.
+      if (excludeRecordId != null && count > 0) {
+        final excluded = await collectionRef
+            .doc(excludeRecordId)
+            .get()
+            .timeout(const Duration(seconds: 10));
+        if (excluded.exists) {
+          final data = excluded.data();
+          if (data?['parentId'] == parentId &&
+              data?['groupTypeId'] == childTypeId) {
+            count -= 1;
+          }
         }
       }
       return count;
