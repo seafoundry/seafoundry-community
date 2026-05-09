@@ -17,9 +17,12 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// population measurement. Cohorts help bridge coral-specific cohorts to the
 /// organism-agnostic inventory model.
 ///
-/// `organismKind`, `lifeStage`, and `population` live on the embedded
-/// [organismRecord]; top-level getters delegate to it. Cohort-specific state
-/// (placement, scheduling) remains as plain fields.
+/// `organismKind`, `lifeStage`, and `population` are persisted as
+/// **denormalized display fields** on the cohort. Callers needing deep axes
+/// (aliases, physicalForm, lifeStageHistory, sizeSpec) must look up the
+/// canonical organism record via [resolveOrganismRecord] using
+/// [organismRecordId]. The embedded [organismRecord] field is retained for
+/// the in-flight migration; new code should prefer the FK + lookup pattern.
 class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   Cohort({
     required this.id,
@@ -36,8 +39,14 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     Map<String, dynamic> metadata = const <String, dynamic>{},
     HoldingAttributes? attributes,
     OrganismRecord? organismRecord,
+    String? organismRecordId,
   }) : metadata = UnmodifiableMapView(_normalizeMetadata(metadata)),
        attributes = _normalizeAttributes(attributes),
+       organismRecordId = _resolveOrganismRecordId(
+         explicit: organismRecordId,
+         base: organismRecord,
+         fallbackId: id,
+       ),
        organismRecord = _buildOrganismRecord(
          base: organismRecord,
          organismKind: organismKind,
@@ -57,6 +66,15 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   final DateTime? completedAt;
   final Map<String, dynamic> metadata;
   final HoldingAttributes attributes;
+
+  /// Foreign key to the canonical [OrganismRecord] document. Defaults to
+  /// the cohort's own [id] for legacy data where the documents share an id.
+  final String organismRecordId;
+
+  /// **Migration-only**. Embedded snapshot of the canonical
+  /// [OrganismRecord]. Will be removed in the final step of the deembedding
+  /// refactor; new readers should call [resolveOrganismRecord] for deep
+  /// axes or rely on the denormalized display fields.
   final OrganismRecord organismRecord;
 
   // Delegating getters: these axes used to live on Cohort as duplicated
@@ -116,6 +134,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     Map<String, dynamic>? metadata,
     HoldingAttributes? attributes,
     OrganismRecord? organismRecord,
+    String? organismRecordId,
   }) {
     return Cohort(
       id: id ?? this.id,
@@ -132,6 +151,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       metadata: metadata ?? this.metadata,
       attributes: attributes ?? this.attributes,
       organismRecord: organismRecord ?? this.organismRecord,
+      organismRecordId: organismRecordId ?? this.organismRecordId,
     );
   }
 
@@ -151,6 +171,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       if (completedAt != null) 'completedAt': completedAt!.toIso8601String(),
       'metadata': metadata,
       if (!attributes.isEmpty) 'attributes': attributes.toJson(),
+      'organismRecordId': organismRecordId,
       'organismRecord': organismRecord.toJson(),
     };
   }
@@ -187,6 +208,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
               deepNormalizeMap(json['organismRecord']),
             )
           : null,
+      organismRecordId: json['organismRecordId']?.toString(),
     );
   }
 
@@ -210,6 +232,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       metadata: holding.metadata ?? const <String, dynamic>{},
       attributes: holding.attributes,
       organismRecord: holding.organismRecord,
+      organismRecordId: holding.organismRecordId,
     );
   }
 
@@ -367,5 +390,29 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     metadata,
     attributes,
     organismRecord,
+    organismRecordId,
   ];
+
+  /// Resolves the canonical [OrganismRecord] for this cohort by looking up
+  /// [organismRecordId] via [lookup]. Use when callers need axes that the
+  /// cohort does not denormalize.
+  Future<OrganismRecord?> resolveOrganismRecord(
+    Future<OrganismRecord?> Function(String id) lookup,
+  ) async {
+    if (organismRecordId.isEmpty) return null;
+    return lookup(organismRecordId);
+  }
+
+  static String _resolveOrganismRecordId({
+    required String? explicit,
+    required OrganismRecord? base,
+    required String fallbackId,
+  }) {
+    final candidate = explicit?.trim().isNotEmpty == true
+        ? explicit!.trim()
+        : (base?.id.trim().isNotEmpty == true
+            ? base!.id.trim()
+            : fallbackId);
+    return candidate;
+  }
 }
