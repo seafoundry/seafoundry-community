@@ -27,9 +27,9 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   Cohort({
     required this.id,
     required this.name,
-    required OrganismKind organismKind,
-    required LifeStage lifeStage,
-    required PopulationMeasurement population,
+    required this.organismKind,
+    required this.lifeStage,
+    required this.population,
     this.provenanceId,
     this.siteId,
     this.groupId,
@@ -77,13 +77,13 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   /// axes or rely on the denormalized display fields.
   final OrganismRecord organismRecord;
 
-  // Delegating getters: these axes used to live on Cohort as duplicated
-  // `final` state, kept in sync with the embedded organism record by the
-  // now-removed `_syncOrganismRecord` reconciler. They now read through
-  // to the single source of truth on [organismRecord].
-  OrganismKind get organismKind => organismRecord.organismKind;
-  LifeStage get lifeStage => organismRecord.lifeStage.stage;
-  PopulationMeasurement get population => organismRecord.measurement;
+  // Denormalized display fields. Authoritative for synchronous reads;
+  // deep axes (aliases, physicalForm, sizeSpec, lifeStageHistory, etc.)
+  // live on the canonical OrganismRecord and must be fetched via
+  // [resolveOrganismRecord].
+  final OrganismKind organismKind;
+  final LifeStage lifeStage;
+  final PopulationMeasurement population;
 
   String get lifeStageId => lifeStage.id;
 
