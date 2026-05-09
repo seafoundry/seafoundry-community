@@ -18,21 +18,26 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// Neutral representation of a holding (discrete individual or batch) that
 /// captures population, life stage, provenance references, and graph-node
 /// placement without depending on coral-only models.
+///
+/// Identity, life-stage, measurement, and ownership data live on the embedded
+/// [organismRecord]. Top-level getters delegate to it so existing call sites
+/// keep working. Holding-level state (placement, foreign keys, attributes,
+/// metadata) remains as plain fields.
 class HoldingRecord extends InventoryRecord
     with LifeStageProgressionMixin, MeasurableMixin {
   HoldingRecord({
     required super.id,
-    required this.tagId,
-    required this.organismKind,
-    required this.lifeStage,
-    required this.measurement,
+    required String tagId,
+    required OrganismKind organismKind,
+    required LifeStage lifeStage,
+    required PopulationMeasurement measurement,
     this.provenanceId,
     this.cohortId,
     this.siteId,
     this.groupId,
     this.structureId,
-    this.ownerOrganizationId,
-    this.managingOrganizationId,
+    String? ownerOrganizationId,
+    String? managingOrganizationId,
     Map<String, ForeignKeyReference>? foreignKeys,
     HoldingAttributes? attributes,
     Map<String, dynamic> metadata = const <String, dynamic>{},
@@ -47,22 +52,14 @@ class HoldingRecord extends InventoryRecord
     String? slug,
   })  : foreignKeys = _normalizeForeignKeys(foreignKeys),
         attributes = _normalizeAttributes(attributes),
-        organismRecord = _syncOrganismRecord(
-          organismRecord ??
-              OrganismRecord.inferFromMetadata(
-                organismKind: organismKind,
-                lifeStage: lifeStage,
-                measurement: measurement,
-                metadata: _normalizeMetadata(metadata),
-                speciesId: _normalizeAttributes(attributes).speciesId,
-                ownerOrganizationId: ownerOrganizationId,
-                managingOrganizationId: managingOrganizationId,
-                foreignKeys: _normalizeForeignKeys(foreignKeys),
-              ),
-          organismKind,
-          lifeStage,
-          measurement,
+        organismRecord = _buildOrganismRecord(
+          base: organismRecord,
           tagId: tagId,
+          organismKind: organismKind,
+          lifeStage: lifeStage,
+          measurement: measurement,
+          attributes: _normalizeAttributes(attributes),
+          metadata: _normalizeMetadata(metadata),
           ownerOrganizationId: ownerOrganizationId,
           managingOrganizationId: managingOrganizationId,
           foreignKeys: _normalizeForeignKeys(foreignKeys),
@@ -79,20 +76,25 @@ class HoldingRecord extends InventoryRecord
           metadata: UnmodifiableMapView(_normalizeMetadata(metadata)),
         );
 
-  final String tagId;
-  final OrganismKind organismKind;
-  final LifeStage lifeStage;
-  final PopulationMeasurement measurement;
   final String? provenanceId;
   final String? cohortId;
   final String? siteId;
   final String? groupId;
   final String? structureId;
-  final String? ownerOrganizationId;
-  final String? managingOrganizationId;
   final Map<String, ForeignKeyReference> foreignKeys;
   final HoldingAttributes attributes;
   final OrganismRecord organismRecord;
+
+  // Delegating getters: these fields previously lived on HoldingRecord as
+  // duplicated `final` state, kept in sync with the embedded organism record
+  // by the now-removed `_syncOrganismRecord` reconciler. They now read
+  // through to the single source of truth on [organismRecord].
+  String get tagId => organismRecord.tagId;
+  OrganismKind get organismKind => organismRecord.organismKind;
+  LifeStage get lifeStage => organismRecord.lifeStage.stage;
+  PopulationMeasurement get measurement => organismRecord.measurement;
+  String? get ownerOrganizationId => organismRecord.ownerOrganizationId;
+  String? get managingOrganizationId => organismRecord.managingOrganizationId;
 
   @override
   ModelType get modelType => ModelType.holding;
@@ -158,29 +160,12 @@ class HoldingRecord extends InventoryRecord
     String? internalPath,
     String? slug,
   }) {
-    final nextOrganismKind = organismKind ?? this.organismKind;
-    final nextLifeStage = lifeStage ?? this.lifeStage;
-    final nextMeasurement = measurement ?? this.measurement;
-    
-    // Create new organism record first to extract super fields if not provided
-    final nextOrganismRecord = _syncOrganismRecord(
-      organismRecord ?? this.organismRecord,
-      nextOrganismKind,
-      nextLifeStage,
-      nextMeasurement,
-      tagId: tagId ?? this.tagId,
-      ownerOrganizationId: ownerOrganizationId ?? this.ownerOrganizationId,
-      managingOrganizationId:
-          managingOrganizationId ?? this.managingOrganizationId,
-      foreignKeys: foreignKeys ?? this.foreignKeys,
-    );
-
     return HoldingRecord(
       id: id ?? this.id,
       tagId: tagId ?? this.tagId,
-      organismKind: nextOrganismKind,
-      lifeStage: nextLifeStage,
-      measurement: nextMeasurement,
+      organismKind: organismKind ?? this.organismKind,
+      lifeStage: lifeStage ?? this.lifeStage,
+      measurement: measurement ?? this.measurement,
       provenanceId: provenanceId ?? this.provenanceId,
       cohortId: cohortId ?? this.cohortId,
       siteId: siteId ?? this.siteId,
@@ -192,7 +177,7 @@ class HoldingRecord extends InventoryRecord
       foreignKeys: foreignKeys ?? this.foreignKeys,
       attributes: attributes ?? this.attributes,
       metadata: metadata ?? this.metadata ?? const <String, dynamic>{},
-      organismRecord: nextOrganismRecord,
+      organismRecord: organismRecord ?? this.organismRecord,
       createdAt: createdAt ?? this.createdAt,
       createdById: createdById ?? this.createdById,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -308,10 +293,6 @@ class HoldingRecord extends InventoryRecord
   @override
   List<Object?> get props => [
     ...super.props,
-    tagId,
-    organismKind,
-    lifeStage,
-    measurement,
     provenanceId,
     cohortId,
     siteId,
@@ -319,8 +300,6 @@ class HoldingRecord extends InventoryRecord
     structureId,
     attributes,
     organismRecord,
-    ownerOrganizationId,
-    managingOrganizationId,
     foreignKeys,
   ];
 
@@ -389,28 +368,46 @@ class HoldingRecord extends InventoryRecord
     return Map<String, dynamic>.from(metadata);
   }
 
-  static OrganismRecord _syncOrganismRecord(
-    OrganismRecord record,
-    OrganismKind organismKind,
-    LifeStage lifeStage,
-    PopulationMeasurement measurement, {
+  /// Build the embedded [OrganismRecord] from constructor inputs. Named params
+  /// (`tagId`, `organismKind`, etc.) override matching fields on a supplied
+  /// [base] record — this preserves the semantics of the former
+  /// `_syncOrganismRecord` reconciler that funneled holding-level overrides
+  /// into the embedded record at construction time.
+  static OrganismRecord _buildOrganismRecord({
+    required OrganismRecord? base,
     required String tagId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
-    Map<String, ForeignKeyReference>? foreignKeys,
+    required OrganismKind organismKind,
+    required LifeStage lifeStage,
+    required PopulationMeasurement measurement,
+    required HoldingAttributes attributes,
+    required Map<String, dynamic> metadata,
+    required String? ownerOrganizationId,
+    required String? managingOrganizationId,
+    required Map<String, ForeignKeyReference> foreignKeys,
   }) {
-    final lifeStageSpec = record.lifeStage.stage == lifeStage
-        ? record.lifeStage
-        : record.lifeStage.copyWith(stage: lifeStage);
-    return record.copyWith(
+    final source = base ??
+        OrganismRecord.inferFromMetadata(
+          organismKind: organismKind,
+          lifeStage: lifeStage,
+          measurement: measurement,
+          metadata: metadata,
+          speciesId: attributes.speciesId,
+          ownerOrganizationId: ownerOrganizationId,
+          managingOrganizationId: managingOrganizationId,
+          foreignKeys: foreignKeys,
+        );
+    final lifeStageSpec = source.lifeStage.stage == lifeStage
+        ? source.lifeStage
+        : source.lifeStage.copyWith(stage: lifeStage);
+    return source.copyWith(
       organismKind: organismKind,
       lifeStage: lifeStageSpec,
       measurement: measurement,
       tagId: tagId,
-      ownerOrganizationId: ownerOrganizationId ?? record.ownerOrganizationId,
+      ownerOrganizationId: ownerOrganizationId ?? source.ownerOrganizationId,
       managingOrganizationId:
-          managingOrganizationId ?? record.managingOrganizationId,
-      foreignKeys: foreignKeys ?? record.foreignKeys,
+          managingOrganizationId ?? source.managingOrganizationId,
+      foreignKeys: foreignKeys,
     );
   }
 
