@@ -4,15 +4,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_flutter/qr_flutter.dart';
-import 'package:seafoundry_app/constants/transfer_constants.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
 import 'package:seafoundry_app/cubits/outplant/organism_selection_cubit.dart';
 import 'package:seafoundry_app/cubits/outplant/organism_selection_state.dart';
 import 'package:seafoundry_app/cubits/transfer/transfer_initiate_cubit.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/services/tier.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
@@ -101,8 +99,6 @@ class _TransferInitiateDialogState
   Site? _selectedSite;
   bool _siteLoading = false;
   String? _siteError;
-  bool _showQrCode = false;
-
   /// True when editing an existing pending transfer.
   late final bool _isEditMode;
 
@@ -761,15 +757,6 @@ class _TransferInitiateDialogState
   Widget _buildSuccessContent(TransferInitiateState state) {
     final transfer = state.transferEvent!;
     final manifest = state.manifest;
-    final qrPayload = transfer.qrPayload;
-    String? manifestPayload;
-    if (manifest != null) {
-      try {
-        manifestPayload = manifest.encodePayload();
-      } catch (_) {
-        manifestPayload = null;
-      }
-    }
     final destinationName =
         state.selectedOrganization?.name ??
         manifest?.toOrganization['name'] as String? ??
@@ -824,111 +811,10 @@ class _TransferInitiateDialogState
               ],
             ),
           ),
-          if (qrPayload != null && qrPayload.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            if (!_showQrCode)
-              OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _showQrCode = true;
-                  });
-                },
-                icon: const Icon(Icons.qr_code),
-                label: const Text('Show QR'),
-              )
-            else ...[
-              const SizedBox(height: 12),
-              _buildQrPayloadSection(qrPayload),
-            ],
-          ] else if (manifestPayload != null && manifestPayload.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _buildQrUnavailableCard(
-              'QR payload is too large to encode. Use Copy Payload to share.',
-            ),
-          ],
           if (manifest != null) ...[
             const SizedBox(height: 20),
             TransferManifestSummary(manifest: manifest),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQrPayloadSection(String payload) {
-    QrValidationResult validation;
-    try {
-      validation = QrValidator.validate(
-        data: payload,
-        version: QrVersions.auto,
-        errorCorrectionLevel: QrErrorCorrectLevel.L,
-      );
-    } catch (error) {
-      return _buildQrUnavailableCard(
-        'QR code could not be generated. Use Copy Payload to share instead.',
-      );
-    }
-
-    if (validation.isValid && validation.qrCode != null) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.green[200]!),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: QrImageView.withQr(
-          qr: validation.qrCode!,
-          size: 180,
-          backgroundColor: Colors.white,
-        ),
-      );
-    }
-
-    final message = switch (validation.status) {
-      QrValidationStatus.contentTooLong =>
-        'Manifest payload is too large for a QR code. Use Copy Payload to share.',
-      QrValidationStatus.error =>
-        'QR code could not be generated. Use Copy Payload to share instead.',
-      _ => 'QR code is unavailable. Use Copy Payload to share instead.',
-    };
-
-    return _buildQrUnavailableCard(message);
-  }
-
-  Widget _buildQrUnavailableCard(String message) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.orange[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.warning_amber_rounded, color: Colors.orange[800]),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
         ],
       ),
     );
@@ -940,7 +826,6 @@ class _TransferInitiateDialogState
       BlocBuilder<TransferInitiateCubit, TransferInitiateState>(
         builder: (context, state) {
           if (state.hasTransfer) {
-            final qrPayload = state.transferEvent?.qrPayload;
             String? manifestPayload;
             if (state.manifest != null) {
               try {
@@ -949,17 +834,14 @@ class _TransferInitiateDialogState
                 manifestPayload = null;
               }
             }
-            final payload = (qrPayload != null && qrPayload.isNotEmpty)
-                ? qrPayload
-                : manifestPayload;
-            if (payload == null || payload.isEmpty) {
+            if (manifestPayload == null || manifestPayload.isEmpty) {
               return const SizedBox.shrink();
             }
             return TextButton.icon(
               onPressed: () async {
-                await Clipboard.setData(ClipboardData(text: payload));
+                await Clipboard.setData(ClipboardData(text: manifestPayload!));
                 if (!mounted) return;
-                showSnackbar('QR payload copied to clipboard');
+                showSnackbar('Manifest payload copied to clipboard');
               },
               icon: const Icon(Icons.copy),
               label: const Text('Copy Payload'),
@@ -1235,10 +1117,7 @@ class _TransferInitiateDialogState
   }
 
   static final Set<String> _nurserySiteTypeIds = {
-    SiteType.nurseryExSitu.id,
-    SiteType.nurseryInSitu.id,
-    'nes',
-    'nis',
+    SiteType.nursery.id,
   };
 
   Future<void> _loadOrganismSelection() async {
@@ -1457,9 +1336,6 @@ class _TransferInitiateDialogState
     final userId = currentUserState is CurrentUserLoaded
         ? currentUserState.user.id
         : null;
-    final isPro = currentUserState is CurrentUserLoaded &&
-        (currentUserState.organization.tier == Tier.pro ||
-            currentUserState.organization.tier == Tier.scale);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1472,7 +1348,6 @@ class _TransferInitiateDialogState
         PermitSelectorWidget(
           organizationId: organizationId,
           userId: userId,
-          isPro: isPro,
           selectedPermitId: permitId.isNotEmpty ? permitId : null,
           enabled: !isLoading,
           displayOptions: PermitSelectorDisplayOptions.compact,

@@ -111,6 +111,9 @@ firestore-debug.log
 /build/web/
 build/web.zip
 
+# Wasm override generated output
+tool/wasm_overrides/image/_out/
+
 # IDE and editor files
 .vscode/settings.json
 .vscode/launch.json

@@ -40,19 +40,6 @@ These events track changes to organism inventory:
 | `event_disease_observation` | Disease detected | `diseaseId`, `severity` |
 | `event_thermal_stress_observation` | Thermal stress | `stressLevel` |
 
-### Husbandry Events
-
-| eventTypeId | Description | Special Fields |
-|-------------|-------------|----------------|
-| `event_feeding` | Feeding event | `feedType`, `amount` |
-| `event_cleaning` | Cleaning performed | `cleaningType` |
-| `event_treatment` | Treatment applied | `treatmentType`, `dosage` |
-| `event_water_quality_test` | Water testing | Various parameter fields |
-| `event_structure_maintenance` | Structure maintenance | `maintenanceType` |
-| `event_environmental_adjustment` | Environment change | `parameter`, `value` |
-| `event_ecological_survey` | Site survey | `surveyData` |
-| `event_task` | Task completed | `taskType`, `status` |
-
 ## OutplantEvent Fields
 
 The `outplant_event` type has several special fields for tracking organism outplanting to sites.
@@ -81,7 +68,7 @@ The `outplant_event` type has several special fields for tracking organism outpl
 | `attachment_method_epoxy` | Epoxy | Two-part epoxy adhesive |
 | `attachment_method_substrate` | Substrate | Natural substrate placement |
 
-**Custom Methods:** Pro tier organizations can create custom attachment methods. These IDs have the prefix `custom_attach_` (e.g., `custom_attach_wire_tie`).
+**Custom Methods:** Custom attachment methods use the prefix `custom_attach_` (e.g., `custom_attach_wire_tie`).
 
 ### OutplantEvent Example
 
@@ -277,7 +264,4 @@ const observationEvent = {
 - `lib/models/events/event_mixins.dart` - SnapshotEvent mixin with `snapshotFromJson()`
 - `lib/models/events/inventory_event.dart` - Base class for inventory events
 - `lib/models/types/attachment_method.dart` - Builtin attachment methods (4)
-- `lib/models/custom_types/custom_attachment_method.dart` - Pro tier custom attachment methods
-- `scripts/enhance-community-demo.js` - Community demo seeding
-- `scripts/enhance-pro-demo.js` - Pro demo seeding
 

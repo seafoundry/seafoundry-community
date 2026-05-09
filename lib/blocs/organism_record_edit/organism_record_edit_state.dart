@@ -46,8 +46,6 @@ class OrganismRecordEditState extends Equatable {
     this.dimensionUnitOverride,
     this.sizeValidationMessage,
     this.countOverride,
-    this.volumeCm3Override,
-    this.tissueAreaCm2Override,
     this.measurementFieldConfig,
     this.quantityOverride,
     this.quantityUnitOverride,
@@ -108,10 +106,8 @@ class OrganismRecordEditState extends Equatable {
   final MeasurementUnit? dimensionUnitOverride;
   final String? sizeValidationMessage;
 
-  // 3-field metrics overrides
+  // Count metric override
   final int? countOverride;
-  final double? volumeCm3Override;
-  final double? tissueAreaCm2Override;
   final MeasurementFieldConfig? measurementFieldConfig;
 
   final QuantityChangeKind quantityKind;
@@ -119,7 +115,7 @@ class OrganismRecordEditState extends Equatable {
   final MeasurementUnit quantityUnit;
   final MeasurementUnit? quantityUnitOverride;
   final QuantityChangeReason? quantityReason;
-  final MortalityReason? mortalityReason;
+  final PopulationLossReason? mortalityReason;
   final String? quantityComment;
   final String? quantityValidationMessage;
 
@@ -203,10 +199,7 @@ class OrganismRecordEditState extends Equatable {
       sizeClassOverride != null ||
       measuredDimensionOverride != null ||
       dimensionUnitOverride != null;
-  bool get hasMetricsChange =>
-      countOverride != null ||
-      volumeCm3Override != null ||
-      tissueAreaCm2Override != null;
+  bool get hasMetricsChange => countOverride != null;
   bool get hasQuantityChange =>
       quantityOverride != null || quantityUnitOverride != null;
 
@@ -264,8 +257,6 @@ class OrganismRecordEditState extends Equatable {
     Object? dimensionUnitOverride = _sentinel,
     Object? sizeValidationMessage = _sentinel,
     Object? countOverride = _sentinel,
-    Object? volumeCm3Override = _sentinel,
-    Object? tissueAreaCm2Override = _sentinel,
     Object? measurementFieldConfig = _sentinel,
     QuantityChangeKind? quantityKind,
     Object? quantityOverride = _sentinel,
@@ -347,12 +338,6 @@ class OrganismRecordEditState extends Equatable {
       countOverride: countOverride == _sentinel
           ? this.countOverride
           : countOverride as int?,
-      volumeCm3Override: volumeCm3Override == _sentinel
-          ? this.volumeCm3Override
-          : volumeCm3Override as double?,
-      tissueAreaCm2Override: tissueAreaCm2Override == _sentinel
-          ? this.tissueAreaCm2Override
-          : tissueAreaCm2Override as double?,
       measurementFieldConfig: measurementFieldConfig == _sentinel
           ? this.measurementFieldConfig
           : measurementFieldConfig as MeasurementFieldConfig?,
@@ -369,7 +354,7 @@ class OrganismRecordEditState extends Equatable {
           : quantityReason as QuantityChangeReason?,
       mortalityReason: mortalityReason == _sentinel
           ? this.mortalityReason
-          : mortalityReason as MortalityReason?,
+          : mortalityReason as PopulationLossReason?,
       quantityComment: quantityComment == _sentinel
           ? this.quantityComment
           : quantityComment as String?,
@@ -445,8 +430,6 @@ class OrganismRecordEditState extends Equatable {
     dimensionUnitOverride,
     sizeValidationMessage,
     countOverride,
-    volumeCm3Override,
-    tissueAreaCm2Override,
     measurementFieldConfig,
     quantityKind,
     quantityOverride,

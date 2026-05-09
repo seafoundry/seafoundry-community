@@ -3,7 +3,6 @@ import 'package:seafoundry_app/models/factories/record_factory.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/user.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
 bool looksLikeEmail(String value) => value.contains('@');
@@ -87,8 +86,7 @@ Future<User?> _fetchUserFromQuery(
   String value,
 ) async {
   try {
-    final collection = FirestoreCollectionResolver.instance.collection(
-      recordRepository.db,
+    final collection = recordRepository.db.collection(
       ModelType.user.collectionPath,
     );
     final snapshot = await collection

@@ -20,7 +20,7 @@ const db = admin.firestore();
 
 async function main() {
   const userId = 'OuBkJmnZatZ0iZf9oigb4TaffMI3';
-  const orgId = 'demo_org_pro';
+  const orgId = 'demo_org_community';
   const testEventId = 'test_outplant_' + Date.now();
   
   console.log('='.repeat(60));

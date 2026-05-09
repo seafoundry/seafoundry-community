@@ -225,17 +225,16 @@ class _PhysicalFormSelectorWidgetState
     }
   }
 
-  Future<void> _loadForms() async {
+  void _loadForms() {
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
-      final forms = await PhysicalFormRegistry.instance.getAvailableForms(
+      final forms = PhysicalFormRegistry.instance.getAvailableForms(
         widget.organismKind,
         widget.lifeStage,
       );
-      if (!mounted) return;
       setState(() {
         _forms = forms;
         _isLoading = false;
@@ -247,7 +246,6 @@ class _PhysicalFormSelectorWidgetState
         }
       });
     } catch (e) {
-      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _error = e.toString();

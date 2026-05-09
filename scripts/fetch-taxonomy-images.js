@@ -62,14 +62,6 @@ const SPECIES_LIST = [
   { id: 'ffra', scientificName: 'Favia fragum', searchTerms: ['Golfball coral', 'Favia fragum'] },
   { id: 'isin', scientificName: 'Isophyllia sinuosa', searchTerms: ['Sinuous cactus coral', 'Isophyllia sinuosa'] },
   { id: 'scub', scientificName: 'Scolymia cubensis', searchTerms: ['Artichoke coral', 'Scolymia cubensis'] },
-  { id: 'sala', scientificName: 'Saccharina latissima', searchTerms: ['Sugar kelp', 'Saccharina latissima'] },
-  { id: 'crvi', scientificName: 'Crassostrea virginica', searchTerms: ['Eastern oyster', 'Crassostrea virginica'] },
-  { id: 'thte', scientificName: 'Thalassia testudinum', searchTerms: ['Turtle grass', 'Thalassia testudinum'] },
-  { id: 'casa', scientificName: 'Callinectes sapidus', searchTerms: ['Blue crab', 'Callinectes sapidus'] },
-  { id: 'onmy', scientificName: 'Oncorhynchus mykiss', searchTerms: ['Rainbow trout', 'Oncorhynchus mykiss'] },
-  { id: 'mefr', scientificName: 'Mesocentrotus franciscanus', searchTerms: ['Red sea urchin', 'Mesocentrotus franciscanus'] },
-  { id: 'rhma', scientificName: 'Rhizophora mangle', searchTerms: ['Red mangrove', 'Rhizophora mangle'] },
-  { id: 'hosc', scientificName: 'Holothuria scabra', searchTerms: ['Sandfish', 'Holothuria scabra'] },
 ];
 
 function httpsGet(url) {

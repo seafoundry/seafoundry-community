@@ -250,9 +250,9 @@ class GeneticsSpreadsheetHelper {
     final provenanceSelection = ProvenanceLifeStageSelection.fromProvenanceRecord(genet);
     final resolvedProvenanceType = provenanceSelection.provenanceType;
     row.addAll({
-      'provenanceKind': resolvedProvenanceType.metadata.defaultProvenanceKind.name,
-      'provenanceType': resolvedProvenanceType.metadata.id,
-      'provenanceTypeLabel': resolvedProvenanceType.metadata.displayName,
+      'provenanceKind': 'genet',
+      'provenanceType': resolvedProvenanceType.id,
+      'provenanceTypeLabel': resolvedProvenanceType.displayName,
     });
 
     final provenance = genet.provenance;

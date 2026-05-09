@@ -1,10 +1,10 @@
-// @tier: pro
-// NOTE: This file is the community entry point template - patched during sync to community tier
+// @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:seafoundry_app/blocs/auth/auth.dart';
+import 'package:seafoundry_app/blocs/auth/auth_bloc.dart';
+import 'package:seafoundry_app/blocs/auth/auth_state.dart';
 import 'package:seafoundry_app/navigation/navigation_route_information_parser.dart';
 import 'package:seafoundry_app/navigation/navigation_router_delegate.dart';
 import 'package:seafoundry_app/navigation/simple_router.dart';
@@ -12,10 +12,9 @@ import 'package:seafoundry_app/repositories/auth/auth_repository.dart';
 import 'package:seafoundry_app/repositories/current_user_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
 import 'package:seafoundry_app/services/firebase_service.dart';
-import 'package:seafoundry_app/services/image_service.dart';
 import 'package:seafoundry_app/widgets/repositories/repositories_provider.dart';
 
-import 'cubits/current_user/current_user.dart';
+import 'cubits/current_user/current_user_cubit.dart';
 import 'package:seafoundry_app/cubits/record_display_preferences/record_display_preferences_cubit.dart';
 import 'package:seafoundry_app/cubits/spreadsheet_column_preferences/spreadsheet_column_preferences_cubit.dart';
 import 'theme/theme.dart';
@@ -33,11 +32,6 @@ class App extends StatelessWidget {
         // Keep FirebaseFirestore for backward compatibility with existing code
         Provider<FirebaseFirestore>(
           create: (context) => context.read<FirebaseService>().firestore,
-        ),
-        // Services layer - depend on FirebaseService
-        Provider<ImageService>(
-          create: (context) =>
-              ImageService(firebaseService: context.read<FirebaseService>()),
         ),
         // Repository layer - can depend on services
         RepositoryProvider<CurrentUserRepository>(

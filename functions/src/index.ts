@@ -13,20 +13,8 @@ import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {defineSecret} from "firebase-functions/params";
 import {Resend} from "resend";
-import Stripe from "stripe";
 // Visual Engagement functions
 export * from "./visual_engagement";
-// Community feed automation + directory search
-export * from "./community_feed";
-
-// Sebastian AI
-export * from "./sebastian";
-
-// Comments system
-export * from "./comments";
-
-// Deliverable notifications
-export * from "./notifications/deliverable_alerts";
 
 // Transfer functions
 export * from "./transfers";
@@ -39,27 +27,6 @@ const FIRESTORE_REGION = "us-east1";
 
 // Resend API key stored in Firebase Secret Manager.
 const resendApiKey = defineSecret("RESEND_API_KEY");
-const stripeSecretKey = defineSecret("STRIPE_SECRET_KEY");
-
-let stripeClient: Stripe | null = null;
-
-function getStripeClient(): Stripe {
-  const secret = stripeSecretKey.value();
-  if (!secret) {
-    throw new HttpsError(
-      "failed-precondition",
-      "STRIPE_SECRET_KEY secret is not configured"
-    );
-  }
-
-  if (!stripeClient) {
-    stripeClient = new Stripe(secret, {
-      apiVersion: "2025-02-24.acacia",
-    });
-  }
-
-  return stripeClient;
-}
 
 /**
  * Get the app domain based on the Firebase project environment
@@ -805,79 +772,6 @@ export const onOrganizationMemberDeleted = onDocumentDeleted(
     const orgId = event.params.orgId;
     if (!orgId) return;
     await updateOrganizationMemberCount(orgId, -1);
-  }
-);
-
-/**
- * Cloud Function to create a Stripe customer portal session.
- * Admin-only: allows billing management for the organization.
- */
-export const createCustomerPortalSession = onCall(
-  {
-    secrets: [stripeSecretKey],
-  },
-  async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "User must be authenticated");
-    }
-
-    if (!request.data || typeof request.data !== "object") {
-      throw new HttpsError("invalid-argument", "Invalid request data");
-    }
-
-    const {orgId, returnUrl} = request.data as {
-      orgId?: string;
-      returnUrl?: string;
-    };
-
-    if (!orgId || typeof orgId !== "string") {
-      throw new HttpsError("invalid-argument", "orgId is required");
-    }
-
-    await requireOrgAdmin(request.auth.uid, orgId);
-
-    const orgRef = admin.firestore().collection("organizations").doc(orgId);
-    const orgSnap = await orgRef.get();
-    if (!orgSnap.exists) {
-      throw new HttpsError("not-found", "Organization not found");
-    }
-
-    const orgData = orgSnap.data() || {};
-    const billing = (orgData.billing ?? {}) as Record<string, unknown>;
-    const license = (orgData.license ?? {}) as Record<string, unknown>;
-
-    let stripeCustomerId: string | undefined;
-    if (typeof billing.stripeCustomerId === "string") {
-      stripeCustomerId = billing.stripeCustomerId;
-    } else if (typeof license.stripeCustomerId === "string") {
-      stripeCustomerId = license.stripeCustomerId;
-    }
-
-    const stripe = getStripeClient();
-    if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({
-        name: orgData.name?.toString(),
-        email: request.auth.token.email?.toString(),
-        metadata: {orgId},
-      });
-      stripeCustomerId = customer.id;
-      await orgRef.set(
-        {
-          billing: {
-            stripeCustomerId,
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-          },
-        },
-        {merge: true}
-      );
-    }
-
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: stripeCustomerId,
-      return_url: normalizeReturnUrl(returnUrl),
-    });
-
-    return {url: portalSession.url};
   }
 );
 

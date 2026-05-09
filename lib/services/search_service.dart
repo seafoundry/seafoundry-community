@@ -13,7 +13,6 @@ import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/utils/human_sort.dart';
-import 'package:seafoundry_app/widgets/common/gamete_sex_chip.dart';
 
 /// Result of a search operation
 class SearchResult {
@@ -114,16 +113,6 @@ extension SearchResultSubtitle on SearchResult {
       if (stageLabel.trim().isNotEmpty) {
         parts.add(stageLabel);
       }
-      if (organism.lifeStage.stage == LifeStage.gamete) {
-        final gameteRoleLabel = _resolveGameteRoleLabel(organism);
-        if (gameteRoleLabel != null && gameteRoleLabel.isNotEmpty) {
-          final stageLabelLower = stageLabel.toLowerCase();
-          final roleLower = gameteRoleLabel.toLowerCase();
-          if (!stageLabelLower.contains(roleLower)) {
-            parts.add(gameteRoleLabel);
-          }
-        }
-      }
     }
 
     final formName = organism.physicalFormDisplayName;
@@ -142,12 +131,6 @@ extension SearchResultSubtitle on SearchResult {
     }
 
     return parts.isNotEmpty ? parts.join(' · ') : path;
-  }
-
-  String? _resolveGameteRoleLabel(OrganismRecord organism) {
-    final role = resolveGameteRole(organism);
-    if (role == null) return null;
-    return role == ProvenanceGameteRole.egg ? 'Eggs' : 'Sperm';
   }
 
   int? _resolveOrganismCount(OrganismRecord organism) {
@@ -498,15 +481,8 @@ class SearchService {
   /// Provenance type aliases for improved search matching
   static const _provenanceTypeAliases = <ProvenanceType, List<String>>{
     ProvenanceType.wild: ['wildcaught', 'wild-caught', 'natural', 'collected'],
-    ProvenanceType.sexualCohort: [
-      'sexual',
-      'cohort',
-      'spawned',
-      'bred',
-      'spawn',
-    ],
-    ProvenanceType.graduatedIndividual: ['graduated', 'individual', 'promoted'],
     ProvenanceType.transfer: ['transferred', 'moved', 'received'],
+    ProvenanceType.unknown: ['unspecified'],
   };
 
   /// Size class aliases for improved search matching

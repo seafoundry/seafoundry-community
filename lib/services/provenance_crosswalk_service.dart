@@ -3,7 +3,6 @@ import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Model representing a community Provenance record with all known aliases
@@ -81,10 +80,6 @@ class CommunityProvenanceRecord {
 
   /// Get all alias IDs as a flat list
   List<String> get allAliasIds => aliases.map((a) => a.id).toList();
-
-  /// Get aliases filtered by organization
-  List<ProvenanceAlias> aliasesForOrg(String org) =>
-      aliases.where((a) => a.org == org).toList();
 
   /// Check if this record has an alias matching the given ID
   /// Normalizes by stripping all non-alphanumeric characters to match crosswalk keys.
@@ -176,14 +171,11 @@ class AliasLookupResult {
 class ProvenanceCrosswalkService {
   ProvenanceCrosswalkService({
     required FirebaseFirestore firestore,
-    FirestoreCollectionResolver? resolver,
     LoggingService? logger,
   }) : _firestore = firestore,
-       _resolver = resolver ?? FirestoreCollectionResolver.instance,
        _logger = logger ?? LoggingService.instance;
 
   final FirebaseFirestore _firestore;
-  final FirestoreCollectionResolver _resolver;
   final LoggingService _logger;
 
   static const String _provenanceCollection = 'community_genetics_provenances';
@@ -230,7 +222,7 @@ class ProvenanceCrosswalkService {
 
     try {
       // Get the collection reference for document access
-      final collectionRef = _resolver.collection(_firestore, _aliasCollection);
+      final collectionRef = _firestore.collection(_aliasCollection);
 
       if (normalizedSpeciesCode != null) {
         // Direct document lookup if species known
@@ -311,8 +303,8 @@ class ProvenanceCrosswalkService {
     }
 
     try {
-      final doc = await _resolver
-          .collection(_firestore, _provenanceCollection)
+      final doc = await _firestore
+          .collection(_provenanceCollection)
           .doc(provenanceId)
           .get();
 
@@ -335,37 +327,6 @@ class ProvenanceCrosswalkService {
     return null;
   }
 
-  /// Get all Provenance records for a species.
-  ///
-  /// Use with caution - can return large datasets.
-  Future<List<CommunityProvenanceRecord>> getProvenanceRecordsForSpecies(
-    String speciesCode, {
-    int limit = 100,
-  }) async {
-    try {
-      final snapshot = await _resolver
-          .collection(_firestore, _provenanceCollection)
-          .where('speciesCode', isEqualTo: speciesCode.toUpperCase())
-          .limit(limit)
-          .get();
-
-      return snapshot.docs
-          .map((doc) {
-            final data = doc.data();
-            return CommunityProvenanceRecord.fromJson(data);
-          })
-          .whereType<CommunityProvenanceRecord>()
-          .toList();
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to get Provenance records for species "$speciesCode"',
-        e,
-        stackTrace,
-      );
-      return [];
-    }
-  }
-
   /// Search for Provenance records by alias pattern.
   ///
   /// Supports prefix matching (e.g., "AP" matches "AP1", "AP10", etc.)
@@ -378,8 +339,7 @@ class ProvenanceCrosswalkService {
       final normalizedPrefix = _normalizeAlias(prefix);
 
       // Query alias collection for prefix matches
-      Query<Map<String, dynamic>> query = _resolver.collection(
-        _firestore,
+      Query<Map<String, dynamic>> query = _firestore.collection(
         _aliasCollection,
       );
 
@@ -451,8 +411,7 @@ class ProvenanceCrosswalkService {
     try {
       final normalizedPrefix = prefix.trim().toUpperCase();
 
-      Query<Map<String, dynamic>> query = _resolver.collection(
-        _firestore,
+      Query<Map<String, dynamic>> query = _firestore.collection(
         _provenanceCollection,
       );
 
@@ -487,31 +446,6 @@ class ProvenanceCrosswalkService {
     }
   }
 
-  /// Find related genotypes that share the same community Provenance ID.
-  ///
-  /// Given a local genotype's source information (sourceProvenanceId, sourceOrganizationId),
-  /// this finds the community Provenance record that links all related genotypes.
-  Future<CommunityProvenanceRecord?> findRelatedGenotypes({
-    required String aliasId,
-    String? sourceOrganization,
-    String? speciesCode,
-  }) async {
-    final lookupResults = await lookupAlias(aliasId, speciesCode: speciesCode);
-
-    if (lookupResults.isEmpty) return null;
-
-    // If source org specified, prefer that match
-    if (sourceOrganization != null) {
-      final orgMatch = lookupResults.firstWhere(
-        (r) => r.org == sourceOrganization,
-        orElse: () => lookupResults.first,
-      );
-      return getProvenanceRecord(orgMatch.provenanceId);
-    }
-
-    return getProvenanceRecord(lookupResults.first.provenanceId);
-  }
-
   /// Register a new mapping when a transfer is accepted.
   ///
   /// This extends the crosswalk with organization-specific aliases that
@@ -525,8 +459,8 @@ class ProvenanceCrosswalkService {
     if (localProvenanceId == null) return;
 
     try {
-      final doc = _resolver
-          .collection(_firestore, _provenanceCollection)
+      final doc = _firestore
+          .collection(_provenanceCollection)
           .doc(provenanceId);
 
       // First check if doc exists (outside transaction for performance)
@@ -617,53 +551,9 @@ class ProvenanceCrosswalkService {
   DocumentReference<Map<String, dynamic>> getProvenanceDocRef(
     String provenanceId,
   ) {
-    return _resolver
-        .collection(_firestore, _provenanceCollection)
+    return _firestore
+        .collection(_provenanceCollection)
         .doc(provenanceId);
-  }
-
-  /// Check if community genetics data is available for a species.
-  Future<bool> hasDataForSpecies(String speciesCode) async {
-    try {
-      final snapshot = await _resolver
-          .collection(_firestore, _provenanceCollection)
-          .where('speciesCode', isEqualTo: speciesCode.toUpperCase())
-          .limit(1)
-          .get();
-
-      return snapshot.docs.isNotEmpty;
-    } catch (e, stackTrace) {
-      _logger.error(
-        'Failed to check data availability for species "$speciesCode"',
-        e,
-        stackTrace,
-      );
-      return false;
-    }
-  }
-
-  /// Get available species codes that have community genetics data.
-  Future<List<String>> getAvailableSpecies() async {
-    try {
-      // Query distinct species codes
-      final snapshot = await _resolver
-          .collection(_firestore, _provenanceCollection)
-          .limit(1000)
-          .get();
-
-      final speciesCodes = <String>{};
-      for (final doc in snapshot.docs) {
-        final code = doc.data()['speciesCode'] as String?;
-        if (code != null && code.isNotEmpty) {
-          speciesCodes.add(code);
-        }
-      }
-
-      return speciesCodes.toList()..sort();
-    } catch (e, stackTrace) {
-      _logger.error('Failed to get available species', e, stackTrace);
-      return [];
-    }
   }
 
   /// Clear the in-memory cache.

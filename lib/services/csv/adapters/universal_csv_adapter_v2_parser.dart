@@ -175,9 +175,6 @@ extension _UniversalCsvAdapterV2Parser on UniversalCsvAdapterV2 {
         default:
           break;
       }
-    } else if (node is List) {
-      // Allow bare coordinate arrays for legacy payloads.
-      return [_coordinateFromList(node)];
     }
     throw const FormatException(
       'Only Point, MultiPoint, Feature, and FeatureCollection GeoJSON types are supported.',
@@ -209,11 +206,13 @@ extension _UniversalCsvAdapterV2Parser on UniversalCsvAdapterV2 {
     // Validate ranges
     if (lng < -180 || lng > 180) {
       throw FormatException(
-          'Invalid longitude: $lng. Must be between -180 and 180.');
+        'Invalid longitude: $lng. Must be between -180 and 180.',
+      );
     }
     if (lat < -90 || lat > 90) {
       throw FormatException(
-          'Invalid latitude: $lat. Must be between -90 and 90.');
+        'Invalid latitude: $lat. Must be between -90 and 90.',
+      );
     }
 
     return _Coordinate(latitude: lat, longitude: lng);

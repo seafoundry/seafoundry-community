@@ -1,10 +1,10 @@
 // @tier: community
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
 
-import '../../../cubits/current_user/current_user.dart';
+import '../../../cubits/current_user/current_user_cubit.dart';
+import '../../../cubits/current_user/current_user_state.dart';
 import '../../../models/organization.dart';
 import '../../../models/user.dart';
 import '../components/dialog_barrier.dart';
@@ -89,117 +89,3 @@ sealed class DialogBase {
   }
 }
 
-/// Base class for dialogs that need user and organization context
-abstract class UserAwareDialogBase extends StatelessWidget {
-  const UserAwareDialogBase({
-    super.key,
-    required this.user,
-    required this.organization,
-  });
-
-  final User user;
-  final Organization organization;
-
-  /// Helper to safely show a user-aware dialog
-  ///
-  /// Accepts any [SingleChildWidget] providers (RepositoryProvider, BlocProvider, Provider, etc.)
-  static Future<T?> showWithUser<T>({
-    required BuildContext context,
-    required List<SingleChildWidget> providers,
-    required UserAwareDialogBase Function(User user, Organization organization)
-        dialogBuilder,
-    bool barrierDismissible = false,
-  }) {
-    final userAndOrg = DialogBase.getCurrentUserAndOrg(context);
-    if (userAndOrg == null) {
-      return Future.value(null);
-    }
-
-    final (user, organization) = userAndOrg;
-
-    return DialogBase.showDialogWithProviders<T>(
-      context: context,
-      providers: providers,
-      dialog: dialogBuilder(user, organization),
-      barrierDismissible: barrierDismissible,
-    );
-  }
-}
-
-/// Example usage of DialogBase
-class ExampleDialog extends StatelessWidget {
-  const ExampleDialog({super.key});
-
-  static Future<bool?> show(BuildContext context) {
-    // Read dependencies from parent context
-    final repository1 = context
-        .read<dynamic>(); // Replace with actual repository
-    final service1 = context.read<dynamic>(); // Replace with actual service
-
-    return DialogBase.showDialogWithProviders<bool>(
-      context: context,
-      providers: [
-        RepositoryProvider.value(value: repository1),
-        RepositoryProvider.value(value: service1),
-      ],
-      dialog: const ExampleDialog(),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Example Dialog'),
-      content: const Text('This dialog has access to providers'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('OK'),
-        ),
-      ],
-    );
-  }
-}
-
-/// Example usage of UserAwareDialogBase
-class ExampleUserDialog extends UserAwareDialogBase {
-  const ExampleUserDialog({
-    super.key,
-    required super.user,
-    required super.organization,
-  });
-
-  static Future<bool?> show(BuildContext context) {
-    final repository1 = context
-        .read<dynamic>(); // Replace with actual repository
-
-    return UserAwareDialogBase.showWithUser<bool>(
-      context: context,
-      providers: [RepositoryProvider.value(value: repository1)],
-      dialogBuilder: (user, organization) =>
-          ExampleUserDialog(user: user, organization: organization),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Welcome ${user.name}'),
-      content: Text('You are part of ${organization.name}'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('OK'),
-        ),
-      ],
-    );
-  }
-}

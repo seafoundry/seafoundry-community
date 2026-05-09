@@ -1,67 +1,13 @@
 rules_version = '2';
-// Last deployed: 2026-01-30 - Data Field Unification (2E.1) audit pass
-// Changes:
-// - Audited all rules for deprecated field names (lineageId, foreignKeys.genet,
-//   metadata.genetId, metadata.provenanceId, morphologyId, sizeClass, coral_type)
-// - Confirmed: rules use org-membership checks only, no field-level validation of
-//   deprecated names. No changes required.
-// - NOTE: taxonomy_lineages collection is reference data, NOT the deprecated lineageId field.
-// - Canonical fields enforced at app layer: genetId (top-level), foreignKeys.genetId,
-//   physicalFormId, SizeSpec format. Production DB will be wiped for SOT consistency.
+// Community fork - stripped to community-tier features only
+// Removed: Sebastian AI, channels, monitoring, husbandry, missions/tasks,
+// vessels, funders, training/SOPs, posts/feed, comments, environmental events,
+// sync conflicts, custom types, gene bank events, spawn/cross/reproductive events,
+// structure maintenance, report configurations, certifications, observation overrides
 //
-// Previous deployment: 2026-01-30 - Add missing subcollection rules and taxonomy audit
-// Changes:
-// - Added ecological_surveys subcollection rule under organizations/{orgId}
-// - Added holdings subcollection rule under organizations/{orgId}
-// - Added taxonomy_audit root-level rule (append-only audit log)
-//
-// Previous deployment: 2026-01-30 - Loosen Sebastian AI rules (org-member access) and add org usage rules
-// Changes:
-// - Relaxed sebastian conversation/message access to org members
-// - Added org-scoped sebastian_usage subcollection rules
-//
-// Previous deployment: 2026-01-29 - Simplify security rules with consolidated org membership
-// Changes:
-// - Replaced 14 redundant helper functions with single isOrgMemberOf() + isTemplateContent()
-// - Unified all org-membership patterns to use isOrgMemberOf()
-// - Removed field-level diff checks from nested subcollection update rules (app-layer concern)
-// - Simplified users/{userId} rules
-// - Simplified transfers rules with isOrgMemberOf
-//
-// Previous deployment: 2026-01-26 - Simplify member creation rules
-// - Removed canAddOrgMember from members and invitations create rules
-// - Member limits now enforced in app layer (rules get() fails during batch writes)
-// - Simplified members create: self-creation OR existing members can add
-//
-// Previous deployment: 2026-01-20 - Removed demo mode functionality
-// - Removed all demo_* collection rules (demo mode system removed)
-// - Removed isDemoUser() and related helper functions
-// - Simplified organization/user rules to remove demo checks
-//
-// Previous deployment: 2026-01-16 - Added Sebastian conversations as org subcollection
-// - Added sebastian_conversations subcollection rules under organizations/{orgId}
-// - Added messages subcollection rules within sebastian_conversations
-//
-// Previous deployment: 2026-01-15 - Security fixes for temp collection and channel rules
-// - SECURITY: Changed /temp/{doc} to /temp/{userId}/{doc} with user-scoped access
-// - SECURITY: Optimized community_channels and dm_channels to reduce redundant get() calls
-// - Added helper functions getChannelData(), getDMChannelData() for subcollection access
-//
-// Previous deployment: 2026-01-14 - Added Operations Hub collections
-// - Added production funders rules (org-scoped)
-// - Updated missions rules from read-only reference to org-scoped write (for Mission Center)
-//
-// Previous deployment: 2026-01-13 - Renamed legacy ID counters to provenanceIds
-// - Renamed legacy counter collection to provenanceIds for Provenance ID allocation
-// - Added rules for /provenanceIds/{speciesId} collection
-//
-// Previous deployment: 2026-01-12 - Critical security fix for collections
-// - P0: Strengthened isOnboardingBatchWrite() to check UID user docs
-// - P1: Updated resourceBelongsToUserOrg/incomingBelongsToUserOrg for UID user docs
-// - P1: Updated isAdmin() to check UID user docs
-// - P1: Updated /transfers rules with isOrgMember + isMemberByUid pattern
-// - P1: Updated /invitations rules with full org membership checks
-// - P1: Added createdById requirement to groups, genets, cohorts, nested events
+// Kept: organizations, members, sites, groups, organisms, holdings, genets,
+// events (core inventory), transfers, permits, deliverables, snapshots,
+// taxonomy, users, public holdings/visual engagement, historical data
 service cloud.firestore {
   match /databases/{database}/documents {
     // ========================================
@@ -134,11 +80,6 @@ service cloud.firestore {
          isOrgCreatorOf(orgId));
     }
 
-    // Template content is readable by any authenticated user
-    function isTemplateContent() {
-      return isAuthenticated() && resource.data.organizationId == 'template';
-    }
-
     // Check if this is a valid onboarding batch write scenario
     // During onboarding, user/org/membership are created atomically in a batch
     // The user document doesn't exist yet, so we verify:
@@ -173,20 +114,6 @@ service cloud.firestore {
              !exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
     }
 
-    // Community posts are the only cross-org events allowed
-    function isCommunityPostEvent() {
-      return resource.data != null &&
-             resource.data.scope == 'community' &&
-             resource.data.metadata != null &&
-             resource.data.metadata.isCommunityPost == true;
-    }
-
-    // Check if a post exists and is community-scoped
-    function isCommunityPost(postId) {
-      let post = get(/databases/$(database)/documents/posts/$(postId));
-      return post.data != null && post.data.scope == 'community';
-    }
-
     // ========================================
     // Collection Group Rules
     // ========================================
@@ -208,90 +135,6 @@ service cloud.firestore {
     }
 
     // ========================================
-    // Community Channels (Production)
-    // ========================================
-
-    // Community channels - cross-organization public discussions
-    match /community_channels/{channelId} {
-      // Helper function to get channel data - used by subcollections
-      // Note: Firestore evaluates get() once per unique path per rule evaluation
-      function getChannelData() {
-        return get(/databases/$(database)/documents/community_channels/$(channelId)).data;
-      }
-
-      function isChannelMember() {
-        return getAuthUid() in resource.data.memberIds;
-      }
-
-      function isPublicChannel() {
-        return resource.data.visibility == 'public';
-      }
-
-      // Subcollection helpers - use getChannelData() to access parent channel
-      function isParentChannelPublic() {
-        return getChannelData().visibility == 'public';
-      }
-
-      function isParentChannelMember() {
-        return getAuthUid() in getChannelData().memberIds;
-      }
-
-      // Read: public channels or member of invite-only channels
-      allow read: if isAuthenticated() && (isPublicChannel() || isChannelMember());
-
-      // Create: any authenticated user can create
-      allow create: if isAuthenticated();
-
-      // Update/Delete: any channel member
-      allow update, delete: if isAuthenticated() && isChannelMember();
-
-      // Messages subcollection
-      match /messages/{messageId} {
-        allow read: if isAuthenticated() && (isParentChannelPublic() || isParentChannelMember());
-        allow create, update, delete: if isAuthenticated() && isParentChannelMember();
-      }
-
-      // Members subcollection
-      match /members/{memberId} {
-        allow read: if isAuthenticated();
-        allow create: if isAuthenticated() &&
-          (isParentChannelPublic() || isParentChannelMember());
-        allow update, delete: if isAuthenticated() && isParentChannelMember();
-      }
-    }
-
-    // DM channels - private direct messages
-    match /dm_channels/{channelId} {
-      // Helper function to get DM channel data - used by subcollections
-      function getDMChannelData() {
-        return get(/databases/$(database)/documents/dm_channels/$(channelId)).data;
-      }
-
-      function isDMParticipant() {
-        return getAuthUid() in resource.data.memberIds;
-      }
-
-      // Subcollection helper - use getDMChannelData() to access parent channel
-      function isParentDMParticipant() {
-        return getAuthUid() in getDMChannelData().memberIds;
-      }
-
-      allow read: if isAuthenticated() && isDMParticipant();
-      allow create: if isAuthenticated() && getAuthUid() in request.resource.data.memberIds;
-      allow update, delete: if isAuthenticated() && isDMParticipant();
-
-      match /messages/{messageId} {
-        allow read: if isAuthenticated() && isParentDMParticipant();
-        allow create, update, delete: if isAuthenticated() && isParentDMParticipant();
-      }
-
-      match /members/{memberId} {
-        allow read: if isAuthenticated() && isParentDMParticipant();
-        allow create, update, delete: if isAuthenticated() && isParentDMParticipant();
-      }
-    }
-
-    // ========================================
     // Organization-Scoped Root Collections
     // ========================================
 
@@ -308,21 +151,6 @@ service cloud.firestore {
       // Nested collections within organizations
       // All use consistent pattern: isOrgMemberOf(orgId)
       // ----------------------------------------
-
-      // Organization channels - private team discussions
-      match /channels/{channelId} {
-        allow read, write: if isOrgMemberOf(orgId);
-
-        // Messages subcollection
-        match /messages/{messageId} {
-          allow read, write: if isOrgMemberOf(orgId);
-        }
-
-        // Members subcollection
-        match /members/{memberId} {
-          allow read, write: if isOrgMemberOf(orgId);
-        }
-      }
 
       // Groups (tanks, raceways, etc.)
       match /groups/{groupId} {
@@ -354,11 +182,6 @@ service cloud.firestore {
 
       // Events (nested under org)
       match /events/{eventId} {
-        allow read, write: if isOrgMemberOf(orgId);
-      }
-
-      // Ecological surveys - reef health assessments
-      match /ecological_surveys/{surveyId} {
         allow read, write: if isOrgMemberOf(orgId);
       }
 
@@ -408,29 +231,8 @@ service cloud.firestore {
         allow read, write: if isOrgMemberOf(orgId);
       }
 
-      // Saved report configurations
-      // Reports have 30-day TTL via ttlExpiry field for automatic cleanup
-      match /reports/{reportId} {
-        allow read, write: if isOrgMemberOf(orgId);
-      }
-
       // Zones - outplanting site zones
       match /zones/{zoneId} {
-        allow read, write: if isOrgMemberOf(orgId);
-      }
-
-      // Subplots - monitoring subplots within zones
-      match /subplots/{subplotId} {
-        allow read, write: if isOrgMemberOf(orgId);
-      }
-
-      // Reproductive events - genetics tracking
-      match /reproductive_events/{eventId} {
-        allow read, write: if isOrgMemberOf(orgId);
-      }
-
-      // Monitoring schedules - scheduled monitoring tasks
-      match /monitoring_schedules/{scheduleId} {
         allow read, write: if isOrgMemberOf(orgId);
       }
 
@@ -439,25 +241,6 @@ service cloud.firestore {
         allow read, write: if isOrgMemberOf(orgId);
       }
 
-      // Sebastian AI conversations - org-member access (loose rules).
-      match /sebastian_conversations/{conversationId} {
-        allow read, create, update, delete: if isOrgMemberOf(orgId);
-
-        // Messages subcollection - org-member access (loose rules).
-        match /messages/{messageId} {
-          allow read, create, update, delete: if isOrgMemberOf(orgId);
-        }
-      }
-
-      // Sebastian AI generated content (weekly summaries, manual prompts)
-      match /sebastian_generated_content/{contentId} {
-        allow read, write: if isOrgMemberOf(orgId);
-      }
-
-      // Sebastian AI usage tracking (org-scoped)
-      match /sebastian_usage/{usageId} {
-        allow read, create, update, delete: if isOrgMemberOf(orgId);
-      }
     }
 
 
@@ -469,17 +252,6 @@ service cloud.firestore {
       allow create: if isAuthenticated() && userId == request.auth.uid;
       allow update: if isAuthenticated() && userId == request.auth.uid;
       allow delete: if isAuthenticated() && userId == request.auth.uid;
-
-      // Legacy training completions used by TrainingService gate checks
-      match /training/{moduleId} {
-        allow read: if isAuthenticated() && userId == request.auth.uid;
-        allow create: if isAuthenticated() &&
-          userId == request.auth.uid &&
-          request.resource.data.userId == request.auth.uid;
-        allow update, delete: if isAuthenticated() &&
-          userId == request.auth.uid &&
-          resource.data.userId == request.auth.uid;
-      }
     }
 
 
@@ -531,13 +303,6 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Missions - organization-scoped field operations planning
-    match /missions/{missionId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
     // Record types - Reference data
     match /recordTypes/{typeId} {
       allow read: if isAuthenticated();
@@ -547,18 +312,15 @@ service cloud.firestore {
 
     // Events - organization members only (root collection)
     // Transfer events (with toOrganizationId) are readable by recipient org
-    // Community events (scope='community') are readable by all authenticated users
     match /events/{eventId} {
       allow read: if isOrgMemberOf(resource.data.organizationId) ||
-        (isAuthenticated() && isCommunityPostEvent()) ||
         (userDocExists() &&
          resource.data.toOrganizationId == getUserDoc().data.organizationId);
       // Create: org membership or onboarding batch write.
       allow create: if isOnboardingBatchWrite() ||
         isOrgMemberOf(request.resource.data.organizationId);
       allow update: if isOrgMemberOf(resource.data.organizationId) ||
-        isOrgMemberOf(resource.data.toOrganizationId) ||
-        (isAuthenticated() && isCommunityPostEvent());
+        isOrgMemberOf(resource.data.toOrganizationId);
       allow delete: if isOrgMemberOf(resource.data.organizationId);
     }
 
@@ -587,62 +349,6 @@ service cloud.firestore {
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acceptedAt', 'updatedAt']);
       allow delete: if isAuthenticated() &&
         isOrgMemberOf(resource.data.organizationId);
-    }
-
-    // ========================================
-    // Sebastian AI & Training Collections
-    // ========================================
-
-    match /sebastian_conversations/{conversationId} {
-      allow read, update, delete: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-
-      // Root-level messages subcollection (legacy path compatibility).
-      match /messages/{messageId} {
-        allow read, write: if isOrgMemberOf(
-          get(/databases/$(database)/documents/sebastian_conversations/$(conversationId)).data.organizationId
-        );
-      }
-    }
-
-    match /sebastian_usage/{usageId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    match /sebastian_contexts/{contextId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    // Training media - organization-scoped content (videos, documents, etc.)
-    // Each organization manages their own training library
-    match /training_media/{mediaId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId) || isTemplateContent();
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    match /sop_completions/{completionId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    // Training progress - own progress via userId, or org-member read for team views
-    match /training_progress/{progressId} {
-      allow read: if isAuthenticated() &&
-        (resource.data.userId == getAuthUid() ||
-         resource.data.userId == request.auth.uid ||
-         isOrgMemberOf(resource.data.organizationId));
-      allow create: if isAuthenticated() &&
-        (request.resource.data.userId == getAuthUid() ||
-         request.resource.data.userId == request.auth.uid);
-      allow update, delete: if isAuthenticated() &&
-        (resource.data.userId == getAuthUid() ||
-         resource.data.userId == request.auth.uid);
     }
 
     // ========================================
@@ -704,12 +410,6 @@ service cloud.firestore {
     // Additional Organization-Scoped Collections
     // ========================================
 
-    match /monitoring_events/{eventId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
     // Messages - REMOVED: Not used by app
     match /messages/{messageId} {
       allow read, write: if false;
@@ -766,30 +466,15 @@ service cloud.firestore {
       allow update, delete: if isOrgMemberOf(resource.data.organizationId);
     }
 
-    match /sync_conflicts/{conflictId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
     match /taxonomy_overrides/{overrideId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     // Taxonomy audit logs - written by admin operations
     match /taxonomy_audit/{auditId} {
-      allow read, write: if isAuthenticated();
-    }
-
-    // Observation field override definitions (organization-scoped)
-    match /observation_field_overrides/{orgId} {
-      allow read: if isAuthenticated() && isMemberByUid(orgId);
-      allow create, update, delete: if isMemberByUid(orgId);
-
-      match /history/{historyId} {
-        allow read, write: if isMemberByUid(orgId);
-      }
+      allow read: if isAuthenticated();
+      allow write: if false;
     }
 
     // ========================================
@@ -798,45 +483,37 @@ service cloud.firestore {
 
     match /species/{speciesId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     match /taxonomy_species/{speciesId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     match /taxonomy_provenances/{provenanceId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     match /taxonomy_lineages/{lineageId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     match /group_types/{typeId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     match /site_types/{typeId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
-    }
-
-    // Husbandry task definitions - organization-scoped custom task configurations
-    // Each organization manages their own task definitions (with system defaults via code)
-    match /husbandry_task_definitions/{taskId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+      allow write: if false;
     }
 
     match /tips/{tipId} {
       allow read: if isAuthenticated();
-      allow write: if isAuthenticated();
+      allow write: if false;
     }
 
     // Brand profiles - public read for Visual Engagement, org-scoped write
@@ -855,24 +532,6 @@ service cloud.firestore {
     }
 
     match /holdings/{holdingId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    match /tasks/{taskId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    match /sebastian_rate_limits/{limitId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    match /sebastian_metrics/{metricId} {
       allow read: if isOrgMemberOf(resource.data.organizationId);
       allow create: if isOrgMemberOf(request.resource.data.organizationId);
       allow update, delete: if isOrgMemberOf(resource.data.organizationId);
@@ -915,160 +574,8 @@ service cloud.firestore {
     }
 
     // ========================================
-    // SOPs (Standard Operating Procedures)
+    // Permits & Deliverables
     // ========================================
-
-    match /sops/{sopId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId) || isTemplateContent();
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    // ========================================
-    // Environmental Events
-    // ========================================
-
-    match /environmental_events/{eventId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    // ========================================
-    // Posts (Community scope)
-    // ========================================
-
-    match /posts/{postId} {
-      allow read: if isAuthenticated() && (
-        resource.data.scope == 'community' ||
-        isOrgMemberOf(resource.data.organizationId)
-      );
-      allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated();
-    }
-
-    // ========================================
-    // Post Comments (Community Posts Only)
-    // ========================================
-
-    match /post_comments/{commentId} {
-      allow read: if isAuthenticated() &&
-        resource.data.targetType == 'post' &&
-        isCommunityPost(resource.data.targetId);
-      allow create: if isAuthenticated() &&
-        request.resource.data.targetType == 'post' &&
-        isCommunityPost(request.resource.data.targetId);
-      allow update, delete: if isAuthenticated() &&
-        resource.data.targetType == 'post' &&
-        isCommunityPost(resource.data.targetId);
-    }
-
-    // ========================================
-    // Comments (Organization-scoped)
-    // ========================================
-
-    match /organizations/{orgId}/comments/{commentId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // ========================================
-    // Chat Rooms
-    // ========================================
-
-    match /organizations/{orgId}/chat_rooms/{roomId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // ========================================
-    // Chat Messages
-    // ========================================
-
-    match /organizations/{orgId}/chat_messages/{messageId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // ========================================
-    // Feature Purchases (Per-Feature Paywall)
-    // ========================================
-
-    match /organizations/{orgId}/purchases/{purchaseId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // ========================================
-    // Custom Types
-    // ========================================
-    // Custom task, observation, and group types per organization
-
-    match /organizations/{orgId}/custom_task_types/{typeId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    match /organizations/{orgId}/custom_observation_types/{typeId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    match /organizations/{orgId}/custom_group_types/{typeId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // Custom Attachment Methods
-    match /organizations/{orgId}/custom_attachment_methods/{typeId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // ========================================
-    // Organization Configuration Collections
-    // ========================================
-
-    // Organism configs
-    match /organizations/{orgId}/organism_configs/{configId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // Custom site types
-    match /organizations/{orgId}/custom_site_types/{typeId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // Hierarchy config (single document)
-    match /organizations/{orgId}/config/{configType} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // Environmental thresholds (org-scoped)
-    match /organizations/{orgId}/environmental_thresholds/{thresholdId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // Role definitions
-    match /organizations/{orgId}/role_definitions/{roleId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // ========================================
-    // Certification Management
-    // ========================================
-
-    // Certification type definitions
-    match /organizations/{orgId}/certification_types/{certId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // User certifications
-    match /organizations/{orgId}/user_certifications/{docId} {
-      allow read, write: if isOrgMemberOf(orgId);
-    }
-
-    // ========================================
-    // Vessels, Permits, Funders & Deliverables
-    // ========================================
-
-    match /vessels/{vesselId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
 
     match /permits/{permitId} {
       allow read: if isOrgMemberOf(resource.data.organizationId);
@@ -1077,12 +584,6 @@ service cloud.firestore {
     }
 
     match /deliverables/{deliverableId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    match /funders/{funderId} {
       allow read: if isOrgMemberOf(resource.data.organizationId);
       allow create: if isOrgMemberOf(request.resource.data.organizationId);
       allow update, delete: if isOrgMemberOf(resource.data.organizationId);

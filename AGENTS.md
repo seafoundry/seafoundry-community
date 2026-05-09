@@ -4,9 +4,9 @@ This file summarizes the core guidance for contributors and coding agents.
 It is distilled from `.claude/CLAUDE.md` and `README.md`.
 
 ## Project Overview
-SeaFoundry is a Flutter + Firebase platform for end-to-end marine restoration
-(nursery husbandry, genetics, permitting, outplanting, monitoring, and visual
-engagement).
+SeaFoundry Community is a Flutter + Firebase platform for coral restoration
+(genetics, inventory, outplanting, and inter-org transfers). Community
+(open-source) tier only, coral-only, web-only.
 
 ## Architecture Principles
 - Clean architecture layers: Presentation, Business Logic, Domain, Data.
@@ -83,42 +83,28 @@ engagement).
 ## Module Documentation
 - Index: docs/modules/README.md
 - Organization: docs/modules/organization/README.md + docs/modules/organization/CLAUDE.md
-- Workforce: docs/modules/workforce/README.md + docs/modules/workforce/CLAUDE.md
-- Reporting: docs/modules/reporting/README.md + docs/modules/reporting/CLAUDE.md
 - Inventory: docs/modules/inventory/README.md + docs/modules/inventory/CLAUDE.md
-- Genetics: docs/modules/genetics/README.md + docs/modules/genetics/CLAUDE.md
 - Outplanting: docs/modules/outplanting/README.md + docs/modules/outplanting/CLAUDE.md
-- Monitoring: docs/modules/monitoring/README.md + docs/modules/monitoring/CLAUDE.md
-- Husbandry: docs/modules/husbandry/README.md + docs/modules/husbandry/CLAUDE.md
-- Operations: docs/modules/operations/README.md + docs/modules/operations/CLAUDE.md
-- Training: docs/modules/training/README.md + docs/modules/training/CLAUDE.md
-- SOP Builder: docs/modules/sop_builder/README.md + docs/modules/sop_builder/CLAUDE.md
-- Sebastian AI: docs/modules/sebastian_ai/README.md + docs/modules/sebastian_ai/CLAUDE.md
-- Sync Conflicts: docs/modules/sync_conflicts/README.md + docs/modules/sync_conflicts/CLAUDE.md
-- Community Feed: docs/modules/community_feed/README.md + docs/modules/community_feed/CLAUDE.md
 - Settings: docs/modules/settings/README.md + docs/modules/settings/CLAUDE.md
 - Field Work Kit: docs/modules/field_work_kit/README.md + docs/modules/field_work_kit/CLAUDE.md
 - Public Screens: docs/modules/public/README.md + docs/modules/public/CLAUDE.md
 - Navigation: docs/modules/navigation/README.md + docs/modules/navigation/CLAUDE.md
 - Permissions and Firebase: docs/modules/permissions_firebase/README.md + docs/modules/permissions_firebase/CLAUDE.md
 
-## Demo Seeding & Tiering
+## Demo Seeding
 
-Three demo organizations with tier-appropriate features:
+Community tier only:
 
 | Tier | Org ID | Primary Email | Team Limit | Activity Types |
 |------|--------|---------------|------------|----------------|
 | Community | `demo_org_community` | community@provenance.app | 2 | comment |
-| Pro | `demo_org_pro` | pro@provenance.app | 10 | husbandry, observation, comment |
-| Scale | `demo_org_scale` | scale@provenance.app | 10 | task, husbandry, observation, comment |
 
 All demo users share password: `demo123`
 
-- Seed all tiers: `node scripts/seed-demo.js --seed-all-tiers --reset`
-- Seed single tier: `node scripts/seed-demo.js --reset --user=scale@provenance.app --tier=scale`
+- Seed: `node scripts/seed-demo.js --reset`
 - Optional flags: `--seed`, `--seed-date`, `--seed-holdings`, `--skip-inventory`.
 - Inventory seeding runs `dart run scripts/reset_and_seed_inventory.dart` and expects taxonomy to be seeded first (`npm run seed:taxonomy`).
-- Team members follow incrementing pattern: `{tier}1@provenance.app`, `{tier}2@provenance.app`, etc.
+- Team members follow incrementing pattern: `community1@provenance.app`, `community2@provenance.app`, etc.
 
 ## Agent Preferences
 - Be skeptical of existing code, prioritize maintainability and reuse.

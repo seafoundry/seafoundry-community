@@ -24,11 +24,6 @@ class AppColors {
   static const Color error = Color(0xFFEF5350);
   static const Color info = Color(0xFF42A5F5);
 
-  // App drawer module colors
-  static const Color reports = Color(0xFF673AB7); // Deep Purple
-  static const Color training = Color(0xFF3F51B5); // Indigo
-  static const Color sopBuilder = Color(0xFF009688); // Teal
-
   // Node type colors
   static const Color organizationColor = Color(0xFF7E57C2); // Deep Purple
   static const Color siteColor = primary;

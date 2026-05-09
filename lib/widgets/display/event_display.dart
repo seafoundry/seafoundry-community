@@ -1,48 +1,32 @@
 // @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/models/events/event.dart';
-import 'package:seafoundry_app/models/events/husbandry_event.dart';
+import 'package:seafoundry_app/models/events/merge_event.dart';
+import 'package:seafoundry_app/models/events/mortality_event.dart';
 import 'package:seafoundry_app/models/events/move_event.dart';
+import 'package:seafoundry_app/models/events/move_in_event.dart';
+import 'package:seafoundry_app/models/events/move_out_event.dart';
 import 'package:seafoundry_app/models/events/observation_event.dart';
+import 'package:seafoundry_app/models/events/population_gain_event.dart';
+import 'package:seafoundry_app/models/events/population_loss_event.dart';
+import 'package:seafoundry_app/models/events/quantity_change_event.dart';
+import 'package:seafoundry_app/models/events/split_event.dart';
+import 'package:seafoundry_app/models/events/transfer_event.dart';
 import 'package:seafoundry_app/models/types/event_type.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
-/// Community-tier event display widget
+/// Event display widget.
 ///
-/// A simplified version of EventDisplay that:
-/// - Does NOT depend on any Pro-tier event cards
-/// - Does NOT use EventCubit - renders events directly
-/// - Does NOT have monitoring dialog actions
-/// - Does NOT have chat/comments integration
-///
-/// This widget provides a basic event display suitable for community
-/// tier features and web-based implementations.
+/// Renders events directly without requiring EventCubit.
 class EventDisplay extends StatelessWidget {
   const EventDisplay({
     super.key,
     required this.event,
     this.onTap,
-    this.currentUserId,
-    this.onReaction,
-    this.isPending = false,
   });
 
   final Event event;
   final VoidCallback? onTap;
-  final String? currentUserId;
-  final ValueChanged<String>? onReaction;
-
-  /// Whether this post is pending server confirmation (optimistic update)
-  final bool isPending;
-
-  static const List<String> _quickReactions = [
-    '👍',
-    '❤️',
-    '😂',
-    '😮',
-    '😢',
-    '🙏',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -60,128 +44,8 @@ class EventDisplay extends StatelessWidget {
     final icon = _getIcon(event, eventType);
     final color = _getColor(event, eventType);
     final title = _getTitle(event, eventType);
-    final description = _getDescription(event);
     final timeAgo = _formatTimeAgo(event.createdAtDateTime);
-    final isCommunityPost = event.metadata?['isCommunityPost'] == true;
-    final authorInfo = _getAuthorInfo(event);
-    final reactions = _parseReactions(event.metadata);
-
-    // Community posts get expanded card with description
-    if (isCommunityPost && description != null) {
-      final card = InkWell(
-        onTap: isPending ? null : onTap, // Disable tap while pending
-        borderRadius: BorderRadius.circular(12),
-        child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: color.withValues(alpha: 0.15),
-                      radius: 16,
-                      child: Icon(icon, color: color, size: 18),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          // Author and organization info
-                          if (authorInfo != null)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 2),
-                              child: Text(
-                                authorInfo,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          Row(
-                            children: [
-                              if (isPending) ...[
-                                Semantics(
-                                  label: 'Post is being submitted',
-                                  child: SizedBox(
-                                    width: 10,
-                                    height: 10,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 1.5,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Theme.of(context).colorScheme.outline,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Posting...',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Theme.of(context).colorScheme.outline,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              ] else ...[
-                                Text(
-                                  timeAgo,
-                                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                                ),
-                                if (_isEdited(event))
-                                  Text(
-                                    ' (edited)',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  description,
-                  style: TextStyle(fontSize: 13, color: Colors.grey[800]),
-                  maxLines: 4,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (reactions.isNotEmpty || onReaction != null) ...[
-                  const SizedBox(height: 8),
-                  _buildReactionsSection(context, reactions),
-                ],
-              ],
-            ),
-          ),
-        ),
-      );
-
-      // Apply subtle opacity for pending posts
-      return isPending
-          ? Opacity(opacity: 0.7, child: card)
-          : card;
-    }
+    final detail = _getDetailText(event);
 
     // Standard compact event card
     return Card(
@@ -198,127 +62,26 @@ class EventDisplay extends StatelessWidget {
           title,
           style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         ),
-        subtitle: Text(
-          timeAgo,
-          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (detail != null)
+              Text(
+                detail,
+                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            Text(
+              timeAgo,
+              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+            ),
+          ],
         ),
+        trailing: onTap != null
+            ? Icon(Icons.chevron_right, size: 18, color: Colors.grey[400])
+            : null,
       ),
-    );
-  }
-
-  Map<String, List<String>> _parseReactions(Map<String, dynamic>? metadata) {
-    if (metadata == null) return const {};
-    final raw = metadata['reactions'];
-    if (raw is! Map) return const {};
-    final parsed = <String, List<String>>{};
-    for (final entry in raw.entries) {
-      final key = entry.key;
-      final value = entry.value;
-      if (key is! String) continue;
-      if (value is List) {
-        parsed[key] = value.whereType<String>().toList();
-      }
-    }
-    return parsed;
-  }
-
-  Widget _buildReactionsSection(
-    BuildContext context,
-    Map<String, List<String>> reactions,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (reactions.isNotEmpty) _buildReactionChips(context, reactions),
-        if (onReaction != null && currentUserId != null) ...[
-          if (reactions.isNotEmpty) const SizedBox(height: 6),
-          _buildQuickReactions(context),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildReactionChips(
-    BuildContext context,
-    Map<String, List<String>> reactions,
-  ) {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: reactions.entries.map((entry) {
-        final emoji = entry.key;
-        final users = entry.value;
-        final hasReacted = currentUserId != null &&
-            users.contains(currentUserId);
-
-        return InkWell(
-          onTap: isPending || onReaction == null || currentUserId == null
-              ? null
-              : () => onReaction!(emoji),
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: hasReacted
-                  ? Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withValues(alpha: 0.12)
-                  : Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: hasReacted
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).dividerColor,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(emoji, style: const TextStyle(fontSize: 13)),
-                const SizedBox(width: 4),
-                Text(
-                  users.length.toString(),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: hasReacted ? FontWeight.bold : FontWeight.w500,
-                    color: hasReacted
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildQuickReactions(BuildContext context) {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children: _quickReactions.map((emoji) {
-        return InkWell(
-          onTap: isPending ? null : () => onReaction?.call(emoji),
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 
@@ -345,30 +108,8 @@ class EventDisplay extends StatelessWidget {
     );
   }
 
-  /// Get icon based on event type
   IconData _getIcon(Event event, EventType eventType) {
     // Check specific event types first
-    if (event is HusbandryEvent) {
-      switch (event.eventTypeId) {
-        case 'event_cleaning':
-          return Icons.cleaning_services;
-        case 'event_feeding':
-          return Icons.restaurant;
-        case 'event_treatment':
-          return Icons.medical_services;
-        case 'event_environmental_adjustment':
-          return Icons.tune;
-        case 'event_structure_maintenance':
-          return Icons.build_circle;
-        case 'event_water_quality_test':
-          return Icons.science;
-        case 'event_husbandry_log':
-          return Icons.note_alt_outlined;
-        default:
-          return Icons.favorite_outline;
-      }
-    }
-
     if (event is ObservationEvent) {
       return Icons.visibility_outlined;
     }
@@ -397,16 +138,6 @@ class EventDisplay extends StatelessWidget {
         return Icons.visibility_outlined;
       case 'event_activity':
         return Icons.local_activity_outlined;
-      case 'event_spawn':
-        return Icons.bubble_chart_outlined;
-      case 'event_cross':
-        return Icons.merge_type;
-      case 'event_settle':
-        return Icons.foundation;
-      case 'event_propagation':
-        return Icons.content_cut;
-      case 'event_task':
-        return Icons.task_alt;
       case 'event_population_gain':
         return Icons.add;
       case 'event_population_loss':
@@ -418,30 +149,8 @@ class EventDisplay extends StatelessWidget {
     }
   }
 
-  /// Get color based on event type
   Color _getColor(Event event, EventType eventType) {
     // Check specific event types first
-    if (event is HusbandryEvent) {
-      switch (event.eventTypeId) {
-        case 'event_cleaning':
-          return Colors.teal;
-        case 'event_feeding':
-          return Colors.green;
-        case 'event_treatment':
-          return Colors.red;
-        case 'event_environmental_adjustment':
-          return Colors.blue;
-        case 'event_structure_maintenance':
-          return Colors.orange;
-        case 'event_water_quality_test':
-          return Colors.cyan;
-        case 'event_husbandry_log':
-          return Colors.blueGrey;
-        default:
-          return Colors.green;
-      }
-    }
-
     if (event is ObservationEvent) {
       return Colors.blue;
     }
@@ -469,16 +178,6 @@ class EventDisplay extends StatelessWidget {
         return Colors.blue;
       case 'event_activity':
         return Colors.purple;
-      case 'event_spawn':
-        return Colors.cyan;
-      case 'event_cross':
-        return Colors.pink;
-      case 'event_settle':
-        return Colors.teal;
-      case 'event_propagation':
-        return Colors.deepOrange;
-      case 'event_task':
-        return Colors.amber;
       case 'event_population_gain':
         return Colors.lightGreen;
       case 'event_population_loss':
@@ -490,17 +189,7 @@ class EventDisplay extends StatelessWidget {
     }
   }
 
-  /// Get title based on event type
   String _getTitle(Event event, EventType eventType) {
-    // Check for community post title in metadata
-    final metadata = event.metadata;
-    if (metadata != null && metadata['isCommunityPost'] == true) {
-      final title = metadata['title'];
-      if (title is String && title.isNotEmpty) {
-        return title;
-      }
-    }
-
     if (eventType.name.isNotEmpty) {
       return eventType.name;
     }
@@ -514,63 +203,204 @@ class EventDisplay extends StatelessWidget {
         .join(' ');
   }
 
-  /// Get description for community posts
-  String? _getDescription(Event event) {
-    final metadata = event.metadata;
-    if (metadata != null && metadata['isCommunityPost'] == true) {
-      final description = metadata['description'];
-      if (description is String && description.isNotEmpty) {
-        return description;
+  /// Extract a short detail string from event-specific data
+  String? _getDetailText(Event event) {
+    if (event is ObservationEvent) {
+      final parts = <String>[];
+      if (event.isHealthStatusChange) {
+        final oldLabel = event.oldHealthStatus ?? '?';
+        final newLabel = event.newHealthStatus ?? '?';
+        parts.add('$oldLabel \u2192 $newLabel');
       }
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        parts.add(event.comment!);
+      }
+      return parts.isEmpty ? null : parts.join(' \u2014 ');
     }
+
+    if (event is OutplantEvent) {
+      final qty = event.totalQuantity;
+      final allocs = event.allocations.length;
+      final name = event.name;
+      if (qty > 0) {
+        return '$name: $qty coral${qty != 1 ? 's' : ''} ($allocs allocation${allocs != 1 ? 's' : ''})';
+      }
+      return name;
+    }
+
+    if (event is TransferEvent) {
+      final parts = <String>[];
+      if (event.status != null) parts.add(event.status!);
+      if (event.quantity > 0) parts.add('qty: ${event.quantity}');
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        parts.add(event.comment!);
+      }
+      return parts.isEmpty ? null : parts.join(' \u2014 ');
+    }
+
+    if (event is MortalityEvent) {
+      final delta = event.oldPopulation - event.newPopulation;
+      return '-$delta (${event.oldPopulation} \u2192 ${event.newPopulation})';
+    }
+
+    if (event is PopulationLossEvent) {
+      final delta = event.oldPopulation - event.newPopulation;
+      return '-$delta (${event.oldPopulation} \u2192 ${event.newPopulation})';
+    }
+
+    if (event is PopulationGainEvent) {
+      final delta = event.newPopulation - event.oldPopulation;
+      return '+$delta (${event.oldPopulation} \u2192 ${event.newPopulation})';
+    }
+
+    if (event is QuantityChangeEvent) {
+      final delta = event.delta;
+      final sign = delta >= 0 ? '+' : '';
+      return '$sign${delta.toStringAsFixed(delta.truncateToDouble() == delta ? 0 : 1)}';
+    }
+
+    if (event is SplitEvent) {
+      final qty = event.splitQuantity;
+      return 'Split ${qty.toStringAsFixed(qty.truncateToDouble() == qty ? 0 : 1)} '
+          '(${event.sourceQuantityBefore.toStringAsFixed(0)} \u2192 ${event.sourceQuantityAfter.toStringAsFixed(0)})';
+    }
+
+    if (event is MergeEvent) {
+      return 'Merged ${event.absorbedCount} record${event.absorbedCount != 1 ? 's' : ''}';
+    }
+
+    if (event is MoveInEvent) {
+      final count = event.movedCoralIds.length;
+      final from = _lastPathSegment(event.fromUrlPath);
+      return '$count coral${count != 1 ? 's' : ''} from $from';
+    }
+
+    if (event is MoveOutEvent) {
+      final count = event.movedCoralIds.length;
+      final to = _lastPathSegment(event.toUrlPath);
+      return '$count coral${count != 1 ? 's' : ''} to $to';
+    }
+
     return null;
   }
 
-  /// Check if the post has been edited
-  bool _isEdited(Event event) {
-    final metadata = event.metadata;
-    return metadata?['isEdited'] == true;
+  /// Extract the last meaningful segment from a URL path for display
+  static String _lastPathSegment(String urlPath) {
+    final segments = urlPath.split('/').where((s) => s.isNotEmpty).toList();
+    return segments.length >= 2 ? segments.last : urlPath;
   }
 
-  /// Get author info (name and organization) for community posts
-  String? _getAuthorInfo(Event event) {
-    final metadata = event.metadata;
-    if (metadata == null) return null;
+  /// Build detail rows for a bottom sheet display of the event
+  static List<MapEntry<String, String>> getDetailRows(Event event) {
+    final rows = <MapEntry<String, String>>[];
+    final eventType = EventType.builtins[event.eventTypeId] ?? EventType.unknown;
+    rows.add(MapEntry('Type', eventType.name.isNotEmpty ? eventType.name : event.eventTypeId));
+    rows.add(MapEntry('Date', _formatDateTime(event.createdAtDateTime)));
 
-    // Get author name from metadata
-    final authorName = metadata['createdByName'] as String?;
-
-    // Get organization name from metadata
-    final orgName = metadata['createdByOrgName'] as String?;
-
-    if (authorName == null || authorName.isEmpty) return null;
-
-    // If org name is available and not already embedded in author name
-    if (orgName != null &&
-        orgName.isNotEmpty &&
-        !authorName.contains(orgName)) {
-      return '$authorName • $orgName';
+    if (event is ObservationEvent) {
+      if (event.isHealthStatusChange) {
+        rows.add(MapEntry('Health', '${event.oldHealthStatus ?? '?'} \u2192 ${event.newHealthStatus ?? '?'}'));
+      }
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        rows.add(MapEntry('Comment', event.comment!));
+      }
+    } else if (event is OutplantEvent) {
+      rows.add(MapEntry('Name', event.name));
+      rows.add(MapEntry('Total Quantity', '${event.totalQuantity}'));
+      rows.add(MapEntry('Allocations', '${event.allocations.length}'));
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        rows.add(MapEntry('Comment', event.comment!));
+      }
+      for (final alloc in event.allocations.take(5)) {
+        rows.add(MapEntry('  ${alloc.recordName}', 'qty: ${alloc.quantity}'));
+      }
+      if (event.allocations.length > 5) {
+        rows.add(MapEntry('', '...and ${event.allocations.length - 5} more'));
+      }
+    } else if (event is TransferEvent) {
+      if (event.status != null) rows.add(MapEntry('Status', event.status!));
+      if (event.quantity > 0) rows.add(MapEntry('Quantity', '${event.quantity}'));
+      if (event.genetId != null) rows.add(MapEntry('Genet ID', event.genetId!));
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        rows.add(MapEntry('Comment', event.comment!));
+      }
+    } else if (event is MortalityEvent) {
+      rows.add(MapEntry('Population', '${event.oldPopulation} \u2192 ${event.newPopulation}'));
+      rows.add(MapEntry('Lost', '${event.oldPopulation - event.newPopulation}'));
+      rows.add(MapEntry('Reason', event.mortalityReasonId));
+    } else if (event is PopulationLossEvent) {
+      rows.add(MapEntry('Population', '${event.oldPopulation} \u2192 ${event.newPopulation}'));
+      rows.add(MapEntry('Lost', '${event.oldPopulation - event.newPopulation}'));
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        rows.add(MapEntry('Comment', event.comment!));
+      }
+    } else if (event is PopulationGainEvent) {
+      rows.add(MapEntry('Population', '${event.oldPopulation} \u2192 ${event.newPopulation}'));
+      rows.add(MapEntry('Gained', '${event.newPopulation - event.oldPopulation}'));
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        rows.add(MapEntry('Comment', event.comment!));
+      }
+    } else if (event is QuantityChangeEvent) {
+      final delta = event.delta;
+      final sign = delta >= 0 ? '+' : '';
+      rows.add(MapEntry('Change', '$sign${delta.toStringAsFixed(delta.truncateToDouble() == delta ? 0 : 1)}'));
+      if (event.countDelta != null) {
+        rows.add(MapEntry('Count', '${event.oldCount} \u2192 ${event.newCount}'));
+      }
+    } else if (event is SplitEvent) {
+      rows.add(MapEntry('Split Quantity', event.splitQuantity.toStringAsFixed(0)));
+      rows.add(MapEntry('Source', '${event.sourceQuantityBefore.toStringAsFixed(0)} \u2192 ${event.sourceQuantityAfter.toStringAsFixed(0)}'));
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        rows.add(MapEntry('Comment', event.comment!));
+      }
+    } else if (event is MergeEvent) {
+      rows.add(MapEntry('Absorbed', '${event.absorbedCount} record${event.absorbedCount != 1 ? 's' : ''}'));
+      rows.add(MapEntry('Quantity', '${event.totalQuantityBefore.toStringAsFixed(0)} \u2192 ${event.totalQuantityAfter.toStringAsFixed(0)}'));
+      if (event.comment != null && event.comment!.isNotEmpty) {
+        rows.add(MapEntry('Comment', event.comment!));
+      }
+    } else if (event is MoveInEvent) {
+      rows.add(MapEntry('From', _lastPathSegment(event.fromUrlPath)));
+      rows.add(MapEntry('Corals', '${event.movedCoralIds.length}'));
+      if (event.quantity != null) rows.add(MapEntry('Quantity', '${event.quantity}'));
+      if (event.reason != null) rows.add(MapEntry('Reason', event.reason!));
+    } else if (event is MoveOutEvent) {
+      rows.add(MapEntry('To', _lastPathSegment(event.toUrlPath)));
+      rows.add(MapEntry('Corals', '${event.movedCoralIds.length}'));
+      if (event.quantity != null) rows.add(MapEntry('Quantity', '${event.quantity}'));
+      if (event.reason != null) rows.add(MapEntry('Reason', event.reason!));
     }
 
-    return authorName;
+    rows.add(MapEntry('Path', event.urlPath));
+
+    return rows;
   }
 
-  /// Format time ago for display
+  static String _formatDateTime(DateTime dt) {
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
   String _formatTimeAgo(DateTime dateTime) {
     try {
       final now = DateTime.now();
       final difference = now.difference(dateTime);
 
       if (difference.inDays > 365) {
-        return '${(difference.inDays / 365).floor()} year(s) ago';
+        final n = (difference.inDays / 365).floor();
+        return '$n ${n == 1 ? 'year' : 'years'} ago';
       } else if (difference.inDays > 30) {
-        return '${(difference.inDays / 30).floor()} month(s) ago';
+        final n = (difference.inDays / 30).floor();
+        return '$n ${n == 1 ? 'month' : 'months'} ago';
       } else if (difference.inDays > 0) {
-        return '${difference.inDays} day(s) ago';
+        final n = difference.inDays;
+        return '$n ${n == 1 ? 'day' : 'days'} ago';
       } else if (difference.inHours > 0) {
-        return '${difference.inHours} hour(s) ago';
+        final n = difference.inHours;
+        return '$n ${n == 1 ? 'hour' : 'hours'} ago';
       } else if (difference.inMinutes > 0) {
-        return '${difference.inMinutes} minute(s) ago';
+        final n = difference.inMinutes;
+        return '$n ${n == 1 ? 'minute' : 'minutes'} ago';
       } else {
         return 'Just now';
       }

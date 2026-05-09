@@ -9,6 +9,7 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+const TARGET_ORG_ID = process.env.DEMO_ORG_ID || 'demo_org_community';
 
 async function checkMetadataFields() {
   console.log('=== Checking Metadata Fields ===\n');
@@ -19,7 +20,7 @@ async function checkMetadataFields() {
     let query = db.collection(collectionName);
     if (collectionName !== 'users' && collectionName !== 'organizations') {
       // Add org filter for non-root collections
-      query = query.where('organizationId', '==', 'demo_org_pro');
+      query = query.where('organizationId', '==', TARGET_ORG_ID);
     }
 
     const snap = await query.limit(100).get();
@@ -49,7 +50,7 @@ async function checkMetadataFields() {
   }
 
   // Also check genets in subcollection
-  const genetSnap = await db.collection('organizations').doc('demo_org_pro').collection('genets').limit(100).get();
+  const genetSnap = await db.collection('organizations').doc(TARGET_ORG_ID).collection('genets').limit(100).get();
   const genetIssues = [];
   genetSnap.forEach(doc => {
     const data = doc.data();

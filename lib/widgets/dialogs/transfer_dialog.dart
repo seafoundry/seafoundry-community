@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_cubit.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_cubit.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
@@ -32,19 +33,26 @@ enum TransferDialogMode {
   /// Initiate a transfer to another organization
   initiate,
 
-  /// Receive a transfer via QR/manifest
+  /// Receive a transfer via manifest payload
   receive,
 
   /// Manually register a received genet
   manualRegister,
 }
 
+typedef _TransferDialogCoreDependencies = ({
+  TransferService transferService,
+  OrganizationRepository organizationRepository,
+  Organization organization,
+  NavigationCubit navigationCubit,
+});
+
 /// Universal dialog for genet transfer operations (initiate, receive, manual register).
 ///
 /// Provider expectations:
 /// - [`TransferService`] for API calls
 /// - [`OrganizationRepository`] for organization lookup/edit mode
-/// - [`MobileScanner`] is only required when the receive dialog renders QR UI
+/// - Receive dialog handles manifest payload entry for incoming transfers
 class TransferDialog extends StatelessWidget {
   final TransferDialogMode mode;
   final String? genetName;
@@ -92,22 +100,19 @@ class TransferDialog extends StatelessWidget {
     bool allowLocalIdSelection = false,
   }) {
     final organismContext = _readOrganismContext(context);
-    // Read services from original context before showDialog creates a new context
-    final transferService = context.read<TransferService>();
-    final organizationRepository = context.read<OrganizationRepository>();
-    final organization = context.read<Organization>();
-    final navigationCubit = context.read<NavigationCubit>();
+    final dependencies = _readCoreDependencies(context);
     final genetRepository = context.maybeRead<GenetRepository>();
-    final repositories = context.safeReadAll(() => (
-      context.read<OrganismRecordRepository>(),
-      context.read<GroupRepository>(),
-      context.read<SiteRepository>(),
-    ));
+    final repositories = context.safeReadAll(
+      () => (
+        context.read<OrganismRecordRepository>(),
+        context.read<GroupRepository>(),
+        context.read<SiteRepository>(),
+      ),
+    );
     if (repositories == null) {
-      ToastOverlay.showSnackBar(context,
-        const SnackBar(
-          content: Text('Transfer tools are still loading. Please try again.'),
-        ),
+      _showLoadingSnackBar(
+        context,
+        message: 'Transfer tools are still loading. Please try again.',
       );
       return Future.value(false);
     }
@@ -121,19 +126,14 @@ class TransferDialog extends StatelessWidget {
         ),
         RepositoryProvider<GroupRepository>.value(value: groupRepository),
         RepositoryProvider<SiteRepository>.value(value: siteRepository),
-        RepositoryProvider<OrganizationRepository>.value(
-          value: organizationRepository,
-        ),
+        ..._coreProviders(dependencies),
         if (genetRepository != null)
           RepositoryProvider<GenetRepository>.value(value: genetRepository),
-        Provider<TransferService>.value(value: transferService),
-        Provider<Organization>.value(value: organization),
-        BlocProvider<NavigationCubit>.value(value: navigationCubit),
       ],
       dialog: BlocProvider(
         create: (_) => TransferInitiateCubit(
-          transferService: transferService,
-          organizationRepository: organizationRepository,
+          transferService: dependencies.transferService,
+          organizationRepository: dependencies.organizationRepository,
           sourceStructureUrlPath: sourceStructureUrlPath,
           initialProvenanceSelection: initialSelection,
         ),
@@ -155,12 +155,47 @@ class TransferDialog extends StatelessWidget {
         OrganismContext.forKind(OrganismKind.coral);
   }
 
-  static ProvenanceLifeStageSelection selectionForGenet(ProvenanceRecord record) =>
-      ProvenanceLifeStageSelection(
-        provenanceType: record.provenanceType,
-        lifeStage: LifeStageX.tryParse(record.metadata['lifeStage']?.toString())
-            ?? LifeStage.adult,
-      );
+  static _TransferDialogCoreDependencies _readCoreDependencies(
+    BuildContext context,
+  ) {
+    return (
+      transferService: context.read<TransferService>(),
+      organizationRepository: context.read<OrganizationRepository>(),
+      organization: context.read<Organization>(),
+      navigationCubit: context.read<NavigationCubit>(),
+    );
+  }
+
+  static List<SingleChildWidget> _coreProviders(
+    _TransferDialogCoreDependencies dependencies, {
+    bool includeTransferService = true,
+  }) {
+    return [
+      RepositoryProvider<OrganizationRepository>.value(
+        value: dependencies.organizationRepository,
+      ),
+      if (includeTransferService)
+        Provider<TransferService>.value(value: dependencies.transferService),
+      Provider<Organization>.value(value: dependencies.organization),
+      BlocProvider<NavigationCubit>.value(value: dependencies.navigationCubit),
+    ];
+  }
+
+  static void _showLoadingSnackBar(
+    BuildContext context, {
+    required String message,
+  }) {
+    ToastOverlay.showSnackBar(context, SnackBar(content: Text(message)));
+  }
+
+  static ProvenanceLifeStageSelection selectionForGenet(
+    ProvenanceRecord record,
+  ) => ProvenanceLifeStageSelection(
+    provenanceType: record.provenanceType,
+    lifeStage:
+        LifeStageX.tryParse(record.metadata['lifeStage']?.toString()) ??
+        LifeStage.adult,
+  );
 
   /// Show the transfer dialog for receiving a transfer
   static Future<ProvenanceRecord?> showReceive(
@@ -168,20 +203,17 @@ class TransferDialog extends StatelessWidget {
     TransferManifest? initialManifest,
   }) {
     final organismContext = _readOrganismContext(context);
-    // Read services from original context before showDialog creates a new context
-    final transferService = context.read<TransferService>();
-    final organizationRepository = context.read<OrganizationRepository>();
-    final organization = context.read<Organization>();
-    final navigationCubit = context.read<NavigationCubit>();
-    final repositories = context.safeReadAll(() => (
-      context.read<OrganismRecordRepository>(),
-      context.read<SiteRepository>(),
-    ));
+    final dependencies = _readCoreDependencies(context);
+    final repositories = context.safeReadAll(
+      () => (
+        context.read<OrganismRecordRepository>(),
+        context.read<SiteRepository>(),
+      ),
+    );
     if (repositories == null) {
-      ToastOverlay.showSnackBar(context,
-        const SnackBar(
-          content: Text('Transfer tools are still loading. Please try again.'),
-        ),
+      _showLoadingSnackBar(
+        context,
+        message: 'Transfer tools are still loading. Please try again.',
       );
       return Future.value(null);
     }
@@ -198,20 +230,14 @@ class TransferDialog extends StatelessWidget {
           value: organismRecordRepository,
         ),
         RepositoryProvider<SiteRepository>.value(value: siteRepository),
-        RepositoryProvider<OrganizationRepository>.value(
-          value: organizationRepository,
-        ),
-        Provider<TransferService>.value(value: transferService),
-        Provider<Organization>.value(value: organization),
-        BlocProvider<NavigationCubit>.value(value: navigationCubit),
+        ..._coreProviders(dependencies),
         if (groupRepository != null)
           RepositoryProvider<GroupRepository>.value(value: groupRepository),
         Provider<UniqueNameValidationService>.value(value: validationService),
       ],
       dialog: BlocProvider(
-        create: (_) => TransferReceiveCubit(
-          transferService: transferService,
-        ),
+        create: (_) =>
+            TransferReceiveCubit(transferService: dependencies.transferService),
         child: TransferDialog(
           mode: TransferDialogMode.receive,
           organismContext: organismContext,
@@ -227,11 +253,7 @@ class TransferDialog extends StatelessWidget {
     required List<String> speciesIds,
   }) {
     final organismContext = _readOrganismContext(context);
-    // Capture providers from parent context before showDialog (DialogBase rule)
-    final organizationRepository = context.read<OrganizationRepository>();
-    final transferService = context.read<TransferService>();
-    final organization = context.read<Organization>();
-    final navigationCubit = context.read<NavigationCubit>();
+    final dependencies = _readCoreDependencies(context);
     final organismRecordRepository = context.read<OrganismRecordRepository>();
     final validationService = UniqueNameValidationService(
       firestore: organismRecordRepository.db,
@@ -239,24 +261,18 @@ class TransferDialog extends StatelessWidget {
     return DialogBase.showDialogWithProviders<ProvenanceRecord?>(
       context: context,
       providers: [
-        RepositoryProvider<OrganizationRepository>.value(
-          value: organizationRepository,
-        ),
+        ..._coreProviders(dependencies, includeTransferService: false),
         // Provide interface type; TransferService implements ManualTransferRegistrationService
         Provider<ManualTransferRegistrationService>.value(
-          value: transferService,
+          value: dependencies.transferService,
         ),
-        Provider<Organization>.value(value: organization),
-        BlocProvider<NavigationCubit>.value(value: navigationCubit),
-        Provider<UniqueNameValidationService>.value(
-          value: validationService,
-        ),
+        Provider<UniqueNameValidationService>.value(value: validationService),
       ],
       dialog: TransferDialog(
         mode: TransferDialogMode.manualRegister,
         speciesIds: speciesIds,
         organismContext: organismContext,
-        organizationRepository: organizationRepository,
+        organizationRepository: dependencies.organizationRepository,
       ),
     );
   }
@@ -266,22 +282,17 @@ class TransferDialog extends StatelessWidget {
     BuildContext context, {
     required BatchTransferMode mode,
   }) {
-    // Read services from original context before showDialog creates a new context
-    final transferService = context.read<TransferService>();
-    final organizationRepository = context.read<OrganizationRepository>();
-    final organization = context.read<Organization>();
-    final navigationCubit = context.read<NavigationCubit>();
-    final repositories = context.safeReadAll(() => (
-          context.read<OrganismRecordRepository>(),
-          context.read<GenetRepository>(),
-        ));
+    final dependencies = _readCoreDependencies(context);
+    final repositories = context.safeReadAll(
+      () => (
+        context.read<OrganismRecordRepository>(),
+        context.read<GenetRepository>(),
+      ),
+    );
     if (repositories == null) {
-      ToastOverlay.showSnackBar(
+      _showLoadingSnackBar(
         context,
-        const SnackBar(
-          content:
-              Text('Batch transfer tools are still loading. Please try again.'),
-        ),
+        message: 'Batch transfer tools are still loading. Please try again.',
       );
       return Future.value(null);
     }
@@ -293,20 +304,15 @@ class TransferDialog extends StatelessWidget {
         RepositoryProvider<OrganismRecordRepository>.value(
           value: organismRecordRepository,
         ),
-        RepositoryProvider<OrganizationRepository>.value(
-          value: organizationRepository,
-        ),
         RepositoryProvider<GenetRepository>.value(value: genetRepository),
-        Provider<TransferService>.value(value: transferService),
-        Provider<Organization>.value(value: organization),
-        BlocProvider<NavigationCubit>.value(value: navigationCubit),
+        ..._coreProviders(dependencies),
       ],
       dialog: BlocProvider(
         create: (_) => BatchTransferCubit(
           mode: mode,
-          transferService: transferService,
+          transferService: dependencies.transferService,
           organismRecordRepository: organismRecordRepository,
-          currentOrganization: organization,
+          currentOrganization: dependencies.organization,
         ),
         child: const BatchTransferDialog(),
       ),
@@ -321,21 +327,18 @@ class TransferDialog extends StatelessWidget {
     // Load genet name from repository if needed
     final genetId = originalEvent.genetId ?? '';
     final organismContext = _readOrganismContext(context);
-    // Read services from original context before showDialog creates a new context
-    final transferService = context.read<TransferService>();
-    final organizationRepository = context.read<OrganizationRepository>();
-    final organization = context.read<Organization>();
-    final navigationCubit = context.read<NavigationCubit>();
-    final repositories = context.safeReadAll(() => (
-      context.read<OrganismRecordRepository>(),
-      context.read<GroupRepository>(),
-      context.read<SiteRepository>(),
-    ));
+    final dependencies = _readCoreDependencies(context);
+    final repositories = context.safeReadAll(
+      () => (
+        context.read<OrganismRecordRepository>(),
+        context.read<GroupRepository>(),
+        context.read<SiteRepository>(),
+      ),
+    );
     if (repositories == null) {
-      ToastOverlay.showSnackBar(context,
-        const SnackBar(
-          content: Text('Transfer tools are still loading. Please try again.'),
-        ),
+      _showLoadingSnackBar(
+        context,
+        message: 'Transfer tools are still loading. Please try again.',
       );
       return Future.value(null);
     }
@@ -349,17 +352,12 @@ class TransferDialog extends StatelessWidget {
         ),
         RepositoryProvider<GroupRepository>.value(value: groupRepository),
         RepositoryProvider<SiteRepository>.value(value: siteRepository),
-        RepositoryProvider<OrganizationRepository>.value(
-          value: organizationRepository,
-        ),
-        Provider<TransferService>.value(value: transferService),
-        Provider<Organization>.value(value: organization),
-        BlocProvider<NavigationCubit>.value(value: navigationCubit),
+        ..._coreProviders(dependencies),
       ],
       dialog: BlocProvider(
         create: (_) => TransferInitiateCubit(
-          transferService: transferService,
-          organizationRepository: organizationRepository,
+          transferService: dependencies.transferService,
+          organizationRepository: dependencies.organizationRepository,
           originalEvent: originalEvent,
         ),
         child: TransferDialog(

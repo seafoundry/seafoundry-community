@@ -9,11 +9,11 @@
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Verify non-coral outplant batch workflows and tag persistence (`lib/services/outplanting_service.dart`).
 - Keep outplant geometry and event linkage consistent for monitoring integrations.
 
 ## Touchpoints
-- Screen: `lib/screens/outplanting_screen.dart`
+- Screen: `lib/screens/spreadsheet/module_spreadsheet_screen.dart`
+- Holdings view: `lib/widgets/spreadsheet/outplanting/outplanting_holdings_view.dart`
 - Repos: `lib/repositories/inventory/event_repository.dart`,
   `lib/repositories/inventory/zone_repository.dart`,
   `lib/repositories/outplant/subplot_repository.dart`

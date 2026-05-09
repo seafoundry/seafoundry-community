@@ -10,7 +10,6 @@ import 'package:seafoundry_app/services/logging_service.dart';
 /// This service provides:
 /// - Thread-safe cache operations
 /// - Automatic cleanup of stale nodes
-/// - Batch loading optimizations
 /// - Memory pressure handling
 class GraphCacheManager {
   GraphCacheManager({
@@ -36,11 +35,6 @@ class GraphCacheManager {
       const Duration(minutes: 5),
       (_) => _cleanupStaleEntries(),
     );
-  }
-
-  void stopCleanupTimer() {
-    _cleanupTimer?.cancel();
-    _cleanupTimer = null;
   }
 
   /// Add a node to the cache
@@ -86,11 +80,6 @@ class GraphCacheManager {
         'Removed node from cache: $urlPath (closed: $closeNode, cache size: ${_cache.length})',
       );
     }
-  }
-
-  /// Check if a node is being loaded
-  bool isLoading(String urlPath) {
-    return _pendingLoads.containsKey(urlPath);
   }
 
   /// Default timeout for pending loads
@@ -158,39 +147,6 @@ class GraphCacheManager {
     return completer.future;
   }
 
-  /// Batch load multiple nodes efficiently
-  Future<Map<String, GraphNode?>> batchLoad(
-    List<String> urlPaths,
-    Future<GraphNode?> Function(String) loader,
-  ) async {
-    final results = <String, GraphNode?>{};
-    final futures = <Future<void>>[];
-
-    for (final path in urlPaths) {
-      // Check cache first
-      final cached = get(path);
-      if (cached != null) {
-        results[path] = cached;
-        continue;
-      }
-
-      // Load if not cached
-      futures.add(
-        registerPendingLoad(path, () => loader(path))
-            .then((node) {
-              results[path] = node;
-            })
-            .catchError((e) {
-              LoggingService.instance.error('Failed to load node: $path', e);
-              results[path] = null;
-            }),
-      );
-    }
-
-    await Future.wait(futures);
-    return results;
-  }
-
   /// Clear the entire cache
   void clear() {
     final entries = _config.cloneEntriesDuringClear
@@ -203,24 +159,6 @@ class GraphCacheManager {
     _cache.clear();
     _pendingLoads.clear();
     LoggingService.instance.info('Cleared graph cache');
-  }
-
-  /// Get cache statistics
-  CacheStats getStats() {
-    final now = DateTime.now();
-    var staleCount = 0;
-
-    for (final entry in _cache.values) {
-      if (now.difference(entry.lastAccessed) > staleTimeout) {
-        staleCount++;
-      }
-    }
-
-    return CacheStats(
-      totalNodes: _cache.length,
-      staleNodes: staleCount,
-      pendingLoads: _pendingLoads.length,
-    );
   }
 
   void _cleanupStaleEntries() {
@@ -265,7 +203,8 @@ class GraphCacheManager {
   }
 
   void dispose() {
-    stopCleanupTimer();
+    _cleanupTimer?.cancel();
+    _cleanupTimer = null;
     clear();
   }
 }
@@ -291,16 +230,4 @@ class _CacheEntry {
 
   final GraphNode node;
   DateTime lastAccessed;
-}
-
-class CacheStats {
-  const CacheStats({
-    required this.totalNodes,
-    required this.staleNodes,
-    required this.pendingLoads,
-  });
-
-  final int totalNodes;
-  final int staleNodes;
-  final int pendingLoads;
 }

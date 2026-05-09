@@ -23,7 +23,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Uses client-side filtering of the cached stream for consistency.
   /// For large datasets, use [queryBySite] for server-side filtering.
-  @override
   Stream<List<OrganismRecord>> streamBySite(String siteId) {
     return streamAll.map(
       (records) => records.where((record) => record.siteId == siteId).toList(),
@@ -34,7 +33,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Uses client-side filtering of the cached stream for consistency.
   /// For large datasets, use [queryByGroup] for server-side filtering.
-  @override
   Stream<List<OrganismRecord>> streamByGroup(String groupId) {
     return streamAll.map(
       (records) =>
@@ -46,7 +44,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Uses client-side filtering of the cached stream for consistency.
   /// For large datasets, use [queryByOrganismKind] for server-side filtering.
-  @override
   Stream<List<OrganismRecord>> streamByOrganism(OrganismKind kind) {
     return streamAll.map(
       (records) =>
@@ -56,7 +53,6 @@ mixin _OrganismRecordRepositoryQueries
 
   /// Stream organism records that are propagatable
   /// (organism-specific: ready for propagation and healthy).
-  @override
   Stream<List<OrganismRecord>> streamPropagatable() {
     return streamAll.map(
       (records) => records.where((record) {
@@ -69,7 +65,6 @@ mixin _OrganismRecordRepositoryQueries
   }
 
   /// Stream organism records that are ready for outplanting.
-  @override
   Stream<List<OrganismRecord>> streamReadyForOutplant() {
     return streamAll.map(
       (records) => records.where((record) {
@@ -98,7 +93,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Creates a separate Firestore subscription with server-side siteId filter.
   /// More efficient for large organizations but doesn't share cache with [streamAll].
-  @override
   Stream<List<OrganismRecord>> queryBySite(String siteId) {
     final query = collectionRef
         .where('organizationId', isEqualTo: organization.id)
@@ -117,7 +111,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Creates a separate Firestore subscription with server-side groupId filter.
   /// More efficient for large organizations but doesn't share cache with [streamAll].
-  @override
   Stream<List<OrganismRecord>> queryByGroup(String groupId) {
     final query = collectionRef
         .where('organizationId', isEqualTo: organization.id)
@@ -136,7 +129,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Creates a separate Firestore subscription with server-side organismKind filter.
   /// More efficient for large organizations but doesn't share cache with [streamAll].
-  @override
   Stream<List<OrganismRecord>> queryByOrganismKind(OrganismKind kind) {
     final query = collectionRef
         .where('organizationId', isEqualTo: organization.id)
@@ -190,7 +182,6 @@ mixin _OrganismRecordRepositoryQueries
   /// - `organismRecords(organizationId, groupId, __name__)`
   ///
   /// Text search would require a third-party search service (Algolia, Typesense).
-  @override
   Future<List<OrganismRecord>> search(
     String query, {
     OrganismKind? organismKind,
@@ -272,7 +263,6 @@ mixin _OrganismRecordRepositoryQueries
   /// Get recent organism records ordered by updatedAt descending.
   ///
   /// Used by search dialogs to show recent selections before user types.
-  @override
   Future<List<OrganismRecord>> getRecent({
     int limit = 5,
     OrganismKind? organismKind,
@@ -293,7 +283,6 @@ mixin _OrganismRecordRepositoryQueries
   /// Get organisms by species ID.
   ///
   /// Useful for species-specific searches and reports.
-  @override
   Future<List<OrganismRecord>> getBySpecies(
     String speciesId, {
     OrganismKind? organismKind,
@@ -318,7 +307,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Rejects input that does not match PID format to prevent
   /// accidental comparison against Firestore document IDs or legacy IDs.
-  @override
   Future<List<OrganismRecord>> getByGenetProvenanceId(
     String provenanceId, {
     OrganismKind? organismKind,
@@ -331,12 +319,10 @@ mixin _OrganismRecordRepositoryQueries
       return const [];
     }
 
-    final genetCollection = FirestoreCollectionResolver.instance.subcollection(
-      db,
-      ModelType.organization.collectionPath,
-      organization.id,
-      ModelType.genet.collectionPath,
-    );
+    final genetCollection = db
+        .collection(ModelType.organization.collectionPath)
+        .doc(organization.id)
+        .collection(ModelType.genet.collectionPath);
     final genetSnapshot = await genetCollection
         .where('provenanceId', isEqualTo: normalized)
         .get();
@@ -379,7 +365,6 @@ mixin _OrganismRecordRepositoryQueries
   ///
   /// Returns organisms where pendingBatchId matches the given batch ID.
   /// Used for executing or cancelling a pending batch.
-  @override
   Future<List<OrganismRecord>> getOrganismsForPendingBatch(
     String batchId,
   ) async {

@@ -1,14 +1,8 @@
-# SeaFoundry Taxonomy Registry & Multi-Organism Architecture
+# SeaFoundry Taxonomy Registry & Organism Architecture
 
 ## Overview
 
-SeaFoundry's taxonomy system enables support for multiple marine restoration organisms beyond coral, including oysters, kelp, seagrass, mangroves, finfish, crustaceans (crabs), and echinoderms (urchins). This document consolidates all architectural decisions, data requirements, and implementation strategies for multi-organism support.
-
-**Key Documents**:
-- **[Work Log](../../../.github/issues/taxonomy-work-log-summary.md)** - Progress tracking and historical decisions
-- **[Task List](taxonomy_task_list.md)** - Implementation checklist with file references and line numbers
-
-> **Note**: This document consolidates content from the previous multi-organism planning documents (data architecture audit, restoration plan, foundational data requirements, and ADR-001…005). All key information has been integrated here for a single source of truth.
+SeaFoundry's taxonomy system provides species and provenance management for coral restoration. The `OrganismKind` enum contains only `coral`. This document describes the core taxonomy patterns and architectural decisions.
 
 ### Terminology: Provenance vs. Lineage
 - **Preferred term**: We now use **provenance** in UI copy, product docs, and new workflows when referring to genetic relationships or stock histories.
@@ -16,23 +10,22 @@ SeaFoundry's taxonomy system enables support for multiple marine restoration org
 
 ## Design Principles
 
-1. **One neutral model, many organisms** - Use neutral constructs (Provenance, Cohort, Holding, ReproductiveEvent) with organism-specific presets
+1. **One neutral model** - Use neutral constructs (Provenance, Cohort, Holding, ReproductiveEvent) with coral-specific presets
 2. **Batch + discrete holdings** - Early life stages tracked in batches (volume/count); later stages as discrete items
 3. **Place-based & permitted** - Every deployment anchored to geometry with optional permit metadata
 4. **Ecosystem & social outcomes** - Align fields to biodiversity credits, carbon MRV, and CSR metrics from day one
-5. **Scalable taxonomy** - Support future organism families through classification hierarchy and propagation modes
 
 ### The Five-Axis Canonical Inventory Model
 
-To deliver on those principles every inventory record — regardless of organism — is expressed via five neutral axes. This “OrganismRecord” abstraction replaces the legacy coral‑specific DTOs (`HoldingRecord`, `Cohort`, coral inventories) and powers CSV v2, repositories, dialogs, and compliance exports.
+To deliver on those principles every inventory record is expressed via five neutral axes. This “OrganismRecord” abstraction replaces the legacy coral‑specific DTOs (`HoldingRecord`, `Cohort`, coral inventories) and powers CSV v2, repositories, dialogs, and compliance exports.
 
 | Axis | Description | Source / Notes |
 | --- | --- | --- |
 | **OrganismKind + SpeciesId** | Existing enum + taxonomy reference. | Already live (`OrganismKind`, `SpeciesRegistry`). |
-| **ProvenanceType** | Origin of the stock (`wild`, `sexualCohort`, `graduatedIndividual`, `transfer`, `unknown`). `wild` covers corals of opportunity, founder genotypes, broodstock collections, and their fragments/clones. | Backed by new `lib/models/types/provenance_type.dart`. Provenance attributes (sire/dam/cohort IDs, wild method) stay bound to this axis. |
-| **LifeStage** | Neutral lifecycle stage with optional subtype (e.g., oyster "pediveliger"). | Extends the existing life-stage enum with subtype metadata so reporting distinguishes embryos vs. settled juveniles even when the physical form changes. |
-| **PhysicalForm (Form Factor)** | Smallest practical handling unit (fragment, settlement substrate, seeded line segment, spat bag, etc.). | Uses `PhysicalFormInstance` with `formId` string, kept organism-aware via metadata and editable per org via admin tooling. Corals' historic coralType becomes a compatibility wrapper over this axis. |
-| **Quantity + SizeSpec** | How many physical form units exist and their size band (XS...XL) plus optional measurement (value + unit). | `SizeMappingsService` loads per-organism/per-physical-form bands from YAML (`config/size_mappings.defaults.yaml`) and organizations can override bands/physical forms when enabling new organisms. |
+| **ProvenanceType** | Origin of the stock (`wild`, `sexualCohort`, `graduatedIndividual`, `transfer`, `unknown`). `wild` covers corals of opportunity, founder genotypes, and their fragments/clones. | Backed by new `lib/models/types/provenance_type.dart`. Provenance attributes (sire/dam/cohort IDs, wild method) stay bound to this axis. |
+| **LifeStage** | Neutral lifecycle stage with optional subtype (e.g., coral "settled recruit"). | Extends the existing life-stage enum with subtype metadata so reporting distinguishes embryos vs. settled juveniles even when the physical form changes. |
+| **PhysicalForm (Form Factor)** | Smallest practical handling unit (fragment, settlement substrate, plug, etc.). | Uses `PhysicalFormInstance` with `formId` string, kept organism-aware via metadata and editable per org via admin tooling. Corals' historic coralType becomes a compatibility wrapper over this axis. |
+| **Quantity + SizeSpec** | How many physical form units exist and their size band (XS...XL) plus optional measurement (value + unit). | Size band configurations are defined as hardcoded Dart constants in `lib/services/physical_form_data.dart` (community build). |
 | **Lifecycle & Measurement History** | `lifeStageHistory` records every transition (from/to stage, timestamp, optional notes + size snapshot); `measurementHistory` captures biomass/size sampling over time. | Backed by `lib/models/mixins/{life_stage_progression_mixin.dart,measurable_mixin.dart}` and serialized with every `OrganismRecord`, `HoldingRecord`, and `Cohort`. |
 
 All repositories, CSV adapters, and UI layers consume these axes rather than `coralTypeId`/`genetTypeId`. Legacy fields continue to serialize until migrations and UI swaps are complete, but the five-axis DTO is the canonical source of truth.
@@ -44,7 +37,7 @@ To avoid duplicating lifecycle/measurement logic, `OrganismRecord`, `HoldingReco
 **Critical Requirement**: Every modification to an `OrganismRecord` must emit inventory events that document the change. This ensures a complete audit trail for compliance, data integrity, and operational transparency.
 
 **Immutable Fields** (cannot be changed after record creation):
-- **`organismKind`**: The organism type (coral, kelp, oyster, etc.) is fundamental to the record's identity and cannot be modified. Attempts to change this field should be rejected with a clear validation error.
+- **`organismKind`**: The organism type (coral in community build) is fundamental to the record's identity and cannot be modified. Attempts to change this field should be rejected with a clear validation error.
 - **`speciesId`**: The species classification is immutable. Changing this would represent a different biological entity and should create a new record instead.
 
 **Mutable Fields** (changes must emit events):
@@ -105,9 +98,9 @@ Every time one of the above fields changes we also append entries to `lifeStageH
 
 #### Morphology Governance + Admin Overrides
 
-* Built-in morphologies come from SME dictionaries (e.g., coral `fragment`, `microfragment`, `settlementSubstrate`; kelp `seededLineSegment`, `unseededLine`; oyster `spatBag`, `trayCluster`; seagrass `sprigModule`, `plotMat`; finfish/crab `transportBag`, `softShell`).
-* Site/org admins can register additional morphologies and size mappings when they enable a new organism. These overrides live alongside taxonomy metadata so offline/mobile workflows respect the same vocabulary.
-* `AllowedPairsMatrix` (generated helper) lists valid `(LifeStage, Morphology)` combinations per organism; the validation service ensures dialogs/CSV imports can only select legal pairs and provides context-sensitive UX messaging (e.g., kelp juveniles must be a seeded line segment).
+* Built-in morphologies for coral come from SME dictionaries (e.g., `fragment`, `microfragment`, `settlementSubstrate`).
+* Physical form configurations are defined as hardcoded Dart constants in `lib/services/physical_form_data.dart`.
+* `AllowedPairsMatrix` (generated helper) lists valid `(LifeStage, Morphology)` combinations per organism; the validation service ensures dialogs/CSV imports can only select legal pairs.
 
 ## Core Architecture
 
@@ -119,7 +112,7 @@ The taxonomy service (`lib/services/taxonomy_service.dart`) reads canonical `tax
 
 | Field | Type | Purpose |
 | --- | --- | --- |
-| `organismKind` | string (enum) | Organism category (`coral`, `kelp`, `oyster`, etc.) |
+| `organismKind` | string (enum) | Organism category (`coral`) |
 | `genus` / `species` | string | Scientific name components |
 | `code` | string | Short code (e.g., `AcPa` for Acropora palmata) |
 | `commonNames[]` | string[] | Display-friendly names |
@@ -128,20 +121,16 @@ The taxonomy service (`lib/services/taxonomy_service.dart`) reads canonical `tax
 | `propagationModes[]` | string[] | Reproduction strategies (see below) |
 | `metadata` | object | Future-proof organism-specific fields |
 
-**Propagation Modes** (enabling shared workflows):
-- `asexualFragmentation` - Coral fragging, sponge cutting
-- `sexualSpawning` - Broadcast spawning (coral, urchins)
-- `vegetativeCutting` - Kelp, seagrass division  
-- `larvalSettlement` - Oysters, urchins, crabs
-- `hatcheryBreeding` - Finfish selective breeding
-- `clonalExpansion` - Seagrass rhizome growth
+**Propagation Modes**:
+- `asexualFragmentation` - Coral fragging
+- `sexualSpawning` - Broadcast spawning (coral)
 
 #### Provenance Documents (`taxonomy_provenances/{provenanceId}`)
 
 | Field | Type | Purpose |
 | --- | --- | --- |
 | `organismKind` | string | Links to species entry |
-| `provenanceKind` | string | Type: `genet`, `broodstock`, `donorMeadow`, `hatcheryLot`, `cohort` |
+| `provenanceKind` | string | Type: `genet`, `cohort` |
 | `displayName` | string | Human-readable label |
 | `speciesId` | string | Links to `taxonomy_species/{speciesId}` |
 | `parentProvenanceId` | string | Optional parent reference |
@@ -158,23 +147,16 @@ The taxonomy service (`lib/services/taxonomy_service.dart`) reads canonical `tax
 
 ## Architecture Decisions
 
-### ADR-001  Multi-Organism Inventory Model
+### ADR-001  Coral Inventory Model
 
 **Current status**
 - `OrganismKind` exposes organism metadata (default units, supported structures, default site types) that downstream services can consume.
 - `TaxonomyService` resolves species and provenances directly from Firestore (or emulator seeds) so repositories and CSV adapters no longer rely on hard-coded enums. Each environment must seed the taxonomy collections (or tests must install `TestSpeciesCatalog`) before organism-aware flows run.
 
-```5:15:lib/models/types/organism_kind.dart
+```dart
+// lib/models/types/organism_kind.dart (community build - coral only)
 enum OrganismKind {
   coral,
-  oyster,
-  seagrass,
-  kelp,
-  mangrove,
-  echinoid,
-  crab,
-  finfish,
-  seaCucumber,
 }
 ```
 
@@ -205,7 +187,7 @@ class TaxonomyService {
 ```9:39:taxonomy_task_list.md
 - [ ] **Create ProvenanceBase interface** 
   - File: `lib/models/provenance_base.dart` (NEW)
-  - Purpose: Abstract interface for Genet and future provenance types
+  - Purpose: Abstract interface for Genet and other provenance types
   - References: ADR-001
 - [ ] **Adapt Genet to implement ProvenanceBase**
   - File: `lib/models/genet.dart`
@@ -213,82 +195,22 @@ class TaxonomyService {
   - Purpose: Backwards-compatible provenance abstraction
 - [ ] **Create LifeStage enum**
   - File: `lib/models/types/life_stage.dart` (NEW)
-  - Purpose: Replace CoralType with organism-agnostic stages
+  - Purpose: Replace CoralType with neutral lifecycle stages
 ```
 
 ### ADR-002  Facility & Structure Enum Governance
 
-**Current status**
-- `GroupType` and `SiteType` include aquaculture and restoration structures needed for kelp lines, oyster gear, seagrass plots, and mangrove transects.
+**Current status (Community Build)**
+- `SiteType` supports `nursery` and `outplanting` (coral-specific).
+- `GroupType` provides coral-specific structures (tank, raceway, tree, dome, reebarTable, cradle, aframe, group, patch).
+- Legacy site type aliases (`site_type_nursery_ex_situ`, `site_type_nursery_in_situ`) map to the consolidated `nursery` type via `SiteType._legacyAliases`.
 
-```41:68:lib/models/types/group_type.dart
-    longline.id: longline,
-    'longline': longline,
-    raft.id: raft,
-    'raft': raft,
-    dropperLine.id: dropperLine,
-    'dropperline': dropperLine,
-    pen.id: pen,
-    'pen': pen,
-    pond.id: pond,
-    'pond': pond,
-    reefPatch.id: reefPatch,
-    'reefpatch': reefPatch,
-    bag.id: bag,
-    'bag': bag,
-    rack.id: rack,
-    'rack': rack,
-    cage.id: cage,
-    'cage': cage,
-    plotTransect.id: plotTransect,
-    'plot_transect': plotTransect,
-    quadrat.id: quadrat,
-    'quadrat': quadrat,
-    beltTransect.id: beltTransect,
-    'belt_transect': beltTransect,
-    linePen.id: linePen,
-    'line_pen': linePen,
-    boatDrop.id: boatDrop,
-    'boat_drop': boatDrop,
-```
-
-```91:140:lib/models/types/site_type.dart
-  static const SiteType kelpFarm = SiteType(
-    id: 'site_type_kelp_farm',
-    name: 'Kelp Farm',
-    groupTypes: [
-      GroupType.longline,
-      GroupType.dropperLine,
-      GroupType.raft,
-      GroupType.group,
-    ],
-  );
-  static const SiteType reefAquaculture = SiteType(
-    id: 'site_type_reef_aquaculture',
-    name: 'Reef Aquaculture',
-    groupTypes: [
-      GroupType.reefPatch,
-      GroupType.bag,
-      GroupType.rack,
-      GroupType.cage,
-      GroupType.group,
-    ],
-  );
-```
-
-**Gaps & next steps**
-- Site capability metadata, GraphNode validations, and migration scripts remain on the backlog.
-
-```195:205:taxonomy_task_list.md
-- [ ] **Extend GroupType enum**
-  - File: `lib/models/types/group_type.dart`
-  - Task: Add longline, raft, dropperLine, pen, pond, reefPatch, etc.
-- [ ] **Extend SiteType enum**
-  - File: `lib/models/types/site_type.dart`
-  - Task: Add kelpFarm, reefAquaculture, seagrassPlot, etc.
-- [ ] **Update SiteCapabilities**
-  - File: `lib/models/site_capabilities.dart`
-  - Task: Add organism-specific capability metadata
+```dart
+// lib/models/types/site_type.dart (community build)
+static final Map<String, SiteType> builtins = {
+  nursery.id: nursery,
+  outplanting.id: outplanting,
+};
 ```
 
 ### ADR-003  Organism-Aware Repositories
@@ -313,13 +235,9 @@ class TaxonomyService {
 ```
 
 **Gaps & next steps**
-- Event/monitoring repositories still need context threading and organism-aware validation.
+- Event repositories still need context threading and organism-aware validation.
 
 ```84:109:taxonomy_task_list.md
-- [ ] **Update MonitoringEventRepository**
-  - File: `lib/repositories/inventory/monitoring_event_repository.dart`
-  - Lines: 14-19
-  - Task: Add OrganismContext parameter to constructor
 - [ ] **Update EventRepository base**
   - File: `lib/repositories/inventory/event_repository.dart`
   - Lines: 153-249
@@ -330,8 +248,8 @@ class TaxonomyService {
 
 **Current status**
 - The code-native CSV v2 spec enumerates organism, permit, MRV, and CSR fields that adapters enforce.
-- Inventory fixtures + CSV dialog previews now highlight site/permit columns (siteId/siteName, permitType/siteJurisdiction, geometry) so compliance metadata is visible before non-coral import/export flows land.
-- `InventorySpreadsheetCubit` feeds seeded-line, gamete, and larval holdings into inventory exports so non-coral repositories can round-trip via the universal CSV template even while the UI remains coral-first.
+- Inventory fixtures + CSV dialog previews now highlight site/permit columns (siteId/siteName, permitType/siteJurisdiction, geometry) so compliance metadata is visible.
+- `InventorySpreadsheetCubit` feeds coral holdings into inventory exports via the universal CSV template.
 
 ```6:13:lib/services/csv/v2/csv_v2_spec.dart
 /// Mirrors `SeaFoundry_Universal_CSV_v2_spec.json` so adapters, validators,
@@ -339,7 +257,7 @@ class TaxonomyService {
 /// duplicating string literals throughout the codebase.
 ///
 /// The data below is sourced from:
-/// - `README.md` - Consolidated multi-organism architecture and CSV v2 schema
+/// - `README.md` - Consolidated coral inventory architecture and CSV v2 schema
 /// - `SeaFoundry_Universal_CSV_v2_spec.json`
 ```
 
@@ -359,12 +277,12 @@ class TaxonomyService {
 ### ADR-005  Observation Field Registry
 
 **Current status**
-- `ObservationFieldRegistry` (`lib/services/observation_field_registry.dart`) maps `(OrganismKind, RecordType, LifeStage)` scopes to `ObservationDialogDefinition`s, captures permit requirements + `siteCapability.*` flags, and now ingests YAML/JSON overrides through `ObservationFieldOverrideService` so a Firestore doc can reshape dialog fields at runtime.
+- `ObservationFieldRegistry` maps `(OrganismKind, RecordType, LifeStage)` scopes to `ObservationDialogDefinition`s, captures permit requirements + `siteCapability.*` flags, and now ingests YAML/JSON overrides through `ObservationFieldOverrideService` so a Firestore doc can reshape dialog fields at runtime.
 - `recordTypeId` values in overrides are trimmed + case-insensitive, so `"nurseryHoldings"`, `"NurseryHoldings"`, and `"NURSERYHOLDINGS"` all target the same definition. Invalid YAML no longer wipes existing overrides—the service validates the payload, logs the error, and keeps the previous definitions active until a fixed document lands.
-- Default presets for oysters, kelp, and seagrass live in `assets/overrides/observation_field_overrides.yaml`. The override service hydrates this file on startup before layering organization-specific Firestore docs (stored under `observation_field_overrides/{organizationId}` with either a `yaml` string or raw `overrides[]` payload).
+- The override service hydrates default presets on startup before layering organization-specific Firestore docs (stored under `observation_field_overrides/{organizationId}` with either a `yaml` string or raw `overrides[]` payload).
 - `ObservationDialogConfig` pulls definitions from the registry, caches them per organism/record type/life stage, and exposes the permit/capability metadata so dialogs, CSV adapters, and action dock gating stay in sync.
 - `ObservationTilesBuilder` reads the new metadata, rendering permit badges and disabling tiles when a site’s capabilities (frag/move/outplant/environmental adjustment/monitoring FAB) do not satisfy the registry contract. This prevents users from launching unsupported dialogs while still surfacing guidance inside the action sheet.
-- `TaxonomyAdminPanel` (`lib/screens/admin/taxonomy_admin_panel.dart`) now includes an **Overrides** tab that loads Firestore YAML, falls back to the bundled defaults, validates payloads locally, surfaces legacy JSON conversions + last updated metadata, exposes a version history timeline (load snapshot, diff vs editor, copy YAML, apply with confirmation), provides inline override audit entries with action/search filters plus drill-down sheets, offers a manual “Reload registry” action, refreshes the in-memory registry after each save, and persists changes on behalf of the signed-in organization with role-aware read-only behavior. Widget tests cover load/save/history/audit/reload flows via `test/widget/admin/taxonomy_admin_panel_test.dart`.
+- `TaxonomyAdminPanel` includes an **Overrides** tab that loads Firestore YAML, falls back to the bundled defaults, validates payloads locally, surfaces legacy JSON conversions + last updated metadata, exposes a version history timeline (load snapshot, diff vs editor, copy YAML, apply with confirmation), provides inline override audit entries with action/search filters plus drill-down sheets, offers a manual “Reload registry” action, refreshes the in-memory registry after each save, and persists changes on behalf of the signed-in organization with role-aware read-only behavior.
 
 #### CLI Compliance Bundle Exporter
 
@@ -396,73 +314,15 @@ Each plan entry can define an org, filters, history IDs, output directory, and m
 
 **Gaps & next steps**
 - Extend the overrides tab with Firestore version history (multiple revision diffs + rollback) so admins can safely reason about prior changes, and layer in organization-scoped history so changes can be audited outside of the raw collection viewers.
-- Extend action dock messaging with per-organism copy + site-specific hints (e.g., link to permit upload screens) once overrides ship for additional organisms.
-
-```117:188:taxonomy_task_list.md
-- [x] **Create ObservationFieldRegistry**
-  - File: `lib/services/observation_field_registry.dart`
-  - Purpose: Dynamic field configuration by organism/stage/record type with permit + capability metadata
-- [ ] **Create OrganismSelector widget**
-  - File: `lib/widgets/common/organism_selector.dart` (NEW)
-  - Purpose: Dropdown for selecting organism type in dialogs
-- [ ] **Add organism filter to spreadsheets**
-  - Files: All spreadsheet widgets in `lib/widgets/spreadsheet/`
-  - Task: Add organism dropdown to filter bars
-```
+- Extend action dock messaging with site-specific hints (e.g., link to permit upload screens).
 
 ## Organism-Specific Architectures
 
-### 🪸 Coral (Foundation)
-- **Lifecycle**: Spawn → Gametes → Larvae → Settlement → Recruits → Juveniles → Colonies → Fragments
+### Coral
+- **Lifecycle**: Recruits, Juveniles, Colonies, Fragments
 - **Tracking**: Individual fragments/colonies with `genet` provenance
 - **Metrics**: % live tissue, bleaching severity, disease presence
-- **Structures**: Tanks, trays, trees, grids
-
-### 🦪 Oysters (Shellfish)
-- **Lifecycle**: Broodstock → Spawning → Larvae → Spat on Shell → Cages/Racks → Reef Deployment
-- **Tracking**: Batch cohorts, optional individual tagging
-- **Metrics**: Shell height (mm), density (#/bag or #/m²), mortality (%), disease tests
-- **Structures**: Cages, racks, bags, reef patches
-- **Compliance**: NSSP harvest tags, health certificates
-
-### 🌿 Seagrass
-- **Lifecycle**: Donor shoots → Nursery → Transplant plots
-- **Tracking**: Batch by plot/quadrat
-- **Metrics**: % cover, shoots/m², canopy height
-- **Environmental**: Substrate type, salinity (PSU), depth vs MLLW, light (Secchi/PAR)
-
-### 🌊 Kelp (Macroalgae)  
-- **Lifecycle**: Seeded twine → Longline deployment → Grow-out → Harvest
-- **Tracking**: Batch by line segment
-- **Metrics**: Blade/stipe length (cm), biomass (kg/m), density (plants/m)
-- **Structures**: Longlines, rafts, dropper lines
-- **Geometry**: Polyline support for farm layouts
-
-### 🌳 Mangroves
-- **Lifecycle**: Propagules → Site prep → Planting → Monitoring
-- **Tracking**: Batch plantings, optional individual tags
-- **Metrics**: Survival %, height (cm), DBH (cm), soil salinity
-- **Environmental**: Tidal inundation class, porewater salinity
-
-### 🦀 Crustaceans (Crabs)
-- **Lifecycle**: Broodstock → Spawning → Larvae → Juveniles → Grow-out → Release
-- **Tracking**: Cohort batches with optional individual tags
-- **Metrics**: Carapace width (mm), weight (g), molt stage, egg status
-- **Events**: Molting, spawning events with stage tracking
-- **Structures**: Ponds, pens, tanks
-
-### 🐟 Finfish
-- **Lifecycle**: Broodstock → Eggs/Larvae → Fry → Fingerlings → Juveniles → Release
-- **Tracking**: Family provenance (dam/sire), release cohorts
-- **Metrics**: Length (mm), weight (g), FCR, stage-specific survival
-- **Compliance**: WOAH health certificates, transport permits
-- **Structures**: Raceways, ponds, pens
-
-### 🦔 Echinoderms (Urchins)
-- **Lifecycle**: Broodstock → Spawning → Larvae → Settlement → Juveniles → Deployment
-- **Tracking**: Larval batches → juvenile cohorts
-- **Metrics**: Test diameter (mm), Gonad Index (%), density (#/m²)
-- **Water Quality**: Enhanced panel for larval rearing
+- **Structures**: Tanks, raceways, trees, domes, reebarTables, cradles, aframes, groups, patches
 
 ## Data Model Evolution
 
@@ -470,7 +330,7 @@ Each plan entry can define an org, filters, history IDs, output directory, and m
 
 #### New Core Types
 - `lib/models/types/organism_kind.dart` - Organism enumeration
-- `lib/models/types/life_stage.dart` ✅ - Development stages shared across organisms (implemented Jan 14)
+- `lib/models/types/life_stage.dart` ✅ - Development stages (implemented Jan 14)
 - `lib/models/types/measurement_unit.dart` ✅ - Units system with canonical IDs/metadata (implemented Jan 14)
 - `lib/models/population_measurement.dart` ✅ - Value + unit wrapper for batch holdings (implemented Jan 14)
 - `lib/models/provenance_base.dart` ✅ - Interface for all provenances (implemented Jan 14)
@@ -479,10 +339,7 @@ Each plan entry can define an org, filters, history IDs, output directory, and m
 - `lib/models/cohort.dart` ✅ - Cohort DTO built on PopulationMeasurement (implemented Jan 14)
 
 #### Batch Holdings
-- `lib/models/holdings/gamete_batch.dart` ✅ - Early stage batches (implemented Jan 14)
-- `lib/models/holdings/larval_batch.dart` ✅ - Larval cohorts (implemented Jan 14)
-- `lib/models/holdings/seeded_line_batch.dart` ✅ - Kelp line tracking (implemented Jan 14)
-- `lib/models/cohort.dart` ✅ - General batch tracking
+- `lib/models/cohort.dart` - General batch tracking
 
 #### Repository Evolution  
 - `OrganismContext` injection throughout repositories
@@ -492,7 +349,7 @@ Each plan entry can define an org, filters, history IDs, output directory, and m
 ### Phase 2: Service Layer
 
 #### Key Services
-- `ObservationFieldRegistry` - Dynamic field configuration by organism/stage with runtime registration hooks for new organisms and automatic cache invalidation for dialogs
+- `ObservationFieldRegistry` - Dynamic field configuration by organism/stage with automatic cache invalidation for dialogs
 - `SiteBaselineService` - Environmental baseline management (writes server timestamps + `updatedBy` so audits are trustworthy across clients)
 - `ReproductiveEventRepository` - Sexual/asexual reproduction tracking
 - `SyncManager` - Offline queue + registry sync coordinator; replays now include conflict detection (writing rows to `sync_conflicts/{operationId}` + local `SyncConflictEntry`s) and wrap move/event creation in `EventRepository.withTimestampOverride` so snapshots retain the original offline timestamp. The paired `SyncConflictResolutionService` powers UI/CLI flows for replaying or dismissing conflicts with audit metadata.
@@ -502,27 +359,9 @@ Each plan entry can define an org, filters, history IDs, output directory, and m
 - **Admin UI**: `Settings > Taxonomy Admin > Conflicts` lists both remote (`sync_conflicts`) and on-device conflicts. Use the filters (organization, record type, reason, resolution) plus the Replay/Dismiss buttons to act on each entry. Replay queues the original payload back into the offline queue; Dismiss records resolution notes for future audits.
 - **CLI**: `npm run conflicts:resolve -- --id=<conflictId> --action=export --export=/tmp/conflict.json` dumps the persisted payload for editing, and a follow-up `npm run conflicts:resolve -- --id=<conflictId> --action=replay --payload=/tmp/conflict.json --user=<uid> [--metadata=/tmp/meta.json] [--notes="context"]` replays the edited payload (use `--action=dismiss` to acknowledge without replaying). The script reads/writes `sync_conflicts/{id}` so Firestore stays authoritative.
 
-#### Observation Presets
-- Oyster Health: shell height, density, fouling, disease
-- Kelp Growth: blade length, biomass/meter, epiphyte load
-- Seagrass Assessment: % cover, shoot density, substrate
-- Mangrove Hydrology: inundation, porewater salinity, soil
-
-### Phase 3: UI/UX Extensions
-
-#### Structure Types
-- **New GroupTypes**: longline, raft, dropperLine, pen, pond, reefPatch, bag, rack, cage, plotTransect, quadrat
-- **New SiteTypes**: kelpFarm, reefAquaculture, seagrassPlot, mangroveOutplant, growOutPond, racewaySite, releaseSite
-
-#### Dialog Enhancements
-- Organism selector in creation/monitoring dialogs
-- Life stage-aware field visibility
-- Batch vs discrete quantity inputs
-- Environmental baseline toggles
-
 ## CSV v2 Schema
 
-The universal CSV v2 format supports all organisms with canonical fields:
+The universal CSV v2 format uses canonical fields:
 
 ```
 organismKind, species, provenanceId, cohortId, lifeStage, measurementUnit, quantity,
@@ -533,7 +372,7 @@ trainingHours, credentialId, irisMetricIds[], sdgTargets[]
 ```
 
 **Key Features**:
-- Organism-specific validation rules
+- Coral-specific validation rules
 - Measurement unit enforcement
 - Geometry support (point/multipoint/polyline)
 - MRV/CSR field capture
@@ -545,21 +384,19 @@ trainingHours, credentialId, irisMetricIds[], sdgTargets[]
 ### Environmental Baselines
 - Site-level parameters with history tracking
 - Monitoring events can update baselines
-- Parameters vary by organism:
+- Key parameters for coral:
   - Marine: temperature, salinity, DO, pH, nutrients
   - Benthic: substrate type, depth, light penetration
-  - Terrestrial: soil salinity, tidal inundation
-- Service implementation: `lib/services/site_baseline_service.dart` wraps the Firestore `site_baselines/{siteId__organism}` docs with caching, CRUD helpers, fallback-to-site logic (when organism-specific baselines are absent), and live streams so dialogs can read/write baselines without duplicating Firestore code.
-- Monitoring dialog (`lib/widgets/dialogs/monitoring_dialog.dart`) now consumes the service, rendering temperature/salinity/DO fields with refresh/save/clear actions so baseline changes travel through the service instead of direct Firestore writes.
+- Baseline data is stored in Firestore `site_baselines/{siteId__organism}` docs with caching, CRUD helpers, fallback-to-site logic (when organism-specific baselines are absent), and live streams so dialogs can read/write baselines without duplicating Firestore code.
 - Baseline exports: `UniversalCSVDialog` exposes the Site Baselines template so organizations can download the canonical CSV (`CsvTemplateKind.siteBaselines`) via `ExportService.exportSiteBaselineCSV`.
 - Species registry hydration: `RepositoriesProvider` loads Firestore taxonomy data at startup and feeds it into `Species.replaceAll`, so every legacy species lookup now sees live taxonomy entries without any coral-only fallback. If the taxonomy collections are empty the registry remains empty, making taxonomy seeding a required setup step.
-- Site metadata: `Site` documents now carry a `supportedOrganismKinds` whitelist (defaulting to the site type’s capability matrix) so GraphNode actions + `SiteCapabilityGuard` can disable coral-only workflows at facilities configured for kelp, oyster, or other organisms.
-- Graph action dock: `GraphNodeActions` now reads the active organism (per site or user selection) and injects that context into FAB categories so non-coral sites no longer surface fragmentation/outplant actions by default. Follow-up: the selector still lists every organism enabled on the organization; we need to filter it by the organisms actually present on that site and hide dialogs that remain coral-only.
+- Site metadata: `Site` documents carry a `supportedOrganismKinds` whitelist (defaulting to the site type’s capability matrix) so GraphNode actions + `SiteCapabilityGuard` can gate workflows appropriately.
+- Graph action dock: `GraphNodeActions` reads the active organism context and injects it into FAB categories.
 - Structure capacity overrides: Organization admins can author YAML-equivalent overrides in Settings → “Structure Capacity Overrides.” Child-structure rules are enforced immediately; occupant rules will be wired into holding/cohort repositories next so bag/pen/pond density limits trigger the same guards in-app.
 
 ### Taxonomy Seeding
-- Run `npm run seed:taxonomy` (`scripts/firestore/seed_taxonomy_data.ts`) to populate the `taxonomy_species` and `taxonomy_provenances` collections with starter data for coral (APAL/ACER), kelp, oyster, seagrass, crab, finfish, and red urchin workflows. The script supports `--dry-run` and respects `FIREBASE_SERVICE_ACCOUNT` / `FIRESTORE_EMULATOR_HOST` so it can target either production or the emulator.
-- For emulator workflows, run `npm run seed:taxonomy:emulator` (or set `FIRESTORE_EMULATOR_HOST=localhost:8080`) before exercising CSV v2 templates or widget/integration tests. The seeded IDs (e.g., `GENET-AP-001`, `HATCH-CHES-2025`, `seagrass_nursery_fb_2025`) match the sample CSV rows under `docs/csv/examples/`, making it easy to round-trip the templates against live Firestore data.
+- The community build seeds taxonomy data for coral species (APAL/ACER).
+- See `scripts/seed-demo.js` for the community demo seeding workflow.
 
 ### Taxonomy Admin Tooling Roadmap
 
@@ -571,7 +408,7 @@ trainingHours, credentialId, irisMetricIds[], sdgTargets[]
 | Role gating & audit trail | Restrict UI/service entry points to admin roles and capture immutable audit docs | ✅ Read-only gating, provenance metadata locking, and audit drill-down sheets landed |
 
 - **Service layer**: `TaxonomyAdminService` provides fetch/upsert/delete helpers, now emitting `taxonomy_audit` documents for every mutation.
-- **UI shell**: `lib/screens/admin/taxonomy_admin_panel.dart` exposes tabbed species/provenance lists with search/filter controls, alias/notes inputs, parent/site selectors, and an audit log tab powered by `taxonomy_audit` data.
+- **UI shell**: `TaxonomyAdminPanel` exposes tabbed species/provenance lists with search/filter controls, alias/notes inputs, parent/site selectors, and an audit log tab powered by `taxonomy_audit` data.
 - **Emulator prep**: `npm run seed:taxonomy:emulator` hydrates `FakeFirebaseFirestore`/emulator instances before running widget/integration suites so taxonomy-driven flows function offline.
 - **Next steps**: Extend provenance/site linking (site lookup widgets, parent selectors) now that role gating and audit drilldowns are in place.
 
@@ -583,16 +420,12 @@ The `migrationplanv2` automation (`build_seafoundry_bundle.py`) produces a refer
 - TypeScript migration helpers (e.g., `scripts/migrations/coral_type_to_axes.ts`) that backfill legacy coral documents with `lifeStage`, `physicalFormId`, `sizeClass`, and `provenanceType` based on the official crosswalk (gamete -> vial/gamelike, fragment -> juvenile/fragment, etc.).
 - Documentation snapshots (`docs/data_dictionary.md`, `docs/reference_notes_full.md`) summarizing the schema, organism lifecycles, CSV requirements, compliance hooks, and the 18‑month roadmap.
 
-We treat the bundle as an accelerator: the generated files are merged into the existing modules (instead of living under a separate bundle tree) and any gaps are filled by our real services (`OrganismContext`, repositories, CSV adapters). When new organisms are enabled, admins extend the physical form/size-mapping YAML via the taxonomy/admin UX so both online and offline clients inherit the same vocabulary.
+We treat the bundle as an accelerator: the generated files are merged into the existing modules (instead of living under a separate bundle tree) and any gaps are filled by our real services (`OrganismContext`, repositories, CSV adapters).
 
 ### Regulatory Compliance
 | Organism | Key Regulations | Required Fields |
 | --- | --- | --- |
 | Coral | NOAA permits, sanctuary authorizations | permitId, siteJurisdiction |
-| Oyster | FDA NSSP, state aquaculture licenses | harvestTagId, healthCertificateId |
-| Kelp | USACE NWP 55, state leases | leaseId, gearCertificationId |
-| Mangrove | DEP trimming permits | professionalTrimmerLicense |
-| Finfish | WOAH health codes | healthCertificateId, transportPermitId |
 
 ### MRV & Carbon Accounting
 - Blue carbon pools: biomass, soil, dissolved
@@ -628,44 +461,25 @@ We treat the bundle as an accelerator: the generated files are merged into the e
 
 ## Testing Strategy
 
-### Adapter Tests
-- `test/adapters/coral_life_stage_adapter_test.dart`
-- `test/adapters/genet_provenance_adapter_test.dart`
-
 ### Integration Tests
-- Multi-organism workflows
-- Mixed-species nurseries  
-- Cross-organism reporting
+- Coral inventory workflows
+- CSV import/export flows
 
 ### Regression Tests
 - Coral workflows unchanged
 - CSV v1 imports compatible
 - Offline queue mixed versions
 
-## Future Considerations
-
-### Scalability for New Organisms
-1. **Classification Hierarchy** - Kingdom → Phylum → Class → Order → Family → Genus → Species
-2. **Propagation Modes** - Extensible list enabling shared workflows
-3. **Measurement Flexibility** - Units defined per organism/stage
-4. **Structure Reuse** - Generic containers (tanks, pens) work across organisms
-
-### Anticipated Organism Families
-- **Sponges** (Porifera) - Fragment like coral, filter feeder monitoring
-- **Algae** (non-kelp) - Mat/turf measurements, nutrient uptake
-- **Bivalves** (non-oyster) - Clams, mussels with similar grow-out
-- **Marine Plants** - Saltmarsh grasses, marine flowering plants
-
-### Architecture Patterns
+## Architecture Patterns
 1. **Trait-Based Composition** - Mix PropagationCapable, EnvironmentSensitive
 2. **Registry Pattern** - ObservationFieldRegistry, MeasurementUnitRegistry
-3. **Strategy Pattern** - PropagationStrategy, MonitoringStrategy per organism
+3. **Strategy Pattern** - PropagationStrategy, MonitoringStrategy
 4. **Adapter Pattern** - Legacy model → neutral interface migrations
 
 ## Code Reuse & Extension Patterns
 
 ### Registry Pattern
-The `ObservationFieldRegistry` demonstrates a proven pattern for organism-specific configurations that can be extended to other domains:
+The `ObservationFieldRegistry` demonstrates a proven pattern for scoped configurations that can be extended to other domains:
 
 **Key Characteristics**:
 - Scoped entries keyed by `(OrganismKind, RecordType?, LifeStage?)`
@@ -674,10 +488,8 @@ The `ObservationFieldRegistry` demonstrates a proven pattern for organism-specif
 - Scope matching with fallback resolution
 
 **Applications**:
-- `HusbandryScheduleRegistry` - Maintenance schedules per organism/stage
 - `ValidationRuleRegistry` - Size ranges, density limits, physical form constraints
-- `EnvironmentalThresholdRegistry` - Environmental limits with alert generation
-- `MortalityCauseRegistry` - Organism-specific mortality reasons
+- `MortalityCauseRegistry` - Mortality reasons
 
 **Benefits**:
 - Centralizes configuration, supports runtime overrides
@@ -693,7 +505,7 @@ The `ObservationFieldRegistry` demonstrates a proven pattern for organism-specif
 Instead of creating new repository/service patterns, extend existing infrastructure:
 
 **Repository Pattern**:
-- Extend `BaseInventoryRecordRepository` for new holding types
+- Extend `InventoryRecordRepository` for new holding types
 - Use `OrganismContext` injection consistently
 - Leverage existing CRUD operations and stream management
 
@@ -704,8 +516,8 @@ Instead of creating new repository/service patterns, extend existing infrastruct
 - Extend `UserAwareDialogBase` for user/org context
 
 **Service Extension**:
-- Add organism-specific methods to existing services
-- Use dependency injection for organism-aware behavior
+- Add methods to existing services as needed
+- Use dependency injection for context-aware behavior
 - Leverage existing validation and error handling
 
 ### Mixin Patterns
@@ -731,8 +543,6 @@ abstract class GrowthStrategy {
 }
 
 class CoralGrowthStrategy implements GrowthStrategy { }
-class KelpGrowthStrategy implements GrowthStrategy { }
-class OysterGrowthStrategy implements GrowthStrategy { }
 ```
 
 **Builder Pattern for Complex Objects**:
@@ -753,12 +563,6 @@ class OrganismRecordBuilder {
 - **Graduation**: Transitioning between life stages with physical form changes
 - **Culling**: Recording mortality events with cause tracking
 
-### Organism-Specific Patterns
-- **Oysters**: Grading by size → density adjustment → cage rotation
-- **Kelp**: Line inspection → biomass sampling → partial harvest → re-seeding
-- **Finfish**: Size grading → tank transfers → feeding regime adjustments
-- **Crabs**: Molt stage tracking → soft-shell harvest windows → size grading
-
 ### Life Stage Progression Rules
 - Enforce valid transitions (e.g., larvae cannot skip to adult)
 - Time-based constraints (minimum days between stages)
@@ -771,18 +575,14 @@ class OrganismRecordBuilder {
 
 ## Environmental Integration & Thresholds
 
-### Critical Parameters by Organism
+### Critical Parameters (Coral)
 
 | Organism | Critical Parameters | Alert Thresholds | Response Actions |
 |----------|-------------------|------------------|------------------|
-| Oyster | Salinity, Temperature | <15 ppt, >30°C | Move to deeper water |
-| Kelp | Nutrients, Light | NO3 <5 µM | Adjust depth on lines |
-| Finfish | DO, Ammonia | <5 mg/L, >0.5 mg/L | Increase flow, reduce feeding |
 | Coral | Temperature, Light | >30°C, PAR <200 | Shade, relocate |
-| Seagrass | Salinity, Depth | <20 ppt, >2m | Relocate, adjust substrate |
 
 ### Threshold Monitoring
-- Real-time parameter tracking against organism-specific limits
+- Real-time parameter tracking against configured limits
 - Alert generation with suggested response actions
 - Historical trend visualization for pattern detection
 - Integration with SiteBaselineService for baseline comparisons
@@ -804,12 +604,10 @@ class OrganismRecordBuilder {
 ### Phase 2: Upcoming 📅
 - Implement batch holdings
 - Add environmental baselines
-- Create organism-specific presets
+- Create coral-specific presets
 
 ### Phase 3: Future 🔮
-- UI organism selectors
-- Multi-species nursery support
-- Cross-organism analytics
+- Enhanced coral analytics
 - Pilot deployments
 
 ## References
@@ -818,14 +616,9 @@ class OrganismRecordBuilder {
 - GHG Protocol (Land & Removals)
 - ISSB IFRS S2, TNFD v1, GRI 101
 - Verra VM0033 (Blue Carbon)
-- FDA NSSP (Shellfish)
-- WOAH Aquatic Animal Health Code
-
 ### Restoration Guidance
 - NOAA Restoration Center
 - Reef Resilience Network
-- Mangrove Action Project
-- FAO Aquaculture Guidelines
 
 ### Data Standards
 - Darwin Core (biodiversity)
@@ -833,49 +626,6 @@ class OrganismRecordBuilder {
 - CF Conventions (climate/forecast)
 
 ---
-
-## Quick Start for New Organisms
-
-1. **Define in Taxonomy**
-   ```json
-   // In Firestore: taxonomy_species/new_organism_001
-   {
-     "organismKind": "sponge",
-     "genus": "Cliona",
-     "species": "varians",
-     "code": "ClVa",
-     "commonNames": ["Brown Boring Sponge"],
-     "classification": {
-       "kingdom": "Animalia",
-       "phylum": "Porifera",
-       "class": "Demospongiae",
-       "order": "Clionaida",
-       "family": "Clionaidae"
-     },
-     "propagationModes": ["asexualFragmentation", "larvalSettlement"],
-     "metadata": {
-       "growthForm": ["boring", "encrusting"],
-       "symbioticAlgae": true
-     }
-   }
-   ```
-
-2. **Configure Structures**
-   - Add any new GroupTypes/SiteTypes needed
-   - Update SiteCapabilities for the organism
-
-3. **Set Observation Fields**
-   - Register presets in ObservationFieldRegistry
-   - Define stage-specific metrics
-
-4. **Test with CSV**
-   - Create sample CSV with organismKind
-   - Validate import through v2 adapter
-   - Check monitoring/export flows
-
-5. **Enable for Organization**
-   - Toggle organism support in org settings
-   - Train users on new workflows
 
 ## Naming Conventions
 - In-app variables, identifiers, map keys, and user-facing names use camelCase.

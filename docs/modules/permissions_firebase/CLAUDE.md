@@ -17,21 +17,16 @@
 ### Comment Authorization
 - The `authorUid` field stores the Firebase Auth UID of the comment author (renamed from the legacy `authorEmail`).
 - Firestore rules validate `request.resource.data.authorUid == getAuthUid()` on write.
-- `CommentTargetType` enum (`lib/models/types/comment_target_type.dart`) with values `event`, `organismRecord`, `post` replaces string literals for `targetType`.
+- `CommentTargetType` enum with values `event`, `organismRecord`, `post` replaces string literals for `targetType`.
 
 ### Cloud Function Patterns
-- **Notification functions** (`functions/src/comments/comment-notifications.ts`, `functions/src/notifications/deliverable_alerts.ts`):
-  - Mention recipients resolved by querying users collection by email field, not by doc ID.
-  - `notifyUserInApp` takes a UID parameter (not email) for writing to `/users/{uid}/...` subcollections.
-  - Idempotency tracking uses UID-based paths.
-- **Sebastian AI handlers** (`functions/src/sebastian/function-handlers.ts`):
-  - Collection names are inlined directly (e.g., `'organizations'`, `'users'`). No helper functions like `isDemoOrganization()` or `getCollectionPath()` — these have been removed.
+- Collection names are inlined directly (e.g., `'organizations'`, `'users'`). No helper functions like `isDemoOrganization()` or `getCollectionPath()`.
 - **No demo routing**: All `demo_users`, `demo_organizations` references and dual-path routing have been removed. Functions operate on real collections only.
 
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Tier/feature gating should be consistent (FeatureAccessService + tier flags).
+- Tier constraints should remain community-only and explicit in services/rules.
 - Firestore rules must align with new feature access paths.
 
 ## Touchpoints

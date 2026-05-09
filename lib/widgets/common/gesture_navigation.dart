@@ -296,8 +296,8 @@ class _SwipeToNavigateWrapperState extends State<SwipeToNavigateWrapper> {
 class _EdgeSwipeGestureRecognizer extends HorizontalDragGestureRecognizer {
   _EdgeSwipeGestureRecognizer({
     required this.isEdgePosition,
-    Object? debugOwner,
-  }) : super(debugOwner: debugOwner);
+    super.debugOwner,
+  });
 
   final bool Function(Offset position) isEdgePosition;
 
@@ -400,45 +400,3 @@ class SwipeToDeleteWrapper extends StatelessWidget {
   }
 }
 
-/// Mixin for widgets that want to handle gesture navigation
-mixin GestureNavigationMixin {
-  /// Handle swipe gesture
-  void handleSwipe({
-    required double deltaX,
-    required double deltaY,
-    required double velocityX,
-    required double velocityY,
-  }) {
-    final absDeltaX = deltaX.abs();
-    final absDeltaY = deltaY.abs();
-    final absVelocityX = velocityX.abs();
-    final absVelocityY = velocityY.abs();
-
-    // Horizontal swipe (left/right)
-    if (absDeltaX > absDeltaY &&
-        absDeltaX > GestureNavigation.minSwipeDistance &&
-        absVelocityX > GestureNavigation.minSwipeVelocity) {
-      if (deltaX > 0) {
-        onSwipeRight();
-      } else {
-        onSwipeLeft();
-      }
-    }
-    // Vertical swipe (up/down)
-    else if (absDeltaY > absDeltaX &&
-        absDeltaY > GestureNavigation.minSwipeDistance &&
-        absVelocityY > GestureNavigation.minSwipeVelocity) {
-      if (deltaY > 0) {
-        onSwipeDown();
-      } else {
-        onSwipeUp();
-      }
-    }
-  }
-
-  /// Override these methods in your widget
-  void onSwipeLeft() {}
-  void onSwipeRight() {}
-  void onSwipeUp() {}
-  void onSwipeDown() {}
-}

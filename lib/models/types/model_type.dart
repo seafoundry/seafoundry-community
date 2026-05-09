@@ -9,26 +9,13 @@ enum ModelType {
   cohort(collectionPath: 'cohorts'),
   holding(collectionPath: 'holdings'),
   genet(collectionPath: 'genets'),
-  reproductiveEvent(collectionPath: 'reproductive_events'),
   recordType(collectionPath: 'recordTypes'),
   event(collectionPath: 'events'),
   invitation(collectionPath: 'invitations'),
   organismRecord(collectionPath: 'organismRecords'),
-  // Visual Engagement (Community Tier) public read models
   brandProfile(collectionPath: 'brand_profiles'),
-  mediaAsset(collectionPath: 'media_assets'),
-  publicPlaylist(collectionPath: 'public_playlists'),
-  publicDigest(collectionPath: 'public_digests'),
-  publicImpactPoint(collectionPath: 'public_impact_points'),
-  visualKpiSnapshot(collectionPath: 'visual_kpi_snapshots'),
-  environmentalEvent(collectionPath: 'environmental_events'),
-  monitoringSchedule(collectionPath: 'monitoring_schedules'),
-  mission(collectionPath: 'missions'),
-  vessel(collectionPath: 'vessels'),
   permit(collectionPath: 'permits'),
   deliverable(collectionPath: 'deliverables'),
-  post(collectionPath: 'posts'),
-  funder(collectionPath: 'funders'),
   unknown(collectionPath: '');
 
   final String collectionPath;
@@ -55,8 +42,6 @@ enum ModelType {
         return 'holding';
       case ModelType.genet:
         return 'genet';
-      case ModelType.reproductiveEvent:
-        return 'reproductive event';
       case ModelType.recordType:
         return 'record type';
       case ModelType.event:
@@ -67,32 +52,10 @@ enum ModelType {
         return 'organism record';
       case ModelType.brandProfile:
         return 'brand profile';
-      case ModelType.mediaAsset:
-        return 'media asset';
-      case ModelType.publicPlaylist:
-        return 'public playlist';
-      case ModelType.publicDigest:
-        return 'public digest';
-      case ModelType.publicImpactPoint:
-        return 'public impact point';
-      case ModelType.visualKpiSnapshot:
-        return 'visual kpi snapshot';
-      case ModelType.environmentalEvent:
-        return 'environmental event';
-      case ModelType.monitoringSchedule:
-        return 'monitoring schedule';
-      case ModelType.mission:
-        return 'mission';
-      case ModelType.vessel:
-        return 'vessel';
       case ModelType.permit:
         return 'permit';
       case ModelType.deliverable:
         return 'deliverable';
-      case ModelType.post:
-        return 'post';
-      case ModelType.funder:
-        return 'funder';
       case ModelType.unknown:
         return 'unknown';
     }
@@ -119,8 +82,6 @@ enum ModelType {
     'holding': ModelType.holding,
     'genets': ModelType.genet,
     'genet': ModelType.genet,
-    'reproductive_events': ModelType.reproductiveEvent,
-    'reproductive_event': ModelType.reproductiveEvent,
     'recordtypes': ModelType.recordType,
     'recordtype': ModelType.recordType,
     'events': ModelType.event,
@@ -130,35 +91,12 @@ enum ModelType {
     'organism_records': ModelType.organismRecord,
     'organismRecords': ModelType.organismRecord,
     'organismrecord': ModelType.organismRecord,
-    // Visual Engagement public read model hints
     'brand_profiles': ModelType.brandProfile,
     'brand_profile': ModelType.brandProfile,
-    'media_assets': ModelType.mediaAsset,
-    'media_asset': ModelType.mediaAsset,
-    'public_playlists': ModelType.publicPlaylist,
-    'public_playlist': ModelType.publicPlaylist,
-    'public_digests': ModelType.publicDigest,
-    'public_digest': ModelType.publicDigest,
-    'public_impact_points': ModelType.publicImpactPoint,
-    'public_impact_point': ModelType.publicImpactPoint,
-    'visual_kpi_snapshots': ModelType.visualKpiSnapshot,
-    'visual_kpi_snapshot': ModelType.visualKpiSnapshot,
-    'environmental_events': ModelType.environmentalEvent,
-    'environmental_event': ModelType.environmentalEvent,
-    'monitoring_schedules': ModelType.monitoringSchedule,
-    'monitoring_schedule': ModelType.monitoringSchedule,
-    'missions': ModelType.mission,
-    'mission': ModelType.mission,
-    'vessels': ModelType.vessel,
-    'vessel': ModelType.vessel,
     'permits': ModelType.permit,
     'permit': ModelType.permit,
     'deliverables': ModelType.deliverable,
     'deliverable': ModelType.deliverable,
-    'posts': ModelType.post,
-    'post': ModelType.post,
-    'funders': ModelType.funder,
-    'funder': ModelType.funder,
   };
 
   static ModelType fromPath(String path) {

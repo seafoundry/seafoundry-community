@@ -4,8 +4,75 @@ part of 'transfer_service.dart';
 /// Manifest building and handling methods for [TransferService].
 ///
 /// This part file contains methods for building, parsing, and validating
-/// transfer manifests and QR payloads.
+/// transfer manifests.
 extension _TransferServiceManifest on TransferService {
+  Map<String, dynamic> _buildTransferManifestMetadata({
+    required TransferEvent transferEvent,
+    required ProvenanceRecord genet,
+    required ProvenanceLifeStageSelection selection,
+    String? physicalFormOverride,
+    SizeSpec? sizeSpecOverride,
+    TransferOwnershipType? ownershipType,
+    String? originalOwnerOrganizationId,
+  }) {
+    final metadata = <String, dynamic>{
+      'eventSlug': transferEvent.slug,
+      'recordUrlPath': genet.metadata['urlPath'],
+      'recordInternalPath': genet.metadata['internalPath'],
+      'quantityUnits': 'fragments',
+      'organismKind': genet.organismKind.name,
+    };
+    metadata.addAll(
+      buildSelectionMetadata(
+        selection,
+        physicalFormOverride: physicalFormOverride,
+        sizeSpecOverride: sizeSpecOverride,
+      ),
+    );
+
+    metadata['ownershipType'] =
+        (ownershipType ?? TransferOwnershipType.fullTransfer).id;
+    if (originalOwnerOrganizationId != null &&
+        originalOwnerOrganizationId.isNotEmpty) {
+      metadata['originalOwnerOrganizationId'] = originalOwnerOrganizationId;
+    }
+    return metadata;
+  }
+
+  TransferManifest _buildManifestSnapshot({
+    required TransferEvent transferEvent,
+    required Map<String, dynamic> genetPayload,
+    required Organization fromOrganization,
+    required OrganizationSnapshot toOrganization,
+    required int quantity,
+    String? comment,
+    String? sourceStructureUrlPath,
+    required User initiatedBy,
+    required Map<String, dynamic> metadata,
+  }) {
+    return TransferManifest(
+      transferId: transferEvent.id,
+      generatedAt: DateTime.now().toUtc(),
+      fromOrganization: OrganizationSnapshot(
+        id: fromOrganization.id,
+        name: fromOrganization.name,
+        domain: fromOrganization.domain,
+        urlPath: fromOrganization.urlPath,
+      ),
+      toOrganization: toOrganization,
+      genet: GenetSnapshot.fromJson(genetPayload),
+      requestedBy: UserSnapshot(
+        id: initiatedBy.id,
+        name: initiatedBy.name,
+        email: initiatedBy.email,
+      ),
+      quantity: quantity,
+      comment: comment,
+      sourceStructureUrlPath: sourceStructureUrlPath,
+      metadata: metadata,
+    );
+  }
+
   /// Builds the genet payload portion of a transfer manifest.
   ///
   /// This private method extracts the common genet serialization logic
@@ -90,7 +157,7 @@ extension _TransferServiceManifest on TransferService {
     return genetPayload;
   }
 
-  /// Builds the canonical transfer manifest that accompanies every QR payload.
+  /// Builds the canonical transfer manifest for transfer handoff.
   TransferManifest buildManifest({
     required TransferEvent transferEvent,
     required ProvenanceRecord genet,
@@ -107,55 +174,30 @@ extension _TransferServiceManifest on TransferService {
     String? originalOwnerOrganizationId,
   }) {
     final genetPayload = _buildGenetPayload(genet);
-
-    final metadata = <String, dynamic>{
-      'eventSlug': transferEvent.slug,
-      'recordUrlPath': genet.metadata['urlPath'],
-      'recordInternalPath': genet.metadata['internalPath'],
-      'quantityUnits': 'fragments',
-      'organismKind': genet.organismKind.name,
-    };
-    metadata.addAll(
-      buildSelectionMetadata(
-        selection,
-        physicalFormOverride: physicalFormOverride,
-        sizeSpecOverride: sizeSpecOverride,
-      ),
+    final metadata = _buildTransferManifestMetadata(
+      transferEvent: transferEvent,
+      genet: genet,
+      selection: selection,
+      physicalFormOverride: physicalFormOverride,
+      sizeSpecOverride: sizeSpecOverride,
+      ownershipType: ownershipType,
+      originalOwnerOrganizationId: originalOwnerOrganizationId,
     );
 
-    // Add ownership type encoding (default to fullTransfer if not specified)
-    final resolvedOwnershipType =
-        ownershipType ?? TransferOwnershipType.fullTransfer;
-    metadata['ownershipType'] = resolvedOwnershipType.id;
-    if (originalOwnerOrganizationId != null &&
-        originalOwnerOrganizationId.isNotEmpty) {
-      metadata['originalOwnerOrganizationId'] = originalOwnerOrganizationId;
-    }
-
-    return TransferManifest(
-      transferId: transferEvent.id,
-      generatedAt: DateTime.now().toUtc(),
-      fromOrganization: OrganizationSnapshot(
-        id: fromOrganization.id,
-        name: fromOrganization.name,
-        domain: fromOrganization.domain,
-        urlPath: fromOrganization.urlPath,
-      ),
+    return _buildManifestSnapshot(
+      transferEvent: transferEvent,
+      genetPayload: genetPayload,
+      fromOrganization: fromOrganization,
       toOrganization: OrganizationSnapshot(
         id: toOrganization.id,
         name: toOrganization.name,
         domain: toOrganization.domain,
         urlPath: toOrganization.urlPath,
       ),
-      genet: GenetSnapshot.fromJson(genetPayload),
-      requestedBy: UserSnapshot(
-        id: initiatedBy.id,
-        name: initiatedBy.name,
-        email: initiatedBy.email,
-      ),
       quantity: quantity,
       comment: comment,
       sourceStructureUrlPath: sourceStructureUrlPath,
+      initiatedBy: initiatedBy,
       metadata: metadata,
     );
   }
@@ -178,54 +220,25 @@ extension _TransferServiceManifest on TransferService {
     String? originalOwnerOrganizationId,
   }) {
     final genetPayload = _buildGenetPayload(genet);
-
-    final metadata = <String, dynamic>{
-      'eventSlug': transferEvent.slug,
-      'recordUrlPath': genet.metadata['urlPath'],
-      'recordInternalPath': genet.metadata['internalPath'],
-      'quantityUnits': 'fragments',
-      'organismKind': genet.organismKind.name,
-    };
-    metadata.addAll(
-      buildSelectionMetadata(
-        selection,
-        physicalFormOverride: physicalFormOverride,
-        sizeSpecOverride: sizeSpecOverride,
-      ),
+    final metadata = _buildTransferManifestMetadata(
+      transferEvent: transferEvent,
+      genet: genet,
+      selection: selection,
+      physicalFormOverride: physicalFormOverride,
+      sizeSpecOverride: sizeSpecOverride,
+      ownershipType: ownershipType,
+      originalOwnerOrganizationId: originalOwnerOrganizationId,
     );
 
-    // Add ownership type encoding (default to fullTransfer if not specified)
-    final resolvedOwnershipType =
-        ownershipType ?? TransferOwnershipType.fullTransfer;
-    metadata['ownershipType'] = resolvedOwnershipType.id;
-    if (originalOwnerOrganizationId != null &&
-        originalOwnerOrganizationId.isNotEmpty) {
-      metadata['originalOwnerOrganizationId'] = originalOwnerOrganizationId;
-    }
-
-    // For email-based transfers, use email as primary identifier
-    return TransferManifest(
-      transferId: transferEvent.id,
-      generatedAt: DateTime.now().toUtc(),
-      fromOrganization: OrganizationSnapshot(
-        id: fromOrganization.id,
-        name: fromOrganization.name,
-        domain: fromOrganization.domain,
-        urlPath: fromOrganization.urlPath,
-      ),
-      toOrganization: OrganizationSnapshot(
-        email: toEmail,
-        // No id, name, domain, or urlPath for email-only recipients
-      ),
-      genet: GenetSnapshot.fromJson(genetPayload),
-      requestedBy: UserSnapshot(
-        id: initiatedBy.id,
-        name: initiatedBy.name,
-        email: initiatedBy.email,
-      ),
+    return _buildManifestSnapshot(
+      transferEvent: transferEvent,
+      genetPayload: genetPayload,
+      fromOrganization: fromOrganization,
+      toOrganization: OrganizationSnapshot(email: toEmail),
       quantity: quantity,
       comment: comment,
       sourceStructureUrlPath: sourceStructureUrlPath,
+      initiatedBy: initiatedBy,
       metadata: metadata,
     );
   }
@@ -301,14 +314,12 @@ extension _TransferServiceManifest on TransferService {
     final fallbackKind =
         manifest.metadata?['provenanceKind']?.toString() ??
         metadata['provenanceKind']?.toString();
-    final legacyProvenanceTypeId = genet.provenanceTypeId;
     final fallbackType =
         provenanceTypeOverride ??
         ProvenanceTypeX.tryParse(
           manifest.metadata?['provenanceTypeId']?.toString(),
         ) ??
-        ProvenanceTypeX.tryParse(metadata['provenanceTypeId']?.toString()) ??
-        ProvenanceTypeX.tryParse(legacyProvenanceTypeId);
+        ProvenanceTypeX.tryParse(metadata['provenanceTypeId']?.toString());
 
     var selection = selectionSources.isEmpty
         ? (fallbackType != null
@@ -341,8 +352,7 @@ extension _TransferServiceManifest on TransferService {
 
     metadata['provenanceTypeId'] = selection.provenanceType.id;
     metadata['provenanceType'] = selection.provenanceType.name;
-    metadata['provenanceTypeLabel'] =
-        selection.provenanceType.metadata.displayName;
+    metadata['provenanceTypeLabel'] = selection.provenanceType.displayName;
     metadata['lifeStageId'] = selection.lifeStage.id;
     metadata['lifeStage'] = selection.lifeStage.name;
     metadata['lifeStageLabel'] = selection.lifeStage.displayName;
@@ -360,29 +370,30 @@ extension _TransferServiceManifest on TransferService {
       }
     }
 
-    final resolvedProvenanceTypeId =
-        provenanceTypeOverride?.id ??
-        legacyProvenanceTypeId ??
-        selection.provenanceType.id;
-
-    // Map legacy fields to metadata
-    metadata['provenanceTypeId'] = resolvedProvenanceTypeId;
+    metadata['provenanceTypeId'] =
+        provenanceTypeOverride?.id ?? selection.provenanceType.id;
     // provenanceId is stored on the top-level genet record, not in metadata
     if (genet.clonalId != null) metadata['clonalId'] = genet.clonalId;
-    if (genet.accessionNumber != null)
+    if (genet.accessionNumber != null) {
       metadata['accessionNumber'] = genet.accessionNumber;
+    }
     if (genet.notes != null) metadata['notes'] = genet.notes;
     if (provenance.isNotEmpty) metadata['provenance'] = provenance;
-    if (genet.parentGameteIds != null)
+    if (genet.parentGameteIds != null) {
       metadata['parentGameteIds'] = genet.parentGameteIds;
-    if (genet.parentCohortId != null)
+    }
+    if (genet.parentCohortId != null) {
       metadata['parentCohortId'] = genet.parentCohortId;
-    if (genet.donorGenotypeId != null)
+    }
+    if (genet.donorGenotypeId != null) {
       metadata['donorGenotypeId'] = genet.donorGenotypeId;
-    if (genet.damGameteIds != null)
+    }
+    if (genet.damGameteIds != null) {
       metadata['damGameteIds'] = genet.damGameteIds;
-    if (genet.sireGameteIds != null)
+    }
+    if (genet.sireGameteIds != null) {
       metadata['sireGameteIds'] = genet.sireGameteIds;
+    }
     if (crossDateRaw != null) metadata['crossDate'] = crossDateRaw;
     metadata['readyForOutplant'] = genet.readyForOutplant;
 
@@ -438,14 +449,7 @@ extension _TransferServiceManifest on TransferService {
       },
     };
 
-    // Extract organismKind from manifest metadata, fallback to coral for legacy manifests
-    final organismKindRaw =
-        manifest.metadata?['organismKind']?.toString() ??
-        OrganismKind.coral.name;
-    final organismKind = OrganismKind.values.firstWhere(
-      (kind) => kind.name.toLowerCase() == organismKindRaw.toLowerCase(),
-      orElse: () => OrganismKind.coral,
-    );
+    const organismKind = OrganismKind.coral;
 
     return ProvenanceRecord(
       id: _idGenerator(), // Generate a new ID for the received record
@@ -473,94 +477,6 @@ extension _TransferServiceManifest on TransferService {
       );
     }
     return TransferManifest.fromJson(manifestData);
-  }
-
-  /// Utility for rendering manifest payloads as QR codes.
-  String? safeQrPayload(TransferManifest manifest) {
-    String payload;
-    try {
-      payload = manifest.encodePayload();
-    } catch (e, stackTrace) {
-      LoggingService.instance.warning('QR payload encoding failed', {
-        'error': e.toString(),
-        'transferId': manifest.transferId,
-        'stackTrace': stackTrace.toString(),
-      });
-      return null;
-    }
-    if (QrPayloadUtils.isPayloadTooLong(payload)) {
-      LoggingService.instance.warning('QR payload too large to encode', {
-        'payloadLength': payload.length,
-        'transferId': manifest.transferId,
-      });
-      return null;
-    }
-    try {
-      final validation = QrValidator.validate(
-        data: payload,
-        version: QrVersions.auto,
-        errorCorrectionLevel: QrErrorCorrectLevel.L,
-      );
-      if (!validation.isValid || validation.qrCode == null) {
-        LoggingService.instance.warning('QR payload too large to encode', {
-          'status': validation.status.name,
-          'error': validation.error?.toString(),
-          'payloadLength': payload.length,
-          'transferId': manifest.transferId,
-        });
-        return null;
-      }
-      return payload;
-    } catch (e, stackTrace) {
-      LoggingService.instance.warning('QR payload validation failed', {
-        'error': e.toString(),
-        'payloadLength': payload.length,
-        'transferId': manifest.transferId,
-        'stackTrace': stackTrace.toString(),
-      });
-      return null;
-    }
-  }
-
-  Future<Uint8List> renderQrPayload(String payload, {double size = 280}) async {
-    if (QrPayloadUtils.isPayloadTooLong(payload)) {
-      LoggingService.instance.warning('QR payload too large to encode', {
-        'payloadLength': payload.length,
-      });
-      throw TransferWorkflowException('QR payload is too large to encode.');
-    }
-    QrValidationResult validation;
-    try {
-      validation = QrValidator.validate(
-        data: payload,
-        version: QrVersions.auto,
-        errorCorrectionLevel: QrErrorCorrectLevel.L,
-      );
-    } catch (e) {
-      throw TransferWorkflowException('QR payload could not be encoded.');
-    }
-    if (!validation.isValid || validation.qrCode == null) {
-      final message = switch (validation.status) {
-        QrValidationStatus.contentTooLong =>
-          'QR payload is too large to encode.',
-        QrValidationStatus.error => 'QR payload could not be encoded.',
-        _ => 'QR payload could not be encoded.',
-      };
-      LoggingService.instance.warning('QR payload validation failed', {
-        'status': validation.status.name,
-        'error': validation.error?.toString(),
-        'payloadLength': payload.length,
-      });
-      throw TransferWorkflowException(message);
-    }
-
-    final painter = QrPainter.withQr(qr: validation.qrCode!, gapless: true);
-    final image = await painter.toImage(size);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    if (byteData == null) {
-      throw TransferWorkflowException('Failed to encode QR code payload');
-    }
-    return byteData.buffer.asUint8List();
   }
 
   /// Clones the transfer's state history and appends the provided transition
@@ -635,7 +551,7 @@ extension _TransferServiceManifest on TransferService {
     final metadata = <String, dynamic>{
       'provenanceTypeId': selection.provenanceType.id,
       'provenanceType': selection.provenanceType.name,
-      'provenanceTypeLabel': selection.provenanceType.metadata.displayName,
+      'provenanceTypeLabel': selection.provenanceType.displayName,
       'lifeStageId': selection.lifeStage.id,
       'lifeStage': selection.lifeStage.name,
       'lifeStageLabel': selection.lifeStage.displayName,
@@ -745,14 +661,7 @@ extension _TransferServiceManifest on TransferService {
     }
     final speciesId = resolvedSpecies.id;
 
-    // Extract organismKind from manifest metadata, fallback to coral for legacy
-    final organismKindRaw =
-        manifest.metadata?['organismKind']?.toString() ??
-        OrganismKind.coral.name;
-    final organismKind = OrganismKind.values.firstWhere(
-      (kind) => kind.name.toLowerCase() == organismKindRaw.toLowerCase(),
-      orElse: () => OrganismKind.coral,
-    );
+    const organismKind = OrganismKind.coral;
 
     // Resolve provenance type and life stage from manifest
     final selectionSources = <Map<String, dynamic>>[];
@@ -764,7 +673,6 @@ extension _TransferServiceManifest on TransferService {
       selectionSources.add(Map<String, dynamic>.from(genetMetadata));
     }
 
-    final legacyProvenanceTypeId = genet.provenanceTypeId;
     final fallbackType =
         provenanceTypeOverride ??
         ProvenanceTypeX.tryParse(
@@ -772,8 +680,7 @@ extension _TransferServiceManifest on TransferService {
         ) ??
         ProvenanceTypeX.tryParse(
           genetMetadata?['provenanceTypeId']?.toString(),
-        ) ??
-        ProvenanceTypeX.tryParse(legacyProvenanceTypeId);
+        );
 
     var selection = selectionSources.isEmpty
         ? (fallbackType != null
@@ -822,7 +729,8 @@ extension _TransferServiceManifest on TransferService {
       'ownerOrganizationId': ownerOrganizationId?.trim().isNotEmpty == true
           ? ownerOrganizationId!.trim()
           : organization.id,
-      'managingOrganizationId': managingOrganizationId?.trim().isNotEmpty == true
+      'managingOrganizationId':
+          managingOrganizationId?.trim().isNotEmpty == true
           ? managingOrganizationId!.trim()
           : organization.id,
     };
@@ -837,7 +745,8 @@ extension _TransferServiceManifest on TransferService {
 
     // Add custody history entry for this transfer
     final ownershipTypeRaw = manifest.metadata?['ownershipType']?.toString();
-    final ownershipType = TransferOwnershipTypeX.tryParse(ownershipTypeRaw) ??
+    final ownershipType =
+        TransferOwnershipTypeX.tryParse(ownershipTypeRaw) ??
         TransferOwnershipType.fullTransfer;
 
     // Resolve owner name based on ownership type
@@ -850,8 +759,8 @@ extension _TransferServiceManifest on TransferService {
         return manifest.fromOrganization.name;
       }
       // For third-party, check if name was included in metadata
-      final thirdPartyName =
-          manifest.metadata?['originalOwnerOrganizationName']?.toString();
+      final thirdPartyName = manifest.metadata?['originalOwnerOrganizationName']
+          ?.toString();
       if (thirdPartyName != null && thirdPartyName.isNotEmpty) {
         return thirdPartyName;
       }
@@ -859,7 +768,7 @@ extension _TransferServiceManifest on TransferService {
       return manifest.fromOrganization.name;
     }
 
-    final custodyEntry = CustodyHistoryService.instance.createTransferEntry(
+    final custodyEntry = CustodyHistoryService.createTransferEntry(
       transferId: manifest.transferId,
       ownershipType: ownershipType,
       ownerOrganizationId: ownership['ownerOrganizationId']!,
@@ -871,12 +780,13 @@ extension _TransferServiceManifest on TransferService {
 
     // Merge any existing custody history from manifest with the new entry
     final existingCustodyHistory = manifest.metadata?['custodyHistory'];
-    final custodyHistory = CustodyHistoryService.instance.parseCustodyHistory(
+    final custodyHistory = CustodyHistoryService.parseCustodyHistory(
       existingCustodyHistory,
     );
     final fullCustodyHistory = [...custodyHistory, custodyEntry];
-    metadata['custodyHistory'] = CustodyHistoryService.instance
-        .serializeCustodyHistory(fullCustodyHistory);
+    metadata['custodyHistory'] = CustodyHistoryService.serializeCustodyHistory(
+      fullCustodyHistory,
+    );
 
     final user = _provenanceRepository.user;
 

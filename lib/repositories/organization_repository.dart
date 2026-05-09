@@ -2,8 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
-import 'package:seafoundry_app/models/types/organism_kind.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
 class OrganizationSearchResult {
@@ -17,14 +15,12 @@ class OrganizationSearchResult {
 
 class OrganizationRepository {
   OrganizationRepository({required FirebaseFirestore firestore})
-    : _firestore = firestore,
-      _resolver = FirestoreCollectionResolver.instance;
-  
+    : _firestore = firestore;
+
   final FirebaseFirestore _firestore;
-  final FirestoreCollectionResolver _resolver;
-  
+
   CollectionReference<Map<String, dynamic>> get _collection =>
-      _resolver.collection(_firestore, ModelType.organization.collectionPath);
+      _firestore.collection(ModelType.organization.collectionPath);
 
   Future<Organization?> getById(String id) async {
     try {
@@ -127,38 +123,6 @@ class OrganizationRepository {
       );
       return null;
     }
-  }
-
-  Future<void> updateSupportedOrganismKinds({
-    required String organizationId,
-    required List<OrganismKind> kinds,
-    String? updatedById,
-  }) {
-    final payload = <String, dynamic>{
-      'supportedOrganismKinds': kinds.map((kind) => kind.name).toList(),
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-    final updater = updatedById?.trim();
-    if (updater != null && updater.isNotEmpty) {
-      payload['updatedById'] = updater;
-    }
-    return _collection.doc(organizationId).update(payload);
-  }
-
-  Future<void> updateActivities({
-    required String organizationId,
-    required List<String> activityIds,
-    String? updatedById,
-  }) {
-    final payload = <String, dynamic>{
-      'activities': activityIds,
-      'updatedAt': FieldValue.serverTimestamp(),
-    };
-    final updater = updatedById?.trim();
-    if (updater != null && updater.isNotEmpty) {
-      payload['updatedById'] = updater;
-    }
-    return _collection.doc(organizationId).update(payload);
   }
 
   Future<void> updateOrganization({

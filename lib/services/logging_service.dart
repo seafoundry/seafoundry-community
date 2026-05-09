@@ -216,58 +216,6 @@ class LoggingService {
     _logToShake(shake.LogLevel.info, fullMessage);
   }
 
-  /// Log navigation events
-  void logNavigation(String route, {Map<String, dynamic>? details}) {
-    if (!kDebugMode ||
-        logLevel == LogLevel.verbose ||
-        logLevel == LogLevel.debug) {
-      talker.logCustom(NavigationLog(route, details));
-    }
-    final fullMessage = details != null
-        ? 'Navigation: $route - $details'
-        : 'Navigation: $route';
-    _logToShake(shake.LogLevel.verbose, fullMessage);
-  }
-
-  /// Log repository operations
-  void logRepository(
-    String operation,
-    String repository, {
-    Map<String, dynamic>? details,
-  }) {
-    talker.logCustom(RepositoryLog(operation, repository, details));
-    final fullMessage = details != null
-        ? 'Repository: $repository.$operation - $details'
-        : 'Repository: $repository.$operation';
-    _logToShake(shake.LogLevel.debug, fullMessage);
-  }
-
-  /// Log BLoC events
-  void logBlocEvent(
-    String bloc,
-    String event, {
-    Map<String, dynamic>? details,
-  }) {
-    if (!kDebugMode ||
-        logLevel == LogLevel.verbose ||
-        logLevel == LogLevel.debug) {
-      talker.logCustom(BlocEventLog(bloc, event, details));
-    }
-  }
-
-  /// Log BLoC state changes
-  void logBlocState(
-    String bloc,
-    String state, {
-    Map<String, dynamic>? details,
-  }) {
-    if (!kDebugMode ||
-        logLevel == LogLevel.verbose ||
-        logLevel == LogLevel.debug) {
-      talker.logCustom(BlocStateLog(bloc, state, details));
-    }
-  }
-
   /// Log user actions
   void logUserAction(String action, {Map<String, dynamic>? details}) {
     talker.logCustom(UserActionLog(action, details));
@@ -284,30 +232,6 @@ class LoggingService {
     StackTrace? stackTrace,
   }) {
     talker.logCustom(DomainErrorLog(context ?? 'Domain error occurred', error));
-  }
-
-  /// Log multiple errors at once (useful for batch processing)
-  void logMultipleErrors(List<DomainError> errors, {String? context}) {
-    if (errors.isEmpty) return;
-
-    final buffer = StringBuffer();
-    buffer.writeln(
-      '🔥 Multiple Errors (${errors.length}): ${context ?? 'Batch processing'}',
-    );
-
-    for (int i = 0; i < errors.length; i++) {
-      final error = errors[i];
-      final isLast = i == errors.length - 1;
-      final prefix = isLast ? '└─' : '├─';
-
-      buffer.writeln('$prefix [${i + 1}] ${error.message}');
-      if (error.recoverySuggestion != null) {
-        final subPrefix = isLast ? '   ' : '│  ';
-        buffer.writeln('$subPrefix └─ ${error.recoverySuggestion}');
-      }
-    }
-
-    talker.error(buffer.toString());
   }
 
   void _logToShake(shake.LogLevel level, String message) {
@@ -353,59 +277,6 @@ class AuthLog extends TalkerLog {
 
   @override
   String get title => 'Authentication';
-}
-
-class NavigationLog extends TalkerLog {
-  NavigationLog(String route, Map<String, dynamic>? details)
-    : super('🧭 Navigation: $route ${details != null ? '- $details' : ''}');
-
-  @override
-  String get key => 'navigation';
-
-  @override
-  String get title => 'Navigation';
-}
-
-class RepositoryLog extends TalkerLog {
-  RepositoryLog(
-    String operation,
-    String repository,
-    Map<String, dynamic>? details,
-  ) : super(
-        '🗄️  Repository: $repository.$operation ${details != null ? '- $details' : ''}',
-      );
-
-  @override
-  String get key => 'repository';
-
-  @override
-  String get title => 'Repository';
-}
-
-class BlocEventLog extends TalkerLog {
-  BlocEventLog(String bloc, String event, Map<String, dynamic>? details)
-    : super(
-        '📤 BLoC Event: $bloc -> $event ${details != null ? '- $details' : ''}',
-      );
-
-  @override
-  String get key => 'bloc_event';
-
-  @override
-  String get title => 'BLoC Event';
-}
-
-class BlocStateLog extends TalkerLog {
-  BlocStateLog(String bloc, String state, Map<String, dynamic>? details)
-    : super(
-        '📥 BLoC State: $bloc -> $state ${details != null ? '- $details' : ''}',
-      );
-
-  @override
-  String get key => 'bloc_state';
-
-  @override
-  String get title => 'BLoC State';
 }
 
 class UserActionLog extends TalkerLog {
@@ -454,10 +325,6 @@ class DomainErrorLog extends TalkerLog {
       if (error.json != null && error.json!.isNotEmpty) {
         buffer.writeln('├─ JSON Data:');
         _prettyPrintJson(buffer, error.json!, '│  ');
-      }
-    } else if (error is RepositoryError) {
-      if (error.operationType != null) {
-        buffer.writeln('├─ Operation: ${error.operationType!.name}');
       }
     }
 

@@ -114,8 +114,8 @@ class FirstGenetPage extends StatelessWidget {
   /// The provenance types available for onboarding (simplified set)
   static const _onboardingProvenanceTypes = [
     ProvenanceType.wild,
-    ProvenanceType.sexualCohort,
-    ProvenanceType.graduatedIndividual,
+    ProvenanceType.transfer,
+    ProvenanceType.unknown,
   ];
 
   @override
@@ -627,7 +627,6 @@ class FirstGenetPage extends StatelessWidget {
     return Column(
       children: _onboardingProvenanceTypes.map((type) {
         final isSelected = selectedProvenanceType == type;
-        final metadata = type.metadata;
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
@@ -675,7 +674,7 @@ class FirstGenetPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          metadata.displayName,
+                          type.displayName,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
@@ -684,16 +683,6 @@ class FirstGenetPage extends StatelessWidget {
                                     : null,
                               ),
                         ),
-                        if (metadata.description != null)
-                          Text(
-                            metadata.description!,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
                       ],
                     ),
                   ),
@@ -710,10 +699,6 @@ class FirstGenetPage extends StatelessWidget {
     switch (selectedProvenanceType) {
       case ProvenanceType.wild:
         return _buildWildFounderFields(context);
-      case ProvenanceType.sexualCohort:
-        return _buildCohortFields(context);
-      case ProvenanceType.graduatedIndividual:
-        return _buildGraduatedFields(context);
       default:
         return const SizedBox.shrink();
     }
@@ -769,72 +754,8 @@ class FirstGenetPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCohortFields(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Cohort Name (optional)',
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          decoration: const InputDecoration(
-            hintText: 'e.g., Spring 2024 Spawn, Batch A',
-            prefixIcon: Icon(Icons.group_work),
-            border: OutlineInputBorder(),
-            helperText: 'A name for this breeding batch',
-          ),
-          onChanged: onCohortNameChanged,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Spawn/Settlement Date (optional)',
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        _buildDatePicker(
-          context,
-          value: cohortDate,
-          hintText: 'When did spawning or settlement occur?',
-          onChanged: onCohortDateChanged,
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
-  }
-
-  Widget _buildGraduatedFields(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, color: Colors.orange.shade700, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Graduated individuals are typically promoted from an existing cohort. '
-              'During onboarding, we\'ll create this as a standalone genet. You can '
-              'link it to a source cohort later.',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.orange.shade900),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // _buildCohortFields and _buildGraduatedFields removed in
+  // coral-only simplification (cohort/graduated provenance types removed).
 
   Widget _buildDatePicker(
     BuildContext context, {
@@ -998,10 +919,10 @@ class FirstGenetPage extends StatelessWidget {
     switch (type) {
       case ProvenanceType.wild:
         return Icons.nature;
-      case ProvenanceType.sexualCohort:
-        return Icons.family_restroom;
+      case ProvenanceType.cohort:
+        return Icons.groups;
       case ProvenanceType.graduatedIndividual:
-        return Icons.school;
+        return Icons.star_outline;
       case ProvenanceType.transfer:
         return Icons.move_to_inbox;
       case ProvenanceType.unknown:
@@ -1013,12 +934,14 @@ class FirstGenetPage extends StatelessWidget {
     switch (selectedProvenanceType) {
       case ProvenanceType.wild:
         return 'Founder stock collected from the wild';
-      case ProvenanceType.sexualCohort:
-        return 'Batch from sexual reproduction event';
+      case ProvenanceType.cohort:
+        return 'Organisms from a nursery-reared cohort';
       case ProvenanceType.graduatedIndividual:
         return 'Individual promoted from a cohort';
-      default:
-        return 'A genetic identity record for tracking provenance';
+      case ProvenanceType.transfer:
+        return 'Organisms received from another facility';
+      case ProvenanceType.unknown:
+        return 'Provenance information not available';
     }
   }
 
@@ -1026,12 +949,14 @@ class FirstGenetPage extends StatelessWidget {
     switch (selectedProvenanceType) {
       case ProvenanceType.wild:
         return 'A unique ID for this wild-collected founder';
-      case ProvenanceType.sexualCohort:
-        return 'A unique ID for this cohort batch';
+      case ProvenanceType.cohort:
+        return 'A unique ID for this nursery cohort';
       case ProvenanceType.graduatedIndividual:
-        return 'A unique ID for this promoted individual';
-      default:
-        return 'A unique identifier for this genetic lineage';
+        return 'A unique ID for this graduated individual';
+      case ProvenanceType.transfer:
+        return 'A unique ID for this transferred organism';
+      case ProvenanceType.unknown:
+        return 'A unique ID for this organism';
     }
   }
 
@@ -1039,36 +964,19 @@ class FirstGenetPage extends StatelessWidget {
     switch (selectedProvenanceType) {
       case ProvenanceType.wild:
         return 'Number of wild-collected individuals';
-      case ProvenanceType.sexualCohort:
-        return 'Number of individuals in this cohort batch';
+      case ProvenanceType.cohort:
+        return 'Number of individuals in cohort';
       case ProvenanceType.graduatedIndividual:
-        return 'Number of individuals being promoted';
-      default:
-        return 'How many ${organismKind.metadata.pluralDisplayName.toLowerCase()} of this genet?';
+        return 'Number of graduated individuals';
+      case ProvenanceType.transfer:
+        return 'Number of transferred individuals';
+      case ProvenanceType.unknown:
+        return 'Number of individuals';
     }
   }
 
   String _getExampleLocalId() {
-    switch (organismKind) {
-      case OrganismKind.coral:
-        return 'CORAL-001, APAL-001';
-      case OrganismKind.oyster:
-        return 'OYSTER-001, OY-001';
-      case OrganismKind.kelp:
-        return 'KELP-001, KP-001';
-      case OrganismKind.seagrass:
-        return 'GRASS-001, SG-001';
-      case OrganismKind.mangrove:
-        return 'MANG-001, MG-001';
-      case OrganismKind.echinoid:
-        return 'URCHIN-001, EC-001';
-      case OrganismKind.crab:
-        return 'CRAB-001, CR-001';
-      case OrganismKind.finfish:
-        return 'FISH-001, FF-001';
-      case OrganismKind.seaCucumber:
-        return 'CUKE-001, SC-001';
-    }
+    return 'CORAL-001, APAL-001';
   }
 
   /// Get a species-specific example for the local ID field
@@ -1088,26 +996,7 @@ class FirstGenetPage extends StatelessWidget {
   }
 
   String _getSiteDescription() {
-    switch (organismKind) {
-      case OrganismKind.coral:
-        return 'nursery tank';
-      case OrganismKind.oyster:
-        return 'oyster line';
-      case OrganismKind.kelp:
-        return 'kelp farm';
-      case OrganismKind.seagrass:
-        return 'seagrass bed';
-      case OrganismKind.mangrove:
-        return 'nursery';
-      case OrganismKind.echinoid:
-        return 'holding tank';
-      case OrganismKind.crab:
-        return 'holding tank';
-      case OrganismKind.finfish:
-        return 'raceway';
-      case OrganismKind.seaCucumber:
-        return 'holding tank';
-    }
+    return 'nursery tank';
   }
 
   Widget _buildCommunityMatchSummary(

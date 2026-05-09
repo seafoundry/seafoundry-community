@@ -41,12 +41,12 @@ npm run migrate:facility-enums             # Site/group enum + organism defaults
 
 | Collection | Purpose | Highlights |
 | --- | --- | --- |
-| `organizations` | Org metadata (`supportedOrganismKinds`, settings) | Determines which `OrganismContext`s are available in the app. |
-| `sites` | Facilities (nurseries, kelp farms, reef aquaculture, etc.) | Fields: `siteTypeId`, `supportedOrganismKinds`, `geometry`. |
+| `organizations` | Org metadata and settings | Coral-only in community tier. |
+| `sites` | Facilities (nurseries, outplanting sites) | Fields: `siteTypeId`, `geometry`. Site types: `nursery` and `outplanting` only. |
 | `groups` | Structures inside a site (longlines, racks, tags, etc.) | Field: `groupTypeId`. |
 | `taxonomy_species` | Canonical species definitions | See `TaxonomyService` for the consumer API. |
 | `taxonomy_provenances` | Provenance records (genets, broodstock, cohorts) | Replaces legacy lineage fields. |
-| `inventory_records` | Neutral holdings (seeded-line batch, gamete batch, larval batch) | Includes `lifeStage`, `populationMeasurement`, provenance IDs. |
+| `inventory_records` | Coral organism records | Includes `lifeStage`, `populationMeasurement`, provenance IDs. |
 | `events` | Activity, observation, task, transfer events | `metadata.organismKind` and `recordModelType` identify context. |
 
 All collection schemas align with the Flutter models under `lib/models/**`. Use those files as the canonical reference when building export/import scripts.
@@ -76,7 +76,7 @@ Key files:
 
 ## Export APIs
 
-- `InventoryExportJob` (Cloud Function invoked via `npm run export:inventory:plan` or UI) produces CSV v2-compliant exports. Plan files live under `scripts/migrations/`.
+- `InventoryExportJob` (Cloud Function invoked via UI) produces CSV v2-compliant exports.
 - `ExportService` (`lib/services/export/export_service.dart`) orchestrates the export flow inside the Flutter app.
 - Firestore queries for exports rely on the normalized site/group enums; run the facility migration script before enabling exports for new organisms.
 
@@ -84,23 +84,16 @@ Key files:
 
 ## Migration Scripts
 
-| Script | Command | Purpose |
-| --- | --- | --- |
-| `scripts/backfill_event_metadata.js` | `npm run migrate:event-organism-kind:plan` | Adds `metadata.organismKind` to existing events. |
-| `scripts/migrations/backfill_facility_enums.ts` | `npm run migrate:facility-enums` | Normalizes `siteTypeId`/`groupTypeId`, seeds `supportedOrganismKinds`. |
-| `scripts/migrations/run_inventory_export_plan.js` | `npm run export:inventory:plan` | Plan-driven inventory export (JSON reports). |
+Legacy migration scripts have been archived to `scripts/archive/backfills/` and `scripts/archive/migrations/`. The npm commands that referenced them (e.g., `migrate:event-organism-kind:plan`, `migrate:facility-enums`, `export:inventory:plan`) still exist in `package.json` but their target scripts are no longer at the original paths.
 
-Always run migrations with dry-run flags first and archive the generated reports for auditing.
+If you need to run a historical migration, check `scripts/archive/` for the relevant script and update the npm command path accordingly.
 
 ---
 
 ## Helpful References
 
 - Taxonomy architecture: `docs/architecture/taxonomy/README.md`
-- Multi-organism work tracking: `.github/issues/taxonomy-work-log-summary.md`
-- Multi-organism user guide: `docs/user_guides/multi_organism_guide.md`
 - CSV v2 migration guide: `docs/csv/csv_v2_migration.md`
-- Multi-organism API details: `docs/api/multi_organism_api.md`
 
 ## Naming Conventions
 - In-app variables, identifiers, map keys, and user-facing names use camelCase.

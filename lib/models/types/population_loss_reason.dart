@@ -14,24 +14,69 @@ class PopulationLossReason extends BuiltinRecordType {
     outplanted.id: outplanted,
     transferred.id: transferred,
     other.id: other,
-    ...MortalityReason.builtins,
-    ...OutplantLossReason.builtins,
+    // Specific mortality reasons (formerly MortalityReason subclass)
+    mortalityDisease.id: mortalityDisease,
+    mortalityPropagation.id: mortalityPropagation,
+    mortalityPredation.id: mortalityPredation,
+    mortalityWaterQuality.id: mortalityWaterQuality,
+    mortalityAlgae.id: mortalityAlgae,
+    mortalityOther.id: mortalityOther,
+    // Outplant-specific loss reasons (formerly OutplantLossReason subclass)
+    outplantPredation.id: outplantPredation,
+    outplantDisease.id: outplantDisease,
+    outplantThermalStress.id: outplantThermalStress,
+    outplantWaterQuality.id: outplantWaterQuality,
+    outplantUnknown.id: outplantUnknown,
   };
 
-  /// Nursery-focused loss reasons (excludes outplant-specific variants)
-  /// This includes ALL specific mortality reasons flattened into the list.
+  /// IDs of detailed mortality reasons (nursery context).
+  static const Set<String> mortalityReasonIds = {
+    'mortality_reason_disease',
+    'mortality_reason_propagation',
+    'mortality_reason_predation',
+    'mortality_reason_water_quality',
+    'mortality_reason_algae',
+    'mortality_reason_other',
+    'mortality_reason_unknown',
+  };
+
+  /// IDs of outplant-specific loss reasons.
+  static const Set<String> outplantLossReasonIds = {
+    'outplant_loss_reason_predation',
+    'outplant_loss_reason_disease',
+    'outplant_loss_reason_thermal_stress',
+    'outplant_loss_reason_water_quality',
+    'outplant_loss_reason_unknown',
+  };
+
+  /// Map of just the mortality-detail reasons, for UI selectors.
+  static final Map<String, PopulationLossReason> mortalityReasonBuiltins = {
+    mortalityDisease.id: mortalityDisease,
+    mortalityPropagation.id: mortalityPropagation,
+    mortalityPredation.id: mortalityPredation,
+    mortalityWaterQuality.id: mortalityWaterQuality,
+    mortalityAlgae.id: mortalityAlgae,
+    mortalityOther.id: mortalityOther,
+  };
+
+  /// Nursery-focused loss reasons (excludes outplant-specific variants).
   static List<PopulationLossReason> get nurseryLossReasons => builtins.values
-      .where((reason) => reason is! OutplantLossReason)
+      .where((reason) => !outplantLossReasonIds.contains(reason.id))
       .toList(growable: false);
 
   /// Primary nursery loss reasons for UI hierarchies.
   /// Excludes detailed mortality reasons, keeping only the top-level 'Mortality' category.
   static List<PopulationLossReason> get primaryNurseryLossReasons =>
-      nurseryLossReasons.where((reason) => reason is! MortalityReason).toList();
+      nurseryLossReasons
+          .where((reason) => !mortalityReasonIds.contains(reason.id))
+          .toList();
 
   bool get isMortality =>
-      id == mortality.id || this is MortalityReason || this is OutplantLossReason;
+      id == mortality.id ||
+      mortalityReasonIds.contains(id) ||
+      outplantLossReasonIds.contains(id);
 
+  // --- Top-level loss reasons ---
 
   static const PopulationLossReason mortality = PopulationLossReason(
     id: 'population_loss_reason_mortality',
@@ -73,89 +118,68 @@ class PopulationLossReason extends BuiltinRecordType {
     id: 'population_loss_reason_unknown',
     name: 'Unknown',
   );
-}
 
-class MortalityReason extends PopulationLossReason {
-  const MortalityReason({required super.id, required super.name});
+  // --- Specific mortality reasons (nursery context) ---
 
-  static final Map<String, MortalityReason> builtins = {
-    disease.id: disease,
-    propagation.id: propagation,
-    predation.id: predation,
-    waterQuality.id: waterQuality,
-    algae.id: algae,
-    other.id: other,
-  };
-
-  static const MortalityReason disease = MortalityReason(
+  static const PopulationLossReason mortalityDisease = PopulationLossReason(
     id: 'mortality_reason_disease',
     name: 'Disease',
   );
 
-  static const MortalityReason propagation = MortalityReason(
+  static const PopulationLossReason mortalityPropagation = PopulationLossReason(
     id: 'mortality_reason_propagation',
     name: 'Recent Propagation',
   );
 
-  static const MortalityReason predation = MortalityReason(
+  static const PopulationLossReason mortalityPredation = PopulationLossReason(
     id: 'mortality_reason_predation',
     name: 'Pest/Predation',
   );
 
-  static const MortalityReason waterQuality = MortalityReason(
+  static const PopulationLossReason mortalityWaterQuality = PopulationLossReason(
     id: 'mortality_reason_water_quality',
     name: 'Water Quality',
   );
 
-  static const MortalityReason algae = MortalityReason(
+  static const PopulationLossReason mortalityAlgae = PopulationLossReason(
     id: 'mortality_reason_algae',
     name: 'Algae',
   );
 
-  static const MortalityReason other = MortalityReason(
+  static const PopulationLossReason mortalityOther = PopulationLossReason(
     id: 'mortality_reason_other',
     name: 'Other',
   );
 
-  // unknown is a fallback for parsing, exclude from builtins
-  static const MortalityReason unknown = MortalityReason(
+  // unknown mortality is a fallback for parsing, exclude from builtins
+  static const PopulationLossReason mortalityUnknown = PopulationLossReason(
     id: 'mortality_reason_unknown',
     name: 'Unknown',
   );
-}
 
-class OutplantLossReason extends PopulationLossReason {
-  const OutplantLossReason({required super.id, required super.name});
+  // --- Outplant-specific loss reasons ---
 
-  static final Map<String, OutplantLossReason> builtins = {
-    predation.id: predation,
-    disease.id: disease,
-    thermalStress.id: thermalStress,
-    waterQuality.id: waterQuality,
-    unknown.id: unknown,
-  };
-
-  static const OutplantLossReason predation = OutplantLossReason(
+  static const PopulationLossReason outplantPredation = PopulationLossReason(
     id: 'outplant_loss_reason_predation',
     name: 'Pest/Predation',
   );
 
-  static const OutplantLossReason waterQuality = OutplantLossReason(
-    id: 'outplant_loss_reason_water_quality',
-    name: 'Water Quality',
-  );
-
-  static const OutplantLossReason disease = OutplantLossReason(
+  static const PopulationLossReason outplantDisease = PopulationLossReason(
     id: 'outplant_loss_reason_disease',
     name: 'Disease',
   );
 
-  static const OutplantLossReason thermalStress = OutplantLossReason(
+  static const PopulationLossReason outplantThermalStress = PopulationLossReason(
     id: 'outplant_loss_reason_thermal_stress',
     name: 'Thermal Stress',
   );
 
-  static const OutplantLossReason unknown = OutplantLossReason(
+  static const PopulationLossReason outplantWaterQuality = PopulationLossReason(
+    id: 'outplant_loss_reason_water_quality',
+    name: 'Water Quality',
+  );
+
+  static const PopulationLossReason outplantUnknown = PopulationLossReason(
     id: 'outplant_loss_reason_unknown',
     name: 'Unknown',
   );

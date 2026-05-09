@@ -30,12 +30,6 @@ class SizeSpecBuilder {
     final volumeAmount = _parseDouble(firstNonEmpty(['volumeAmount']));
     final volumeUnitId = firstNonEmpty(['volumeUnit']);
     final countOverride = _parseInt(firstNonEmpty(['inventoryCount']));
-    final volumeOverride = _parseDouble(
-      firstNonEmpty(['inventoryVolumeCm3']),
-    );
-    final tissueOverride = _parseDouble(
-      firstNonEmpty(['inventoryTissueAreaCm2']),
-    );
 
     return SizeSpec(
       sizeBandId: sizeBandId,
@@ -46,8 +40,6 @@ class SizeSpecBuilder {
       volumeAmount: volumeAmount,
       volumeUnit: MeasurementUnitX.tryParse(volumeUnitId),
       countOverride: countOverride,
-      volumeCm3Override: volumeOverride,
-      tissueAreaCm2Override: tissueOverride,
     );
   }
 

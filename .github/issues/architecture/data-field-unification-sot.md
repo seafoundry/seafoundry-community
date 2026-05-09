@@ -18,7 +18,7 @@ Unify duplicate/overlapping data fields to establish a single source of truth fo
 | Outplant allocation stores provenance ID as organism ID | **Critical** | Open |
 | `provenanceId` confused with doc ID | High | Open |
 | Multiple organism creation paths with different field handling | High | **Resolved** - Wizard is now canonical |
-| Health status vs observation dialog overlap | High | Open |
+| ~~Health status vs observation dialog overlap~~ | ~~High~~ | Removed in community fork |
 | Export uses stale foreign key metadata | Medium | Open |
 | Legacy morphologyId/sizeClass in persisted metadata | Medium | In Progress |
 | `foreignKeys['genet']` legacy key used in 18+ files | Medium | Open |
@@ -33,7 +33,7 @@ Unify duplicate/overlapping data fields to establish a single source of truth fo
 | `OutplantAllocation.organismId` dual-semantics | Interactive outplanting stores Firestore doc ID; CSV import stores provenance ID in same field |
 | `provenanceId` confused with doc ID | `getByProvenance()` compares provenance IDs to genetId (doc IDs) |
 | ~~Multiple organism creation paths~~ | ~~`OrganismCollectionDialog` sets `genetId` in metadata, wizard sets top-level~~ **Fixed**: All call sites now use `OrganismCreationWizard.showAndCreate` |
-| Health status vs observation dialog overlap | Two paths for "health" with different persistence rules |
+| ~~Health status vs observation dialog overlap~~ | ~~Two paths for "health" with different persistence rules~~ (dialogs removed in community fork) |
 | Export uses stale foreign key metadata | `inventory_export_row_source.dart` reads from FK metadata, not genet record |
 | Legacy morphologyId/sizeClass in persisted metadata | Multiple fields for physical form identity |
 | `foreignKeys['genet']` legacy key | Parallel to `foreignKeys['genetId']` in 18+ files with inconsistent fallback ordering |
@@ -46,13 +46,11 @@ Unify duplicate/overlapping data fields to establish a single source of truth fo
 - **Provenance ID**: Always a lineage identifier (format: `PID-*` or `SF-*`). Never a Firestore doc ID.
 - **Organism ID**: Always a Firestore document ID. Never a provenance/lineage ID.
 - **OutplantAllocation.organismId**: Must always be a Firestore doc ID. CSV import must resolve organism by provenance ID and store the doc ID.
-- **Health updates**: `HealthStatusDialog` is the only path that mutates `metadata['healthStatus']`.
 - **Field storage**: Remove all legacy fallbacks to `metadata['genetId']`, `metadata['provenanceId']` for new code paths.
 - **Physical Form**: Use `physicalFormId` only; fully remove `morphologyId` from all persisted metadata. The word "morphology" in method names and UI strings should be renamed to "physical form" where it refers to the physical form concept. `SizeSpec.sizeClass` is a **canonical field** and is NOT removed.
 - **sizeClass scope**: Only remove `metadata['sizeClass']` and `metadata['size']` legacy reads. Do NOT remove `SizeSpec.sizeClass` (canonical) or `SizeSpec.sizeBandId` usage.
 - **CSV v1**: Purge all `universal_csv_v1` references from tests, docs, and assets; no v1 compatibility.
 - **lineageId**: Remove immediately (Phase 1) since DB will be wiped. No backward compat needed.
-- **Non-inventory templates**: Add `physical_form_id`, `size_band_id`, `SizeSpec` as placeholder fields with TODO for future enum definitions.
 - **foreignKeys fallback order**: Always check `genetId` before `genet` (standardize reversed order in `outplanting_service.dart`).
 
 ---
@@ -105,15 +103,10 @@ Phase N+1
 ### CSV Templates Updated
 
 - [x] `Coral_template.csv` - updated to canonical fields
-- [x] `kelp_template.csv` - updated to canonical fields
-- [x] `seagrass_template.csv` - updated to canonical fields
-- [x] `oyster_template.csv` - updated to canonical fields
 
 ### CSV Fixtures Updated
 
 - [x] `coral_inventory_sample.csv`
-- [x] `oyster_reef_sample.csv`
-- [x] `kelp_longline_sample.csv`
 - [x] `coral_larval_sample.csv`
 - [x] `universal_inventory_geometry_sample.csv`
 
@@ -282,15 +275,13 @@ Phase 1 complete
 
 **This is NEW work identified by the review committee. 18 files use `foreignKeys['genet']`.**
 
-**Files (all 18 consumers)**:
+**Files (consumers)**:
 - `lib/models/inventory/inventory_export_row.dart`
-- `lib/services/gene_bank_metrics_service.dart`
 - `lib/services/transfer_service_validation.dart`
 - `lib/services/inventory_events_resolution_service.dart`
 - `lib/services/outplanting_service.dart` — also fix reversed priority (check `genetId` before `genet`)
 - `lib/services/state_reconstruction_service.dart`
 - `lib/services/event_history_service.dart`
-- `lib/services/snapshot_comparison_service.dart`
 - `lib/services/survival_calculation_service.dart`
 - `lib/services/metadata_extraction_service.dart`
 - `lib/services/inventory_hydration/inventory_event_hydration_service.dart`
@@ -315,17 +306,7 @@ Phase 1 complete
 - [ ] Fix reversed priority in `outplanting_service.dart:129` (check `genetId` before `genet`)
 - [ ] Reduce `loadOrganismDocsForGenet` in `transfer_service_validation.dart` from 6 queries to 1-2
 
-#### 2A.3 Fix OrganismCollectionDialog Field Handling
-
-**Files**:
-- `lib/widgets/dialogs/organism_collection_dialog.dart`
-
-**Tasks**:
-- [ ] Move `genetId` from `metadata` to top-level field
-- [ ] Add `foreignKeys['genetId']` with proper `ForeignKeyReference`
-- [ ] Align metadata fields with `OrganismCreationWizard` output
-
-#### 2A.4 Standardize localId Location
+#### 2A.3 Standardize localId Location
 
 **Files (all consumers of metadata['localId'])**:
 - `lib/models/inventory/organism_record.dart`
@@ -344,7 +325,7 @@ Phase 1 complete
 - [ ] Top-level `localId` is canonical; no fallbacks
 - [ ] Update all sites to use top-level field
 
-#### 2A.5 Standardize siteId/groupId Derivation
+#### 2A.4 Standardize siteId/groupId Derivation
 
 **Files**:
 - `lib/models/inventory/holding_record.dart`
@@ -373,17 +354,7 @@ Phase 1 complete
 - [ ] Keep only: `foreignKeyProvenanceId == provenanceId` and `legacyMetadataProvenanceId == provenanceId`
 - [ ] Add format validation: reject if input doesn't match provenance format
 
-#### 2B.2 Fix gene_bank_metrics_service Fallbacks
-
-**Files**:
-- `lib/services/gene_bank_metrics_service.dart`
-
-**Tasks**:
-- [ ] Replace 5-level cascade with `GenetIdResolver.resolve(organism)`
-- [ ] Remove `metadata['provenanceId']` fallback (mixes ID types, inflates `totalGenotypes`)
-- [ ] Add clear error logging when genetId is missing
-
-#### 2B.3 Add ID Type Validation Utilities
+#### 2B.2 Add ID Type Validation Utilities
 
 **Files**:
 - `lib/utils/id_type_validator.dart` (new)
@@ -394,7 +365,7 @@ Phase 1 complete
 - [ ] `static IdType classify(String value)` — returns enum `{provenanceId, docId, unknown}`
 - [ ] Add unit tests
 
-#### 2B.4 Update Transfer Service Validation
+#### 2B.3 Update Transfer Service Validation
 
 **Files**:
 - `lib/services/transfer_service_validation.dart`
@@ -405,7 +376,7 @@ Phase 1 complete
 - [ ] Ensure queries use correct ID type for each field
 - [ ] Add validation that rejects provenance IDs in doc ID fields
 
-#### 2B.5 Remove metadata['provenanceId'] from FK metadata reads
+#### 2B.4 Remove metadata['provenanceId'] from FK metadata reads
 
 **Files (all consumers of stale FK metadata)**:
 - `lib/services/export/inventory_export_row_source.dart`
@@ -430,39 +401,23 @@ Phase 1 complete
 
 **Goal**: Single creation/update path for each data type. Can run parallel to all other teams.
 
-#### 2C.1 Clarify Health Dialog Semantics
-
-**Files**:
-- `lib/widgets/dialogs/unified_observation_dialog.dart`
-- `lib/services/observation_field_registry.dart`
-- All files referencing `ObservationDialogType.health` (~15 files)
-
-**Tasks**:
-- [ ] Rename `ObservationDialogType.health` to `ObservationDialogType.healthIssue`
-- [ ] Update all callers to use new name
-- [ ] Add documentation: "Health Issue logs an observation without changing organism status"
-
-#### 2C.2 Document Dialog Usage
+#### 2C.1 Document Dialog Usage
 
 **Files**:
 - `docs/modules/inventory/CLAUDE.md`
 
 **Tasks**:
 - [ ] Document `OrganismCreationWizard.showAndCreate` as canonical organism creation entry point
-- [ ] Document when to use `HealthStatusDialog` (mutates status + logs observation)
-- [ ] Document when to use `UnifiedObservationDialog` with `healthIssue` (logs only)
-- [ ] Document `OrganismCollectionDialog` for field collection (different metadata, simpler flow)
 - [ ] Document provenance service architecture (CrosswalkService vs LookupService)
 
-#### 2C.3 Align Creation Path Outputs
+#### 2C.2 Align Creation Path Outputs
 
 **Files**:
 - `lib/cubits/organism_creation/organism_creation_cubit.dart`
-- `lib/widgets/dialogs/organism_collection_dialog.dart`
 
 **Tasks**:
-- [ ] Align `OrganismCollectionDialog` field handling with wizard (genetId in top-level, not metadata)
-- [ ] Add integration test comparing output from both paths
+- [ ] Ensure wizard field handling sets genetId in top-level, not metadata
+- [ ] Add integration test verifying creation path output
 
 ---
 
@@ -527,7 +482,7 @@ Phase 1 complete
 - **Method names** (`_suggestMorphologyForOrganism`) — RENAME to physical form equivalent
 - **State/cubit fields** (`morphologyEdited`, `selectedMorphology`, `morphologyReason`) — RENAME
 - **UI strings** ("Ensure the morphology and size match") — RENAME to "physical form"
-- **Config files** (`tier_fields.yaml`, `structure_capacity.defaults.yaml`) — UPDATE
+- **Config files** — removed in community fork, verify no remaining references
 
 #### 2F.1 Remove morphologyId from Metadata (Services Layer)
 
@@ -540,13 +495,9 @@ Phase 1 complete
 - `lib/services/manual_transfer_registration_service.dart` — morphology param
 - `lib/services/inventory_event_formatter.dart`
 - `lib/services/structure_capacity_service.dart`
-- `lib/services/monitoring_submission_service.dart`
-- `lib/services/monitoring_service.dart`
 - `lib/services/taxonomy_admin_service.dart`
 - `lib/services/size_mappings_service.dart`
-- `lib/services/monitoring_growth_service.dart`
 - `lib/services/csv/adapters/universal_csv_adapter_v2_validator.dart`
-- `lib/services/csv/import/importers/monitoring_csv_importer.dart`
 
 **Tasks**:
 - [ ] Replace all `metadata['morphologyId']` reads/writes with `physicalFormId`
@@ -559,8 +510,6 @@ Phase 1 complete
 **Files**:
 - `lib/models/inventory/organism_record.dart`
 - `lib/models/inventory/organism_extensions.dart`
-- `lib/models/monitoring/monitoring_entry.dart`
-- `lib/models/monitoring/organism_monitoring_data.dart`
 - `lib/models/events/collection_event.dart`
 - `lib/models/types/types.dart`
 - `lib/models/types/inventory_event_type.dart`
@@ -575,17 +524,11 @@ Phase 1 complete
 #### 2F.3 Rename morphology in Cubits/BLoCs
 
 **Files**:
-- `lib/cubits/monitoring_dialog/monitoring_dialog_cubit.dart` — `_suggestMorphologyForOrganism`
-- `lib/cubits/monitoring_dialog/monitoring_dialog_state.dart` — `morphologyEdited` field (6 refs)
-- `lib/cubits/organism_collection/organism_collection_cubit.dart` — `selectedMorphology`
 - `lib/cubits/organism_creation/organism_creation_cubit.dart` — `morphologyChanged` method
 - `lib/cubits/organism_creation/organism_creation_state.dart` — `morphology` field (7 refs)
 - `lib/cubits/transfer/transfer_initiate_cubit.dart` — `morphologyOverride` (4 refs)
-- `lib/cubits/structure_capacity_config/structure_capacity_config_cubit.dart` — legacy `map['morphology']`
-- `lib/cubits/monitoring_form/monitoring_form_cubit.dart`
 - `lib/blocs/organism_record_edit/organism_record_edit_state.dart` — `morphologyReason` (15 refs)
 - `lib/blocs/organism_record_edit/organism_record_edit_cubit.dart` — `morphologyReason` writes (6 refs)
-- `lib/blocs/propagation/propagation_bloc.dart` — `metadata['morphologyId']` read/write
 
 **Tasks**:
 - [ ] Rename `morphology*` fields/methods to `physicalForm*` equivalents
@@ -595,30 +538,15 @@ Phase 1 complete
 #### 2F.4 Rename morphology in Widgets/Dialogs
 
 **Files**:
-- `lib/widgets/dialogs/organism_record_edit_dialog.dart`
-- `lib/widgets/dialogs/batch_management_dialog.dart` (9 refs)
-- `lib/widgets/dialogs/monitoring/monitoring_organism_list.dart` (5 refs)
 - `lib/widgets/dialogs/transfer/transfer_initiate_dialog.dart` (5 refs)
 - `lib/widgets/dialogs/transfer/transfer_manual_register_dialog.dart` (5 refs)
 - `lib/widgets/dialogs/holdings/generic_holding_dialog.dart` (4 refs)
-- `lib/widgets/dialogs/holdings/holding_dialog_config.dart`
-- `lib/widgets/dialogs/holdings/config/*.dart` (8 config files — UI strings)
+- `lib/widgets/dialogs/holdings/holding_dialog_configs.dart`
 - `lib/widgets/dialogs/components/csv_import_results_panel.dart` (3 refs)
-- `lib/widgets/dialogs/components/csv_export_preview.dart` (3 refs)
 - `lib/widgets/dialogs/components/csv_import_preview.dart` (2 refs)
-- `lib/widgets/dialogs/components/five_axis_dialog_section.dart`
-- `lib/widgets/dialogs/components/transfer_initiate_form.dart`
-- `lib/widgets/dialogs/asexual_propagation_dialog.dart` (3 refs)
-- `lib/widgets/dialogs/organism_search_dialog.dart` (4 refs)
 - `lib/widgets/spreadsheet/genetics/genetics_events_table.dart` (14 refs)
-- `lib/widgets/spreadsheet/monitoring_events_spreadsheet.dart` (6 refs)
-- `lib/widgets/spreadsheet/components/non_coral_holding_table.dart` (5 refs)
 - `lib/widgets/common/five_axis_editor.dart` (14 refs)
-- `lib/widgets/monitoring/monitoring_form.dart` (6 refs)
-- `lib/widgets/events/base_event_card.dart`
-- `lib/widgets/events/cards/update_event_card.dart` (4 refs)
 - `lib/widgets/onboarding/five_axis_education_widget.dart`
-- `lib/widgets/inventory/organism_record_history_view.dart`
 - `lib/widgets/graph_node/actions/organism_inventory_action_registry.dart` (2 refs)
 - `lib/widgets/spreadsheet/genetics_spreadsheet_helper.dart` — also has 3 `coral_type` refs
 
@@ -632,10 +560,7 @@ Phase 1 complete
 
 **SCOPE**: Only remove `metadata['sizeClass']`, `metadata['size']`, `metadata['measured_value']`, `metadata['measured_unit']` legacy reads. Do NOT remove `SizeSpec.sizeClass` (canonical field) or `SizeSpec.sizeBandId`.
 
-**Files**:
-- `lib/cubits/monitoring_entries_spreadsheet/monitoring_entries_spreadsheet_cubit.dart` — `size_class`, `measured_value`, `measured_unit`
-- `lib/widgets/spreadsheet/monitoring_spreadsheet.dart` — `size_class` (4 refs)
-- `lib/services/monitoring_growth_service.dart` — `size_class` (2 refs)
+**Note**: The monitoring cubits, spreadsheets, and growth services that previously contained these references have been removed in the community fork. Verify no remaining files reference these legacy metadata keys.
 
 **Tasks**:
 - [ ] Remove `metadata['sizeClass']`/`metadata['size']` legacy reads
@@ -645,57 +570,38 @@ Phase 1 complete
 
 #### 2F.6 Update Config Files
 
-**Files**:
-- `config/tier_fields.yaml` — `morphologyId` (lines 51, 190), `measured_value`, `measured_unit` (lines 48-49)
-- `config/structure_capacity.defaults.yaml` — `morphology` refs
-- `config/life_stage_constraints.yaml` — `morphology` in comment (line 26)
-- `config/seed_data/training/sop_coral_fragmentation.json` — `morphology`
-- `config/seed_data/training/sop_coral_health_monitoring.json` — `morphology`
+**Note**: `config/tier_fields.yaml`, `config/structure_capacity.defaults.yaml`, `config/life_stage_constraints.yaml`, and `config/seed_data/training/` files have all been removed in the community fork. No config file updates are needed.
 
 **Tasks**:
-- [ ] Remove `morphologyId`, `morphology`, `sizeClass` from `tier_fields.yaml`
-- [ ] Remove `measured_value`, `measured_unit` from `tier_fields.yaml`
-- [ ] Add `physical_form_id`, `size_band_id` if not present
-- [ ] Update `structure_capacity.defaults.yaml` to use physicalFormId
-- [ ] Update training SOP JSON files
+- [ ] Verify no remaining config files reference legacy field names (morphologyId, sizeClass, coral_type)
 
 #### 2F.7 Update CSV Templates & Fixtures (CORRECTED PATHS)
 
-**Templates** (at `docs/csv/examples/`, NOT `assets/templates/`):
-- `docs/csv/examples/mangrove_template.csv`
-- `docs/csv/examples/crab_template.csv`
-- `docs/csv/examples/finfish_template.csv`
-- `docs/csv/examples/urchin_template.csv`
+**Note**: Only coral templates remain in the community fork.
 
 **Fixtures** (at `docs/csv/fixtures/`, NOT `test/fixtures/csv/`):
 - `docs/csv/fixtures/universal_inventory_identity_conflict.csv`
-- `docs/csv/fixtures/v2/*.csv` (4 files)
+- `docs/csv/fixtures/v2/*.csv`
 
 **Tasks**:
-- [ ] Add `physical_form_id` column to non-inventory templates
-- [ ] Remove any `morphology`, `size_class`, `coral_type` columns
+- [ ] Remove any `morphology`, `size_class`, `coral_type` columns from coral templates
 - [ ] Convert identity conflict fixture to v2 format
 - [ ] Verify v2 fixtures use canonical field names
 
 #### 2F.8 Update Documentation
 
-**Files (CORRECTED PATHS)**:
+**Note**: `docs/api/multi_organism_api.md`, `docs/user_guides/multi_organism_guide.md`, `docs/migrations/MOTE_MIGRATION_ARCHITECTURE.md`, `docs/migrations/MOTE_MIGRATION_FLOW.md`, `docs/reference/seafoundry_18_month_roadmaps.md`, and `docs/modules/genetics/CLAUDE.md` have been removed in the community fork.
+
+**Files**:
 - `schemas/SeaFoundry_Universal_CSV_v2_spec.json`
 - `docs/csv/csv_v2_migration.md` — remove v1 references
 - `docs/csv/examples/notes.md` (NOT `docs/csv/notes.md`)
-- `docs/api/multi_organism_api.md` (NOT `docs/architecture/multi_organism_api.md`)
-- `docs/user_guides/multi_organism_guide.md` (NOT `docs/architecture/multi_organism_guide.md`)
-- `docs/migrations/MOTE_MIGRATION_ARCHITECTURE.md` — `morphologyId`, `sizeClass`, `genetId`
-- `docs/migrations/MOTE_MIGRATION_FLOW.md` — `provenanceId`, `genetId`
 - `docs/architecture/MANAGEMENT_DIALOG_ARCHITECTURE.md` — `morphology`
 - `docs/architecture/taxonomy/README.md` — `coral_type`, `csv_v1`
 - `docs/api/README.md` — `csv_v1`
-- `docs/reference/seafoundry_18_month_roadmaps.md` — historical, mark as archived
-- `docs/modules/genetics/CLAUDE.md` — `provenanceId`
 
 **Tasks**:
 - [ ] Remove all v1 references
-- [ ] Update migration doc to state v1 is no longer supported
 - [ ] Document `physicalFormId` as the only physical form identifier
 - [ ] Update all doc paths that reference removed/renamed fields
 
@@ -713,21 +619,16 @@ Phase 1 complete
 - `test/unit/repositories/organism_record_update_test.dart`
 - `test/unit/models/events/size_change_event_test.dart`
 - `test/unit/models/inventory/size_interpretation_test.dart`
-- `test/unit/services/monitoring_submission_service_test.dart`
 - `test/unit/services/organism_validation_service_test.dart`
 - `test/unit/models/inventory/organism_record_serialization_test.dart`
 - `test/unit/models/inventory/inventory_export_row_test.dart`
 - `test/blocs/inventory_event/inventory_event_creation_bloc_test.dart`
 - `test/helpers/test_data_factory.dart`
 - `test/unit/cubits/inventory_holding_row_builder_test.dart`
-- `test/unit/services/csv/monitoring_csv_import_test.dart`
 - `test/widget/dialogs/transfer_dialog_manual_register_test.dart`
 - `test/unit/cubits/organism_creation/organism_creation_cubit_test.dart`
-- `test/unit/services/monitoring_growth_service_test.dart`
-
 **Test files needing coral_type updates:**
 - `test/unit/services/csv/universal_csv_adapter_v2_test.dart`
-- `test/cubits/outplant_events_spreadsheet_cubit_test.dart`
 
 **Test files needing universal_csv_v1 removal:**
 - `test/unit/services/csv/csv_translation_pipeline_test.dart`
@@ -792,13 +693,13 @@ Phase 1 complete
 
 #### 2E.4 Update Seed Scripts
 
+**Note**: `scripts/seed-non-coral-holdings.js` and `scripts/import-mote-phase2.js` have been removed in the community fork.
+
 **Files**:
 - `scripts/seed-demo.js`
 - `scripts/seed-emulator.js`
 - `scripts/seed-coral-inventory.js`
-- `scripts/seed-non-coral-holdings.js`
 - `scripts/reset_and_seed_inventory.dart` — **MISSING FROM ORIGINAL PLAN**: writes `sizeClass` at line 2091
-- `scripts/import-mote-phase2.js` — **MISSING FROM ORIGINAL PLAN**: writes `genetId`
 
 **Tasks**:
 - [ ] Update organism creation to set `genetId` at top level
@@ -812,8 +713,9 @@ Phase 1 complete
 
 #### 2E.5 Update Import & Utility Scripts
 
+**Note**: `scripts/import-mote-hog.js` has been removed in the community fork.
+
 **Files**:
-- `scripts/import-mote-hog.js`
 - `scripts/constants.js`
 - `scripts/generate-pid-crosswalk.js`
 - `scripts/build-species-crosswalk.js`
@@ -841,7 +743,6 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - [ ] Run full CSV import/export roundtrip tests
 - [ ] Verify all organism creation paths produce identical `OrganismRecord` structures
 - [ ] Test genet lookup by both doc ID and provenance ID (separate methods)
-- [ ] Verify health status and observation flows are distinct
 - [ ] Test `OutplantAllocation.organismId` is always a Firestore doc ID in both paths
 - [ ] Run `flutter analyze` — zero errors
 - [ ] Run `flutter test` — all tests pass
@@ -861,7 +762,6 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `CLAUDE.md` (root) — remove stale `LegacyCoralTypeMapper` reference, update `foreignKeys` docs
 - `README.md` — update physical form chain docs
 - `docs/modules/inventory/CLAUDE.md`
-- `docs/modules/genetics/CLAUDE.md`
 
 **Tasks**:
 - [ ] Document canonical field locations for all ID types
@@ -894,8 +794,6 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `lib/models/inventory/holding_record.dart`
 - `lib/models/cohort.dart`
 - `lib/models/genet.dart`
-- `lib/models/monitoring/monitoring_entry.dart`
-- `lib/models/monitoring/organism_monitoring_data.dart`
 - `lib/models/events/collection_event.dart`
 - `lib/models/types/types.dart`
 - `lib/models/types/inventory_event_type.dart`
@@ -909,7 +807,6 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `lib/repositories/inventory/organism_record_repository_status.dart`
 
 ### Services
-- `lib/services/gene_bank_metrics_service.dart`
 - `lib/services/transfer_service.dart`
 - `lib/services/transfer_service_validation.dart`
 - `lib/services/transfer_service_manifest.dart`
@@ -918,16 +815,12 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `lib/services/manual_transfer_registration_service.dart`
 - `lib/services/inventory_event_formatter.dart`
 - `lib/services/structure_capacity_service.dart`
-- `lib/services/monitoring_submission_service.dart`
-- `lib/services/monitoring_service.dart`
-- `lib/services/monitoring_growth_service.dart`
 - `lib/services/taxonomy_admin_service.dart`
 - `lib/services/size_mappings_service.dart`
 - `lib/services/outplanting_service.dart`
 - `lib/services/outplanting_analytics_service.dart`
 - `lib/services/state_reconstruction_service.dart`
 - `lib/services/event_history_service.dart`
-- `lib/services/snapshot_comparison_service.dart`
 - `lib/services/survival_calculation_service.dart`
 - `lib/services/metadata_extraction_service.dart`
 - `lib/services/unique_name_validation_service.dart`
@@ -944,7 +837,6 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `lib/services/csv/import/importers/inventory/organism/organism_field_validator.dart`
 - `lib/services/csv/import/importers/inventory/organism/organism_metadata_updater.dart`
 - `lib/services/csv/import/importers/genetics_csv_importer.dart`
-- `lib/services/csv/import/importers/monitoring_csv_importer.dart`
 - `lib/services/csv/adapters/universal_csv_adapter_v2_mapper.dart`
 - `lib/services/csv/adapters/universal_csv_adapter_v2.dart`
 - `lib/services/csv/adapters/universal_csv_adapter_v2_validator.dart`
@@ -955,49 +847,24 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `lib/constants/csv_schema.dart`
 
 ### Cubits/BLoCs
-- `lib/cubits/monitoring_dialog/monitoring_dialog_cubit.dart`
-- `lib/cubits/monitoring_dialog/monitoring_dialog_state.dart`
-- `lib/cubits/organism_collection/organism_collection_cubit.dart`
 - `lib/cubits/organism_creation/organism_creation_cubit.dart`
 - `lib/cubits/organism_creation/organism_creation_state.dart`
 - `lib/cubits/transfer/transfer_initiate_cubit.dart`
-- `lib/cubits/structure_capacity_config/structure_capacity_config_cubit.dart`
-- `lib/cubits/monitoring_form/monitoring_form_cubit.dart`
-- `lib/cubits/monitoring_entries_spreadsheet/monitoring_entries_spreadsheet_cubit.dart`
 - `lib/blocs/organism_record_edit/organism_record_edit_state.dart`
 - `lib/blocs/organism_record_edit/organism_record_edit_cubit.dart`
-- `lib/blocs/propagation/propagation_bloc.dart`
 
 ### Dialogs & Widgets
 - `lib/widgets/dialogs/organism_creation_wizard/organism_creation_wizard.dart`
-- `lib/widgets/dialogs/organism_collection_dialog.dart`
-- `lib/widgets/dialogs/health_status_dialog.dart`
-- `lib/widgets/dialogs/unified_observation_dialog.dart`
-- `lib/widgets/dialogs/organism_record_edit_dialog.dart`
-- `lib/widgets/dialogs/batch_management_dialog.dart`
-- `lib/widgets/dialogs/monitoring/monitoring_organism_list.dart`
 - `lib/widgets/dialogs/transfer/transfer_initiate_dialog.dart`
 - `lib/widgets/dialogs/transfer/transfer_manual_register_dialog.dart`
 - `lib/widgets/dialogs/holdings/generic_holding_dialog.dart`
-- `lib/widgets/dialogs/holdings/holding_dialog_config.dart`
-- `lib/widgets/dialogs/holdings/config/*.dart` (8 holding config files)
+- `lib/widgets/dialogs/holdings/holding_dialog_configs.dart`
 - `lib/widgets/dialogs/components/csv_import_results_panel.dart`
-- `lib/widgets/dialogs/components/csv_export_preview.dart`
 - `lib/widgets/dialogs/components/csv_import_preview.dart`
-- `lib/widgets/dialogs/components/five_axis_dialog_section.dart`
-- `lib/widgets/dialogs/components/transfer_initiate_form.dart`
-- `lib/widgets/dialogs/asexual_propagation_dialog.dart`
-- `lib/widgets/dialogs/organism_search_dialog.dart`
 - `lib/widgets/spreadsheet/genetics/genetics_events_table.dart`
-- `lib/widgets/spreadsheet/monitoring_events_spreadsheet.dart`
-- `lib/widgets/spreadsheet/components/non_coral_holding_table.dart`
 - `lib/widgets/spreadsheet/genetics_spreadsheet_helper.dart`
 - `lib/widgets/common/five_axis_editor.dart`
-- `lib/widgets/monitoring/monitoring_form.dart`
-- `lib/widgets/events/base_event_card.dart`
-- `lib/widgets/events/cards/update_event_card.dart`
 - `lib/widgets/onboarding/five_axis_education_widget.dart`
-- `lib/widgets/inventory/organism_record_history_view.dart`
 - `lib/widgets/graph_node/actions/organism_inventory_action_registry.dart`
 - `lib/screens/graph/organism_node_screen.dart`
 - `lib/widgets/spreadsheet/components/organism_quick_action_sheet.dart`
@@ -1007,21 +874,11 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `firestore.indexes.json`
 - `storage.rules`
 
-### Config
-- `config/tier_fields.yaml`
-- `config/structure_capacity.defaults.yaml`
-- `config/life_stage_constraints.yaml`
-- `config/seed_data/training/sop_coral_fragmentation.json`
-- `config/seed_data/training/sop_coral_health_monitoring.json`
-
 ### Scripts
 - `scripts/seed-demo.js`
 - `scripts/seed-emulator.js`
 - `scripts/seed-coral-inventory.js`
-- `scripts/seed-non-coral-holdings.js`
 - `scripts/reset_and_seed_inventory.dart`
-- `scripts/import-mote-hog.js`
-- `scripts/import-mote-phase2.js`
 - `scripts/constants.js`
 - `scripts/generate-pid-crosswalk.js`
 - `scripts/build-species-crosswalk.js`
@@ -1032,10 +889,6 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - `scripts/firestore/seed_taxonomy_data.ts`
 
 ### Templates & Fixtures (CORRECTED PATHS)
-- `docs/csv/examples/mangrove_template.csv`
-- `docs/csv/examples/crab_template.csv`
-- `docs/csv/examples/finfish_template.csv`
-- `docs/csv/examples/urchin_template.csv`
 - `docs/csv/examples/notes.md`
 - `docs/csv/fixtures/universal_inventory_identity_conflict.csv`
 - `docs/csv/fixtures/v2/*.csv`
@@ -1043,14 +896,9 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 ### Documentation (CORRECTED PATHS)
 - `schemas/SeaFoundry_Universal_CSV_v2_spec.json`
 - `docs/csv/csv_v2_migration.md`
-- `docs/api/multi_organism_api.md`
-- `docs/user_guides/multi_organism_guide.md`
-- `docs/migrations/MOTE_MIGRATION_ARCHITECTURE.md`
-- `docs/migrations/MOTE_MIGRATION_FLOW.md`
 - `docs/architecture/MANAGEMENT_DIALOG_ARCHITECTURE.md`
 - `docs/architecture/taxonomy/README.md`
 - `docs/api/README.md`
-- `docs/modules/genetics/CLAUDE.md`
 - `CLAUDE.md` (root)
 
 ### Assets to Delete
@@ -1075,7 +923,7 @@ After all Phase 2 tracks complete AND Phase 2 review gate passes. Serial executi
 - [ ] `OutplantAllocation.organismId` is always a Firestore doc ID
 
 ### Dialog Consolidation
-- [ ] Health status updates vs observations are clearly distinguished in code and UI
+- [x] ~~Health status updates vs observations are clearly distinguished in code and UI~~ (health/observation dialogs removed in community fork)
 
 ### Physical Form Cleanup
 - [ ] `rg 'morphologyId' lib/` = zero hits
@@ -1108,11 +956,11 @@ Phase 1: Critical fixes (serial)
     v [Review Gate]
     |
 Phase 2: Parallel team tracks
-  ┌─── Alpha (ID Fields: 2A.1-2A.5) ──────────┐
+  ┌─── Alpha (ID Fields: 2A.1-2A.4) ──────────┐
   │                                              │
-  │    Alpha completes ──► Beta (Provenance: 2B.1-2B.5)
+  │    Alpha completes ──► Beta (Provenance: 2B.1-2B.4)
   │                                              │
-  ├─── Gamma (Dialogs: 2C.1-2C.3) ─────────────┤
+  ├─── Gamma (Dialogs: 2C.1-2C.2) ─────────────┤
   ├─── Delta (CSV: 2D.1-2D.4) ─────────────────┤
   ├─── Foxtrot (Physical Form: 2F.1-2F.10) ────┤
   │                                              │
@@ -1144,7 +992,7 @@ Phase 3: Integration & validation (serial)
 - **C1**: genetId extension shadowing confirmed — Phase 1.1
 - **C2**: OutplantAllocation dual-semantics — expanded Phase 1.3
 - **C3**: getByProvenance mixing ID types — Phase 2B.1
-- **M1-M4**: GeneBankMetrics cascade, TransferService resolvers, loadOrganismDocsForGenet — added to team scopes
+- **M1-M4**: TransferService resolvers, loadOrganismDocsForGenet — added to team scopes (GeneBankMetrics removed in community fork)
 - **L1**: lineageId removal moved to Phase 1.4 since DB wiped
 - **L2**: transfer_service.dart writes morphologyId — added to 2F.1
 - **L3**: Reversed FK priority in outplanting_service.dart — added to 2A.2

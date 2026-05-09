@@ -5,7 +5,6 @@ import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/models/transfer_manifest.dart';
 import 'package:seafoundry_app/models/transfer_status.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/outplant_geometry_parser.dart';
 import 'package:seafoundry_app/services/transfer_service.dart';
 
 class TransferReceiveState extends Equatable {
@@ -93,7 +92,6 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
     : super(const TransferReceiveState());
 
   final TransferService transferService;
-  final OutplantGeometryParser _geometryParser = const OutplantGeometryParser();
 
   /// Hydrates the current state with a validated manifest (non-QR entrypoint).
   void setManifest(TransferManifest manifest) {
@@ -120,16 +118,10 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
       ),
     );
     try {
-      final scannedManifest = transferService.decodeManifestPayload(rawPayload);
+      final scannedManifest = TransferManifest.decodePayload(rawPayload);
       final verifiedManifest = await transferService.getTransferManifest(
         scannedManifest.transferId,
       );
-
-      if (verifiedManifest.checksum != scannedManifest.checksum) {
-        throw Exception(
-          'Manifest checksum mismatch. Please re-scan the QR code.',
-        );
-      }
 
       if (verifiedManifest.status == TransferStatus.received ||
           verifiedManifest.status == TransferStatus.rejected) {
@@ -175,11 +167,18 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
     }
 
     try {
-      final parsed = _geometryParser.parseManual(value);
+      final coordinates = _parseManualCoordinates(value);
+      final input = OutplantGeometryInput(
+        type: coordinates.length == 1
+            ? OutplantGeometryType.point
+            : OutplantGeometryType.polygon,
+        coordinates: coordinates,
+        source: OutplantGeometrySource.manual,
+      );
       emit(
         state.copyWith(
           geometryText: value,
-          geometryInput: parsed.input,
+          geometryInput: input,
           geometryValidationMessage: null,
         ),
       );
@@ -192,6 +191,32 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
         ),
       );
     }
+  }
+
+  /// Parses manually entered coordinate text (one lat,lng pair per line).
+  static List<GeoCoordinate> _parseManualCoordinates(String text) {
+    final lines = text
+        .split(RegExp(r'[\n\r]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) {
+      throw const FormatException('No coordinate pairs found.');
+    }
+    final coordinates = <GeoCoordinate>[];
+    for (final line in lines) {
+      final parts = line.split(RegExp(r'[,\s]+'));
+      if (parts.length < 2) {
+        throw FormatException('Invalid coordinate pair: "$line"');
+      }
+      final lat = double.tryParse(parts[0]);
+      final lng = double.tryParse(parts[1]);
+      if (lat == null || lng == null) {
+        throw FormatException('Non-numeric coordinate: "$line"');
+      }
+      coordinates.add(GeoCoordinate(latitude: lat, longitude: lng));
+    }
+    return coordinates;
   }
 
   Future<void> acceptTransfer({

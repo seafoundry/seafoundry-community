@@ -3,8 +3,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/site.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
+import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
 import 'package:seafoundry_app/widgets/dialogs/structure_dialog.dart';
+import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
 
 /// Supported categories of missing entities detected during universal CSV import.
 enum MissingEntityType { organization, site, enclosure, group }
@@ -151,9 +154,11 @@ class _UniversalCreateMissingWizardState
   Future<void> _handleCreateTapped(MissingEntity entity) async {
     switch (entity.type) {
       case MissingEntityType.group:
-        await _openCreateGroupDialog(entity.value);
+        await _openCreateGroupDialog(entity);
         break;
       case MissingEntityType.site:
+        await _openCreateSiteDialog(entity.value);
+        break;
       case MissingEntityType.organization:
       case MissingEntityType.enclosure:
         _showSnack(
@@ -164,14 +169,74 @@ class _UniversalCreateMissingWizardState
     }
   }
 
-  Future<void> _openCreateGroupDialog(String groupPath) async {
+  Future<void> _openCreateSiteDialog(String siteName) async {
+    final result = await StructureDialog.show(
+      widget.hostContext,
+      type: StructureType.site,
+    );
+    if (result is Site) {
+      setState(() {
+        _resolvedValues.add(siteName);
+      });
+    }
+  }
+
+  Future<void> _openCreateGroupDialog(MissingEntity entity) async {
     final hostContext = widget.hostContext;
     final messenger = ScaffoldMessenger.maybeOf(hostContext);
-    final sitePath = _deriveSitePath(groupPath);
+    final groupPath = entity.value;
+
+    // Try to derive site path from the group path (inventory-style: org/site/group)
+    var sitePath = _deriveSitePath(groupPath);
+
+    // For outplanting, structure errors provide bare names (not paths).
+    // Try to extract site name from the error message:
+    //   'Unknown structure name within site "SiteName"'
     if (sitePath == null) {
+      final siteNameMatch = RegExp(
+        r'within site "([^"]+)"',
+      ).firstMatch(entity.message);
+      if (siteNameMatch != null) {
+        final siteName = siteNameMatch.group(1)!;
+        // Look up the site by name using SiteRepository from the host context
+        final siteRepo = hostContext.maybeRead<SiteRepository>();
+        if (siteRepo != null) {
+          final snapshot = await siteRepo.collectionRef
+              .where('name', isEqualTo: siteName)
+              .limit(1)
+              .get();
+          if (snapshot.docs.isNotEmpty) {
+            final siteData = Map<String, dynamic>.from(
+              snapshot.docs.first.data(),
+            );
+            siteData['id'] = snapshot.docs.first.id;
+            final site = Site.fromJson(siteData);
+            final siteNode = await widget.graphRepository.getNodeForUrlPath(
+              site.urlPath,
+            );
+            if (siteNode is SiteNode) {
+              final result = await StructureDialog.show(
+                hostContext,
+                type: StructureType.group,
+                parentNode: siteNode,
+              );
+              if (result != null) {
+                setState(() {
+                  _resolvedValues.add(groupPath);
+                });
+              }
+              return;
+            }
+          }
+        }
+      }
+
       messenger?.showSnackBar(
         SnackBar(
-          content: Text('Unable to derive site path from "$groupPath".'),
+          content: Text(
+            'Unable to determine parent site for "$groupPath". '
+            'Create the site first, then rerun the wizard.',
+          ),
         ),
       );
       return;
@@ -180,11 +245,16 @@ class _UniversalCreateMissingWizardState
     final siteNode = await widget.graphRepository.getNodeForUrlPath(sitePath);
 
     if (siteNode is SiteNode) {
-      StructureDialog.show(
+      final result = await StructureDialog.show(
         hostContext,
         type: StructureType.group,
         parentNode: siteNode,
       );
+      if (result != null) {
+        setState(() {
+          _resolvedValues.add(groupPath);
+        });
+      }
       return;
     }
 
@@ -248,7 +318,8 @@ class _MissingEntitiesList extends StatelessWidget {
         const SizedBox(height: 12),
         ...entities.map((entity) {
           final resolved = resolvedValues.contains(entity.value);
-          final canCreate = entity.type == MissingEntityType.group;
+          final canCreate = entity.type == MissingEntityType.group ||
+              entity.type == MissingEntityType.site;
           return Card(
             margin: const EdgeInsets.only(bottom: 12),
             child: Padding(

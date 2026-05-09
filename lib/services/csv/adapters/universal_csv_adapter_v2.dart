@@ -6,7 +6,6 @@ import 'package:seafoundry_app/models/provenance_life_stage_selection.dart';
 import 'package:seafoundry_app/models/species.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
-import 'package:seafoundry_app/models/types/provenance_kind.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/services/csv/adapters/csv_translation_adapter.dart';
 import 'package:seafoundry_app/services/csv/v2/csv_v2_spec.dart';
@@ -30,7 +29,6 @@ class UniversalCsvAdapterV2 extends CsvTranslationAdapter {
   static const String adapterKey = 'universal_csv_v2';
   static const String templateVersion = '2.0.0';
   static const String _templateName = 'provenance universal csv v2';
-  static const String _legacyTemplateName = 'sea foundry universal csv v2';
   static String get templateName => _templateName;
 
   /// Minimal required fields for CSV import validation.
@@ -99,14 +97,6 @@ class UniversalCsvAdapterV2 extends CsvTranslationAdapter {
       entry.key: entry.value.toSet(),
   };
 
-  static final Set<String> _kelpStructureTypes = {
-    for (final value in ['longline', 'raft', 'dropperLine'])
-      value.toLowerCase(),
-  };
-
-  static const Set<String> _countMeasurementUnits = {'count', 'individuals'};
-  static const Set<String> _seededLineMeasurementUnits = {'kg_per_m'};
-
   static final Set<String> _measurementUnits = {
     for (final unit in CsvV2MeasurementUnit.values) unit.value.toLowerCase(),
   };
@@ -115,12 +105,6 @@ class UniversalCsvAdapterV2 extends CsvTranslationAdapter {
     CsvTemplateKind.inventory,
     CsvTemplateKind.inventoryMinimal,
     CsvTemplateKind.inventoryCoral,
-    CsvTemplateKind.inventoryOyster,
-    CsvTemplateKind.inventoryKelp,
-    CsvTemplateKind.inventorySeagrass,
-    CsvTemplateKind.inventoryMangrove,
-    CsvTemplateKind.inventoryFinfish,
-    CsvTemplateKind.inventoryCrab,
   };
 
   @override
@@ -135,14 +119,17 @@ class UniversalCsvAdapterV2 extends CsvTranslationAdapter {
       return false;
     }
 
-    final template =
-        _metadataValue(context.metadata, _templateKeys)?.trim().toLowerCase();
-    final version =
-        _metadataValue(context.metadata, _versionKeys)?.trim().toLowerCase();
+    final template = _metadataValue(
+      context.metadata,
+      _templateKeys,
+    )?.trim().toLowerCase();
+    final version = _metadataValue(
+      context.metadata,
+      _versionKeys,
+    )?.trim().toLowerCase();
 
     final matchesTemplate =
         template == _templateName ||
-        template == _legacyTemplateName ||
         _inventoryKinds.any((kind) => kind.name == template);
     final isV2Version =
         version?.startsWith('2.') == true || adapterMetadata == id;
@@ -255,54 +242,9 @@ class UniversalCsvAdapterV2 extends CsvTranslationAdapter {
 
   /// Returns the holding kind for a given organism and life stage combination,
   /// or null if the combination should be treated as standard inventory.
-  String? holdingKindFor(
-    OrganismKind organism,
-    CsvV2LifeStage? lifeStage,
-  ) {
-    if (lifeStage == null) return null;
-    if (lifeStage == CsvV2LifeStage.gamete) {
-      return 'gameteBatch';
-    }
-    if (lifeStage == CsvV2LifeStage.larvae) {
-      return 'larvalBatch';
-    }
-    if (organism == OrganismKind.kelp &&
-        (lifeStage == CsvV2LifeStage.seededTwine ||
-            lifeStage == CsvV2LifeStage.longline)) {
-      return 'seededLineBatch';
-    }
-    if (organism == OrganismKind.oyster &&
-        (lifeStage == CsvV2LifeStage.spat ||
-            lifeStage == CsvV2LifeStage.growOut ||
-            lifeStage == CsvV2LifeStage.reef)) {
-      return 'oysterBagHolding';
-    }
-    if (organism == OrganismKind.finfish &&
-        (lifeStage == CsvV2LifeStage.fry ||
-            lifeStage == CsvV2LifeStage.fingerling ||
-            lifeStage == CsvV2LifeStage.juvenile ||
-            lifeStage == CsvV2LifeStage.adult)) {
-      return 'finfishPenHolding';
-    }
-    if (organism == OrganismKind.crab &&
-        (lifeStage == CsvV2LifeStage.megalopa ||
-            lifeStage == CsvV2LifeStage.juvenile ||
-            lifeStage == CsvV2LifeStage.adult)) {
-      return 'crabPondHolding';
-    }
-    if (organism == OrganismKind.seagrass &&
-        (lifeStage == CsvV2LifeStage.seed ||
-            lifeStage == CsvV2LifeStage.shoot ||
-            lifeStage == CsvV2LifeStage.plot)) {
-      return 'seagrassModuleHolding';
-    }
-    if (organism == OrganismKind.mangrove &&
-        (lifeStage == CsvV2LifeStage.propagule ||
-            lifeStage == CsvV2LifeStage.nursery ||
-            lifeStage == CsvV2LifeStage.sapling ||
-            lifeStage == CsvV2LifeStage.adult)) {
-      return 'mangrovePlotHolding';
-    }
+  String? holdingKindFor(OrganismKind organism, CsvV2LifeStage? lifeStage) {
+    // Dedicated gamete/larval batch holding types removed in sexual propagation
+    // simplification. All life stages now use standard organism records.
     return null;
   }
 
@@ -524,11 +466,7 @@ _ExportGeometry _exportGeometry(Map<String, dynamic> row) {
 }
 
 String _resolveEventDate(Map<String, dynamic> row) {
-  final candidates = [
-    row['lastEventAt'],
-    row['updatedAt'],
-    row['createdAt'],
-  ];
+  final candidates = [row['lastEventAt'], row['updatedAt'], row['createdAt']];
   for (final candidate in candidates) {
     if (candidate == null) continue;
     if (candidate is String && candidate.trim().isNotEmpty) {
@@ -553,9 +491,7 @@ ProvenanceLifeStageSelection _provenanceSelectionFromImportRow({
   String? existingLifeStageId,
   String? existingProvenanceType,
 }) {
-  final sources = <Map<String, dynamic>>[
-    ..._canonicalSourcesFromRow(row),
-  ];
+  final sources = <Map<String, dynamic>>[..._canonicalSourcesFromRow(row)];
   void appendValue(String key, String? value) {
     final normalized = _string(value);
     if (normalized != null && normalized.isNotEmpty) {
@@ -593,9 +529,7 @@ ProvenanceLifeStageSelection _provenanceSelectionFromExportRow(
   String? existingLifeStageId,
   String? existingProvenanceType,
 }) {
-  final sources = <Map<String, dynamic>>[
-    ..._canonicalSourcesFromRow(row),
-  ];
+  final sources = <Map<String, dynamic>>[..._canonicalSourcesFromRow(row)];
   void appendValue(String key, String? value) {
     final normalized = _string(value);
     if (normalized != null && normalized.isNotEmpty) {
@@ -621,9 +555,7 @@ const List<String> _metadataSourceKeys = <String>[
   'provenance_metadata',
 ];
 
-List<Map<String, dynamic>> _canonicalSourcesFromRow(
-  Map<dynamic, dynamic> row,
-) {
+List<Map<String, dynamic>> _canonicalSourcesFromRow(Map<dynamic, dynamic> row) {
   final sources = <Map<String, dynamic>>[];
   for (final key in _metadataSourceKeys) {
     final metadata = _coerceMetadataMap(row[key]);
@@ -655,10 +587,7 @@ List<Map<String, dynamic>> _canonicalSourcesFromRow(
     'lineageKind',
     'lineage_kind',
   ]);
-  capture('lifeStageId', const [
-    'lifeStageId',
-    'life_stage_id',
-  ]);
+  capture('lifeStageId', const ['lifeStageId', 'life_stage_id']);
   capture('lifeStage', const [
     'lifeStage',
     'life_stage',
@@ -689,14 +618,15 @@ void _applyMetadataOverrides({
     target['lifeStageLabel'] = overrideLifeStage.displayName;
   }
 
-  final metadataProvenanceTypeId = _string(metadata['provenanceTypeId']) ??
+  final metadataProvenanceTypeId =
+      _string(metadata['provenanceTypeId']) ??
       _string(metadata['provenanceType']);
-  final overrideProvenanceType =
-      ProvenanceTypeX.tryParse(metadataProvenanceTypeId);
+  final overrideProvenanceType = ProvenanceTypeX.tryParse(
+    metadataProvenanceTypeId,
+  );
   if (overrideProvenanceType != null) {
     target['provenanceType'] = overrideProvenanceType.metadata.id;
-    target['provenanceTypeLabel'] =
-        overrideProvenanceType.metadata.displayName;
+    target['provenanceTypeLabel'] = overrideProvenanceType.metadata.displayName;
     target['provenanceKind'] =
         overrideProvenanceType.metadata.defaultProvenanceKind.name;
   }
@@ -748,15 +678,21 @@ Map<String, dynamic>? _coerceMetadataMap(dynamic value) {
   return null;
 }
 
-String? _normalizeProvenanceType({dynamic explicitType, dynamic legacyKind}) {
+void _applyNormalizedProvenanceType(Map<String, String> translation) {
+  final normalizedProvenanceType = _normalizeProvenanceType(
+    explicitType: translation['provenanceType'],
+  );
+  if (normalizedProvenanceType != null) {
+    translation['provenanceType'] = normalizedProvenanceType;
+  }
+}
+
+String? _normalizeProvenanceType({dynamic explicitType}) {
   final explicit = ProvenanceTypeX.tryParse(_string(explicitType));
   if (explicit != null) {
     return explicit.id;
   }
-  final legacyValue = _string(legacyKind);
-  final legacyParsed = ProvenanceTypeX.tryParse(legacyValue) ??
-      ProvenanceTypeX.fromLegacyKind(ProvenanceKindX.tryParse(legacyValue));
-  return legacyParsed?.id;
+  return null;
 }
 
 String? _normalizeLifeStageId({

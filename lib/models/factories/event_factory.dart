@@ -80,45 +80,8 @@ class EventFactory {
       case 'event_transfer':
       case 'event_loan':
         return TransferEvent.fromJson(normalizedJson);
-      case HusbandryEventType.feedingId:
-        return FeedingEvent.fromJson(normalizedJson);
-      case HusbandryEventType.waterQualityTestId:
-        return WaterQualityTestEvent.fromJson(normalizedJson);
-      case HusbandryEventType.cleaningId:
-        return CleaningEvent.fromJson(normalizedJson);
-      case HusbandryEventType.treatmentId:
-        return TreatmentEvent.fromJson(normalizedJson);
-      case HusbandryEventType.environmentalAdjustmentId:
-        return EnvironmentalAdjustmentEvent.fromJson(normalizedJson);
-      case HusbandryEventType.structureMaintenanceId:
-        return StructureMaintenanceEvent.fromJson(normalizedJson);
-      case HusbandryEventType.acquireOrthomosaicId:
-      case HusbandryEventType.sitePrepId:
-        return OutplantActionEvent.fromJson(normalizedJson);
-      case HusbandryEventType.ecologicalSurveyId:
-        return MonitoringEventRecord.fromJson(normalizedJson);
-      case HusbandryEventType.husbandryLogId:
-        return HusbandryLogEvent.fromJson(normalizedJson);
-      case GeneBankEventType.auditId:
-        return GeneBankAuditEvent.fromJson(normalizedJson);
-      case GeneBankEventType.temperatureMonitoringId:
-        return GeneBankTemperatureMonitoringEvent.fromJson(normalizedJson);
-      case GeneBankEventType.viabilityTestId:
-        return GeneBankViabilityTestEvent.fromJson(normalizedJson);
-      case 'event_disease_observation':
-        return DiseaseObservationEvent.fromJson(normalizedJson);
-      case 'event_biofouling_observation':
-        return BiofoulingObservationEvent.fromJson(normalizedJson);
-      case 'event_pest_observation':
-        return PestObservationEvent.fromJson(normalizedJson);
-      case 'event_thermal_stress_observation':
-        return ThermalStressObservationEvent.fromJson(normalizedJson);
       case 'event_population_gain':
         return PopulationGainEvent.fromJson(normalizedJson);
-      case var id when id == EventType.maintenanceRequiredObservation.id:
-        return MaintenanceRequiredObservationEvent.fromJson(normalizedJson);
-      case 'event_discoloration_observation':
-        return DiscolorationObservationEvent.fromJson(normalizedJson);
       case 'outplant_event':
       case 'event_outplant':
         return OutplantEvent.fromJson(normalizedJson);
@@ -141,52 +104,35 @@ class EventFactory {
     switch (eventType) {
       case EventType.unknown:
         return Event.fromJson(normalizedJson);
-      case EventType.moveIn:
-        return MoveInEvent.fromJson(normalizedJson);
-      case EventType.moveOut:
-        return MoveOutEvent.fromJson(normalizedJson);
-      case EventType.propagation:
-        return PropagationEvent.fromJson(normalizedJson);
-      case EventType.outplant:
-        return OutplantEvent.fromJson(normalizedJson);
-      case EventType.task:
-        return TaskEvent.fromJson(normalizedJson);
-      case EventType.comment:
-        return Event.fromJson(normalizedJson);
-      case StatusEventType.propagationReady:
-        return PropagationReadyStatus.fromJson(normalizedJson);
-      case StatusEventType.recentPropagation:
-        return RecentPropagationStatus.fromJson(normalizedJson);
-      case EventType.spawn:
-        return SpawnEvent.fromJson(normalizedJson);
-      case EventType.cross:
-        return CrossEvent.fromJson(normalizedJson);
+      case EventType.create:
+        return CreateEvent.fromJson(normalizedJson);
       case EventType.update:
         return UpdateEvent.fromJson(normalizedJson);
       case EventType.delete:
         return DeletionEvent.fromJson(normalizedJson);
-      case EventType.settle:
-        return SettleEvent.fromJson(normalizedJson);
-      case EventType.create:
-        return CreateEvent.fromJson(normalizedJson);
+      case EventType.moveIn:
+        return MoveInEvent.fromJson(normalizedJson);
+      case EventType.moveOut:
+        return MoveOutEvent.fromJson(normalizedJson);
       case EventType.observation:
-        // Check if this is a monitoring event (has coralIds/organismIds or monitoringDate)
-        if (normalizedJson['coralIds'] != null ||
-            normalizedJson['organismIds'] != null ||
-            normalizedJson['monitoringDate'] != null) {
-          return MonitoringEventRecord.fromJson(normalizedJson);
-        }
         return ObservationEvent.fromJson(normalizedJson);
+      case EventType.outplant:
+        return OutplantEvent.fromJson(normalizedJson);
+      case EventType.comment:
+        return Event.fromJson(normalizedJson);
+      case EventType.genetModification:
+        return GenetModificationEvent.fromJson(normalizedJson);
+      case EventType.inventoryRecordCorrection:
+      case EventType.inventoryEventCorrection:
+      case EventType.observationCorrection:
+      case EventType.geneticRecordCorrection:
+        return CorrectionEvent.fromJson(normalizedJson);
+      case StatusEventType.propagationReady:
+      case StatusEventType.recentPropagation:
+        return StatusEvent.fromJson(normalizedJson);
       case InventoryEventType.populationGain:
         return PopulationGainEvent.fromJson(normalizedJson);
       case InventoryEventType.populationLoss:
-        // Check for outplant mortality (has outplantLossReasonId or lossReasonId is an OutplantLossReason)
-        if (normalizedJson['outplantLossReasonId'] != null ||
-            OutplantLossReason.builtins.containsKey(
-              normalizedJson['lossReasonId'],
-            )) {
-          return OutplantMortalityEvent.fromJson(normalizedJson);
-        }
         // Check for nursery mortality (has mortalityReasonId or lossReasonId is mortality)
         if (normalizedJson['mortalityReasonId'] != null ||
             normalizedJson['lossReasonId'] ==
@@ -204,32 +150,6 @@ class EventFactory {
         return QuantityChangeEvent.fromJson(normalizedJson);
       case LoanEventType.loan:
         return TransferEvent.fromJson(normalizedJson);
-      case HusbandryEventType.cleaning:
-        return CleaningEvent.fromJson(normalizedJson);
-      case HusbandryEventType.feeding:
-        return FeedingEvent.fromJson(normalizedJson);
-      case HusbandryEventType.treatment:
-        return TreatmentEvent.fromJson(normalizedJson);
-      case HusbandryEventType.environmentalAdjustment:
-        return EnvironmentalAdjustmentEvent.fromJson(normalizedJson);
-      case HusbandryEventType.structureMaintenance:
-        return StructureMaintenanceEvent.fromJson(normalizedJson);
-      case HusbandryEventType.waterQualityTest:
-        return WaterQualityTestEvent.fromJson(normalizedJson);
-      case HusbandryEventType.acquireOrthomosaic:
-      case HusbandryEventType.sitePrep:
-        return OutplantActionEvent.fromJson(normalizedJson);
-      case CoralSizeEventType.growth:
-      case CoralSizeEventType.tissueLoss:
-      case CoralSizeEventType.sizeAdded:
-        return CoralSizeEvent.fromJson(normalizedJson);
-      case EventType.genetModification:
-        return GenetModificationEvent.fromJson(normalizedJson);
-      case EventType.inventoryRecordCorrection:
-      case EventType.inventoryEventCorrection:
-      case EventType.observationCorrection:
-      case EventType.geneticRecordCorrection:
-        return CorrectionEvent.fromJson(normalizedJson);
       default:
         // Community build: return base Event for unrecognized types
         return Event.fromJson(normalizedJson);
@@ -252,45 +172,6 @@ class EventFactory {
       case 'outplant_event':
       case 'event_outplant':
         return OutplantEvent.partial(json: normalizedJson);
-      case HusbandryEventType.feedingId:
-        return FeedingEvent.partial(json: normalizedJson);
-      case HusbandryEventType.waterQualityTestId:
-        return WaterQualityTestEvent.partial(json: normalizedJson);
-      case HusbandryEventType.cleaningId:
-        return CleaningEvent.partial(json: normalizedJson);
-      case HusbandryEventType.treatmentId:
-        return TreatmentEvent.partial(json: normalizedJson);
-      case HusbandryEventType.environmentalAdjustmentId:
-        return EnvironmentalAdjustmentEvent.partial(json: normalizedJson);
-      case HusbandryEventType.structureMaintenanceId:
-        return StructureMaintenanceEvent.partial(json: normalizedJson);
-      case HusbandryEventType.acquireOrthomosaicId:
-      case HusbandryEventType.sitePrepId:
-        return OutplantActionEvent.partial(json: normalizedJson);
-      case HusbandryEventType.ecologicalSurveyId:
-        return MonitoringEventRecord.partial(json: normalizedJson);
-      case HusbandryEventType.husbandryLogId:
-        return HusbandryLogEvent.partial(json: normalizedJson);
-      case GeneBankEventType.auditId:
-        return GeneBankAuditEvent.partial(json: normalizedJson);
-      case GeneBankEventType.temperatureMonitoringId:
-        return GeneBankTemperatureMonitoringEvent.partial(json: normalizedJson);
-      case GeneBankEventType.viabilityTestId:
-        return GeneBankViabilityTestEvent.partial(json: normalizedJson);
-      case 'event_disease_observation':
-        return DiseaseObservationEvent.partial(json: normalizedJson);
-      case 'event_biofouling_observation':
-        return BiofoulingObservationEvent.partial(json: normalizedJson);
-      case 'event_pest_observation':
-        return PestObservationEvent.partial(json: normalizedJson);
-      case 'event_thermal_stress_observation':
-        return ThermalStressObservationEvent.partial(json: normalizedJson);
-      case var id when id == EventType.maintenanceRequiredObservation.id:
-        return MaintenanceRequiredObservationEvent.partial(
-          json: normalizedJson,
-        );
-      case 'event_discoloration_observation':
-        return DiscolorationObservationEvent.partial(json: normalizedJson);
       case var id when id == EventType.inventoryRecordCorrection.id:
       case var id when id == EventType.inventoryEventCorrection.id:
       case var id when id == EventType.observationCorrection.id:
@@ -308,39 +189,30 @@ class EventFactory {
     switch (eventType) {
       case EventType.create:
         return CreateEvent.partial(json: normalizedJson);
-      case EventType.outplant:
-        return OutplantEvent.partial(json: normalizedJson);
-      case EventType.observation:
-        // Check if this is a monitoring event (has coralIds/organismIds or monitoringDate)
-        if (normalizedJson['coralIds'] != null ||
-            normalizedJson['organismIds'] != null ||
-            normalizedJson['monitoringDate'] != null) {
-          return MonitoringEventRecord.partial(json: normalizedJson);
-        }
-        return ObservationEvent.partial(json: normalizedJson);
-      case EventType.task:
-        return TaskEvent.partial(json: normalizedJson);
-      case EventType.comment:
-        return Event.partial(json: normalizedJson);
-      case EventType.moveIn:
-        return MoveInEvent.partial(json: normalizedJson);
-      case EventType.moveOut:
-        return MoveOutEvent.partial(json: normalizedJson);
-      case EventType.propagation:
-        return PropagationEvent.partial(json: normalizedJson);
-      case StatusEventType.propagationReady:
-      case StatusEventType.recentPropagation:
-        return StatusEvent.partial(json: normalizedJson);
-      case EventType.spawn:
-        return SpawnEvent.partial(json: normalizedJson);
-      case EventType.cross:
-        return CrossEvent.partial(json: normalizedJson);
       case EventType.update:
         return UpdateEvent.partial(json: normalizedJson);
       case EventType.delete:
         return DeletionEvent.partial(json: normalizedJson);
-      case EventType.settle:
-        return SettleEvent.partial(json: normalizedJson);
+      case EventType.moveIn:
+        return MoveInEvent.partial(json: normalizedJson);
+      case EventType.moveOut:
+        return MoveOutEvent.partial(json: normalizedJson);
+      case EventType.observation:
+        return ObservationEvent.partial(json: normalizedJson);
+      case EventType.outplant:
+        return OutplantEvent.partial(json: normalizedJson);
+      case EventType.comment:
+        return Event.partial(json: normalizedJson);
+      case EventType.genetModification:
+        return GenetModificationEvent.fromJson(normalizedJson);
+      case EventType.inventoryRecordCorrection:
+      case EventType.inventoryEventCorrection:
+      case EventType.observationCorrection:
+      case EventType.geneticRecordCorrection:
+        return CorrectionEvent.fromJson(normalizedJson);
+      case StatusEventType.propagationReady:
+      case StatusEventType.recentPropagation:
+        return StatusEvent.partial(json: normalizedJson);
       case InventoryEventType.populationGain:
         return PopulationGainEvent.fromJson(normalizedJson);
       case InventoryEventType.populationLoss:
@@ -359,28 +231,6 @@ class EventFactory {
         return MergeEvent.fromJson(normalizedJson);
       case LoanEventType.loan:
         return TransferEvent.incomplete(json: normalizedJson);
-      case HusbandryEventType.cleaning:
-        return CleaningEvent.partial(json: normalizedJson);
-      case HusbandryEventType.feeding:
-        return FeedingEvent.partial(json: normalizedJson);
-      case HusbandryEventType.treatment:
-        return TreatmentEvent.partial(json: normalizedJson);
-      case HusbandryEventType.environmentalAdjustment:
-        return EnvironmentalAdjustmentEvent.partial(json: normalizedJson);
-      case HusbandryEventType.structureMaintenance:
-        return StructureMaintenanceEvent.partial(json: normalizedJson);
-      case HusbandryEventType.waterQualityTest:
-        return WaterQualityTestEvent.partial(json: normalizedJson);
-      case HusbandryEventType.acquireOrthomosaic:
-      case HusbandryEventType.sitePrep:
-        return OutplantActionEvent.partial(json: normalizedJson);
-      case EventType.genetModification:
-        return GenetModificationEvent.fromJson(normalizedJson);
-      case EventType.inventoryRecordCorrection:
-      case EventType.inventoryEventCorrection:
-      case EventType.observationCorrection:
-      case EventType.geneticRecordCorrection:
-        return CorrectionEvent.fromJson(normalizedJson);
       default:
         // Community build: return partial Event for unrecognized types
         return Event.partial(json: normalizedJson);

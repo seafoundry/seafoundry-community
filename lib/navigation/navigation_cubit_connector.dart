@@ -1,4 +1,4 @@
-// @tier: pro
+// @tier: community
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_cubit.dart';

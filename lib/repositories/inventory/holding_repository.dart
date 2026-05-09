@@ -5,15 +5,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/organism_record_change_service.dart';
 import 'package:seafoundry_app/services/snapshot_service.dart';
 import 'package:seafoundry_app/services/structure_capacity_service.dart';
 import 'package:seafoundry_app/utils/date_time_converter.dart';
 
-/// Base repository for neutral [HoldingRecord] objects (gamete batches, larval
-/// batches, seeded kelp lines, etc.). Holdings live under
+/// Base repository for neutral [HoldingRecord] objects. Holdings live under
 /// `organizations/{org}/holdings` so every organism can persist batch data
 /// without creating new top-level collections.
 abstract class HoldingRepository<T extends HoldingRecord> {
@@ -35,18 +33,16 @@ abstract class HoldingRepository<T extends HoldingRecord> {
        _fromJson = fromJson,
        _structureCapacityService =
            structureCapacityService ?? StructureCapacityService.disabled(),
-       collectionRef = FirestoreCollectionResolver.instance.subcollection(
-         firestore,
-         ModelType.organization.collectionPath,
-         organization.id,
-         collectionName,
-       ),
-       _groupsCollection = FirestoreCollectionResolver.instance
-           .collection(firestore, ModelType.organization.collectionPath)
+       collectionRef = firestore
+           .collection(ModelType.organization.collectionPath)
+           .doc(organization.id)
+           .collection(collectionName),
+       _groupsCollection = firestore
+           .collection(ModelType.organization.collectionPath)
            .doc(organization.id)
            .collection('groups'),
-       _organismRecordsCollection = FirestoreCollectionResolver.instance
-           .collection(firestore, ModelType.organization.collectionPath)
+       _organismRecordsCollection = firestore
+           .collection(ModelType.organization.collectionPath)
            .doc(organization.id)
            .collection(ModelType.organismRecord.collectionPath);
 
@@ -139,20 +135,6 @@ abstract class HoldingRepository<T extends HoldingRecord> {
     return holding;
   }
 
-  /// Evaluates occupant capacity for [holding] without persisting changes.
-  ///
-  /// Used by workflows that need to validate CSV rows or simulated moves before
-  /// committing writes.
-  Future<void> previewOccupantCapacity({
-    required T holding,
-    T? previousHolding,
-  }) async {
-    await _ensureOccupantCapacity(
-      holding: holding,
-      previousHolding: previousHolding,
-    );
-  }
-
   /// Applies an updated canonical [OrganismRecord] snapshot to [holding] and
   /// persists the change while emitting lifecycle/measurement events as needed.
   Future<T> updateOrganismRecord(
@@ -171,18 +153,6 @@ abstract class HoldingRepository<T extends HoldingRecord> {
       aligned,
       eventMetadataOverrides: eventMetadataOverrides,
     );
-  }
-
-  Future<void> deleteHolding(String holdingId) async {
-    final existing = await getHolding(holdingId);
-    if (existing != null) {
-       await _snapshotService.createBeforeSnapshot(
-         record: existing, 
-         eventId: 'delete_$holdingId'
-       );
-    }
-    await collectionRef.doc(holdingId).delete();
-    await _organismRecordsCollection.doc(holdingId).delete();
   }
 
   Future<T?> getHolding(String holdingId) async {

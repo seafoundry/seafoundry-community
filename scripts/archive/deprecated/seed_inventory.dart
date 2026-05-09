@@ -204,15 +204,15 @@ Future<void> main(List<String> args) async {
 
   // Create sites
   final nurseryLand = await siteRepo.createRecord(
-    Site.partial(name: 'Nursery Land', siteTypeId: SiteType.nurseryExSitu.id),
+    Site.partial(name: 'Nursery Land', siteTypeId: SiteType.nursery.id),
     organization,
   );
   final nurseryField = await siteRepo.createRecord(
-    Site.partial(name: 'Nursery Field', siteTypeId: SiteType.nurseryInSitu.id),
+    Site.partial(name: 'Nursery Field', siteTypeId: SiteType.nursery.id),
     organization,
   );
   final geneBank = await siteRepo.createRecord(
-    Site.partial(name: 'Gene Bank', siteTypeId: SiteType.geneBank.id),
+    Site.partial(name: 'Gene Bank', siteTypeId: SiteType.nursery.id),
     organization,
   );
   final outplantSite = await siteRepo.createRecord(

@@ -15,11 +15,9 @@ import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 import 'package:seafoundry_app/services/url_path_resolver.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
 import 'package:seafoundry_app/widgets/dialogs/structure_dialog_shell.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
 import 'package:seafoundry_app/widgets/ui.dart';
 import 'package:seafoundry_app/widgets/ui_text.dart';
 import 'components/dialog_scroll_view.dart';
@@ -64,8 +62,6 @@ class OrganismMergeDialog extends StatelessWidget {
 
     final organismRepository = context.read<OrganismRecordRepository>();
     final graphRepository = context.read<GraphRepository>();
-    final validationService = context.maybeRead<UniqueNameValidationService>() ??
-        UniqueNameValidationService(firestore: organismRepository.db);
 
     // Get organisms in this group
     List<OrganismRecord> allOrganisms;
@@ -104,7 +100,7 @@ class OrganismMergeDialog extends StatelessWidget {
     if (!context.mounted) return null;
 
     final resolvedLocalId = filterLocalId?.trim();
-    final groupUrlPath = UrlPathResolver.instance.normalizePath(
+    final groupUrlPath = UrlPathResolver.normalizePath(
       nodeState.record.urlPath,
     );
     final groupOrganisms = allOrganisms.where((organism) {
@@ -121,12 +117,12 @@ class OrganismMergeDialog extends StatelessWidget {
         return organism.groupId == nodeState.record.id;
       }
 
-      final recordPath = UrlPathResolver.instance.normalizePath(
+      final recordPath = UrlPathResolver.normalizePath(
         organism.urlPath,
       );
       if (recordPath.isEmpty) return false;
       if (recordPath == groupUrlPath) return true;
-      return UrlPathResolver.instance.isDescendantOf(recordPath, groupUrlPath);
+      return UrlPathResolver.isDescendantOf(recordPath, groupUrlPath);
     }).toList();
 
     if (groupOrganisms.isEmpty) {
@@ -148,7 +144,6 @@ class OrganismMergeDialog extends StatelessWidget {
           availableOrganisms: groupOrganisms,
           organismRepository: organismRepository,
           graphRepository: graphRepository,
-          validationService: validationService,
           initialSelectedIds: initialSelectedIds,
         ),
         child: const OrganismMergeDialog(),

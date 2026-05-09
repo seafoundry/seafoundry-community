@@ -9,17 +9,15 @@ import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_cubit.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_state.dart';
-import 'package:seafoundry_app/cubits/navigation_view_mode/navigation_view_mode.dart';
 import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/navigation/simple_search_integration.dart';
 import 'package:seafoundry_app/providers/brand_theme_provider.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/tour_key_registry.dart';
 import 'package:seafoundry_app/widgets/common/gesture_navigation.dart';
 import 'package:seafoundry_app/widgets/navigation/bottom_action_bar.dart';
-import 'package:seafoundry_app/widgets/navigation/record_display_toggles.dart';
 import 'package:seafoundry_app/widgets/visual/brand_logo.dart';
+import 'package:seafoundry_app/widgets/navigation/community_app_drawer.dart';
 import 'package:seafoundry_app/widgets/visual/rotating_gradient_background.dart';
 
 /// Community version of NavigationBreadcrumbs
@@ -95,12 +93,12 @@ class CommunityNavigationBreadcrumbs extends StatelessWidget {
           );
           if (!isLast) {
             children.add(
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
                 child: Icon(
                   Icons.chevron_right,
                   size: 16,
-                  color: Color(0xB3FFFFFF),
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
                 ),
               ),
             );
@@ -108,7 +106,6 @@ class CommunityNavigationBreadcrumbs extends StatelessWidget {
         }
 
         return SizedBox(
-          key: TourKeyRegistry.navigationBreadcrumbs,
           height: 44,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -197,26 +194,19 @@ class _BreadcrumbChip extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: colors.surfaceContainerHighest.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: colors.outline.withValues(alpha: 0.3),
                   width: 1,
                 ),
               ),
               child: Text(
                 label,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: colors.onSurface.withValues(alpha: 0.7),
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      offset: const Offset(0, 1),
-                      blurRadius: 3,
-                    ),
-                  ],
                 ),
               ),
             ),
@@ -251,7 +241,7 @@ class _BreadcrumbChip extends StatelessWidget {
   }
 }
 
-/// Community version of SimpleNavigationAppBar - no drawer support
+/// Community version of SimpleNavigationAppBar with end-drawer menu support
 class CommunitySimpleNavigationAppBar extends StatelessWidget
     implements PreferredSizeWidget {
   const CommunitySimpleNavigationAppBar({
@@ -274,62 +264,26 @@ class CommunitySimpleNavigationAppBar extends StatelessWidget
 
         if (canGoBack) {
           leading = IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            icon: const Icon(Icons.arrow_back),
             onPressed: context.read<NavigationCubit>().navigateBack,
           );
         }
 
         final actionWidgets = <Widget>[
-          // Record display toggles (UUID/Name and Show/Hide)
-          const RecordDisplayToggles(),
-          // NavigationViewMode toggle
-          BlocBuilder<NavigationViewModeCubit, NavigationViewModeState>(
-            builder: (context, viewModeState) {
-              if (!viewModeState.canAccessOrganization) {
-                return const SizedBox.shrink();
-              }
-              // Use icon-only on mobile to save horizontal space
-              final showLabels =
-                  kIsWeb || MediaQuery.of(context).size.width > 600;
-              return Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: SegmentedButton<NavigationViewMode>(
-                  segments: [
-                    ButtonSegment(
-                      value: NavigationViewMode.community,
-                      label: showLabels ? const Text('Community') : null,
-                      icon: const Icon(Icons.public, size: 16),
-                    ),
-                    ButtonSegment(
-                      value: NavigationViewMode.organization,
-                      label: showLabels ? const Text('Org') : null,
-                      icon: const Icon(Icons.business, size: 16),
-                    ),
-                  ],
-                  selected: {viewModeState.mode},
-                  onSelectionChanged: (selection) {
-                    context.read<NavigationViewModeCubit>().setMode(
-                      selection.first,
-                    );
-                  },
-                  style: SegmentedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    padding: showLabels
-                        ? null
-                        : const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-              );
-            },
-          ),
           if (actions != null) ...actions!,
+          // Hamburger menu button to open end drawer
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openEndDrawer(),
+            tooltip: 'Menu',
+          ),
         ];
 
         return AppBar(
           automaticallyImplyLeading: false,
           leading: leading,
-          titleSpacing: 4, // Reduce spacing to give more room for breadcrumbs
-          centerTitle: false, // Ensure left alignment
+          titleSpacing: 4,
+          centerTitle: false,
           title: title ?? CommunityNavigationBreadcrumbs(showLogo: showLogo),
           actions: actionWidgets,
         );
@@ -341,7 +295,7 @@ class CommunitySimpleNavigationAppBar extends StatelessWidget
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
-/// Community version of SimpleGraphScreenScaffold - no drawer
+/// Community version of SimpleGraphScreenScaffold with end-drawer menu
 class CommunitySimpleGraphScreenScaffold extends StatelessWidget {
   const CommunitySimpleGraphScreenScaffold({
     super.key,
@@ -368,6 +322,7 @@ class CommunitySimpleGraphScreenScaffold extends StatelessWidget {
         actions: actions,
         showLogo: showLogo,
       ),
+      endDrawer: const CommunityAppDrawer(),
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
@@ -376,23 +331,16 @@ class CommunitySimpleGraphScreenScaffold extends StatelessWidget {
             children: [
               const SimpleSearchBar(),
               Expanded(child: body),
-              // Bottom action bar takes priority - shows primary actions
-              // FAB dock only shows if no bottom actions provided (backward compatibility)
               if (bottomActions != null && bottomActions!.isNotEmpty)
                 BottomActionBar(
-                  key: TourKeyRegistry.bottomActionBar,
                   actions: bottomActions!,
                 )
               else if (fab != null)
-                Container(
-                  key: TourKeyRegistry.floatingActionButton,
-                  child: fab!,
-                ),
+                fab!,
             ],
           ),
         ],
       ),
-      // No drawer in community version
     );
 
     // Disable SwipeToNavigateWrapper on web - browser handles back/forward gestures,

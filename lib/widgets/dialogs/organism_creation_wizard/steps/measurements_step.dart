@@ -128,10 +128,6 @@ class _MeasurementsStepState extends State<MeasurementsStep> {
                       }
                     },
                     isBusy: state.isLoading,
-                    volumeCm3: state.editingVolumeCm3,
-                    onVolumeCm3Changed: cubit.editingVolumeCm3Changed,
-                    tissueAreaCm2: state.editingTissueAreaCm2,
-                    onTissueAreaCm2Changed: cubit.editingTissueAreaCm2Changed,
                     placeholderLabel: 'Size Class',
                   );
                 },

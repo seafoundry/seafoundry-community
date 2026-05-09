@@ -12,14 +12,6 @@ class GenetIdResolver {
     return record.foreignKeys['genetId']?.id;
   }
 
-  /// Resolves the genet ID, filtering out provenance IDs.
-  /// Use this when a Firestore document ID is needed (not a display value).
-  static String? resolveDocumentId(OrganismRecord record) {
-    final id = resolve(record);
-    if (id == null || id.isEmpty) return null;
-    return isValid(id) ? id : null;
-  }
-
   /// Resolves genet ID from raw Firestore data.
   /// Use when working with raw maps instead of deserialized models.
   static String? resolveFromJson(Map<String, dynamic> data) {
@@ -42,21 +34,6 @@ class GenetIdResolver {
   static bool isValid(String? genetId) {
     if (genetId == null || genetId.isEmpty) return false;
     return !_isProvenanceId(genetId) && !_isLegacyProvenanceId(genetId);
-  }
-
-  /// Throws StateError if top-level genetId and foreignKeys['genetId'] diverge.
-  static void assertConsistency(OrganismRecord record) {
-    final topLevel = record.genetId;
-    final fkGenetId = record.foreignKeys['genetId']?.id;
-    if (topLevel != null &&
-        topLevel.isNotEmpty &&
-        fkGenetId != null &&
-        fkGenetId.isNotEmpty &&
-        topLevel != fkGenetId) {
-      throw StateError(
-        'genetId inconsistency: top-level=$topLevel, foreignKeys=$fkGenetId',
-      );
-    }
   }
 
   static bool _isProvenanceId(String value) {

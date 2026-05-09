@@ -31,13 +31,4 @@ class FirebaseService {
 
   /// Default instance using Firebase singletons
   static final FirebaseService instance = FirebaseService();
-
-  /// Create a FirebaseService instance (factory for testability)
-  factory FirebaseService.create({
-    FirebaseFirestore? firestore,
-    fbAuth.FirebaseAuth? auth,
-    FirebaseStorage? storage,
-  }) {
-    return FirebaseService(firestore: firestore, auth: auth, storage: storage);
-  }
 }

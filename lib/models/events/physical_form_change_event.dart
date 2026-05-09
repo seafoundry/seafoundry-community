@@ -24,7 +24,6 @@ class PhysicalFormChangeEvent extends Event {
     this.oldFormId,
     this.newFormId,
     String? eventTypeId,
-    super.missionId,
     super.metadata,
     super.base,
   }) : super(eventTypeId: eventTypeId ?? InventoryEventType.physicalFormChangeId);
@@ -81,8 +80,6 @@ class PhysicalFormChangeEvent extends Event {
     String? slug,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     OrganismRecord? organismRecordSnapshot,
     String? oldFormId,
     String? newFormId,
@@ -107,7 +104,6 @@ class PhysicalFormChangeEvent extends Event {
           organismRecordSnapshot ?? this.organismRecordSnapshot,
       oldFormId: oldFormId ?? this.oldFormId,
       newFormId: newFormId ?? this.newFormId,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,

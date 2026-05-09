@@ -1,36 +1,20 @@
 // @tier: community
 
-/// Canonical tier enum for the SeaFoundry platform.
+/// Canonical tier enum for the SeaFoundry community platform.
 ///
-/// Ordered by entitlement level: Community < Pro < Scale.
-/// Use [Tier.fromString] for all string-to-tier parsing.
-/// Use [allows] for tier gating checks.
+/// Community-only fork: only [Tier.community] exists.
+/// [fromString] safely maps any stored tier string (including legacy
+/// "pro"/"scale" values in Firestore) back to [community].
 enum Tier {
-  community,
-  pro,
-  scale;
+  community;
 
   static Tier fromString(String? value) {
-    if (value == null) return Tier.community;
-    final normalized = value.trim().toLowerCase();
-    return Tier.values.firstWhere(
-      (t) => t.name == normalized,
-      orElse: () => Tier.community,
-    );
+    // Always returns community — legacy pro/scale values in Firestore
+    // are safely normalized here.
+    return Tier.community;
   }
 
-  String get displayName => switch (this) {
-    Tier.community => 'Community',
-    Tier.pro => 'Pro',
-    Tier.scale => 'Scale',
-  };
+  String get displayName => 'Community';
 
-  int get rank => index;
-  bool allows(Tier required) => rank >= required.rank;
-
-  bool get isPro => this == Tier.pro || this == Tier.scale;
-  bool get isCommunity => this == Tier.community;
-  bool get isScale => this == Tier.scale;
-
-  bool isAccessibleTo(Tier userTier) => userTier.allows(this);
+  bool get isCommunity => true;
 }

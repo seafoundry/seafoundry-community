@@ -134,9 +134,6 @@ class InventoryExportRow {
       'volumeAmount': sizeSpec.volumeAmount?.toString() ?? '',
       'volumeUnit': sizeSpec.volumeUnit?.id ?? '',
       'inventoryCount': resolvedMetrics.count?.toString() ?? '',
-      'inventoryVolumeCm3': resolvedMetrics.volumeCm3?.toString() ?? '',
-      'inventoryTissueAreaCm2':
-          resolvedMetrics.tissueAreaCm2?.toString() ?? '',
     };
 
     return InventoryExportRow._(row);

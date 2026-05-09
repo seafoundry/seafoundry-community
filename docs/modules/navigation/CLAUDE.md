@@ -2,7 +2,7 @@
 
 ## Guardrails
 - `NavigationCubit` is the source of truth for app navigation state.
-- Use `WrappedNavigator` when pushing screens that rely on providers.
+- Use `RepositoryRegistry` when screens need access to providers.
 - Add new deep link patterns in `DeepLinkHandler` and update public routes if
   needed.
 - Keep router delegate, parser, and `SimpleRouter` flows consistent.
@@ -11,7 +11,7 @@
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
 - Summary statistics should remain split into tab components and wired correctly.
-- `WrappedNavigator` provider copying is required for safe navigation.
+- Provider context safety is required for safe navigation.
 
 ## Touchpoints
 - `lib/navigation/`

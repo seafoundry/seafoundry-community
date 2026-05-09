@@ -4,12 +4,11 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 import 'package:seafoundry_app/utils/geo_utils.dart';
 
 /// Describes how outplant coordinates were captured so downstream tooling
-/// can differentiate between manual entry, CSV ingest, or KML uploads.
+/// can differentiate between manual entry or CSV ingest.
 enum OutplantGeometrySource {
   manual('manual'),
   csv('csv'),
-  siteCentroid('site_centroid'),
-  kmlUpload('kml_upload');
+  siteCentroid('site_centroid');
 
   const OutplantGeometrySource(this.id);
   final String id;
@@ -87,49 +86,6 @@ class GeoBounds extends Equatable {
   List<Object?> get props => [southWest, northEast];
 }
 
-class OutplantKmlAttachment extends Equatable {
-  const OutplantKmlAttachment({
-    required this.storagePath,
-    this.downloadUrl,
-    this.fileName,
-    this.fileSizeBytes,
-    this.uploadedAtIso,
-  });
-
-  factory OutplantKmlAttachment.fromJson(Map<String, dynamic> json) {
-    return OutplantKmlAttachment(
-      storagePath: json['storagePath'] as String? ?? '',
-      downloadUrl: json['downloadUrl'] as String?,
-      fileName: json['fileName'] as String?,
-      fileSizeBytes: safeInt(json['fileSizeBytes']),
-      uploadedAtIso: json['uploadedAt'] as String?,
-    );
-  }
-
-  final String storagePath;
-  final String? downloadUrl;
-  final String? fileName;
-  final int? fileSizeBytes;
-  final String? uploadedAtIso;
-
-  Map<String, dynamic> toJson() => {
-    'storagePath': storagePath,
-    if (downloadUrl != null) 'downloadUrl': downloadUrl,
-    if (fileName != null) 'fileName': fileName,
-    if (fileSizeBytes != null) 'fileSizeBytes': fileSizeBytes,
-    if (uploadedAtIso != null) 'uploadedAt': uploadedAtIso,
-  };
-
-  @override
-  List<Object?> get props => [
-    storagePath,
-    downloadUrl,
-    fileName,
-    fileSizeBytes,
-    uploadedAtIso,
-  ];
-}
-
 class OutplantGeometry extends Equatable {
   const OutplantGeometry({
     required this.type,
@@ -138,7 +94,6 @@ class OutplantGeometry extends Equatable {
     this.centroid,
     this.centroidGeohash,
     this.source = OutplantGeometrySource.manual,
-    this.kmlAttachment,
     this.updatedAtIso,
   });
 
@@ -157,11 +112,6 @@ class OutplantGeometry extends Equatable {
           : null,
       centroidGeohash: json['centroidGeohash'] as String?,
       source: OutplantGeometrySource.fromId(json['source'] as String?),
-      kmlAttachment: json['kmlAttachment'] is Map<String, dynamic>
-          ? OutplantKmlAttachment.fromJson(
-              Map<String, dynamic>.from(json['kmlAttachment']),
-            )
-          : null,
       updatedAtIso: json['updatedAt'] as String?,
     );
   }
@@ -179,11 +129,9 @@ class OutplantGeometry extends Equatable {
   final GeoCoordinate? centroid;
   final String? centroidGeohash;
   final OutplantGeometrySource source;
-  final OutplantKmlAttachment? kmlAttachment;
   final String? updatedAtIso;
 
   bool get hasPolygon => type == OutplantGeometryType.polygon;
-  bool get hasKmlAttachment => kmlAttachment != null;
 
   /// Computed area in hectares for polygons with at least 3 points.
   double? get areaHectares =>
@@ -198,7 +146,6 @@ class OutplantGeometry extends Equatable {
     if (centroid != null) 'centroid': centroid!.toJson(),
     if (centroidGeohash != null) 'centroidGeohash': centroidGeohash,
     'source': source.id,
-    if (kmlAttachment != null) 'kmlAttachment': kmlAttachment!.toJson(),
     if (updatedAtIso != null) 'updatedAt': updatedAtIso,
   };
 
@@ -209,7 +156,6 @@ class OutplantGeometry extends Equatable {
     GeoCoordinate? centroid,
     String? centroidGeohash,
     OutplantGeometrySource? source,
-    OutplantKmlAttachment? kmlAttachment,
     String? updatedAtIso,
     Map<String, dynamic>? metadata,
   }) {
@@ -220,7 +166,6 @@ class OutplantGeometry extends Equatable {
       centroid: centroid ?? this.centroid,
       centroidGeohash: centroidGeohash ?? this.centroidGeohash,
       source: source ?? this.source,
-      kmlAttachment: kmlAttachment ?? this.kmlAttachment,
       updatedAtIso: updatedAtIso ?? this.updatedAtIso,
     );
   }
@@ -233,7 +178,6 @@ class OutplantGeometry extends Equatable {
     centroid,
     centroidGeohash,
     source,
-    kmlAttachment,
     updatedAtIso,
   ];
 }
@@ -243,16 +187,14 @@ class OutplantGeometryInput extends Equatable {
     required this.type,
     required List<GeoCoordinate> coordinates,
     this.source = OutplantGeometrySource.manual,
-    this.kmlAttachment,
   }) : coordinates = List.unmodifiable(coordinates);
 
   final OutplantGeometryType type;
   final List<GeoCoordinate> coordinates;
   final OutplantGeometrySource source;
-  final OutplantKmlAttachment? kmlAttachment;
 
   bool get hasCoordinates => coordinates.isNotEmpty;
 
   @override
-  List<Object?> get props => [type, coordinates, source, kmlAttachment];
+  List<Object?> get props => [type, coordinates, source];
 }

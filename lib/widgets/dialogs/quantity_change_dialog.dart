@@ -1,19 +1,13 @@
 // @tier: community
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/population_measurement.dart';
-import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/population_loss_reason.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
-import 'package:seafoundry_app/services/connectivity_service.dart';
-import 'package:seafoundry_app/services/local_storage_service.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/offline_queue.dart';
 import 'package:seafoundry_app/widgets/common/quantity_change_editor.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
-import 'package:seafoundry_app/widgets/dialogs/mixins/event_propagation_mixin.dart';
 import 'package:seafoundry_app/widgets/ui.dart';
 import 'components/dialog_scroll_view.dart';
 
@@ -55,12 +49,12 @@ class QuantityChangeDialog extends StatefulWidget {
 }
 
 class _QuantityChangeDialogState extends State<QuantityChangeDialog>
-    with EventPropagationMixin, SafeDialogMixin<QuantityChangeDialog> {
+    with SafeDialogMixin<QuantityChangeDialog> {
   late QuantityChangeKind _kind;
   late PopulationMeasurement _pendingMeasurement;
 
   QuantityChangeReason? _selectedReason;
-  MortalityReason? _mortalityReason;
+  PopulationLossReason? _mortalityReason;
   String? _comment;
   String? _validationMessage;
   bool _isSubmitting = false;
@@ -119,21 +113,7 @@ class _QuantityChangeDialogState extends State<QuantityChangeDialog>
     setState(() => _isSubmitting = true);
 
     try {
-      if (kIsWeb) {
-        await _submitOnline();
-        return;
-      }
-
-      // Check connectivity status
-      final isOnline = ConnectivityService.instance.isOnline;
-
-      if (isOnline) {
-        // Online: perform the update directly
-        await _submitOnline();
-      } else {
-        // Offline: queue the operation for later sync
-        await _submitOffline();
-      }
+      await _submitOnline();
     } catch (e, stack) {
       LoggingService.instance.error('Failed to update quantity', e, stack);
       if (mounted) {
@@ -149,20 +129,14 @@ class _QuantityChangeDialogState extends State<QuantityChangeDialog>
   Future<void> _submitOnline() async {
     final repository = context.read<OrganismRecordRepository>();
 
-    final payload = await repository.updateMeasurement(
+    await repository.updateMeasurement(
       organism: widget.organism,
       newMeasurement: _pendingMeasurement,
       lossReason: _getPopulationLossReason(),
       comment: _comment,
     );
 
-    // Propagate event
-    await propagateEvent(
-      event: payload.event,
-      activityType: 'Quantity Update',
-      description:
-          '${widget.organism.name} quantity updated to ${_pendingMeasurement.value} ${_pendingMeasurement.unit.symbol} (${_selectedReason?.label})',
-    );
+    // Event propagation removed - community tier
 
     LoggingService.instance.info(
       'Updated quantity for ${widget.organism.id}: ${_pendingMeasurement.value} (${_selectedReason?.label})',
@@ -173,42 +147,7 @@ class _QuantityChangeDialogState extends State<QuantityChangeDialog>
     _requestReloadAndClose(successMessage: 'Quantity updated successfully');
   }
 
-  /// Queues the quantity update for offline sync.
-  Future<void> _submitOffline() async {
-    final offlineQueue = OfflineQueue.instance;
-    final localStorage = LocalStorageService.instance;
-
-    // Queue the operation for sync when back online
-    await offlineQueue.queueUpdateQuantity(
-      organismSnapshot: widget.organism,
-      oldMeasurement: widget.organism.measurement,
-      newMeasurement: _pendingMeasurement,
-      reasonId: _selectedReason!.id,
-      reasonKind: _kind.name,
-      mortalityReasonId: _mortalityReason?.id,
-      comment: _comment,
-    );
-
-    // Update local storage with the new measurement so UI reflects the change
-    final updatedOrganism = widget.organism.copyWith(
-      measurement: _pendingMeasurement,
-      updatedAt: DateTime.now().toIso8601String(),
-    );
-    await localStorage.saveRecord(updatedOrganism);
-
-    LoggingService.instance.info(
-      'Queued offline quantity update for ${widget.organism.id}: '
-      '${_pendingMeasurement.value} (${_selectedReason?.label})',
-    );
-
-    if (!mounted) return;
-
-    _requestReloadAndClose(
-      successMessage: 'Quantity update saved (will sync when online)',
-    );
-  }
-
-  /// Triggers a reload request if possible and closes the dialog.
+/// Triggers a reload request if possible and closes the dialog.
   void _requestReloadAndClose({required String successMessage}) {
     // Request reload
     if (widget.organismNode != null) {

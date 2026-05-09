@@ -6,14 +6,12 @@ import 'package:seafoundry_app/models/types/health_status.dart';
 /// Cubit managing the state of the summary statistics widget.
 ///
 /// **Responsibilities:**
-/// - Manages tab selection (inventory vs observation/husbandry)
 /// - Manages health status filtering
 /// - Ensures filter state consistency (e.g., clearing selected health when "only issues" is enabled)
 ///
 /// **State Mutations:**
 /// - `healthFilterChanged`: Sets a specific health status filter, clears "only issues" mode
 /// - `onlyIssuesChanged`: Toggles "only issues" mode, clears selected health if enabled
-/// - `tabChanged`: Switches between inventory and observation/husbandry tabs
 class SummaryStatisticsCubit extends Cubit<SummaryStatisticsState> {
   SummaryStatisticsCubit({SummaryTab initialTab = SummaryTab.inventory})
     : super(SummaryStatisticsState(activeTab: initialTab));
@@ -39,11 +37,6 @@ class SummaryStatisticsCubit extends Cubit<SummaryStatisticsState> {
         selectedHealth: onlyIssues ? () => null : null,
       ),
     );
-  }
-
-  /// Changes the active tab in the summary statistics display.
-  void tabChanged(SummaryTab tab) {
-    emit(state.copyWith(activeTab: tab));
   }
 
   /// Updates the selected site IDs.

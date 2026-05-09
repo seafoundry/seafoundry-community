@@ -17,135 +17,138 @@ import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
 import 'package:seafoundry_app/repositories/organization_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/organism_holding_loader.dart';
-import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/services/transfer_service.dart';
 import 'package:seafoundry_app/services/unique_name_validation_service.dart';
-import 'package:seafoundry_app/utils/date_formatter.dart';
-import 'package:seafoundry_app/utils/provenance_selection_utils.dart';
-import 'package:seafoundry_app/widgets/common/alias_badges.dart';
 import 'package:seafoundry_app/widgets/common/empty_state_widget.dart';
+import 'package:seafoundry_app/widgets/dialogs/base/dialog_base.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
-import 'package:seafoundry_app/widgets/dialogs/pending_transfers/non_coral_pending_transfer_placeholder.dart';
+import 'package:seafoundry_app/widgets/dialogs/pending_transfers_dialog_components.dart';
 import 'package:seafoundry_app/widgets/dialogs/transfer_dialog.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
+
+typedef _PendingTransfersDialogDependencies = ({
+  TransferService? transferService,
+  RecordRepository? recordRepository,
+  OrganizationRepository? organizationRepository,
+  Organization? organization,
+  NavigationCubit? navigationCubit,
+  OrganismRecordRepository? organismRepository,
+  GroupRepository? groupRepository,
+  SiteRepository? siteRepository,
+  UniqueNameValidationService validationService,
+});
 
 /// Dialog for viewing and managing pending transfers (inbox/outbox). Requires
 /// [TransferService] (for accept/reject calls) and an initialized
 /// [RecordRepository] (for organization lookups) in the widget tree.
 class PendingTransfersDialog extends StatefulWidget {
-  PendingTransfersDialog({
-    super.key,
-    OrganismContext? organismContext,
-    this.holdingsLoaderOverride,
-    this.holdingsSupportOverride,
-    this.holdingsRowsOverride,
-  }) : organismContext =
-           organismContext ?? OrganismContext.forKind(OrganismKind.coral);
+  PendingTransfersDialog({super.key, OrganismContext? organismContext})
+    : organismContext =
+          organismContext ?? OrganismContext.forKind(OrganismKind.coral);
 
   final OrganismContext organismContext;
-  final OrganismHoldingLoader? holdingsLoaderOverride;
-  final bool Function(OrganismKind kind)? holdingsSupportOverride;
-  final Future<List<Map<String, dynamic>>> Function(OrganismKind kind)?
-  holdingsRowsOverride;
 
   static Future<void> show(BuildContext context) async {
     final organismContext = _readOrganismContext(context);
-    final loader = OrganismHoldingLoader.maybeFromContext(context);
-
-    // Read required providers from parent context before showDialog
-    // (showDialog creates a new overlay context that doesn't inherit providers)
-    final transferService = context.maybeRead<TransferService>();
-    final recordRepository = context.maybeRead<RecordRepository>();
-    final organizationRepository = context.maybeRead<OrganizationRepository>();
-    final organization = context.maybeRead<Organization>();
-    final navigationCubit = context.maybeRead<NavigationCubit>();
-    final organismRepository = context.maybeRead<OrganismRecordRepository>();
-    final groupRepository = context.maybeRead<GroupRepository>();
-    final siteRepository = context.maybeRead<SiteRepository>();
-    final existingValidationService =
-        context.maybeRead<UniqueNameValidationService>();
-    final validationService = existingValidationService ??
-        UniqueNameValidationService(
-          firestore: organismRepository?.db ?? FirebaseFirestore.instance,
-        );
-
-    await showDialog(
+    final dependencies = _readDialogDependencies(context);
+    await DialogBase.showDialogWithProviders<void>(
       context: context,
-      useRootNavigator: false,
       barrierDismissible: false,
-      builder: (dialogContext) {
-        Widget dialog = PendingTransfersDialog(
-          organismContext: organismContext,
-          holdingsLoaderOverride: loader,
-          holdingsSupportOverride: loader == null
-              ? null
-              : (kind) => loader.supports(kind),
-          holdingsRowsOverride: loader == null
-              ? null
-              : (kind) => loader.loadRows(kind),
-        );
-
-        final providers = <SingleChildWidget>[];
-        if (transferService != null) {
-          providers.add(
-            Provider<TransferService>.value(value: transferService),
-          );
-        }
-        if (organization != null) {
-          providers.add(Provider<Organization>.value(value: organization));
-        }
-        if (navigationCubit != null) {
-          providers.add(BlocProvider<NavigationCubit>.value(
-            value: navigationCubit,
-          ));
-        }
-        if (recordRepository != null) {
-          providers.add(
-            RepositoryProvider<RecordRepository>.value(value: recordRepository),
-          );
-        }
-        if (organizationRepository != null) {
-          providers.add(
-            RepositoryProvider<OrganizationRepository>.value(
-              value: organizationRepository,
-            ),
-          );
-        }
-        if (organismRepository != null) {
-          providers.add(
-            RepositoryProvider<OrganismRecordRepository>.value(
-              value: organismRepository,
-            ),
-          );
-        }
-        providers.add(
-          Provider<UniqueNameValidationService>.value(
-            value: validationService,
-          ),
-        );
-        if (groupRepository != null) {
-          providers.add(
-            RepositoryProvider<GroupRepository>.value(value: groupRepository),
-          );
-        }
-        if (siteRepository != null) {
-          providers.add(
-            RepositoryProvider<SiteRepository>.value(value: siteRepository),
-          );
-        }
-        if (providers.isNotEmpty) {
-          dialog = MultiProvider(providers: providers, child: dialog);
-        }
-
-        return dialog;
-      },
+      providers: _dialogProviders(dependencies),
+      dialog: PendingTransfersDialog(organismContext: organismContext),
     );
   }
 
   static OrganismContext _readOrganismContext(BuildContext context) {
     return context.maybeRead<OrganismContext>() ??
         OrganismContext.forKind(OrganismKind.coral);
+  }
+
+  static _PendingTransfersDialogDependencies _readDialogDependencies(
+    BuildContext context,
+  ) {
+    final organismRepository = context.maybeRead<OrganismRecordRepository>();
+    final existingValidationService = context
+        .maybeRead<UniqueNameValidationService>();
+    final validationService =
+        existingValidationService ??
+        UniqueNameValidationService(
+          firestore: organismRepository?.db ?? FirebaseFirestore.instance,
+        );
+    return (
+      transferService: context.maybeRead<TransferService>(),
+      recordRepository: context.maybeRead<RecordRepository>(),
+      organizationRepository: context.maybeRead<OrganizationRepository>(),
+      organization: context.maybeRead<Organization>(),
+      navigationCubit: context.maybeRead<NavigationCubit>(),
+      organismRepository: organismRepository,
+      groupRepository: context.maybeRead<GroupRepository>(),
+      siteRepository: context.maybeRead<SiteRepository>(),
+      validationService: validationService,
+    );
+  }
+
+  static List<SingleChildWidget> _dialogProviders(
+    _PendingTransfersDialogDependencies dependencies,
+  ) {
+    final providers = <SingleChildWidget>[
+      Provider<UniqueNameValidationService>.value(
+        value: dependencies.validationService,
+      ),
+    ];
+    if (dependencies.transferService != null) {
+      providers.add(
+        Provider<TransferService>.value(value: dependencies.transferService!),
+      );
+    }
+    if (dependencies.organization != null) {
+      providers.add(
+        Provider<Organization>.value(value: dependencies.organization!),
+      );
+    }
+    if (dependencies.navigationCubit != null) {
+      providers.add(
+        BlocProvider<NavigationCubit>.value(
+          value: dependencies.navigationCubit!,
+        ),
+      );
+    }
+    if (dependencies.recordRepository != null) {
+      providers.add(
+        RepositoryProvider<RecordRepository>.value(
+          value: dependencies.recordRepository!,
+        ),
+      );
+    }
+    if (dependencies.organizationRepository != null) {
+      providers.add(
+        RepositoryProvider<OrganizationRepository>.value(
+          value: dependencies.organizationRepository!,
+        ),
+      );
+    }
+    if (dependencies.organismRepository != null) {
+      providers.add(
+        RepositoryProvider<OrganismRecordRepository>.value(
+          value: dependencies.organismRepository!,
+        ),
+      );
+    }
+    if (dependencies.groupRepository != null) {
+      providers.add(
+        RepositoryProvider<GroupRepository>.value(
+          value: dependencies.groupRepository!,
+        ),
+      );
+    }
+    if (dependencies.siteRepository != null) {
+      providers.add(
+        RepositoryProvider<SiteRepository>.value(
+          value: dependencies.siteRepository!,
+        ),
+      );
+    }
+    return providers;
   }
 
   @override
@@ -258,11 +261,7 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
         'Loaded ${inboundTransfers.length} inbound transfers and ${outboundTransfers.length} outbound transfers',
       );
     } catch (e, stackTrace) {
-      LoggingService.instance.error(
-        'Failed to load transfers',
-        e,
-        stackTrace,
-      );
+      LoggingService.instance.error('Failed to load transfers', e, stackTrace);
       if (!mounted) return;
       setState(() {
         _error = 'Failed to load transfers: $e';
@@ -306,7 +305,7 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
     // Show confirmation dialog
     final reason = await showDialog<String>(
       context: context,
-      builder: (context) => _RejectTransferDialog(
+      builder: (context) => RejectTransferDialog(
         transfer: transfer,
         genet: transfer.genetId != null ? _genetCache[transfer.genetId!] : null,
         fromOrganization: transfer.fromOrganizationId != null
@@ -329,20 +328,6 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
 
   @override
   Widget build(BuildContext context) {
-    // Show non-coral placeholder for organisms other than coral
-    if (widget.organismContext.kind != OrganismKind.coral) {
-      return NonCoralPendingTransferPlaceholder(
-        icon: Icons.swap_horiz,
-        title: '${widget.organismContext.kind.metadata.displayName} Holdings',
-        organismKind: widget.organismContext.kind,
-        message:
-            '${widget.organismContext.kind.metadata.displayName} transfer workflows are coming soon.',
-        loaderOverride: widget.holdingsLoaderOverride,
-        supportsOverride: widget.holdingsSupportOverride,
-        loadRowsOverride: widget.holdingsRowsOverride,
-      );
-    }
-
     return AlertDialog(
       title: Row(
         children: [
@@ -374,10 +359,7 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
               const SizedBox(height: 12),
               Expanded(
                 child: TabBarView(
-                  children: [
-                    _buildInboxContent(),
-                    _buildOutboxContent(),
-                  ],
+                  children: [_buildInboxContent(), _buildOutboxContent()],
                 ),
               ),
             ],
@@ -435,12 +417,11 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
                   ? _genetCache[transfer.genetId!]
                   : null;
 
-              return _TransferCard(
+              return PendingTransferCard(
                 transfer: transfer,
                 genet: genet,
                 counterpartyLabel: 'From',
-                counterpartyName:
-                    organization?.name ?? 'Unknown Organization',
+                counterpartyName: organization?.name ?? 'Unknown Organization',
                 statusLabel: null,
                 showActions: true,
                 onAccept: _isProcessing
@@ -503,7 +484,7 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
                   transfer.toOrganizationEmail ??
                   'Unknown Recipient';
 
-              return _TransferCard(
+              return PendingTransferCard(
                 transfer: transfer,
                 genet: genet,
                 counterpartyLabel: 'To',
@@ -672,16 +653,17 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
   }
 
   Future<void> _cancelTransfer(TransferEvent transfer) async {
-    final recipientName = (transfer.toOrganizationId != null
-        ? _organizationCache[transfer.toOrganizationId!]?.name
-        : transfer.toOrganizationEmail) ??
+    final recipientName =
+        (transfer.toOrganizationId != null
+            ? _organizationCache[transfer.toOrganizationId!]?.name
+            : transfer.toOrganizationEmail) ??
         'Unknown Recipient';
     final genet = transfer.genetId != null
         ? _genetCache[transfer.genetId!]
         : null;
     final reason = await showDialog<String?>(
       context: context,
-      builder: (context) => _CancelTransferDialog(
+      builder: (context) => CancelTransferDialog(
         transfer: transfer,
         genet: genet,
         recipientName: recipientName,
@@ -697,416 +679,5 @@ class _PendingTransfersDialogState extends State<PendingTransfersDialog>
       _showSnackbar('Transfer cancelled.', Colors.orange);
       await _loadTransfers();
     }, errorMessage: 'Failed to cancel transfer');
-  }
-}
-
-/// Card widget for displaying a transfer summary with action buttons.
-class _TransferCard extends StatelessWidget {
-  final TransferEvent transfer;
-  final ProvenanceRecord? genet;
-  final String counterpartyLabel;
-  final String counterpartyName;
-  final bool showActions;
-  final String? statusLabel;
-  final Widget? actions;
-  final VoidCallback? onAccept;
-  final VoidCallback? onReject;
-
-  const _TransferCard({
-    required this.transfer,
-    this.genet,
-    required this.counterpartyLabel,
-    required this.counterpartyName,
-    this.showActions = true,
-    this.statusLabel,
-    this.actions,
-    this.onAccept,
-    this.onReject,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final species = genet != null
-        ? SpeciesRegistry.globalById(genet!.speciesId)
-        : null;
-    final provenanceSelection = buildTransferProvenanceSelection(
-      transfer: transfer,
-      provenance: genet,
-    );
-
-    final actionWidget = actions ??
-        (showActions
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton.icon(
-                    onPressed: onReject,
-                    icon: const Icon(Icons.close, size: 18),
-                    label: const Text('Reject'),
-                    style: TextButton.styleFrom(foregroundColor: Colors.red),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: onAccept,
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Accept'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              )
-            : null);
-    final hasActions = actionWidget != null;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.science, color: Colors.blue, size: 32),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        genet?.displayName ?? 'Unknown Genet',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      _metadataWrap(
-                        context: context,
-                        species: species,
-                        selection: provenanceSelection,
-                        provenanceId: genet?.provenanceId,
-                      ),
-                      if ((genet?.aliasEntries ?? const []).isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: AliasBadges(
-                            aliases: genet!.aliasEntries,
-                            showPlaceholderWhenEmpty: false,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Quantity: ${transfer.quantity}',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      DateFormatter.formatChatTime(
-                        DateTime.parse(transfer.createdAt),
-                      ),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const Divider(height: 24),
-            Row(
-              children: [
-                const Icon(Icons.business, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  '$counterpartyLabel: $counterpartyName',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-            if (transfer.comment != null && transfer.comment!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.comment, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      transfer.comment!,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            if (statusLabel != null || hasActions) ...[
-              const SizedBox(height: 16),
-            ],
-            if (statusLabel != null) ...[
-              Row(
-                children: [
-                  const Icon(Icons.timelapse, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Status: $statusLabel',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
-              ),
-            ],
-            if (hasActions) actionWidget,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-Widget _metadataWrap({
-  required BuildContext context,
-  Species? species,
-  required ProvenanceLifeStageSelection selection,
-  String? provenanceId,
-}) {
-  final widgets = <Widget>[];
-  void addBullet() {
-    if (widgets.isNotEmpty) {
-      widgets.add(const Text('•'));
-    }
-  }
-
-  final textStyle = Theme.of(context).textTheme.bodySmall;
-
-  if (species != null) {
-    widgets.add(Text(species.name, style: textStyle));
-  }
-  addBullet();
-  widgets.add(
-    Text(selection.provenanceType.metadata.displayName, style: textStyle),
-  );
-  addBullet();
-  widgets.add(Text(selection.lifeStage.displayName, style: textStyle));
-  if (provenanceId != null) {
-    addBullet();
-    widgets.add(
-      Text(
-        provenanceId,
-        style: textStyle?.copyWith(fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  if (widgets.isEmpty) {
-    return const SizedBox.shrink();
-  }
-
-  return Wrap(
-    spacing: 8,
-    runSpacing: 4,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    children: widgets,
-  );
-}
-
-/// Dialog for rejecting a transfer
-class _RejectTransferDialog extends StatefulWidget {
-  final TransferEvent transfer;
-  final ProvenanceRecord? genet;
-  final Organization? fromOrganization;
-
-  const _RejectTransferDialog({
-    required this.transfer,
-    required this.genet,
-    required this.fromOrganization,
-  });
-
-  @override
-  State<_RejectTransferDialog> createState() => _RejectTransferDialogState();
-}
-
-class _RejectTransferDialogState extends State<_RejectTransferDialog>
-    with SafeDialogMixin<_RejectTransferDialog> {
-  final _reasonController = TextEditingController();
-
-  @override
-  void dispose() {
-    _reasonController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Reject Transfer'),
-      content: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to reject this transfer?',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            Card(
-              color: Colors.orange.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${widget.transfer.quantity} × ${widget.genet?.displayName ?? 'Unknown Genet'}',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'From: ${widget.fromOrganization?.name ?? 'Unknown'}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    if ((widget.genet?.aliasEntries ?? const []).isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: AliasBadges(
-                          aliases: widget.genet!.aliasEntries,
-                          showPlaceholderWhenEmpty: false,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Reason (optional)',
-                helperText: 'Provide a reason for rejecting this transfer',
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => popDialog(),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            popDialog(_reasonController.text.trim());
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('Reject Transfer'),
-        ),
-      ],
-    );
-  }
-}
-
-class _CancelTransferDialog extends StatefulWidget {
-  const _CancelTransferDialog({
-    required this.transfer,
-    required this.recipientName,
-    this.genet,
-  });
-
-  final TransferEvent transfer;
-  final ProvenanceRecord? genet;
-  final String recipientName;
-
-  @override
-  State<_CancelTransferDialog> createState() => _CancelTransferDialogState();
-}
-
-class _CancelTransferDialogState extends State<_CancelTransferDialog>
-    with SafeDialogMixin<_CancelTransferDialog> {
-  final _reasonController = TextEditingController();
-
-  @override
-  void dispose() {
-    _reasonController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Cancel Transfer'),
-      content: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Are you sure you want to cancel this transfer?',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            Card(
-              color: Colors.red.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${widget.transfer.quantity} × ${widget.genet?.displayName ?? 'Unknown Genet'}',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'To: ${widget.recipientName}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    if ((widget.genet?.aliasEntries ?? const []).isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: AliasBadges(
-                          aliases: widget.genet!.aliasEntries,
-                          showPlaceholderWhenEmpty: false,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _reasonController,
-              decoration: const InputDecoration(
-                labelText: 'Reason (optional)',
-                helperText: 'Add a note about why this transfer was cancelled',
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => popDialog(),
-          child: const Text('Keep Transfer'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            popDialog(_reasonController.text.trim());
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('Cancel Transfer'),
-        ),
-      ],
-    );
   }
 }

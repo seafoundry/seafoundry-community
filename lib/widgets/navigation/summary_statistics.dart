@@ -5,35 +5,33 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_card_filter.dart';
+import 'package:seafoundry_app/cubits/summary_statistics/summary_filter_matcher.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_statistics_cubit.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_statistics_state.dart';
 import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
 import 'package:seafoundry_app/models/models.dart';
+import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
+import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
+import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/theme/theme.dart';
 import 'package:seafoundry_app/widgets/dialogs/filtered_organism_list_sheet.dart';
+import 'package:seafoundry_app/widgets/spreadsheet/components/toolbar_dropdown.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_cubit.dart';
 
 /// Community-tier summary statistics widget showing organism inventory counts.
 ///
 /// **Features:**
 /// - Shows inventory counts: total organisms and unique genotypes
-/// - Pro features displayed as disabled: ready for outplant, ready for propagation, health issues
-///   (shown as "N/A" with "Upgrade to Pro" messaging)
-/// - No health filters (community tier limitation)
-/// - No volume calculations (community tier)
-/// - No task tracking (community tier)
+/// - Filter dropdowns: species, local ID (genet), site, and structure
+/// - Filters apply instantly without data reload (cached organism list)
 ///
 /// **Architecture:**
-/// - Uses `SummaryStatisticsCubit` for state management
-/// - Calculates statistics from organism data streamed from `OrganismRecordRepository`
-/// - Pro features display greyed-out placeholders with upgrade messaging
-///
-/// **Performance:**
-/// - Uses streams for real-time organism data updates
-/// - Statistics calculated on-demand from filtered organism lists
+/// - Uses `SummaryStatisticsCubit` for filter state management
+/// - Organization level: loads organism data once, filters synchronously on state changes
+/// - Sub-node level: uses StreamBuilder for real-time data, extracts filter options per emission
 class SummaryStatistics extends StatelessWidget {
   const SummaryStatistics({
     super.key,
@@ -56,14 +54,13 @@ class SummaryStatistics extends StatelessWidget {
   }
 }
 
-/// Internal view widget that handles the actual statistics display logic.
+/// Internal stateful view that caches organism data and applies filters synchronously.
 ///
 /// **Data Flow:**
-/// 1. Determines record type from GraphNode state
-/// 2. For Organization: Aggregates stats across all nursery sites
-/// 3. For other nodes: Streams organism data and calculates stats from children
-/// 4. Applies health filters before rendering statistics
-class _SummaryStatisticsView extends StatelessWidget {
+/// 1. On init: resolves site/group label maps, loads organism data (org path only)
+/// 2. On filter change: BlocBuilder rebuilds, filters applied synchronously from cache
+/// 3. No FutureBuilder inside BlocBuilder — eliminates loading flash on filter changes
+class _SummaryStatisticsView extends StatefulWidget {
   const _SummaryStatisticsView({
     required this.node,
     this.organismStats,
@@ -72,107 +69,277 @@ class _SummaryStatisticsView extends StatelessWidget {
   final GraphNode node;
   final OrganismStatistics? organismStats;
 
-  static const OrganismStatistics _emptyStats = OrganismStatistics(
-    totalOrganisms: 0,
-    totalOrganismRecords: 0,
-    readyForOutplant: 0,
-    readyForOutplantRecords: 0,
-    readyForPropagation: 0,
-    readyForPropagationRecords: 0,
-    healthIssues: 0,
-    healthIssuesRecords: 0,
-    statusBreakdown: {},
-    uniqueGenotypes: null,
-  );
+  @override
+  State<_SummaryStatisticsView> createState() => _SummaryStatisticsViewState();
+}
 
+class _SummaryStatisticsViewState extends State<_SummaryStatisticsView> {
   static const Duration _summaryOrganismGetAllTimeout = Duration(seconds: 4);
   static const int _summaryOrganismFallbackThreshold = 50;
 
-  /// Helper to safely get record from GraphNode state
+  // Cached organism data for organization-level view (loaded once)
+  List<OrganismRecord>? _cachedOrganisms;
+  SummaryFilterOptions? _cachedFilterOptions;
+  bool _isOrgDataLoading = false;
+  String? _orgDataError;
+
+  // Cached label maps resolved once from repositories
+  Map<String, String> _siteLabels = const {};
+  Map<String, String> _groupLabels = const {};
+
+  bool _didInit = false;
+
   GraphNodeRecord? _getRecord(GraphNode node) => node.state is GraphLoadedState
       ? (node.state as GraphLoadedState).record
       : null;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_didInit) {
+      _didInit = true;
+      _initializeData();
+    }
+  }
+
+  /// One-time initialization: resolve label maps, then load organism data for org path.
+  Future<void> _initializeData() async {
+    await _resolveLabelMaps();
+
+    final record = _getRecord(widget.node);
+    if (record is Organization) {
+      await _loadOrganismData();
+    }
+  }
+
+  /// Resolves site/group display name maps from repositories.
+  /// BehaviorSubject streams typically resolve immediately from cache.
+  Future<void> _resolveLabelMaps() async {
+    SiteRepository? siteRepo;
+    GroupRepository? groupRepo;
+    try {
+      siteRepo = context.read<SiteRepository>();
+    } catch (_) {
+      // SiteRepository not in widget tree
+    }
+    try {
+      groupRepo = context.read<GroupRepository>();
+    } catch (_) {
+      // GroupRepository not in widget tree
+    }
+
+    final siteLabelMap = <String, String>{};
+    final groupLabelMap = <String, String>{};
+
+    if (siteRepo != null) {
+      try {
+        final sites = await siteRepo.streamAll.first.timeout(
+          const Duration(seconds: 2),
+          onTimeout: () => <Site>[],
+        );
+        for (final site in sites) {
+          siteLabelMap[site.id] = site.name;
+        }
+      } catch (_) {
+        // Timeout; IDs used as fallback labels
+      }
+    }
+
+    if (groupRepo != null) {
+      try {
+        final groups = await groupRepo.streamAll.first.timeout(
+          const Duration(seconds: 2),
+          onTimeout: () => <Group>[],
+        );
+        for (final group in groups) {
+          groupLabelMap[group.id] = group.name;
+        }
+      } catch (_) {
+        // Timeout; IDs used as fallback labels
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _siteLabels = siteLabelMap;
+        _groupLabels = groupLabelMap;
+      });
+    }
+  }
+
+  /// Loads organism data once for the organization-level view.
+  Future<void> _loadOrganismData() async {
+    setState(() {
+      _isOrgDataLoading = true;
+      _orgDataError = null;
+    });
+
+    try {
+      final orgRepo = context.read<OrganismRecordRepository>();
+      final allOrganisms = await _initialOrganismSnapshot(orgRepo);
+      final inventory = allOrganisms
+          .where((o) => !_isExcludedFromInventoryCounts(siteId: o.siteId ?? ''))
+          .toList(growable: false);
+
+      final options = _buildFilterOptions(inventory);
+
+      if (mounted) {
+        setState(() {
+          _cachedOrganisms = inventory;
+          _cachedFilterOptions = options;
+          _isOrgDataLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _orgDataError = e.toString();
+          _isOrgDataLoading = false;
+        });
+      }
+    }
+  }
+
+  /// Builds filter options synchronously using cached label maps.
+  SummaryFilterOptions _buildFilterOptions(List<OrganismRecord> organisms) {
+    final siteIds = <String>{};
+    final speciesIds = <String>{};
+    final genetIds = <String>{};
+    final structureIds = <String>{};
+
+    for (final organism in organisms) {
+      final siteId = organism.siteId?.trim();
+      if (siteId != null && siteId.isNotEmpty) siteIds.add(siteId);
+      final speciesId = organism.speciesId?.trim();
+      if (speciesId != null && speciesId.isNotEmpty) speciesIds.add(speciesId);
+      final genetId = GenetIdResolver.resolve(organism)?.trim();
+      if (genetId != null && genetId.isNotEmpty) genetIds.add(genetId);
+      final groupId = organism.groupId?.trim();
+      if (groupId != null && groupId.isNotEmpty) structureIds.add(groupId);
+    }
+
+    final speciesLabels = <String, String>{};
+    for (final id in speciesIds) {
+      final species = SpeciesRegistry.globalById(id);
+      speciesLabels[id] = species?.name ?? id;
+    }
+
+    // Genet labels: use the localId from the first organism with that genet
+    final genetLabels = <String, String>{};
+    for (final organism in organisms) {
+      final genetId = GenetIdResolver.resolve(organism)?.trim();
+      if (genetId != null && genetId.isNotEmpty && !genetLabels.containsKey(genetId)) {
+        genetLabels[genetId] = organism.localId ?? genetId;
+      }
+    }
+
+    // Use cached label maps for site/group display names
+    final siteLabels = <String, String>{};
+    for (final id in siteIds) {
+      siteLabels[id] = _siteLabels[id] ?? id;
+    }
+
+    final structureLabels = <String, String>{};
+    for (final id in structureIds) {
+      structureLabels[id] = _groupLabels[id] ?? id;
+    }
+
+    return SummaryFilterOptions(
+      siteIds: siteIds.toList()..sort((a, b) =>
+        (siteLabels[a] ?? a).compareTo(siteLabels[b] ?? b)),
+      speciesIds: speciesIds.toList()..sort((a, b) =>
+        (speciesLabels[a] ?? a).compareTo(speciesLabels[b] ?? b)),
+      genetIds: genetIds.toList()..sort((a, b) =>
+        (genetLabels[a] ?? a).compareTo(genetLabels[b] ?? b)),
+      structureIds: structureIds.toList()..sort((a, b) =>
+        (structureLabels[a] ?? a).compareTo(structureLabels[b] ?? b)),
+      speciesLabels: speciesLabels,
+      genetLabels: genetLabels,
+      siteLabels: siteLabels,
+      structureLabels: structureLabels,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<SummaryStatisticsCubit, SummaryStatisticsState>(
       builder: (context, filterState) {
-        // For organization level, aggregate across nursery sites
-        final record = _getRecord(node);
+        final record = _getRecord(widget.node);
         if (record is Organization) {
-          return FutureBuilder<OrganismStatistics>(
-            future: _computeOrganizationStats(context, filterState),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return _buildLoadingStats();
-              }
-              if (snapshot.hasError) {
-                return _buildErrorStats(snapshot.error.toString());
-              }
-              final stats = snapshot.data ?? _emptyStats;
-              return _buildStatsDisplay(context, stats, filterState);
-            },
-          );
+          return _buildOrganizationView(context, filterState);
+        }
+        return _buildSubNodeView(context, filterState);
+      },
+    );
+  }
+
+  /// Organization-level: renders from cached data, filters applied synchronously.
+  Widget _buildOrganizationView(
+    BuildContext context,
+    SummaryStatisticsState filterState,
+  ) {
+    if (_isOrgDataLoading) return _buildLoadingStats();
+    if (_orgDataError != null) return _buildErrorStats(_orgDataError!);
+
+    final organisms = _cachedOrganisms;
+    if (organisms == null) return _buildLoadingStats();
+
+    // Apply multiselect filters synchronously from cached data.
+    // Health filtering is handled inside _summarizeOrganisms only.
+    final filtered = organisms.where(
+      (o) => SummaryFilterMatcher.matches(o, filterState),
+    );
+    final stats = _summarizeOrganisms(filtered, filterState);
+    final options = _cachedFilterOptions ?? _buildFilterOptions(organisms);
+    return _buildStatsDisplay(context, stats.withFilterOptions(options), filterState);
+  }
+
+  /// Sub-node level: uses StreamBuilder for real-time data with sync filter extraction.
+  Widget _buildSubNodeView(
+    BuildContext context,
+    SummaryStatisticsState filterState,
+  ) {
+    return BlocBuilder<GraphNode, GraphNodeState>(
+      bloc: widget.node,
+      builder: (context, _) {
+        final record = _getRecord(widget.node);
+        if (record == null) return _buildLoadingStats();
+
+        if (record is OrganismRecord) {
+          final stats = _summarizeOrganisms([record], filterState);
+          return _buildStatsDisplay(context, stats, filterState);
         }
 
-        // For other levels, calculate stats from node's children
-        return BlocBuilder<GraphNode, GraphNodeState>(
-          bloc: node,
-          builder: (context, _) {
-            final record = _getRecord(node);
-            if (record == null) {
+        final organismRecordRepository = context.read<OrganismRecordRepository>();
+        final stream = organismRecordRepository.streamRecordsForUrlPath(
+          record.urlPath,
+        );
+
+        return StreamBuilder<List<OrganismRecord>>(
+          stream: stream,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                (snapshot.data == null || snapshot.data!.isEmpty)) {
               return _buildLoadingStats();
             }
-
-            if (record is OrganismRecord) {
-              final stats = _summarizeOrganisms([record], filterState);
-              return _buildStatsDisplay(context, stats, filterState);
-            }
-
-            final organismRecordRepository = context.read<OrganismRecordRepository>();
-            final stream = organismRecordRepository.streamRecordsForUrlPath(
-              record.urlPath,
+            final allOrganisms = (snapshot.data ?? const <OrganismRecord>[])
+                .where((o) => !_isExcludedFromInventoryCounts(siteId: o.siteId ?? ''))
+                .toList();
+            // Apply multiselect filters; health handled in _summarizeOrganisms
+            final filtered = allOrganisms.where(
+              (o) => SummaryFilterMatcher.matches(o, filterState),
             );
-
-            return StreamBuilder<List<OrganismRecord>>(
-              stream: stream,
-              builder: (context, snapshot) {
-                // Show loading if waiting AND data is empty (BehaviorSubject emits
-                // empty list immediately, so we must check data emptiness too)
-                if (snapshot.connectionState == ConnectionState.waiting &&
-                    (snapshot.data == null || snapshot.data!.isEmpty)) {
-                  return _buildLoadingStats();
-                }
-                final organisms = (snapshot.data ?? const <OrganismRecord>[])
-                    .where((organism) => !_isExcludedFromInventoryCounts(siteId: organism.siteId ?? ''))
-                    .where((organism) => _includeByHealth(organism, filterState));
-                final stats = _summarizeOrganisms(organisms, filterState);
-                return _buildStatsDisplay(context, stats, filterState);
-              },
+            final stats = _summarizeOrganisms(filtered, filterState);
+            final options = _buildFilterOptions(allOrganisms);
+            return _buildStatsDisplay(
+              context,
+              stats.withFilterOptions(options),
+              filterState,
             );
           },
         );
       },
     );
-  }
-
-  /// Compute organization-level stats restricted to nursery sites
-  Future<OrganismStatistics> _computeOrganizationStats(
-    BuildContext context,
-    SummaryStatisticsState filterState,
-  ) async {
-    final organismRecordRepository = context.read<OrganismRecordRepository>();
-    final allOrganisms = await _initialOrganismSnapshot(organismRecordRepository);
-
-    final filtered = allOrganisms
-        .where((organism) => !_isExcludedFromInventoryCounts(siteId: organism.siteId ?? ''))
-        .toList(growable: false);
-
-    final filteredByHealth = filtered.where(
-      (organism) => _includeByHealth(organism, filterState),
-    );
-
-    return _summarizeOrganisms(filteredByHealth, filterState);
   }
 
   /// Attempts to obtain the first organism snapshot with a short timeout.
@@ -266,15 +433,8 @@ class _SummaryStatisticsView extends StatelessWidget {
 
   /// Summarizes organism statistics from a collection of organisms.
   ///
-  /// **Calculations Performed:**
-  /// 1. **Quantities**: Counts total organisms, ready for outplant, ready for propagation, health issues
-  /// 2. **Status Breakdown**: Aggregates counts by health status
-  /// 3. **Genotypes**: Counts unique genotypes
-  ///
-  /// **Filtering Logic:**
-  /// - `onlyIssues`: Only counts organisms with non-healthy status
-  /// - `selectedHealth`: Only counts organisms matching the selected health status
-  /// - Both filters are applied before categorization
+  /// Callers should apply `SummaryFilterMatcher.matches()` before passing organisms.
+  /// Health filtering (`_includeByHealth`) is applied internally — do NOT pre-filter.
   OrganismStatistics _summarizeOrganisms(
     Iterable<OrganismRecord> organisms,
     SummaryStatisticsState filterState,
@@ -290,9 +450,8 @@ class _SummaryStatisticsView extends StatelessWidget {
 
     final statusCounts = <String, int>{};
 
-    // Convert to list for multiple iterations
-    final organismList = organisms.toList();
-    final filteredOrganismList = organismList
+    // Apply health filtering and materialize
+    final filteredOrganismList = organisms
         .where((organism) => _includeByHealth(organism, filterState))
         .toList(growable: false);
 
@@ -318,7 +477,7 @@ class _SummaryStatisticsView extends StatelessWidget {
         ifAbsent: () => quantity,
       );
 
-      // Apply health filters
+      // Apply health categorization
       final isHealthy = status == HealthStatus.healthy;
       if (filterState.onlyIssues) {
         if (!isHealthy) {
@@ -409,10 +568,148 @@ class _SummaryStatisticsView extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
           ),
+          if (stats.filterOptions != null) ...[
+            const SizedBox(height: 8),
+            _buildFilterRow(context, stats.filterOptions!, filterState),
+          ],
           const SizedBox(height: 12),
           _buildInventoryStats(context, stats, filterState),
         ],
       ),
+    );
+  }
+
+  /// Builds the filter row with dropdown selectors for species, local ID, site, and structure.
+  /// Dropdowns are single-select; the cubit's set-based state wraps single values.
+  Widget _buildFilterRow(
+    BuildContext context,
+    SummaryFilterOptions options,
+    SummaryStatisticsState filterState,
+  ) {
+    final cubit = context.read<SummaryStatisticsCubit>();
+
+    // Convert set-based filter state to single-value for dropdowns
+    final selectedSpecies = filterState.selectedSpeciesIds.length == 1
+        ? filterState.selectedSpeciesIds.first
+        : null;
+    final selectedGenet = filterState.selectedGenetIds.length == 1
+        ? filterState.selectedGenetIds.first
+        : null;
+    final selectedSite = filterState.selectedSiteIds.length == 1
+        ? filterState.selectedSiteIds.first
+        : null;
+    final selectedStructure = filterState.selectedStructureIds.length == 1
+        ? filterState.selectedStructureIds.first
+        : null;
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (options.speciesIds.length > 1)
+          ToolbarDropdown(
+            width: 200,
+            label: 'Species',
+            value: selectedSpecies,
+            items: [
+              const DropdownMenuItem<String?>(
+                value: null,
+                child: Text('All Species'),
+              ),
+              ...options.speciesIds.map(
+                (id) => DropdownMenuItem<String?>(
+                  value: id,
+                  child: Text(
+                    options.speciesLabels[id] ?? id,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+            onChanged: (value) => cubit.speciesFilterChanged(
+              value != null ? {value} : const {},
+            ),
+          ),
+        if (options.genetIds.length > 1)
+          ToolbarDropdown(
+            width: 180,
+            label: 'Local ID',
+            value: selectedGenet,
+            items: [
+              const DropdownMenuItem<String?>(
+                value: null,
+                child: Text('All Local IDs'),
+              ),
+              ...options.genetIds.map(
+                (id) => DropdownMenuItem<String?>(
+                  value: id,
+                  child: Text(
+                    options.genetLabels[id] ?? id,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+            onChanged: (value) => cubit.genetFilterChanged(
+              value != null ? {value} : const {},
+            ),
+          ),
+        if (options.siteIds.length > 1)
+          ToolbarDropdown(
+            width: 180,
+            label: 'Site',
+            value: selectedSite,
+            items: [
+              const DropdownMenuItem<String?>(
+                value: null,
+                child: Text('All Sites'),
+              ),
+              ...options.siteIds.map(
+                (id) => DropdownMenuItem<String?>(
+                  value: id,
+                  child: Text(
+                    options.siteLabels[id] ?? id,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+            onChanged: (value) => cubit.siteFilterChanged(
+              value != null ? {value} : const {},
+            ),
+          ),
+        if (options.structureIds.length > 1)
+          ToolbarDropdown(
+            width: 180,
+            label: 'Structure',
+            value: selectedStructure,
+            items: [
+              const DropdownMenuItem<String?>(
+                value: null,
+                child: Text('All Structures'),
+              ),
+              ...options.structureIds.map(
+                (id) => DropdownMenuItem<String?>(
+                  value: id,
+                  child: Text(
+                    options.structureLabels[id] ?? id,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+            onChanged: (value) => cubit.structureFilterChanged(
+              value != null ? {value} : const {},
+            ),
+          ),
+        if (filterState.hasActiveFilters)
+          TextButton.icon(
+            onPressed: () => cubit.clearAllFilters(),
+            icon: const Icon(Icons.clear, size: 16),
+            label: const Text('Clear'),
+          ),
+      ],
     );
   }
 
@@ -470,125 +767,10 @@ class _SummaryStatisticsView extends StatelessWidget {
             ],
           ],
         ),
-        const SizedBox(height: 6),
-        // Ready for Outplant and Propagation - Pro features (disabled in community)
-        Row(
-          children: [
-            Expanded(
-              child: _buildProFeatureCard(
-                context,
-                'Ready for Outplant',
-                Icons.upload,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildProFeatureCard(
-                context,
-                'Ready for Propagation',
-                Icons.content_cut,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        // Health Issues - Pro feature (disabled in community)
-        Row(
-          children: [
-            Expanded(
-              child: _buildProFeatureCard(
-                context,
-                'Health Issues',
-                Icons.warning,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Expanded(child: SizedBox()),
-          ],
-        ),
       ],
     );
   }
 
-  /// Builds a disabled Pro feature card for community tier.
-  ///
-  /// **Layout:**
-  /// - Greyed out icon and label
-  /// - "N/A" value text
-  /// - "Upgrade to Pro" subtitle
-  ///
-  /// **Styling:**
-  /// - Background color: Light grey
-  /// - Border: Light grey
-  /// - Text: Grey, subdued
-  Widget _buildProFeatureCard(
-    BuildContext context,
-    String label,
-    IconData icon,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: Colors.grey.shade400),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'N/A',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade400,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'Coming Soon',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: AppColors.primary.withValues(alpha: 0.7),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Builds an individual statistics card widget.
-  ///
-  /// **Layout:**
-  /// - Icon and label in top row
-  /// - Large value text below
-  /// - Optional detail text for record counts
-  ///
-  /// **Styling:**
-  /// - Background color: Semi-transparent version of primary color
-  /// - Border: Semi-transparent version of primary color
-  /// - Value text: Bold, large, uses primary color
-  /// - onTap: Optional callback for clickable cards (shows pointer cursor)
   Widget _buildStatCard(
     BuildContext context,
     String label,
@@ -672,7 +854,7 @@ class _SummaryStatisticsView extends StatelessWidget {
     int inventoryCount, {
     int? recordCount,
   }) {
-    final record = _getRecord(node);
+    final record = _getRecord(widget.node);
     if (record == null) return;
 
     // Capture NavigationCubit before showing modal to avoid context issues after pop
@@ -723,7 +905,6 @@ class _SummaryStatisticsView extends StatelessWidget {
 
   /// Determine if organism is ready for propagation
   bool _isReadyForPropagation(OrganismRecord organism) {
-    // Ready to propagate when flag is set AND organism is marked Healthy
     return organism.readyForPropagation && organism.healthStatus == HealthStatus.healthy;
   }
 
@@ -741,21 +922,6 @@ class _SummaryStatisticsView extends StatelessWidget {
 }
 
 /// Data transfer object for organism inventory statistics.
-///
-/// **Quantities:**
-/// - `totalOrganisms`: Total count of organisms (after filtering)
-/// - `totalOrganismRecords`: Total number of organism records (after filtering)
-/// - `readyForOutplant`: Count of organisms marked ready for outplanting
-/// - `readyForOutplantRecords`: Record count for ready-for-outplant organisms
-/// - `readyForPropagation`: Count of organisms marked ready for propagation
-/// - `readyForPropagationRecords`: Record count for ready-for-propagation organisms
-/// - `healthIssues`: Count of organisms with non-healthy status
-/// - `healthIssuesRecords`: Record count for organisms with health issues
-///
-/// **Metadata:**
-/// - `statusBreakdown`: Map of health status display names to counts
-/// - `uniqueGenotypes`: Count of unique genotypes represented
-/// - `filterSignature`: String signature of applied filters (for caching)
 class OrganismStatistics {
   const OrganismStatistics({
     required this.totalOrganisms,
@@ -769,6 +935,7 @@ class OrganismStatistics {
     required this.statusBreakdown,
     this.filterSignature,
     this.uniqueGenotypes,
+    this.filterOptions,
   });
 
   final int totalOrganisms;
@@ -782,4 +949,46 @@ class OrganismStatistics {
   final Map<String, int> statusBreakdown;
   final String? filterSignature;
   final int? uniqueGenotypes;
+  final SummaryFilterOptions? filterOptions;
+
+  /// Returns a copy with filter options attached.
+  OrganismStatistics withFilterOptions(SummaryFilterOptions options) {
+    return OrganismStatistics(
+      totalOrganisms: totalOrganisms,
+      totalOrganismRecords: totalOrganismRecords,
+      readyForOutplant: readyForOutplant,
+      readyForOutplantRecords: readyForOutplantRecords,
+      readyForPropagation: readyForPropagation,
+      readyForPropagationRecords: readyForPropagationRecords,
+      healthIssues: healthIssues,
+      healthIssuesRecords: healthIssuesRecords,
+      statusBreakdown: statusBreakdown,
+      filterSignature: filterSignature,
+      uniqueGenotypes: uniqueGenotypes,
+      filterOptions: options,
+    );
+  }
+}
+
+/// Available filter options extracted from organism data for dropdown population.
+class SummaryFilterOptions {
+  const SummaryFilterOptions({
+    required this.siteIds,
+    required this.speciesIds,
+    required this.genetIds,
+    required this.structureIds,
+    required this.siteLabels,
+    required this.speciesLabels,
+    required this.genetLabels,
+    required this.structureLabels,
+  });
+
+  final List<String> siteIds;
+  final List<String> speciesIds;
+  final List<String> genetIds;
+  final List<String> structureIds;
+  final Map<String, String> siteLabels;
+  final Map<String, String> speciesLabels;
+  final Map<String, String> genetLabels;
+  final Map<String, String> structureLabels;
 }

@@ -38,20 +38,19 @@ class MeasurementFieldConfig {
 
 class MeasurementMetricsService {
   MeasurementMetricsService._();
-  static final instance = MeasurementMetricsService._();
 
   /// Get measurement field configuration for a physical form
-  Future<MeasurementFieldConfig> getFieldConfig({
+  static MeasurementFieldConfig getFieldConfig({
     required OrganismKind organismKind,
     required LifeStage lifeStage,
     String? physicalFormId,
     String? sizeBandId,
-  }) async {
+  }) {
     if (physicalFormId == null) {
       return MeasurementFieldConfig.defaultConfig;
     }
 
-    final formConfig = await PhysicalFormRegistry.instance.getFormConfig(
+    final formConfig = PhysicalFormRegistry.instance.getFormConfig(
       organismKind,
       lifeStage,
       physicalFormId,
@@ -88,29 +87,21 @@ class MeasurementMetricsService {
     );
   }
 
-  List<MeasurementUnit> _getCountUnits(PhysicalFormConfig config) {
+  static List<MeasurementUnit> _getCountUnits(PhysicalFormConfig config) {
     // Count is the only valid unit for record quantity
     return [MeasurementUnit.count];
   }
 
   /// Validate that metrics are appropriate for the physical form
-  String? validateMetrics({
+  static String? validateMetrics({
     required MeasurementFieldConfig config,
     int? count,
-    double? volumeCm3,
-    double? tissueAreaCm2,
   }) {
     // If field is enabled and required but empty, return error
     // For now, all enabled fields are optional
 
     if (!config.enableCount && count != null) {
       return 'Count is not applicable for this physical form';
-    }
-    if (!config.enableVolume && volumeCm3 != null) {
-      return 'Volume is not applicable for this physical form';
-    }
-    if (!config.enableTissueArea && tissueAreaCm2 != null) {
-      return 'Tissue area is not applicable for this physical form';
     }
 
     return null; // Valid

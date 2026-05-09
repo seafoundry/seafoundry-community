@@ -1,12 +1,9 @@
 // @tier: community
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui' as ui;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
 import 'package:seafoundry_app/models/alias.dart';
 import 'package:seafoundry_app/models/events/event_permit_metadata.dart';
@@ -31,14 +28,12 @@ import 'package:seafoundry_app/models/types/population_loss_reason.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 import 'package:seafoundry_app/models/user.dart';
-import 'package:seafoundry_app/services/external_holding_service.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/provenance_repository.dart';
 import 'package:seafoundry_app/repositories/organization_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/manual_transfer_registration_service.dart';
@@ -49,7 +44,6 @@ import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/services/transfer_notification_result.dart';
 import 'package:seafoundry_app/utils/js_error_utils.dart';
 import 'package:seafoundry_app/utils/performance_analyzer.dart';
-import 'package:seafoundry_app/utils/qr_payload_utils.dart';
 import 'package:seafoundry_app/utils/validation_utils.dart';
 
 part 'transfer_service_acceptance.dart';
@@ -60,10 +54,8 @@ part 'transfer_service_validation.dart';
 /// Coordinates the complete genet transfer lifecycle (initiate -> update -> ship
 /// -> receive/reject). Every public method enforces the same state-machine
 /// invariants and surfaces user-friendly [TransferWorkflowException] messages so
-/// dialogs/cubits can guide remediation (e.g., quantity corrections, checksum
-/// mismatches, offline acceptance retries). Manifests act as the canonical
-/// payload passed between organizations, and each transition regenerates the
-/// checksum + QR payload to keep UI surfaces in sync.
+/// dialogs/cubits can guide remediation (e.g., quantity corrections).
+/// Manifests act as the canonical payload passed between organizations.
 class TransferService implements ManualTransferRegistrationService {
   TransferService({
     required ProvenanceRepository provenanceRepository,
@@ -102,8 +94,6 @@ class TransferService implements ManualTransferRegistrationService {
   final RecordRepository _recordRepository;
   final OrganismRecordRepository? _organismRecordRepository;
   final FirebaseFirestore _db;
-  final FirestoreCollectionResolver _resolver =
-      FirestoreCollectionResolver.instance;
   late final String Function() _idGenerator;
   final OutplantGeometryBuilder _geometryBuilder;
   final ProvenanceCrosswalkService? _crosswalkService;
@@ -113,8 +103,8 @@ class TransferService implements ManualTransferRegistrationService {
   // ---------------------------------------------------------------------------
 
   /// Initiates a transfer (draft -> pending) and notifies the destination
-  /// organization. Generates a fresh manifest, checksum, and QR payload each
-  /// time so downstream dialogs can display a consistent summary.
+  /// organization. Generates a fresh manifest each time so downstream dialogs
+  /// can display a consistent summary.
   ///
   /// Throws [TransferWorkflowException] when the source genet or destination
   /// organization cannot be resolved.
@@ -215,9 +205,7 @@ class TransferService implements ManualTransferRegistrationService {
   // Public API - Transfer Status Changes
   // ---------------------------------------------------------------------------
 
-  /// Marks a pending transfer as shipped (pending -> shipped) after providing an
-  /// optional tracking number/comment. Regenerates the manifest checksum and QR
-  /// payload to reflect the new status and updates notification state.
+  /// Marks a pending transfer as shipped (pending -> shipped).
   Future<TransferEvent> markTransferShipped({
     required String transferEventId,
     String? trackingNumber,
@@ -231,9 +219,9 @@ class TransferService implements ManualTransferRegistrationService {
   }
 
   /// Accepts an incoming transfer (pending/shipped -> received) and creates a
-  /// genet record based on the manifest payload. Validates checksum + manifest
-  /// ownership before mutating any data so the receiving dialog can surface
-  /// actionable errors when the payload is stale.
+  /// genet record based on the manifest payload. Validates manifest ownership
+  /// before mutating any data so the receiving dialog can surface actionable
+  /// errors when the payload is stale.
   Future<ProvenanceRecord> acceptTransfer({
     required String transferEventId,
     required String newGenetName,
@@ -289,8 +277,7 @@ class TransferService implements ManualTransferRegistrationService {
   }
 
   /// Updates a pending transfer's quantity/comment while regenerating the
-  /// manifest and checksum. This keeps QR payloads consistent with edits made
-  /// from the initiate dialog's edit mode.
+  /// manifest.
   Future<TransferEvent> updatePendingTransfer({
     required String transferEventId,
     required int quantity,
@@ -328,8 +315,8 @@ class TransferService implements ManualTransferRegistrationService {
   Future<List<TransferEvent>> getPendingTransfers() async {
     try {
       final organization = _provenanceRepository.organization;
-      final snapshot = await _resolver
-          .collection(_db, 'events')
+      final snapshot = await _db
+          .collection('events')
           .where('eventTypeId', whereIn: LoanEventType.queryIds)
           .where('toOrganizationId', isEqualTo: organization.id)
           .where(
@@ -360,8 +347,8 @@ class TransferService implements ManualTransferRegistrationService {
   Future<List<TransferEvent>> getOutboundPendingTransfers() async {
     try {
       final organization = _provenanceRepository.organization;
-      final snapshot = await _resolver
-          .collection(_db, 'events')
+      final snapshot = await _db
+          .collection('events')
           .where('organizationId', isEqualTo: organization.id)
           .where('eventTypeId', whereIn: LoanEventType.queryIds)
           .orderBy('createdAt', descending: true)
@@ -389,33 +376,8 @@ class TransferService implements ManualTransferRegistrationService {
     }
   }
 
-  /// Returns the complete transfer history for a genet regardless of direction.
-  Future<List<TransferEvent>> getTransferHistory(String genetId) async {
-    try {
-      final organization = _provenanceRepository.organization;
-      final snapshot = await _resolver
-          .collection(_db, 'events')
-          .where('eventTypeId', whereIn: LoanEventType.queryIds)
-          .where('genetId', isEqualTo: genetId)
-          .where('organizationId', isEqualTo: organization.id)
-          .orderBy('createdAt', descending: true)
-          .get();
-
-      return snapshot.docs
-          .map((doc) => TransferEvent.fromJson(doc.data()))
-          .toList();
-    } catch (e, stackTrace) {
-      LoggingService.instance.error(
-        'Failed to get transfer history',
-        e,
-        stackTrace,
-      );
-      rethrow;
-    }
-  }
-
   // ---------------------------------------------------------------------------
-  // Public API - Manifest and QR
+  // Public API - Manifest
   // ---------------------------------------------------------------------------
 
   /// Retrieve the manifest stored for a transfer.
@@ -424,123 +386,97 @@ class TransferService implements ManualTransferRegistrationService {
     return requireManifest(transfer);
   }
 
-  /// Generate a QR code image for the transfer manifest payload.
-  Future<Uint8List> getTransferQrImage(
-    String transferEventId, {
-    double size = 280,
-  }) async {
-    if (kIsWeb) {
-      throw UnsupportedError('QR image generation is not supported on web');
-    }
-
-    final transfer = await requireTransferEvent(transferEventId);
-    final payload = transfer.qrPayload;
-    if (payload == null || payload.isEmpty) {
-      throw TransferWorkflowException(
-        'QR payload not available for transfer $transferEventId',
-      );
-    }
-
-    return renderQrPayload(payload, size: size);
-  }
-
-  /// Decode a manifest payload from a QR code scan.
-  TransferManifest decodeManifestPayload(String payload) {
-    return TransferManifest.decodePayload(payload);
-  }
-
   /// Try to reconstruct the source genet using the transfer manifest.
   Future<ProvenanceRecord?> getSourceGenet(TransferEvent transfer) async {
-    if (transfer.manifest != null) {
-      final manifest = TransferManifest.fromJson(transfer.manifest!);
-      try {
-        final genetMap = manifest.genet.toJson();
-        if (genetMap['metadata'] == null) {
-          genetMap['metadata'] = <String, dynamic>{};
-        }
-
-        final metadata = genetMap['metadata'] as Map<String, dynamic>;
-        if (genetMap['provenanceTypeId'] != null)
-          metadata['provenanceTypeId'] = genetMap['provenanceTypeId'];
-        // provenanceId is stored on the top-level genet record, not in metadata
-        if (genetMap['clonalId'] != null)
-          metadata['clonalId'] = genetMap['clonalId'];
-        if (genetMap['accessionNumber'] != null)
-          metadata['accessionNumber'] = genetMap['accessionNumber'];
-        if (genetMap['notes'] != null) metadata['notes'] = genetMap['notes'];
-        if (genetMap['provenance'] != null)
-          metadata['provenance'] = genetMap['provenance'];
-        if (genetMap['parentGameteIds'] != null)
-          metadata['parentGameteIds'] = genetMap['parentGameteIds'];
-        if (genetMap['parentCohortId'] != null)
-          metadata['parentCohortId'] = genetMap['parentCohortId'];
-        if (genetMap['donorGenotypeId'] != null)
-          metadata['donorGenotypeId'] = genetMap['donorGenotypeId'];
-        if (genetMap['damGameteIds'] != null)
-          metadata['damGameteIds'] = genetMap['damGameteIds'];
-        if (genetMap['sireGameteIds'] != null)
-          metadata['sireGameteIds'] = genetMap['sireGameteIds'];
-        if (genetMap['crossDate'] != null)
-          metadata['crossDate'] = genetMap['crossDate'];
-        if (genetMap['readyForOutplant'] != null)
-          metadata['readyForOutplant'] = genetMap['readyForOutplant'];
-        if (genetMap['aliases'] != null)
-          metadata['aliases'] = genetMap['aliases'];
-
-        final organismKindRaw =
-            metadata['organismKind']?.toString() ??
-            genetMap['organismKind']?.toString() ??
-            'coral';
-        final organismKind = OrganismKind.values.firstWhere(
-          (kind) => kind.name.toLowerCase() == organismKindRaw.toLowerCase(),
-          orElse: () => OrganismKind.coral,
-        );
-
-        return ProvenanceRecord.fromJson({
-          'id': genetMap['id'],
-          'organismKind': organismKind.name,
-          'provenanceKind': metadata['provenanceKind'] ?? 'genet',
-          'displayName': genetMap['name'],
-          'localId': genetMap['localId'],
-          'provenanceId': genetMap['provenanceId'],
-          'speciesId': genetMap['speciesId'],
-          'metadata': metadata,
-          'aliasLabels':
-              (genetMap['aliases'] as List?)?.map((e) => e['value']).toList() ??
-              [],
-        }, id: genetMap['id'] as String);
-      } catch (e, stackTrace) {
-        LoggingService.instance.error(
-          'Failed to reconstruct genet from manifest',
-          e,
-          stackTrace,
-        );
-      }
+    final manifestData = transfer.manifest;
+    if (manifestData == null) {
+      return null;
     }
-
-    // Fallback to legacy cross-org fetch.
+    final manifest = TransferManifest.fromJson(manifestData);
     try {
-      final doc = await _resolver
-          .subcollection(
-            _db,
-            'organizations',
-            transfer.fromOrganizationId!,
-            'genets',
-          )
-          .doc(transfer.genetId)
-          .get();
-      final data = doc.data();
-      if (!doc.exists || data == null) return null;
-      return ProvenanceRecord.fromJson(data, id: doc.id);
+      final genetMap = manifest.genet.toJson();
+      final metadata = _hydrateManifestGenetMetadata(genetMap);
+      return ProvenanceRecord.fromJson({
+        'id': genetMap['id'],
+        'organismKind': OrganismKind.coral.name,
+        'provenanceKind': metadata['provenanceKind'] ?? 'genet',
+        'displayName': genetMap['name'],
+        'localId': genetMap['localId'],
+        'provenanceId': genetMap['provenanceId'],
+        'speciesId': genetMap['speciesId'],
+        'metadata': metadata,
+        'aliasLabels': _manifestAliasLabels(genetMap),
+      }, id: genetMap['id'] as String);
     } catch (e, stackTrace) {
       LoggingService.instance.error(
-        'Failed to fetch source genet for transfer',
+        'Failed to reconstruct genet from manifest',
         e,
         stackTrace,
       );
-      return null;
+    }
+
+    return null;
+  }
+
+  Map<String, dynamic> _hydrateManifestGenetMetadata(
+    Map<String, dynamic> genetMap,
+  ) {
+    final metadata = <String, dynamic>{};
+    final rawMetadata = genetMap['metadata'];
+    if (rawMetadata is Map<String, dynamic>) {
+      metadata.addAll(Map<String, dynamic>.from(rawMetadata));
+    } else if (rawMetadata is Map) {
+      metadata.addAll(Map<String, dynamic>.from(rawMetadata));
+    }
+
+    for (final key in _manifestMetadataKeys) {
+      _copyIfPresent(target: metadata, source: genetMap, key: key);
+    }
+    return metadata;
+  }
+
+  List<String> _manifestAliasLabels(Map<String, dynamic> genetMap) {
+    final aliases = genetMap['aliases'];
+    if (aliases is! List) {
+      return const [];
+    }
+    final values = <String>[];
+    for (final entry in aliases) {
+      if (entry is Map && entry['value'] is String) {
+        final value = (entry['value'] as String).trim();
+        if (value.isNotEmpty) {
+          values.add(value);
+        }
+      }
+    }
+    return values;
+  }
+
+  void _copyIfPresent({
+    required Map<String, dynamic> target,
+    required Map<String, dynamic> source,
+    required String key,
+  }) {
+    if (source[key] != null) {
+      target[key] = source[key];
     }
   }
+
+  static const List<String> _manifestMetadataKeys = <String>[
+    'provenanceTypeId',
+    'clonalId',
+    'accessionNumber',
+    'notes',
+    'provenance',
+    'parentGameteIds',
+    'parentCohortId',
+    'donorGenotypeId',
+    'damGameteIds',
+    'sireGameteIds',
+    'crossDate',
+    'readyForOutplant',
+    'aliases',
+  ];
 
   // ---------------------------------------------------------------------------
   // Public API - Manual Registration (ManualTransferRegistrationService)
@@ -638,10 +574,7 @@ class TransferService implements ManualTransferRegistrationService {
   /// Returns true if there is a pending crosswalk failure that needs attention.
   Future<bool> hasCrosswalkRegistrationFailure(String transferEventId) async {
     try {
-      final doc = await _resolver
-          .collection(_db, 'events')
-          .doc(transferEventId)
-          .get();
+      final doc = await _db.collection('events').doc(transferEventId).get();
 
       if (!doc.exists) {
         return false;
@@ -658,103 +591,10 @@ class TransferService implements ManualTransferRegistrationService {
       return false;
     }
   }
-
-  /// Retries a failed crosswalk registration for a transfer event.
-  ///
-  /// Returns true if the registration succeeded, false otherwise.
-  /// Clears the failure record on success.
-  Future<bool> retryFailedCrosswalkRegistration(String transferEventId) async {
-    final crosswalk = _crosswalkService;
-    if (crosswalk == null) {
-      LoggingService.instance.warning(
-        'Crosswalk service not configured - cannot retry registration',
-      );
-      return false;
-    }
-
-    try {
-      final doc = await _resolver
-          .collection(_db, 'events')
-          .doc(transferEventId)
-          .get();
-
-      if (!doc.exists) {
-        LoggingService.instance.warning(
-          'Transfer event $transferEventId not found for crosswalk retry',
-        );
-        return false;
-      }
-
-      final data = doc.data();
-      final failure =
-          data?['crosswalkRegistrationFailure'] as Map<String, dynamic>?;
-      if (failure == null) {
-        LoggingService.instance.debug(
-          'No crosswalk failure record for transfer $transferEventId',
-        );
-        return true; // No failure to retry
-      }
-
-      final provenanceId = failure['provenanceId'] as String?;
-      final localProvenanceId = failure['localProvenanceId'] as String?;
-      final receivingOrgId = failure['receivingOrganizationId'] as String?;
-      final createdGenetId = failure['createdGenetId'] as String?;
-
-      if (provenanceId == null ||
-          localProvenanceId == null ||
-          receivingOrgId == null ||
-          createdGenetId == null) {
-        LoggingService.instance.warning(
-          'Incomplete crosswalk failure record for transfer $transferEventId',
-        );
-        return false;
-      }
-
-      // Attempt the registration
-      await crosswalk.registerTransferMapping(
-        provenanceId: provenanceId,
-        localGenetId: createdGenetId,
-        localOrganizationId: receivingOrgId,
-        localProvenanceId: localProvenanceId,
-      );
-
-      // Clear the failure record on success
-      await _resolver.collection(_db, 'events').doc(transferEventId).update({
-        'crosswalkRegistrationFailure': FieldValue.delete(),
-        'updatedAt': DateTime.now().toUtc().toIso8601String(),
-      });
-
-      LoggingService.instance.info(
-        'Successfully retried crosswalk registration for transfer $transferEventId',
-      );
-      return true;
-    } catch (e, stackTrace) {
-      LoggingService.instance.error(
-        'Failed to retry crosswalk registration for transfer $transferEventId',
-        e,
-        stackTrace,
-      );
-
-      // Update retry count
-      try {
-        await _resolver.collection(_db, 'events').doc(transferEventId).update({
-          'crosswalkRegistrationFailure.retryCount': FieldValue.increment(1),
-          'crosswalkRegistrationFailure.lastRetryAt': DateTime.now()
-              .toUtc()
-              .toIso8601String(),
-          'crosswalkRegistrationFailure.lastError': e.toString(),
-        });
-      } catch (_) {
-        // Ignore update errors
-      }
-
-      return false;
-    }
-  }
 }
 
 /// User-friendly exception surfaced by [TransferService] when a workflow guard
-/// fails (e.g., manifest checksum mismatch, missing genet). Callers can pattern
+/// fails (e.g., missing genet). Callers can pattern
 /// match on this type to distinguish expected validation failures from system
 /// errors.
 class TransferWorkflowException implements Exception {

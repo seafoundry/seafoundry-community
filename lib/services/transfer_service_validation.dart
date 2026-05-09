@@ -6,9 +6,7 @@ part of 'transfer_service.dart';
 /// This part file contains validation, organism locking/unlocking,
 /// inventory management, notification handling, and other helper methods.
 extension _TransferServiceValidation on TransferService {
-  OutplantGeometry? buildGeometryFromInput(
-    OutplantGeometryInput? input,
-  ) {
+  OutplantGeometry? buildGeometryFromInput(OutplantGeometryInput? input) {
     if (input == null || !input.hasCoordinates) {
       return null;
     }
@@ -33,10 +31,7 @@ extension _TransferServiceValidation on TransferService {
 
   Future<TransferEvent?> getTransferEventById(String transferEventId) async {
     try {
-      final doc = await _resolver
-          .collection(_db, 'events')
-          .doc(transferEventId)
-          .get();
+      final doc = await _db.collection('events').doc(transferEventId).get();
       final data = doc.data();
       if (!doc.exists || data == null) {
         return null;
@@ -69,12 +64,13 @@ extension _TransferServiceValidation on TransferService {
       throw domainErrors.RepositoryError(
         message: 'Cannot update transfer event from different organization',
         category: domainErrors.AppErrorCategory.validation,
-        recoverySuggestion: 'Ensure you are logged into the correct organization',
+        recoverySuggestion:
+            'Ensure you are logged into the correct organization',
       );
     }
     final enriched = _eventRepository.withOrganismMetadata(transfer);
-    await _resolver
-        .collection(_db, 'events')
+    await _db
+        .collection('events')
         .doc(enriched.id)
         .set(enriched.toJson(), SetOptions(merge: true));
   }
@@ -92,11 +88,12 @@ extension _TransferServiceValidation on TransferService {
       throw domainErrors.RepositoryError(
         message: 'Cannot update transfer event from different organization',
         category: domainErrors.AppErrorCategory.validation,
-        recoverySuggestion: 'Ensure you are logged into the correct organization',
+        recoverySuggestion:
+            'Ensure you are logged into the correct organization',
       );
     }
     final enriched = _eventRepository.withOrganismMetadata(transfer);
-    final docRef = _resolver.collection(_db, 'events').doc(enriched.id);
+    final docRef = _db.collection('events').doc(enriched.id);
     transaction.set(docRef, enriched.toJson(), SetOptions(merge: true));
   }
 
@@ -137,8 +134,8 @@ extension _TransferServiceValidation on TransferService {
     }
 
     try {
-      await _resolver
-          .collection(_db, ModelType.organization.collectionPath)
+      await _db
+          .collection(ModelType.organization.collectionPath)
           .doc(organization.id)
           .update({
             'speciesIds': FieldValue.arrayUnion([normalizedSpeciesId]),
@@ -163,17 +160,11 @@ extension _TransferServiceValidation on TransferService {
     required OrganismKind organismKind,
     required String genetName,
   }) {
-    final supportedKinds = receivingOrganization.supportedOrganismKinds;
-    if (supportedKinds.isEmpty) {
-      // If no organism kind constraints are configured, allow the transfer.
-      return;
-    }
-    if (!supportedKinds.contains(organismKind)) {
+    if (organismKind != OrganismKind.coral) {
       throw TransferWorkflowException(
         'Organization "${receivingOrganization.name}" is not authorized to receive '
         '${organismKind.name} organisms. The genet "$genetName" is a ${organismKind.name}, '
-        'which is not in your organization\'s supported organism types '
-        '(${supportedKinds.map((k) => k.name).join(', ')}). '
+        'which is not supported in this community deployment. '
         'Please contact your organization administrator to add this organism type before '
         'accepting the transfer.',
       );
@@ -197,8 +188,10 @@ extension _TransferServiceValidation on TransferService {
       }
 
       // Attempt to fetch the source genet from the source organization's genets collection
-      final doc = await _resolver
-          .subcollection(_db, 'organizations', sourceOrgId, 'genets')
+      final doc = await _db
+          .collection('organizations')
+          .doc(sourceOrgId)
+          .collection('genets')
           .doc(sourceGenetId)
           .get();
 
@@ -250,13 +243,10 @@ extension _TransferServiceValidation on TransferService {
     }
 
     try {
-      await _resolver
-          .subcollection(
-            _db,
-            ModelType.organization.collectionPath,
-            toOrganization.id,
-            'notifications',
-          )
+      await _db
+          .collection(ModelType.organization.collectionPath)
+          .doc(toOrganization.id)
+          .collection('notifications')
           .doc(transferEvent.id)
           .set(notification, SetOptions(merge: true));
       return TransferNotificationOutcome.success;
@@ -267,87 +257,6 @@ extension _TransferServiceValidation on TransferService {
         stackTrace,
       );
       return TransferNotificationOutcome.failed;
-    }
-  }
-
-  /// Notifies the source organization that a transfer was accepted and they
-  /// should create a PopulationLossEvent to decrement their inventory.
-  ///
-  /// NOTE: This is a legacy fallback notification. With pre-decrement inventory,
-  /// the inventory is already decremented at transfer initiation. This notification
-  /// is only sent if the transfer was NOT pre-decremented (inventoryAdjusted != true).
-  Future<void> notifySourceOrganizationForInventoryDecrement({
-    required TransferEvent transfer,
-    required TransferManifest manifest,
-    required int quantity,
-  }) async {
-    final sourceOrgId = transfer.fromOrganizationId;
-    if (sourceOrgId == null || sourceOrgId.isEmpty) {
-      LoggingService.instance.warning(
-        'Cannot notify source organization for inventory decrement: '
-        'missing fromOrganizationId on transfer ${transfer.id}',
-      );
-      return;
-    }
-
-    if (quantity <= 0) {
-      LoggingService.instance.debug(
-        'Skipping inventory decrement notification: quantity is $quantity',
-      );
-      return;
-    }
-
-    final now = DateTime.now().toUtc().toIso8601String();
-    final receivingOrgName = _provenanceRepository.organization.name;
-    final genetName = manifest.genet['name']?.toString() ?? 'Unknown';
-    final genetId = manifest.genet['id']?.toString();
-
-    final notification = <String, dynamic>{
-      'id': '${transfer.id}_inventory_decrement',
-      'notificationType': 'transfer_inventory_decrement',
-      'status': 'pending',
-      'createdAt': now,
-      'updatedAt': now,
-      'transferEventId': transfer.id,
-      'genetId': genetId,
-      'genetName': genetName,
-      'quantity': quantity,
-      'sourceStructureUrlPath': transfer.sourceUrlPath,
-      'toOrganizationId': _provenanceRepository.organization.id,
-      'toOrganizationName': receivingOrgName,
-      'lossReasonId': 'population_loss_reason_transferred',
-      'message':
-          '$receivingOrgName accepted $quantity $genetName - inventory decrement required',
-      'read': false,
-      'metadata': {
-        'transferId': transfer.id,
-        'manifestVersion': manifest.version,
-        'acceptedAt': now,
-        'acceptedById': _provenanceRepository.user.id,
-      },
-    };
-
-    try {
-      await _resolver
-          .subcollection(
-            _db,
-            ModelType.organization.collectionPath,
-            sourceOrgId,
-            'notifications',
-          )
-          .doc('${transfer.id}_inventory_decrement')
-          .set(notification, SetOptions(merge: true));
-
-      LoggingService.instance.info(
-        'Notified source organization $sourceOrgId to decrement inventory for transfer ${transfer.id}',
-      );
-    } catch (e, stackTrace) {
-      LoggingService.instance.error(
-        'Failed to notify source organization for inventory decrement',
-        e,
-        stackTrace,
-      );
-      // Don't throw - this is best-effort
     }
   }
 
@@ -381,7 +290,8 @@ extension _TransferServiceValidation on TransferService {
 
     final now = DateTime.now().toUtc().toIso8601String();
     final rejectingOrgName = _provenanceRepository.organization.name;
-    final genetName = transfer.manifest?['genet']?['name']?.toString() ?? 'Unknown';
+    final genetName =
+        transfer.manifest?['genet']?['name']?.toString() ?? 'Unknown';
 
     final notification = <String, dynamic>{
       'id': '${transfer.id}_inventory_restore',
@@ -408,13 +318,10 @@ extension _TransferServiceValidation on TransferService {
     };
 
     try {
-      await _resolver
-          .subcollection(
-            _db,
-            ModelType.organization.collectionPath,
-            senderOrgId,
-            'notifications',
-          )
+      await _db
+          .collection(ModelType.organization.collectionPath)
+          .doc(senderOrgId)
+          .collection('notifications')
           .doc('${transfer.id}_inventory_restore')
           .set(notification, SetOptions(merge: true));
 
@@ -451,13 +358,10 @@ extension _TransferServiceValidation on TransferService {
     };
 
     try {
-      await _resolver
-          .subcollection(
-            _db,
-            ModelType.organization.collectionPath,
-            toOrgId,
-            'notifications',
-          )
+      await _db
+          .collection(ModelType.organization.collectionPath)
+          .doc(toOrgId)
+          .collection('notifications')
           .doc(transferEvent.id)
           .set(updates, SetOptions(merge: true));
       return TransferNotificationOutcome.success;
@@ -485,12 +389,10 @@ extension _TransferServiceValidation on TransferService {
       return;
     }
     try {
-      final collection = _resolver.subcollection(
-        _db,
-        ModelType.organization.collectionPath,
-        organizationId,
-        ModelType.organismRecord.collectionPath,
-      );
+      final collection = _db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organizationId)
+          .collection(ModelType.organismRecord.collectionPath);
 
       final snapshot = await collection
           .where('metadata.pendingTransferId', isEqualTo: transferId)
@@ -546,7 +448,10 @@ extension _TransferServiceValidation on TransferService {
     if (lockedTotal != transferEvent.quantity) {
       LoggingService.instance.warning(
         'Transfer ${transferEvent.id} locked quantity mismatch',
-        {'lockedTotal': lockedTotal, 'transferQuantity': transferEvent.quantity},
+        {
+          'lockedTotal': lockedTotal,
+          'transferQuantity': transferEvent.quantity,
+        },
       );
     }
 
@@ -563,9 +468,7 @@ extension _TransferServiceValidation on TransferService {
       try {
         final organism = await organismRepository.getRecordForId(organismId);
         if (organism == null) {
-          validationErrors.add(
-            'Organism $organismId not found',
-          );
+          validationErrors.add('Organism $organismId not found');
           continue;
         }
 
@@ -618,13 +521,11 @@ extension _TransferServiceValidation on TransferService {
         );
 
         final updatedRecord = payload.updatedRecord;
-        if (updatedRecord != null) {
-          successfulDecrements[organismId] = decrementAmount;
-          await clearTransferLockForOrganism(
-            organizationId: transferEvent.organizationId,
-            organismId: updatedRecord.id,
-          );
-        }
+        successfulDecrements[organismId] = decrementAmount;
+        await clearTransferLockForOrganism(
+          organizationId: transferEvent.organizationId,
+          organismId: updatedRecord.id,
+        );
       } catch (e, stackTrace) {
         hadApplyError = true;
         LoggingService.instance.error(
@@ -662,13 +563,10 @@ extension _TransferServiceValidation on TransferService {
     required String organismId,
   }) async {
     try {
-      final docRef = _resolver
-          .subcollection(
-            _db,
-            ModelType.organization.collectionPath,
-            organizationId,
-            ModelType.organismRecord.collectionPath,
-          )
+      final docRef = _db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organizationId)
+          .collection(ModelType.organismRecord.collectionPath)
           .doc(organismId);
       await docRef.update({
         'metadata.pendingTransferId': FieldValue.delete(),
@@ -677,14 +575,12 @@ extension _TransferServiceValidation on TransferService {
         'updatedById': _provenanceRepository.user.id,
       });
     } catch (e, stackTrace) {
-      LoggingService.instance.warning(
-        'Failed to clear transfer lock for $organismId',
-        {
-          'organismId': organismId,
-          'error': e.toString(),
-          'stackTrace': stackTrace.toString(),
-        },
-      );
+      LoggingService.instance
+          .warning('Failed to clear transfer lock for $organismId', {
+            'organismId': organismId,
+            'error': e.toString(),
+            'stackTrace': stackTrace.toString(),
+          });
     }
   }
 
@@ -797,16 +693,14 @@ extension _TransferServiceValidation on TransferService {
       return;
     }
 
-    LoggingService.instance.info(
-      'Restoring inventory for transfer ${transfer.id}',
-      {
-        'organismCount': lockedSelection.length,
-        'totalQuantity': lockedSelection.values.fold<int>(
-          0,
-          (total, qty) => total + qty,
-        ),
-      },
-    );
+    LoggingService.instance
+        .info('Restoring inventory for transfer ${transfer.id}', {
+          'organismCount': lockedSelection.length,
+          'totalQuantity': lockedSelection.values.fold<int>(
+            0,
+            (total, qty) => total + qty,
+          ),
+        });
 
     // Phase 1: Pre-validate all organisms before making any changes
     final validatedOrganisms = <String, (OrganismRecord, int)>{};
@@ -863,16 +757,14 @@ extension _TransferServiceValidation on TransferService {
       final incrementAmount = nextQuantity - organism.measurement.value.toInt();
 
       try {
-        final payload = await organismRepository.updatePopulation(
+        await organismRepository.updatePopulation(
           organism,
           nextQuantity,
-          comment: 'Transfer ${transfer.id} rejected/cancelled - inventory restored',
+          comment:
+              'Transfer ${transfer.id} rejected/cancelled - inventory restored',
         );
 
-        final updatedRecord = payload.updatedRecord;
-        if (updatedRecord != null) {
-          successfulRestorations[organismId] = incrementAmount;
-        }
+        successfulRestorations[organismId] = incrementAmount;
       } catch (e, stackTrace) {
         hadApplyError = true;
         LoggingService.instance.error(
@@ -905,16 +797,14 @@ extension _TransferServiceValidation on TransferService {
     // Mark inventory restoration as complete in transfer metadata
     await markTransferInventoryRestored(transfer);
 
-    LoggingService.instance.info(
-      'Inventory restored for transfer ${transfer.id}',
-      {
-        'restoredOrganisms': successfulRestorations.length,
-        'totalRestored': successfulRestorations.values.fold<int>(
-          0,
-          (total, qty) => total + qty,
-        ),
-      },
-    );
+    LoggingService.instance
+        .info('Inventory restored for transfer ${transfer.id}', {
+          'restoredOrganisms': successfulRestorations.length,
+          'totalRestored': successfulRestorations.values.fold<int>(
+            0,
+            (total, qty) => total + qty,
+          ),
+        });
   }
 
   /// Marks the transfer as having its inventory restored.
@@ -923,15 +813,17 @@ extension _TransferServiceValidation on TransferService {
       transfer.metadata ?? const {},
     );
     updatedMetadata['inventoryRestored'] = true;
-    updatedMetadata['inventoryRestoredAt'] =
-        DateTime.now().toUtc().toIso8601String();
+    updatedMetadata['inventoryRestoredAt'] = DateTime.now()
+        .toUtc()
+        .toIso8601String();
     updatedMetadata['inventoryRestoredById'] = _provenanceRepository.user.id;
 
     try {
-      await _resolver.collection(_db, 'events').doc(transfer.id).update({
+      await _db.collection('events').doc(transfer.id).update({
         'metadata.inventoryRestored': true,
-        'metadata.inventoryRestoredAt':
-            DateTime.now().toUtc().toIso8601String(),
+        'metadata.inventoryRestoredAt': DateTime.now()
+            .toUtc()
+            .toIso8601String(),
         'metadata.inventoryRestoredById': _provenanceRepository.user.id,
         'updatedAt': DateTime.now().toUtc().toIso8601String(),
         'updatedById': _provenanceRepository.user.id,
@@ -939,10 +831,7 @@ extension _TransferServiceValidation on TransferService {
     } catch (e, stackTrace) {
       LoggingService.instance.warning(
         'Failed to mark transfer ${transfer.id} as inventory restored',
-        {
-          'error': e.toString(),
-          'stackTrace': stackTrace.toString(),
-        },
+        {'error': e.toString(), 'stackTrace': stackTrace.toString()},
       );
     }
   }
@@ -955,12 +844,10 @@ extension _TransferServiceValidation on TransferService {
     try {
       final organization = _provenanceRepository.organization;
 
-      final collection = _resolver.subcollection(
-        _db,
-        ModelType.organization.collectionPath,
-        organization.id,
-        ModelType.organismRecord.collectionPath,
-      );
+      final collection = _db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection(ModelType.organismRecord.collectionPath);
 
       LoggingService.instance.debug(
         '🔍 Transfer inventory check: querying ${ModelType.organismRecord.collectionPath}',
@@ -1027,17 +914,14 @@ extension _TransferServiceValidation on TransferService {
         }
       }
 
-      LoggingService.instance.info(
-        '🔍 Transfer inventory result',
-        {
-          'genetId': genetId,
-          'sourceStructureUrlPath': sourceStructureUrlPath,
-          'totalOrganismRecords': genetDocs.length,
-          'matchingGenetId': matchingGenetCount,
-          'matchingPath': matchingPathCount,
-          'totalInventoryCount': totalCount,
-        },
-      );
+      LoggingService.instance.info('🔍 Transfer inventory result', {
+        'genetId': genetId,
+        'sourceStructureUrlPath': sourceStructureUrlPath,
+        'totalOrganismRecords': genetDocs.length,
+        'matchingGenetId': matchingGenetCount,
+        'matchingPath': matchingPathCount,
+        'totalInventoryCount': totalCount,
+      });
 
       return totalCount;
     } catch (e, stackTrace) {
@@ -1069,8 +953,8 @@ extension _TransferServiceValidation on TransferService {
       );
 
       // Query transfer events for this genet that are pending or shipped
-      final snapshot = await _resolver
-          .collection(_db, 'events')
+      final snapshot = await _db
+          .collection('events')
           .where('organizationId', isEqualTo: organization.id)
           .where('genetId', isEqualTo: genetId)
           .get();
@@ -1112,28 +996,23 @@ extension _TransferServiceValidation on TransferService {
         final quantity = data['quantity'];
         if (quantity is int) {
           totalPending += quantity;
-          LoggingService.instance.debug(
-            '🔍 Transfer pending: found pending/shipped transfer',
-            {
-              'eventId': doc.id,
-              'eventTypeId': eventTypeId,
-              'status': status,
-              'quantity': quantity,
-              'runningTotal': totalPending,
-            },
-          );
+          LoggingService.instance
+              .debug('🔍 Transfer pending: found pending/shipped transfer', {
+                'eventId': doc.id,
+                'eventTypeId': eventTypeId,
+                'status': status,
+                'quantity': quantity,
+                'runningTotal': totalPending,
+              });
         }
       }
 
-      LoggingService.instance.info(
-        '🔍 Transfer pending result',
-        {
-          'genetId': genetId,
-          'sourceStructureUrlPath': sourceStructureUrlPath,
-          'totalEvents': snapshot.docs.length,
-          'totalPendingQuantity': totalPending,
-        },
-      );
+      LoggingService.instance.info('🔍 Transfer pending result', {
+        'genetId': genetId,
+        'sourceStructureUrlPath': sourceStructureUrlPath,
+        'totalEvents': snapshot.docs.length,
+        'totalPendingQuantity': totalPending,
+      });
 
       return totalPending;
     } catch (e, stackTrace) {
@@ -1159,12 +1038,10 @@ extension _TransferServiceValidation on TransferService {
   }) async {
     final lockedSelection = <String, int>{};
 
-    final collection = _resolver.subcollection(
-      _db,
-      ModelType.organization.collectionPath,
-      organizationId,
-      ModelType.organismRecord.collectionPath,
-    );
+    final collection = _db
+        .collection(ModelType.organization.collectionPath)
+        .doc(organizationId)
+        .collection(ModelType.organismRecord.collectionPath);
 
     final genetDocs = await loadOrganismDocsForGenet(
       collection: collection,
@@ -1179,18 +1056,17 @@ extension _TransferServiceValidation on TransferService {
     }
 
     // Filter by sourceStructureUrlPath
-    final eligibleDocs =
-        genetDocs.where((doc) {
-          final data = doc.data();
-          if (sourceStructureUrlPath != null) {
-            final urlPath = data['urlPath'] as String?;
-            if (urlPath == null ||
-                !_matchesPathPrefix(urlPath, sourceStructureUrlPath)) {
-              return false;
-            }
-          }
-          return true;
-        }).toList();
+    final eligibleDocs = genetDocs.where((doc) {
+      final data = doc.data();
+      if (sourceStructureUrlPath != null) {
+        final urlPath = data['urlPath'] as String?;
+        if (urlPath == null ||
+            !_matchesPathPrefix(urlPath, sourceStructureUrlPath)) {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
 
     final now = DateTime.now().toIso8601String();
 
@@ -1283,10 +1159,7 @@ extension _TransferServiceValidation on TransferService {
     return resolved != null && resolved == genetId;
   }
 
-  int resolveOrganismQuantity(
-    Map<String, dynamic> data, {
-    int fallback = 0,
-  }) {
+  int resolveOrganismQuantity(Map<String, dynamic> data, {int fallback = 0}) {
     final measurement = data['measurement'];
     if (measurement is Map) {
       final value = measurement['value'];
@@ -1311,7 +1184,7 @@ extension _TransferServiceValidation on TransferService {
   }
 
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
-      loadOrganismDocsForGenet({
+  loadOrganismDocsForGenet({
     required CollectionReference<Map<String, dynamic>> collection,
     required String genetId,
   }) async {
@@ -1340,11 +1213,7 @@ extension _TransferServiceValidation on TransferService {
       hadQueryFailure = true;
       LoggingService.instance.debug(
         'Transfer inventory primary query failed; will use in-memory filter',
-        {
-          'genetId': genetId,
-          'code': e.code,
-          'message': e.message,
-        },
+        {'genetId': genetId, 'code': e.code, 'message': e.message},
       );
     }
 
@@ -1356,10 +1225,7 @@ extension _TransferServiceValidation on TransferService {
     if (hadQueryFailure) {
       LoggingService.instance.debug(
         'Transfer inventory query incomplete; scanning for genet matches',
-        {
-          'genetId': genetId,
-          'seededMatches': docsById.length,
-        },
+        {'genetId': genetId, 'seededMatches': docsById.length},
       );
     }
 
@@ -1582,7 +1448,7 @@ extension _TransferServiceValidation on TransferService {
       };
 
       // Store the failure in the transfer event's metadata
-      await _resolver.collection(_db, 'events').doc(transferEventId).update({
+      await _db.collection('events').doc(transferEventId).update({
         'crosswalkRegistrationFailure': failureRecord,
         'updatedAt': DateTime.now().toUtc().toIso8601String(),
       });

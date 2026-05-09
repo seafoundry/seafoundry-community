@@ -108,23 +108,3 @@ class _OrganizationSearchDialogState
   String getItemDisplayName(Organization item) => item.name;
 }
 
-/// Mixin providing shared geometry controller synchronization logic for
-/// transfer dialogs. This prevents duplicate code across initiate, receive,
-/// and accept dialogs that all need to sync geometry text to a controller.
-mixin GeometryControllerSyncMixin {
-  /// Flag to prevent recursive updates during sync.
-  bool get syncingGeometry;
-  set syncingGeometry(bool value);
-
-  /// Synchronizes the geometry controller text with the provided [next] value.
-  /// Prevents recursive updates by checking [syncingGeometry] flag and skips
-  /// updates when the text is already equal.
-  void syncGeometryController(TextEditingController controller, String next) {
-    if (controller.text == next) return;
-    syncingGeometry = true;
-    controller
-      ..text = next
-      ..selection = TextSelection.collapsed(offset: next.length);
-    syncingGeometry = false;
-  }
-}

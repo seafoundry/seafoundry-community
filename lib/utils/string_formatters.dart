@@ -26,6 +26,13 @@ String formatSnakeCaseToTitleCase(String value) {
       .join(' ');
 }
 
+/// Returns trimmed [value], or `null` if blank/null.
+///
+/// Useful for normalizing optional string fields before persistence or
+/// comparison -- collapses whitespace-only strings into `null`.
+String? nonEmpty(String? value) =>
+    (value == null || value.trim().isEmpty) ? null : value.trim();
+
 /// Converts a string to a URL-safe slug for use in IDs.
 ///
 /// - Converts to lowercase

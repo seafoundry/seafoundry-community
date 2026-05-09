@@ -58,8 +58,6 @@ const options = {
 const EXCLUDED_COLLECTIONS = new Set(['__collection_group_ids__']);
 const DEFAULT_DEMO_ORG_IDS = [
   'demo_org_community',
-  'demo_org_pro',
-  'demo_org_scale',
 ];
 const ORG_SCOPED_COLLECTIONS = [
   'events',
@@ -67,21 +65,17 @@ const ORG_SCOPED_COLLECTIONS = [
   'groups',
   'genets',
   'organismRecords',
+  'holdings',
+  'transfers',
   'outplant_events',
   'outplant_tags',
-  'monitoring_observations',
-  'missions',
   'deliverables',
   'permits',
-  'vessels',
   'invitations',
-  'reports',
   'brand_profiles',
-  'ecological_surveys',
-  'user_profiles',
-  'training_progress',
-  'training_sops',
   'snapshots',
+  'snapshot_records',
+  'inventory_snapshots',
   'public_orgs',
 ];
 const CRC_COLLECTIONS = new Set([
@@ -107,8 +101,6 @@ const CRC_COLLECTIONS = new Set([
   'groupTypes',
   'siteTypes',
   'training_media',
-  'training_progress',
-  'training_sops',
 ]);
 const DEMO_COLLECTIONS = new Set([
   'demo_organizations',
@@ -352,7 +344,7 @@ Options:
   --include-crc                  Also delete CRC/HOG collections (preserved by default)
   --include-demo                 Also delete demo collections (preserved by default)
   --preserve-demo-orgs           Only delete data not tied to demo org IDs
-  --demo-orgs=org1,org2          Override demo org IDs (default: demo_org_community, demo_org_pro, demo_org_scale)
+  --demo-orgs=org1,org2          Override demo org IDs (default: demo_org_community)
   --delete-non-demo-auth-users   Delete Firebase Auth users not in demo orgs (requires --preserve-demo-orgs)
   --only=col1,col2               Delete only these collections
   --skip=col1,col2               Skip these collections
@@ -594,7 +586,7 @@ function isDemoEmail(email) {
   const [local, domain] = parts;
   if (domain !== 'provenance.app') return false;
   const base = local.replace(/[0-9]+$/, '');
-  return ['community', 'pro', 'scale'].includes(base);
+  return base == 'community';
 }
 
 async function maybeRunPidCrosswalk({ deletedUserDocs, deletedAuthUsers }) {

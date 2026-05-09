@@ -25,7 +25,6 @@ class SizeChangeEvent extends Event {
     required this.oldSize,
     required this.newSize,
     String? eventTypeId,
-    super.missionId,
     super.metadata,
     super.base,
   }) : super(
@@ -87,8 +86,6 @@ class SizeChangeEvent extends Event {
     String? slug,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     OrganismRecord? organismRecordSnapshot,
     SizeSpec? oldSize,
     SizeSpec? newSize,
@@ -113,7 +110,6 @@ class SizeChangeEvent extends Event {
           organismRecordSnapshot ?? this.organismRecordSnapshot,
       oldSize: oldSize ?? this.oldSize,
       newSize: newSize ?? this.newSize,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,

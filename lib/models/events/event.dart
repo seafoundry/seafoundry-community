@@ -51,7 +51,6 @@ class Event extends InventoryRecord {
     required this.eventTypeId,
     required this.recordId,
     required this.recordModelType,
-    this.missionId,
     EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     OutplantGeometry? geometry,
     EventBaseParams base = const EventBaseParams(),
@@ -62,7 +61,6 @@ class Event extends InventoryRecord {
     : eventTypeId = json['eventTypeId'],
       recordId = json['recordId'],
       recordModelType = json['recordModelType'] != null ? ModelType.fromSlug(json['recordModelType'] as String) : ModelType.unknown,
-      missionId = json['missionId'] as String?,
       permitMetadata = EventPermitMetadata.fromJson(
         json['permitMetadata'] is Map<String, dynamic>
             ? Map<String, dynamic>.from(json['permitMetadata'])
@@ -86,7 +84,6 @@ class Event extends InventoryRecord {
     String? eventTypeId,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
     EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
     EventBaseParams base = const EventBaseParams(),
@@ -97,7 +94,6 @@ class Event extends InventoryRecord {
            ModelType.values.byName(
              json?['recordModelType'] ?? ModelType.unknown.name,
            ),
-       missionId = missionId ?? json?['missionId'] as String?,
        permitMetadata =
            base.permitMetadata ??
            permitMetadata ??
@@ -119,7 +115,6 @@ class Event extends InventoryRecord {
       'eventTypeId': eventTypeId,
       'recordId': recordId,
       'recordModelType': recordModelType.name,
-      if (missionId != null) 'missionId': missionId,
       if (!permitMetadata.isEmpty) 'permitMetadata': permitMetadata.toJson(),
       if (geometry != null) 'geometry': geometry!.toJson(),
       ...super.toJson(),
@@ -131,8 +126,6 @@ class Event extends InventoryRecord {
     String? eventTypeId,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     String? createdAt,
     String? createdById,
     String? updatedAt,
@@ -164,7 +157,6 @@ class Event extends InventoryRecord {
       eventTypeId: eventTypeId ?? this.eventTypeId,
       recordId: recordId ?? this.recordId,
       recordModelType: recordModelType ?? this.recordModelType,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       base: resolvedBase,
     );
   }
@@ -192,18 +184,12 @@ class Event extends InventoryRecord {
   final String recordId;
   final ModelType recordModelType;
 
-  /// Optional link to a Mission that this event was created during
-  final String? missionId;
-
   final EventPermitMetadata permitMetadata;
   final OutplantGeometry? geometry;
 
-  /// Whether this event is linked to a mission
-  bool get hasMission => missionId != null;
-
   @override
   List<Object?> get props =>
-      super.props + [eventTypeId, recordId, recordModelType, missionId, permitMetadata, geometry];
+      super.props + [eventTypeId, recordId, recordModelType, permitMetadata, geometry];
 
   @override
   String toString() {
@@ -225,7 +211,6 @@ class OutplantEvent extends Event {
     required super.slug,
     super.metadata,
     required super.recordModelType,
-    super.missionId,
     required this.name,
     required this.siteId,
     required this.allocations,
@@ -235,7 +220,6 @@ class OutplantEvent extends Event {
     this.percentDisease,
     this.healthStatus,
     this.deliverableId,
-    this.funderId,
     this.attachmentMethodId,
     super.geometry,
     super.permitMetadata,
@@ -252,7 +236,6 @@ class OutplantEvent extends Event {
       percentDisease = safeDouble(json['percentDisease']),
       healthStatus = json['healthStatus'],
       deliverableId = json['deliverableId'] as String?,
-      funderId = json['funderId'] as String?,
       attachmentMethodId = json['attachmentMethodId'] as String?,
       super.fromJson();
 
@@ -266,7 +249,6 @@ class OutplantEvent extends Event {
     super.organizationId,
     super.recordId,
     super.recordModelType,
-    super.missionId,
     super.urlPath,
     super.internalPath,
     super.slug,
@@ -282,7 +264,6 @@ class OutplantEvent extends Event {
     double? percentDisease,
     String? healthStatus,
     String? deliverableId,
-    String? funderId,
     String? attachmentMethodId,
     OutplantGeometry? geometry,
     EventPermitMetadata? permitMetadata,
@@ -306,7 +287,6 @@ class OutplantEvent extends Event {
            percentDisease ?? safeDouble(json?['percentDisease']),
        healthStatus = healthStatus ?? json?['healthStatus'],
        deliverableId = deliverableId ?? json?['deliverableId'] as String?,
-       funderId = funderId ?? json?['funderId'] as String?,
        attachmentMethodId = attachmentMethodId ?? json?['attachmentMethodId'] as String?,
        super.partial(eventTypeId: eventTypeId ?? 'outplant_event');
 
@@ -322,20 +302,12 @@ class OutplantEvent extends Event {
   /// Optional link to a Deliverable for permit tracking
   final String? deliverableId;
 
-  /// Optional link to a Funder for reporting
-  final String? funderId;
-
   /// Attachment method used for this outplant (builtin or custom ID)
   final String? attachmentMethodId;
 
   int get totalQuantity =>
       allocations.fold<int>(0, (sum, a) => sum + a.quantity);
 
-  double get totalVolumeCm3 =>
-      allocations.fold<double>(0, (sum, a) => sum + (a.volumeCm3 ?? 0));
-
-  double get totalTissueAreaCm2 =>
-      allocations.fold<double>(0, (sum, a) => sum + (a.tissueAreaCm2 ?? 0));
 
   /// Whether any allocations target a specific plot/patch (have a groupId)
   bool get hasPlotAllocations => allocations.any((a) => a.groupId != null);
@@ -356,11 +328,8 @@ class OutplantEvent extends Event {
       if (percentDisease != null) 'percentDisease': percentDisease,
       if (healthStatus != null) 'healthStatus': healthStatus,
       if (deliverableId != null) 'deliverableId': deliverableId,
-      if (funderId != null) 'funderId': funderId,
       if (attachmentMethodId != null) 'attachmentMethodId': attachmentMethodId,
       'totalQuantity': totalQuantity,
-      'totalVolumeCm3': totalVolumeCm3,
-      'totalTissueAreaCm2': totalTissueAreaCm2,
       ...super.toJson(),
     };
   }
@@ -388,8 +357,6 @@ class OutplantEvent extends Event {
     String? internalPath,
     String? slug,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     String? name,
     String? siteId,
     List<OutplantAllocation>? allocations,
@@ -399,10 +366,8 @@ class OutplantEvent extends Event {
     double? percentDisease,
     String? healthStatus,
     String? deliverableId,
-    String? funderId,
     String? attachmentMethodId,
     bool clearDeliverableId = false,
-    bool clearFunderId = false,
     bool clearAttachmentMethodId = false,
     OutplantGeometry? geometry,
     bool clearGeometry = false,
@@ -427,7 +392,6 @@ class OutplantEvent extends Event {
       ).copyWith(clearGeometry: clearGeometry),
 
       recordModelType: recordModelType ?? this.recordModelType,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       name: name ?? this.name,
       siteId: siteId ?? this.siteId,
       allocations: List.unmodifiable(allocations ?? this.allocations),
@@ -437,7 +401,6 @@ class OutplantEvent extends Event {
       percentDisease: percentDisease ?? this.percentDisease,
       healthStatus: healthStatus ?? this.healthStatus,
       deliverableId: clearDeliverableId ? null : (deliverableId ?? this.deliverableId),
-      funderId: clearFunderId ? null : (funderId ?? this.funderId),
       attachmentMethodId: clearAttachmentMethodId ? null : (attachmentMethodId ?? this.attachmentMethodId),
       geometry: clearGeometry ? null : (geometry ?? this.geometry),
     );
@@ -456,7 +419,6 @@ class OutplantEvent extends Event {
         percentDisease,
         healthStatus,
         deliverableId,
-        funderId,
         attachmentMethodId,
       ];
 
@@ -486,12 +448,6 @@ class OutplantEvent extends Event {
           quantity: quantity,
           sourcePath: snapshot['urlPath'] ?? '',
           snapshot: snapshot,
-          volumeCm3:
-              safeDouble(snapshot['inventoryVolumeCm3']) ??
-              safeDouble(json['volumeCm3']),
-          tissueAreaCm2:
-              safeDouble(snapshot['inventoryTissueAreaCm2']) ??
-              safeDouble(json['tissueAreaCm2']),
         ),
       ];
     }
@@ -509,16 +465,6 @@ class OutplantEvent extends Event {
           quantity: quantity,
           sourcePath: json['urlPath'] ?? '',
           snapshot: snapshot is Map<String, dynamic> ? snapshot : null,
-          volumeCm3:
-              safeDouble(snapshot is Map<String, dynamic>
-                          ? snapshot['inventoryVolumeCm3']
-                          : null) ??
-              safeDouble(json['volumeCm3']),
-          tissueAreaCm2:
-              safeDouble(snapshot is Map<String, dynamic>
-                          ? snapshot['inventoryTissueAreaCm2']
-                          : null) ??
-              safeDouble(json['tissueAreaCm2']),
         ),
       ];
     }
@@ -552,8 +498,6 @@ class OutplantAllocation {
     required this.quantity,
     required this.sourcePath,
     this.snapshot,
-    this.volumeCm3,
-    this.tissueAreaCm2,
   });
 
   final String organismId;
@@ -576,8 +520,6 @@ class OutplantAllocation {
   final int quantity;
   final String sourcePath;
   final Map<String, dynamic>? snapshot;
-  final double? volumeCm3;
-  final double? tissueAreaCm2;
 
   Map<String, dynamic> toJson() {
     return {
@@ -593,8 +535,6 @@ class OutplantAllocation {
       if (groupPath != null) 'groupPath': groupPath,
       'quantity': quantity,
       'sourcePath': sourcePath,
-      if (volumeCm3 != null) 'volumeCm3': volumeCm3,
-      if (tissueAreaCm2 != null) 'tissueAreaCm2': tissueAreaCm2,
       if (snapshot != null) 'snapshot': snapshot,
     };
   }
@@ -616,8 +556,6 @@ class OutplantAllocation {
       groupPath: json['groupPath'],
       quantity: OutplantEvent._parseQuantity(json['quantity']),
       sourcePath: json['sourcePath'] ?? '',
-      volumeCm3: safeDouble(json['volumeCm3']),
-      tissueAreaCm2: safeDouble(json['tissueAreaCm2']),
       snapshot: json['snapshot'] is Map<String, dynamic>
           ? Map<String, dynamic>.from(json['snapshot'] as Map)
           : null,

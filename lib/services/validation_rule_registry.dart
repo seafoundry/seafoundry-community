@@ -1,6 +1,5 @@
 // @tier: community
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/validation/validation_result.dart';
@@ -9,7 +8,6 @@ import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
-import 'package:yaml/yaml.dart';
 
 typedef ValidationRuleEvaluator =
     ValidationResult Function(ValidationRuleContext context);
@@ -60,12 +58,6 @@ class ValidationRuleRegistry {
     _notifyListeners();
   }
 
-  void clearRules(OrganismKind organismKind) {
-    if (_rules.remove(organismKind) != null) {
-      _notifyListeners();
-    }
-  }
-
   /// Clears all rules. Used during logout to prevent stale data.
   void reset() {
     if (_rules.isNotEmpty) {
@@ -95,27 +87,39 @@ class ValidationRuleRegistry {
     return List<ValidationRule>.unmodifiable(matching);
   }
 
-  Map<String, List<Map<String, dynamic>>> toSerializableMap() {
-    return UnmodifiableMapView({
-      for (final entry in _rules.entries)
-        entry.key.name: entry.value
-            .map((ruleEntry) => ruleEntry.toSerializableMap())
-            .toList(growable: false),
-    });
+  // ---------------------------------------------------------------------------
+  // Hardcoded default rules (previously loaded from validation_rules.defaults.yaml)
+  // ---------------------------------------------------------------------------
+
+  static const _defaultRules = <String, List<Map<String, dynamic>>>{
+    'coral': [
+      {
+        'id': 'coral_batch_density_warning',
+        'description': 'High batch density may require splitting for health',
+        'severity': 'warning',
+        'type': 'measurementRange',
+        'config': {
+          'max': 500,
+          'message':
+              'Batch has >500 fragments; consider splitting for health monitoring.',
+        },
+      },
+    ],
+  };
+
+  /// Registers the built-in default validation rules.
+  void loadDefaultRules({bool overrideExisting = false}) {
+    _loadRulesFromMap(_defaultRules, overrideExisting: overrideExisting);
   }
 
-  void loadRulesFromYaml(String yaml, {bool overrideExisting = false}) {
-    final document = loadYaml(yaml);
-    if (document is! YamlMap) {
-      return;
-    }
-    document.forEach((dynamic organismKey, dynamic value) {
-      final kind = OrganismKindX.tryParse(organismKey?.toString());
+  void _loadRulesFromMap(
+    Map<String, List<Map<String, dynamic>>> rulesMap, {
+    bool overrideExisting = false,
+  }) {
+    rulesMap.forEach((organismKey, ruleList) {
+      final kind = OrganismKindX.tryParse(organismKey);
       if (kind == null) return;
-      if (value is! YamlList) return;
-      for (final node in value) {
-        if (node is! YamlMap) continue;
-        final map = Map<String, dynamic>.from(jsonDecode(jsonEncode(node)));
+      for (final map in ruleList) {
         final rule = ValidationRule.fromMap(map);
         final lifeStage = LifeStageX.tryParse(map['lifeStage']?.toString());
         final physicalForm = map['physicalForm']?.toString();
@@ -412,17 +416,6 @@ class _ValidationRuleEntry {
   final ValidationRule rule;
   final LifeStage? lifeStage;
   final String? physicalForm;
-
-  Map<String, dynamic> toSerializableMap() {
-    final payload = rule.toJson();
-    if (lifeStage != null) {
-      payload['lifeStage'] = lifeStage!.id;
-    }
-    if (physicalForm != null) {
-      payload['physicalForm'] = physicalForm;
-    }
-    return payload;
-  }
 }
 
 Set<String> _stringSet(dynamic value) {

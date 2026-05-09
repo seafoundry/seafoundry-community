@@ -77,8 +77,9 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
     // --- ID type validation (Phase 2, Team Delta — 2D.3) ---
     // Reject provenance ID format in doc ID columns.
     final organismIdRaw = row['organismId'] ?? '';
-    final organismIdIsLegacy =
-        CsvColumnNames.isLegacyProvenanceIdFormat(organismIdRaw);
+    final organismIdIsLegacy = CsvColumnNames.isLegacyProvenanceIdFormat(
+      organismIdRaw,
+    );
     if (organismIdRaw.isNotEmpty &&
         (CsvColumnNames.isProvenanceIdFormat(organismIdRaw) ||
             organismIdIsLegacy)) {
@@ -87,15 +88,17 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
           rowNumber: rowNumber,
           field: 'organismId',
           value: organismIdRaw,
-          message: 'organismId must be a Firestore document ID, not a '
+          message:
+              'organismId must be a Firestore document ID, not a '
               'lineage ID (PID- prefix). '
               'Use provenanceId for lineage identifiers.',
         ),
       );
     }
     final genetIdRaw = row['genetId'] ?? '';
-    final genetIdIsLegacy =
-        CsvColumnNames.isLegacyProvenanceIdFormat(genetIdRaw);
+    final genetIdIsLegacy = CsvColumnNames.isLegacyProvenanceIdFormat(
+      genetIdRaw,
+    );
     if (genetIdRaw.isNotEmpty &&
         (CsvColumnNames.isProvenanceIdFormat(genetIdRaw) || genetIdIsLegacy)) {
       issues.add(
@@ -103,13 +106,14 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
           rowNumber: rowNumber,
           field: 'genetId',
           value: genetIdRaw,
-          message: 'genetId must be a Firestore document ID, not a '
+          message:
+              'genetId must be a Firestore document ID, not a '
               'lineage ID (PID- prefix). '
               'Use genetProvenanceId for genet lineage identifiers.',
         ),
       );
     }
-    // Reject doc ID format in lineage ID columns.
+    // Reject non-canonical lineage ID formats in lineage ID columns.
     final provenanceIdRaw = row['provenanceId'] ?? '';
     if (provenanceIdRaw.isNotEmpty &&
         CsvColumnNames.isLegacyProvenanceIdFormat(provenanceIdRaw)) {
@@ -118,9 +122,9 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
           rowNumber: rowNumber,
           field: 'provenanceId',
           value: provenanceIdRaw,
-          message: 'provenanceId must use the PID- prefix. Legacy SF- '
+          message:
+              'provenanceId must use the PID- prefix. Legacy SF- '
               'provenance IDs are not supported.',
-          severity: CsvTranslationIssueSeverity.warning,
         ),
       );
     } else if (provenanceIdRaw.isNotEmpty &&
@@ -130,17 +134,18 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
           rowNumber: rowNumber,
           field: 'provenanceId',
           value: provenanceIdRaw,
-          message: 'provenanceId must be a lineage ID (PID- prefix), '
+          message:
+              'provenanceId must be a lineage ID (PID- prefix), '
               'not a Firestore document ID. '
               'Use organismId for Firestore document IDs.',
-          severity: CsvTranslationIssueSeverity.warning,
         ),
       );
     }
     final measurementUnit = row['measurementUnit'];
     if (measurementUnit != null && measurementUnit.isNotEmpty) {
-      if (!UniversalCsvAdapterV2._measurementUnits
-          .contains(measurementUnit.toLowerCase())) {
+      if (!UniversalCsvAdapterV2._measurementUnits.contains(
+        measurementUnit.toLowerCase(),
+      )) {
         issues.add(
           CsvTranslationIssue(
             rowNumber: rowNumber,
@@ -237,23 +242,6 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
       }
     }
 
-    final structureType = row['structureType'];
-    if (structureType != null && structureType.isNotEmpty) {
-      final structureLower = structureType.toLowerCase();
-      if (UniversalCsvAdapterV2._kelpStructureTypes.contains(structureLower) &&
-          (row['lineId'] ?? '').isEmpty) {
-        issues.add(
-          CsvTranslationIssue(
-            rowNumber: rowNumber,
-            field: 'lineId',
-            value: '',
-            message:
-                'Kelp structures ($structureType) require lineId in CSV v2.',
-          ),
-        );
-      }
-    }
-
     return issues;
   }
 
@@ -264,33 +252,7 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
     required int rowNumber,
     required List<CsvTranslationIssue> issues,
   }) {
-    final normalized = measurementUnit.trim().toLowerCase();
-    if (holdingKind == 'gameteBatch' || holdingKind == 'larvalBatch') {
-      if (!UniversalCsvAdapterV2._countMeasurementUnits.contains(normalized)) {
-        issues.add(
-          CsvTranslationIssue(
-            rowNumber: rowNumber,
-            field: 'measurementUnit',
-            value: measurementUnit,
-            message:
-                '${holdingKind == 'gameteBatch' ? 'Gamete' : 'Larval'} holdings must use measurementUnit=count.',
-          ),
-        );
-      }
-      return;
-    }
-    if (holdingKind == 'seededLineBatch') {
-      if (!UniversalCsvAdapterV2._seededLineMeasurementUnits
-          .contains(normalized)) {
-        issues.add(
-          CsvTranslationIssue(
-            rowNumber: rowNumber,
-            field: 'measurementUnit',
-            value: measurementUnit,
-            message: 'Seeded line holdings require measurementUnit=kg_per_m.',
-          ),
-        );
-      }
-    }
+    // Dedicated gamete/larval batch holding types removed in sexual propagation
+    // simplification. No special measurement unit validation needed.
   }
 }

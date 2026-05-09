@@ -59,7 +59,6 @@ class OrganismCreationState extends Equatable {
     this.physicalFormLabel,
     this.isNewGenet = true,
     this.provenanceType,
-    this.gameteRole,
     this.gainReason,
     this.sourceCohortId,
     this.wildCollectionMethod,
@@ -91,8 +90,6 @@ class OrganismCreationState extends Equatable {
     this.permitValidFrom,
     this.permitValidTo,
     this.editingCount,
-    this.editingVolumeCm3,
-    this.editingTissueAreaCm2,
     this.measurementFieldConfig,
     this.suggestedLocalId,
     this.clonalId,
@@ -115,7 +112,6 @@ class OrganismCreationState extends Equatable {
   final SizeSpec sizeSpec;
   final String? physicalFormLabel;
   final ProvenanceType? provenanceType;
-  final ProvenanceGameteRole? gameteRole;
   final String? sourceCohortId;
   final String? wildCollectionMethod;
   final String? collectionReefOrigin;
@@ -157,8 +153,6 @@ class OrganismCreationState extends Equatable {
   final DateTime? permitValidFrom;
   final DateTime? permitValidTo;
   final int? editingCount;
-  final double? editingVolumeCm3;
-  final double? editingTissueAreaCm2;
   final MeasurementFieldConfig? measurementFieldConfig;
 
   /// Suggested local ID based on species (e.g., "Apal-1", "Acer-2")
@@ -246,7 +240,7 @@ class OrganismCreationState extends Equatable {
     if (selectedGenet != null) return null; // Existing inventory mode
     return switch (provenanceType) {
       ProvenanceType.wild => 'collection',
-      ProvenanceType.sexualCohort => 'spawning',
+      ProvenanceType.cohort => 'cohort',
       ProvenanceType.graduatedIndividual => 'graduation',
       ProvenanceType.transfer => 'transfer',
       ProvenanceType.unknown => 'unknown',
@@ -282,63 +276,10 @@ class OrganismCreationState extends Equatable {
       );
     }
 
-    // Optional validations if fields are provided.
-    if (isNewGenet &&
-        provenanceType != null &&
-        provenanceType!.metadata.requiresParentIds) {
-      final hasSire =
-          sireProvenanceId != null && sireProvenanceId!.trim().isNotEmpty;
-      final hasDam =
-          damProvenanceId != null && damProvenanceId!.trim().isNotEmpty;
-      if (!hasSire || !hasDam) {
-        issues.add(
-          'Parent gamete IDs required for ${provenanceType!.metadata.displayName}',
-        );
-      }
-    }
-
-    if (isNewGenet &&
-        provenanceType != null &&
-        provenanceType!.metadata.requiresSourceCohort &&
-        (sourceCohortId == null || sourceCohortId!.trim().isEmpty)) {
-      issues.add(
-        'Source Cohort ID (required for ${provenanceType!.metadata.displayName})',
-      );
-    }
-
-    if (isNewGenet) {
-      final allowedStages = provenanceType?.metadata.allowedLifeStages ?? [];
-      if (allowedStages.isNotEmpty &&
-          lifeStage != null &&
-          !allowedStages.contains(lifeStage)) {
-        issues.add(
-          'Life stage ${lifeStage!.name} not valid for ${provenanceType!.metadata.displayName}',
-        );
-      }
-    }
-
     if (isFragmentationGain &&
         lifeStage != null &&
         fragmentationDisallowedLifeStages.contains(lifeStage)) {
       issues.add('Life stage ${lifeStage!.displayName} cannot be fragmented');
-    }
-
-    if (lifeStage == LifeStage.gamete && gameteRole == null) {
-      issues.add('Gamete type (eggs or sperm) required');
-    }
-
-    if (isNewGenet &&
-        provenanceType == ProvenanceType.sexualCohort &&
-        physicalForm != null) {
-      final formId = physicalForm!.formId.toLowerCase();
-      if (formId.contains('fragment') ||
-          formId.contains('colony') ||
-          formId.contains('individual') ||
-          formId.contains('microfragment')) {
-        issues.add(
-          'Sexual cohorts require container or shared substrate physical forms',
-        );
-      }
     }
 
     return issues;
@@ -366,53 +307,10 @@ class OrganismCreationState extends Equatable {
     if (!hasEffectiveLocalId) return 'localId';
     if (measurement.value <= 0) return 'quantity';
 
-    if (isNewGenet &&
-        provenanceType != null &&
-        provenanceType!.metadata.requiresParentIds) {
-      final hasSire =
-          sireProvenanceId != null && sireProvenanceId!.trim().isNotEmpty;
-      final hasDam =
-          damProvenanceId != null && damProvenanceId!.trim().isNotEmpty;
-      if (!hasSire) return 'sireProvenanceId';
-      if (!hasDam) return 'damProvenanceId';
-    }
-
-    if (isNewGenet &&
-        provenanceType != null &&
-        provenanceType!.metadata.requiresSourceCohort &&
-        (sourceCohortId == null || sourceCohortId!.trim().isEmpty)) {
-      return 'sourceCohortId';
-    }
-
-    if (isNewGenet) {
-      final allowedStages = provenanceType?.metadata.allowedLifeStages ?? [];
-      if (allowedStages.isNotEmpty &&
-          lifeStage != null &&
-          !allowedStages.contains(lifeStage)) {
-        return 'lifeStage';
-      }
-    }
-
     if (isFragmentationGain &&
         lifeStage != null &&
         fragmentationDisallowedLifeStages.contains(lifeStage)) {
       return 'lifeStage';
-    }
-
-    if (lifeStage == LifeStage.gamete && gameteRole == null) {
-      return 'gameteRole';
-    }
-
-    if (isNewGenet &&
-        provenanceType == ProvenanceType.sexualCohort &&
-        physicalForm != null) {
-      final formId = physicalForm!.formId.toLowerCase();
-      if (formId.contains('fragment') ||
-          formId.contains('colony') ||
-          formId.contains('individual') ||
-          formId.contains('microfragment')) {
-        return 'physicalForm';
-      }
     }
 
     return null;
@@ -425,38 +323,7 @@ class OrganismCreationState extends Equatable {
   ];
 
   List<String> get provenanceStepIssues {
-    final issues = <String>[];
-
-    if (!isNewGenet) return issues;
-
-    // T0.2: Validate parent gamete IDs for sexual cohorts (requiresParentIds)
-    // NOTE: Parent IDs are validated for presence but not database existence.
-    // The GenetSelector UI filters by species/provenance type, preventing most
-    // invalid selections. Database existence validation would require async
-    // operations incompatible with the synchronous validation pattern.
-    // Repository-layer validation provides additional protection at write time.
-    if (provenanceType != null && provenanceType!.metadata.requiresParentIds) {
-      final hasSire =
-          sireProvenanceId != null && sireProvenanceId!.trim().isNotEmpty;
-      final hasDam =
-          damProvenanceId != null && damProvenanceId!.trim().isNotEmpty;
-      if (!hasSire || !hasDam) {
-        issues.add(
-          'Parent gamete IDs required for ${provenanceType!.metadata.displayName}',
-        );
-      }
-    }
-
-    // Validate source cohort for graduated individuals (requiresSourceCohort)
-    if (provenanceType != null &&
-        provenanceType!.metadata.requiresSourceCohort &&
-        (sourceCohortId == null || sourceCohortId!.trim().isEmpty)) {
-      issues.add(
-        'Source Cohort ID (required for ${provenanceType!.metadata.displayName})',
-      );
-    }
-
-    return issues;
+    return const <String>[];
   }
 
   List<String> get gainReasonStepIssues => const [];
@@ -464,26 +331,10 @@ class OrganismCreationState extends Equatable {
   List<String> get biometricsStepIssues {
     final issues = <String>[];
 
-    // T6: Validate life stage compatibility with provenance type
-    if (isNewGenet) {
-      final allowedStages = provenanceType?.metadata.allowedLifeStages ?? [];
-      if (allowedStages.isNotEmpty &&
-          lifeStage != null &&
-          !allowedStages.contains(lifeStage)) {
-        issues.add(
-          'Life stage ${lifeStage!.name} not valid for ${provenanceType!.metadata.displayName}',
-        );
-      }
-    }
-
     if (isFragmentationGain &&
         lifeStage != null &&
         fragmentationDisallowedLifeStages.contains(lifeStage)) {
       issues.add('Life stage ${lifeStage!.displayName} cannot be fragmented');
-    }
-
-    if (lifeStage == LifeStage.gamete && gameteRole == null) {
-      issues.add('Gamete type (eggs or sperm) required');
     }
 
     return issues;
@@ -491,21 +342,6 @@ class OrganismCreationState extends Equatable {
 
   List<String> get measurementsStepIssues {
     final issues = <String>[];
-
-    // T0.1: Validate physical form compatibility with provenance type
-    if (isNewGenet &&
-        provenanceType == ProvenanceType.sexualCohort &&
-        physicalForm != null) {
-      final formId = physicalForm!.formId.toLowerCase();
-      if (formId.contains('fragment') ||
-          formId.contains('colony') ||
-          formId.contains('individual') ||
-          formId.contains('microfragment')) {
-        issues.add(
-          'Sexual cohorts require container or shared substrate physical forms',
-        );
-      }
-    }
 
     if (measurement.value <= 0) {
       issues.add('Quantity must be greater than 0');
@@ -571,7 +407,6 @@ class OrganismCreationState extends Equatable {
     SizeSpec? sizeSpec,
     Object? physicalFormLabel = _undefined,
     Object? provenanceType = _undefined,
-    Object? gameteRole = _undefined,
     Object? sourceCohortId = _undefined,
     Object? wildCollectionMethod = _undefined,
     Object? collectionReefOrigin = _undefined,
@@ -602,8 +437,6 @@ class OrganismCreationState extends Equatable {
     Object? permitValidFrom = _undefined,
     Object? permitValidTo = _undefined,
     Object? editingCount = _undefined,
-    Object? editingVolumeCm3 = _undefined,
-    Object? editingTissueAreaCm2 = _undefined,
     Object? measurementFieldConfig = _undefined,
     Object? suggestedLocalId = _undefined,
     Object? clonalId = _undefined,
@@ -637,9 +470,6 @@ class OrganismCreationState extends Equatable {
       provenanceType: provenanceType == _undefined
           ? this.provenanceType
           : provenanceType as ProvenanceType?,
-      gameteRole: gameteRole == _undefined
-          ? this.gameteRole
-          : gameteRole as ProvenanceGameteRole?,
       sourceCohortId: sourceCohortId == _undefined
           ? this.sourceCohortId
           : sourceCohortId as String?,
@@ -717,12 +547,6 @@ class OrganismCreationState extends Equatable {
       editingCount: editingCount == _undefined
           ? this.editingCount
           : editingCount as int?,
-      editingVolumeCm3: editingVolumeCm3 == _undefined
-          ? this.editingVolumeCm3
-          : _coerceDouble(editingVolumeCm3),
-      editingTissueAreaCm2: editingTissueAreaCm2 == _undefined
-          ? this.editingTissueAreaCm2
-          : _coerceDouble(editingTissueAreaCm2),
       measurementFieldConfig: measurementFieldConfig == _undefined
           ? this.measurementFieldConfig
           : measurementFieldConfig as MeasurementFieldConfig?,
@@ -760,7 +584,6 @@ class OrganismCreationState extends Equatable {
     sizeSpec,
     physicalFormLabel,
     provenanceType,
-    gameteRole,
     sourceCohortId,
     wildCollectionMethod,
     collectionReefOrigin,
@@ -791,8 +614,6 @@ class OrganismCreationState extends Equatable {
     permitValidFrom,
     permitValidTo,
     editingCount,
-    editingVolumeCm3,
-    editingTissueAreaCm2,
     measurementFieldConfig,
     suggestedLocalId,
     clonalId,
@@ -808,9 +629,5 @@ class OrganismCreationState extends Equatable {
     error,
   ];
 
-  static double? _coerceDouble(Object? value) {
-    if (value == null) return null;
-    if (value is num) return value.toDouble();
-    return null;
-  }
+  // _coerceDouble removed in coral-only simplification
 }

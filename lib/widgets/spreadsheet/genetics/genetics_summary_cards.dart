@@ -130,16 +130,16 @@ class GeneticsSummaryCards extends StatelessWidget {
               Colors.indigo,
             ),
             statCard(
-              'Cohorts',
-              '${typeCounts[ProvenanceType.sexualCohort.id] ?? 0}',
-              Icons.groups,
+              'Transfer',
+              '${typeCounts[ProvenanceType.transfer.id] ?? 0}',
+              Icons.swap_horiz,
               Colors.orange,
             ),
             statCard(
-              'Graduated',
-              '${typeCounts[ProvenanceType.graduatedIndividual.id] ?? 0}',
-              Icons.brightness_5,
-              Colors.green,
+              'Unknown',
+              '${typeCounts[ProvenanceType.unknown.id] ?? 0}',
+              Icons.help_outline,
+              Colors.grey,
             ),
           ],
         );

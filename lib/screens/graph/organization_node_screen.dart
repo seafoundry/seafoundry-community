@@ -9,11 +9,13 @@ import 'package:seafoundry_app/providers/brand_theme_provider.dart';
 import 'package:seafoundry_app/screens/graph/graph_node_section.dart';
 import 'package:seafoundry_app/services/public_read_models_service.dart';
 import 'package:seafoundry_app/theme/spacing.dart';
+import 'package:seafoundry_app/screens/admin/edit_organization_profile_dialog.dart';
+import 'package:seafoundry_app/widgets/dialogs/inventory_action_sheet.dart';
+import 'package:seafoundry_app/widgets/graph_node/graph_node_events_section.dart';
+import 'package:seafoundry_app/widgets/navigation/bottom_action_bar.dart';
 import 'package:seafoundry_app/widgets/navigation/summary_statistics.dart';
-import 'package:seafoundry_app/widgets/visual/did_you_know_banner.dart';
-// GraphNodeEventsList is Pro-only - community uses simplified event display
 
-/// Community version of OrganizationNodeScreen without map/forecasting features.
+/// Screen for displaying an organization node with its sites and summary.
 class OrganizationNodeScreen extends StatefulWidget {
   const OrganizationNodeScreen({
     super.key,
@@ -60,6 +62,24 @@ class _OrganizationNodeScreenState
         return BrandThemeProvider(
           theme: theme,
           child: CommunitySimpleGraphScreenScaffold(
+            bottomActions: [
+              BottomAction(
+                label: 'Inventory',
+                icon: Icons.inventory_2_outlined,
+                onPressed: () => InventoryActionSheet.show(
+                  context,
+                  node: widget.graphNode,
+                ),
+              ),
+              BottomAction(
+                label: 'Edit Record',
+                icon: Icons.edit,
+                onPressed: () => EditOrganizationProfileDialog.show(
+                  context,
+                  widget.loadedNodeState.organization,
+                ),
+              ),
+            ],
             body: _OrganizationNodeBody(
               loadedNodeState: widget.loadedNodeState,
               graphNode: widget.graphNode,
@@ -89,19 +109,12 @@ class _OrganizationNodeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Contextual education banner for staff/visitors
-              DidYouKnowBanner(
-                nodeType: 'organization',
-                dismissKey: 'dyk-org-${loadedNodeState.organization.id}',
-              ),
-              SizedBox(height: Spacing.sm),
-              // Map section removed - Pro feature
               SizedBox(height: Spacing.sm),
               SummaryStatistics(node: graphNode),
               SizedBox(height: Spacing.md),
-              // OrganizationNodeInfo removed - Pro feature
               if (sections.isNotEmpty) ...sections,
-          // Events list removed - Pro feature (GraphNodeEventsList)
+              SizedBox(height: Spacing.md),
+              GraphNodeEventsSection(events: loadedNodeState.events),
         ],
       ),
     );
@@ -112,7 +125,14 @@ class _OrganizationNodeBody extends StatelessWidget {
       return [];
     }
 
-    final sites = loadedNodeState.siteNodes;
+    // Deduplicate sites by name+type to handle duplicate Firestore documents
+    final seenKeys = <String>{};
+    final sites = loadedNodeState.siteNodes
+        .where((node) {
+          final site = node.currentRecord;
+          return seenKeys.add('${site.siteTypeId}:${site.name}');
+        })
+        .toList();
     final sitesByType = <String, List<GraphNode<Site>>>{};
 
     for (final node in sites) {
@@ -121,15 +141,8 @@ class _OrganizationNodeBody extends StatelessWidget {
       sitesByType.putIfAbsent(typeName, () => []).add(node);
     }
 
-    // Define preferred order
-    final order = [
-      'Gene Bank',
-      'Ex-Situ Nursery',
-      'In-Situ Nursery',
-      'Outplanting Site',
-      'Seagrass Plot',
-      'Mangrove Outplant',
-    ];
+    // Preferred display order
+    final order = ['Nursery', 'Outplanting'];
 
     final sections = <Widget>[];
 

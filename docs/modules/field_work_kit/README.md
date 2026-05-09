@@ -1,29 +1,8 @@
 # Field Work Kit Module
 
-Operational planning surface for weather, tides, and site activity.
+## Status
 
-## Entry Points
-- `lib/screens/field_work_kit/field_work_kit_screen.dart`
-
-## Key UI and State
-- Map uses `OutplantGoogleMap` with outplant and monitoring overlays.
-- Cards and sheets surface weather, tides, and upcoming events.
-- Site selection is held in widget state; data comes from repository streams.
-
-## Data and Services
-- `SiteRepository`, `EventRepository`, `MonitoringRepository`, `TaskEventRepository`.
-- `WeatherServiceAdapter`, `NoaaTideService`, `SpeciesRegistry`.
-
-## Critical Patterns
-- Gate access via `FeatureAccessService` with the `monitoring_kml` feature flag.
-- Use repository streams for sites, outplants, and monitoring events.
-- Keep map overlays derived from repository data, not cached globals.
-
-## Release Readiness
-- Audit tracker: `.github/issues/release/pre-release-audit.md`.
-- Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Staffing manifests should be wired to real data (no placeholders).
-- Ensure offline/field workflows preserve provider context safety.
+The Field Work Kit module is not available in the community tier. Operational planning surfaces for weather, tides, and site activity are gated behind Pro/Scale tiers and are not present in this codebase.
 
 ## Related Docs
 - `docs/architecture/event_field_conventions.md`

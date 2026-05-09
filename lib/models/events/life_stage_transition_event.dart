@@ -38,7 +38,6 @@ class LifeStageTransitionEvent extends Event {
     this.newSubtype,
     this.transitionReason,
     String? eventTypeId,
-    super.missionId,
     super.metadata,
     super.base,
   }) : super(
@@ -105,8 +104,6 @@ class LifeStageTransitionEvent extends Event {
     String? slug,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     OrganismRecord? organismRecordSnapshot,
     LifeStage? oldLifeStage,
     LifeStage? newLifeStage,
@@ -137,7 +134,6 @@ class LifeStageTransitionEvent extends Event {
       oldSubtype: oldSubtype ?? this.oldSubtype,
       newSubtype: newSubtype ?? this.newSubtype,
       transitionReason: transitionReason ?? this.transitionReason,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,

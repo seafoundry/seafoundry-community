@@ -1,13 +1,11 @@
 // @tier: community
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_events.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_stream_adapter.dart';
 import 'package:seafoundry_app/blocs/graph_node/group_node.dart';
 import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';
 import 'package:seafoundry_app/blocs/graph_node/organization_node.dart';
@@ -33,7 +31,6 @@ class GraphRepository {
     GraphRepositoryStreamControllerFactory? streamControllerFactory,
     GraphCacheManagerConfig cacheConfig =
         const GraphCacheManagerConfig.production(),
-    GraphNodeStreamAdapter? graphNodeStreamAdapter,
     GraphNode<Organization> Function(GraphRepository repository)?
     testRootBuilder,
     Future<void> Function(
@@ -52,8 +49,6 @@ class GraphRepository {
       _cacheManager.startCleanupTimer();
     }
     _streamControllerFactory = streamControllerFactory;
-    streamAdapter =
-        graphNodeStreamAdapter ?? const DefaultGraphNodeStreamAdapter();
   }
 
   final EventRepository eventRepository;
@@ -77,7 +72,6 @@ class GraphRepository {
 
   late final GraphCacheManager _cacheManager;
   late final GraphRepositoryStreamControllerFactory? _streamControllerFactory;
-  late final GraphNodeStreamAdapter streamAdapter;
   final List<GraphRepositoryStreamController<dynamic>>
   _managedStreamControllers = [];
 
@@ -379,50 +373,6 @@ class GraphRepository {
       }
       return result;
     });
-  }
-
-  /// Locate the first organism node in the graph using a breadth-first search.
-  ///
-  /// Demo mode uses this to land users directly on an organism record card
-  /// instead of the root organization node.
-  Future<String?> findFirstOrganismPath() async {
-    try {
-      final root = this.root;
-      await root.awaitLoaded();
-
-      final visited = <GraphNode>{};
-      final queue = Queue<GraphNode>()..add(root);
-
-      while (queue.isNotEmpty) {
-        final node = queue.removeFirst();
-        if (visited.contains(node)) continue;
-        visited.add(node);
-
-        if (node is OrganismNode) {
-          return node.currentUrlPath;
-        }
-
-        try {
-          await node.awaitLoaded();
-        } catch (_) {
-          // Skip nodes that fail to load and continue searching siblings.
-          continue;
-        }
-
-        final state = node.state;
-        if (state is GraphLoadedState) {
-          queue.addAll(state.children);
-        }
-      }
-    } catch (e, st) {
-      LoggingService.instance.error(
-        'Failed to find first organism path',
-        e,
-        st,
-      );
-    }
-
-    return null;
   }
 
   Stream<List<Site>> streamSites() {

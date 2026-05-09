@@ -5,14 +5,12 @@ import 'package:seafoundry_app/models/types/health_status.dart';
 /// Tab selection for summary statistics display.
 ///
 /// - `inventory`: Shows coral counts with tissue volume by category
-/// - `observationHusbandry`: Shows operational metrics (tasks, observations, health issues)
-/// - `tasks`: Shows task-related metrics
-enum SummaryTab { inventory, observationHusbandry, tasks }
+enum SummaryTab { inventory }
 
 /// State for the summary statistics widget.
 ///
 /// **State Management:**
-/// - Manages active tab selection (inventory vs observation/husbandry)
+/// - Manages active tab selection (inventory only in community tier)
 /// - Manages health status filtering (selected status or "only issues" mode)
 /// - Manages multiselect filters for site, structure, species, life stage, and genet
 /// - Provides `filterSignature` for caching/memoization purposes

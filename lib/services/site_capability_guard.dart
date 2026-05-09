@@ -37,11 +37,10 @@ class SiteCapabilityGuard {
     }
     final capabilities = SiteCapabilities.resolve(site.siteType);
     final allowed = switch (action) {
-      SiteCapabilityAction.propagation => capabilities.allowPropagationActions,
+      SiteCapabilityAction.propagation => true,
       SiteCapabilityAction.outplant => capabilities.allowOutplantActions,
       SiteCapabilityAction.move => capabilities.allowMoveActions,
-      SiteCapabilityAction.environmentalAdjustment =>
-        capabilities.allowEnvironmentalAdjustment,
+      SiteCapabilityAction.environmentalAdjustment => true,
       SiteCapabilityAction.receiveTransfer => capabilities.canReceiveTransfers,
     };
 

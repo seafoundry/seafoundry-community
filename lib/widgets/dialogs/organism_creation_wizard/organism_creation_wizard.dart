@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node.dart';
-import 'package:seafoundry_app/cubits/current_user/current_user.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
 import 'package:seafoundry_app/cubits/organism_creation/organism_creation_cubit.dart';
 import 'package:seafoundry_app/cubits/organism_creation/organism_creation_state.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
@@ -33,8 +34,6 @@ import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/services/structure_capacity_service.dart';
 import 'package:seafoundry_app/services/taxonomy_service.dart';
 import 'package:seafoundry_app/services/unique_name_validation_service.dart';
-import 'package:seafoundry_app/utils/record_name_derived.dart';
-import 'package:seafoundry_app/utils/record_name_suggester.dart';
 import 'package:seafoundry_app/widgets/repositories/registry/registry.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
 
@@ -133,13 +132,8 @@ class OrganismCreationWizard extends StatelessWidget {
         .maybeRead<ProvenanceLookupService>();
     final capacityService = context.maybeRead<StructureCapacityService>();
 
-    final organization = currentUserState.organization;
-    final supportedKinds = organization.supportedOrganismKinds;
-    final fallbackKind = supportedKinds.isNotEmpty
-        ? supportedKinds.first
-        : OrganismKind.coral;
-    final resolvedOrganismKind =
-        organismKind ?? initialOrganismKind ?? fallbackKind;
+    // Coral-only simplified build: always use coral
+    const resolvedOrganismKind = OrganismKind.coral;
 
     final firestore = context.maybeRead<FirebaseService>()?.firestore;
 
@@ -183,7 +177,7 @@ class OrganismCreationWizard extends StatelessWidget {
             child: BlocProvider<CurrentUser>.value(
               value: currentUser,
               child: OrganismCreationWizard(
-                organizationId: organization.id,
+                organizationId: currentUserState.organization.id,
                 siteId: resolvedSiteId,
                 groupId: resolvedGroupId,
                 createdById: currentUserState.user.id,
@@ -272,25 +266,10 @@ class OrganismCreationWizard extends StatelessWidget {
   }) async {
     final organization = currentUserState.organization;
     final record = creationResult.record;
-    final resolvedRecordName = record.recordName.trim().isNotEmpty
-        ? record.recordName.trim()
-        : (RecordNameDerived.fromLocalId(record.localId) ?? 'Unknown');
-
     if (firestore != null) {
       final validationService = UniqueNameValidationService(
         firestore: firestore,
       );
-      final isRecordNameUnique = await validationService
-          .isOrganismRecordNameUnique(
-            name: resolvedRecordName,
-            organizationId: organization.id,
-          );
-      if (!isRecordNameUnique) {
-        throw RepositoryError(
-          message:
-              'Record name "$resolvedRecordName" is already in use. Please choose a different name.',
-        );
-      }
 
       if (record.genetId == null) {
         final genetLocalId = record.localId?.trim();
@@ -357,10 +336,6 @@ class OrganismCreationWizard extends StatelessWidget {
         }
       }
 
-      final sourceCohortId = record.provenanceAttributes.sourceCohortId?.trim();
-      final sireId = record.provenanceAttributes.sireProvenanceId?.trim();
-      final damId = record.provenanceAttributes.damProvenanceId?.trim();
-
       final clonalValue = creationResult.clonalValue?.trim();
       final accessionValue = creationResult.accessionValue?.trim();
 
@@ -377,11 +352,6 @@ class OrganismCreationWizard extends StatelessWidget {
             ? accessionValue
             : null,
         provenance: provenance.isEmpty ? null : provenance,
-        parentCohortId: sourceCohortId != null && sourceCohortId.isNotEmpty
-            ? sourceCohortId
-            : null,
-        damGameteIds: damId != null && damId.isNotEmpty ? [damId] : null,
-        sireGameteIds: sireId != null && sireId.isNotEmpty ? [sireId] : null,
         metadata: genetMetadata.isNotEmpty ? genetMetadata : null,
       );
 
@@ -594,36 +564,12 @@ class _WizardContent extends StatelessWidget {
     final localId = state.effectiveLocalId?.trim();
     if (localId == null || localId.isEmpty) return;
 
-    final firestore = context.maybeRead<FirebaseService>()?.firestore;
-    String? suggestion;
-    if (firestore != null) {
-      try {
-        final validationService = UniqueNameValidationService(
-          firestore: firestore,
-        );
-        suggestion = await RecordNameSuggester.suggestFromLocalId(
-          localId: localId,
-          organizationId: organizationId,
-          validationService: validationService,
-        );
-      } catch (e, stackTrace) {
-        LoggingService.instance.debug(
-          'Failed to suggest record name during organism creation: $e',
-          {'stackTrace': stackTrace.toString()},
-        );
-      }
-    }
-
-    if (!context.mounted) return;
-
-    final resolved = suggestion ?? RecordNameDerived.fromLocalId(localId);
-    if (resolved == null || resolved.trim().isEmpty) return;
-
+    // Use localId as the default record name
     final current = cubit.state;
     if (current.recordName?.trim().isNotEmpty == true) return;
     if (current.effectiveLocalId?.trim() != localId) return;
 
-    cubit.recordNameChanged(resolved);
+    cubit.recordNameChanged(localId);
   }
 
   Future<void> _submit(BuildContext context) async {
@@ -739,8 +685,7 @@ class _WizardContent extends StatelessWidget {
             prev.clonalId != curr.clonalId ||
             prev.accessionNumber != curr.accessionNumber ||
             prev.provenanceSearch != curr.provenanceSearch ||
-            prev.selectedGenet != curr.selectedGenet ||
-            prev.gameteRole != curr.gameteRole,
+            prev.selectedGenet != curr.selectedGenet,
         builder: (context, state) {
           final activeSteps = state.activeSteps;
           final currentStepIssues = state.currentStepIssues;

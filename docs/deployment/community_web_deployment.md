@@ -77,9 +77,6 @@ git checkout main
 # Install Flutter dependencies
 flutter pub get
 
-# Verify tier checker tool
-dart run tool/bin/tier_check.dart
-
 # Install Cloud Functions dependencies
 cd functions
 npm install
@@ -176,7 +173,7 @@ firebase deploy --only firestore:rules --project your-project-id
 **Community Tier Security Rules**:
 - Public read access to `public_orgs/{orgId}/*` collections (Visual Engagement)
 - Authenticated users can read/write operational data
-- Pro-only fields filtered at repository layer (not enforced in rules)
+- Field filtering handled at repository layer
 
 Verify rules deployment:
 ```bash
@@ -216,7 +213,7 @@ npm run seed:taxonomy:production
 ```
 
 This seeds:
-- Canonical organism types (coral, kelp, oyster, seagrass, genericMarine)
+- Canonical organism types (coral)
 - Species registries (NOAA-compliant species data)
 - Provenance scaffolding
 - Life stage definitions
@@ -231,9 +228,6 @@ This seeds:
 Before building, verify code quality:
 
 ```bash
-# Run tier checker (ensures no Pro/Scale imports in Community code)
-dart run tool/bin/tier_check.dart
-
 # Run Flutter analyzer (zero errors required)
 flutter analyze
 
@@ -428,7 +422,7 @@ This creates sample organizations with hero images and logos for visual testing.
 3. Complete onboarding:
    - Organization name
    - Primary organism types (select at least one)
-   - Activities (nursery, outplanting, monitoring)
+   - Activities (nursery, outplanting)
    - Species selection
    - Domain (optional)
    - Brand imagery (optional)
@@ -455,20 +449,19 @@ Organization created with tier automatically set to `community`.
 Test Community tier restrictions:
 
 **Site Creation Limits**:
-1. Create a nursery site (ex situ, in situ, or gene bank) - Should succeed
-2. Try to create a 2nd nursery site - Should block with "Upgrade to Pro" CTA
-3. Create an outplanting/restoration site - Should succeed
+1. Create a nursery site - Should succeed
+2. Try to create a 2nd nursery site - Should block with limit message
+3. Create an outplanting site - Should succeed
 4. Try to create a 2nd outplanting site - Should block with upgrade CTA
 
 **Feature Restrictions**:
 1. Inventory → Quantity Change - Mortality reasons should be read-only chips (not editable dropdown)
-2. Monitoring → Create observation - Should show "Upgrade to Pro" CTA instead of dialog
-3. Settings → Offline Sync - Should not appear
-4. Navigation - Mobile app download links should show upgrade CTA
+2. Settings → Offline Sync - Should not appear
+3. Navigation - Mobile app download links should not appear
 
 **CSV Exports**:
 1. Inventory → Export - Should generate 6-field CSV (species, provenance, location, life stage, quantity, date)
-2. Pro-only fields (detailed measurements, attachments) should not appear
+2. Restricted fields should not appear
 
 ### 3. Configure Admin Access (Optional)
 
@@ -506,10 +499,9 @@ The repository includes `.github/workflows/community_web.yaml` for automated tes
 1. Checkout code
 2. Setup Flutter (stable channel)
 3. Install dependencies (`flutter pub get`)
-4. Run tier manifest check (`dart run tool/bin/tier_check.dart`)
-5. Run Flutter analyzer (`flutter analyze`)
-6. Run tests (`flutter test --platform chrome`)
-7. Build web app (`flutter build web --dart-define=SF_TIER=community`)
+4. Run Flutter analyzer (`flutter analyze`)
+5. Run tests (`flutter test --platform chrome`)
+6. Build web app (`flutter build web --dart-define=SF_TIER=community`)
 
 **Enable GitHub Actions**:
 1. Repository → Settings → Actions → Enable
@@ -671,9 +663,6 @@ cd ..
 
 **3. Run Pre-Deployment Checks**:
 ```bash
-# Tier checker
-dart run tool/bin/tier_check.dart
-
 # Analyzer
 flutter analyze
 
@@ -744,13 +733,13 @@ git checkout main  # Return to main branch
 
 | Category | Feature | Description |
 |----------|---------|-------------|
-| **Inventory** | Basic holdings tracking | Track coral/kelp/oyster/seagrass inventory |
+| **Inventory** | Basic holdings tracking | Track coral inventory |
 | **Inventory** | Six-field CSV export | Species, provenance, location, life stage, quantity, date |
 | **Inventory** | Internal transfers | Move organisms between structures |
 | **Inventory** | Mortality tracking | Basic death events with read-only mortality reasons |
 | **Genetics** | Provenance management | Track genets, cohorts, genetic lineage |
 | **Genetics** | Fragging events | Record fragmentation with provenance chain |
-| **Sites** | 1 Nursery site | Ex situ, in situ, or gene bank (1 total) |
+| **Sites** | 1 Nursery site | Nursery (1 total) |
 | **Sites** | 1 Outplanting site | Restoration or field collection site (1 total) |
 | **Outplanting** | Basic outplant events | Record outplants with centerpoint location |
 | **Outplanting** | Public holdings map | Anonymized location clusters on public map |
@@ -761,26 +750,6 @@ git checkout main  # Return to main branch
 | **Platform** | Web-only access | Desktop and tablet browser support |
 | **Platform** | User authentication | Email/password sign in |
 | **Platform** | Organization management | Admin controls for taxonomy, team, settings |
-
-### Feature Restrictions (Pro/Scale Only)
-
-| Category | Feature | Tier Required | Upgrade CTA |
-|----------|---------|---------------|-------------|
-| **Inventory** | Unlimited sites | Pro | In-app upgrade link |
-| **Inventory** | Advanced mortality reasons | Pro | Read-only chips in Community |
-| **Monitoring** | Monitoring observations | Pro | "Upgrade to Pro" CTA |
-| **Monitoring** | KML geometry support | Pro | N/A |
-| **Monitoring** | Event imagery attachments | Pro | Upload blocked with CTA |
-| **Monitoring** | Detailed measurements | Pro | Filtered from CSV exports |
-| **Platform** | Mobile app (iOS/Android) | Pro | Download links show CTA |
-| **Platform** | Offline sync | Pro | Not visible in Community |
-| **Collaboration** | Selective data sharing | Pro | N/A |
-| **Reporting** | Custom report templates | Pro | N/A |
-| **Workforce** | Training gates | Scale | N/A |
-| **Workforce** | Recurring tasks | Scale | N/A |
-| **Operations** | Deliverables integration | Scale | N/A |
-
-**Upgrade Path**: Community → Pro via beta waitlist email form (configured in `config/tier_features.yaml`)
 
 ---
 
@@ -819,13 +788,13 @@ npm install
 npm run build
 ```
 
-**Error: `flutter analyze` fails with tier violations**
+**Error: `flutter analyze` fails with lint violations**
 ```
-Fix: Run tier checker to identify Pro/Scale imports in Community code
+Fix: Review and fix the analyzer warnings/errors
 
-dart run tool/bin/tier_check.dart
+flutter analyze
 
-# Review violations, ensure files have correct // @tier: community headers
+# Review violations and fix code issues
 ```
 
 ### Deployment Errors
@@ -910,13 +879,6 @@ npm run seed:taxonomy:production
 # Verify species collection exists in Firestore Console
 ```
 
-**Error: "Upgrade to Pro" CTA not working**
-```
-Fix: Verify upgrade URL configured in config/tier_features.yaml
-
-Check tiers.community.upgrade_url is set to the beta waitlist email form URL
-```
-
 **Error: CSV export downloads empty file**
 ```
 Fix: Verify holdings data exists
@@ -976,7 +938,7 @@ Check browser console for detailed logs from `LoggingService`.
 Community tier security rules allow:
 - **Public read** for `public_orgs/{orgId}/*` collections
 - **Authenticated read/write** for operational data
-- **Pro-only fields** filtered at repository layer (not in rules)
+- **Field filtering** handled at repository layer
 
 **Test Security Rules**:
 ```bash
@@ -1014,17 +976,13 @@ Always use HTTPS for production deployments:
 ### Documentation
 
 - **Project Docs**: `docs/` directory in repository
-- **Architecture**: `docs/architecture/community_vs_pro_rfc.md`
-- **Visual Engagement**: `docs/VisualEngagement.md`
 - **Testing**: `test/helpers/README.md`
-- **Firebase Deployment**: `docs/FIREBASE_DEPLOYMENT_CHECKLIST.md`
-- **CI/CD**: `docs/architecture/ci_cd_split.md`
 
 ### Support Channels
 
 - **GitHub Issues**: [github.com/your-org/seafoundry_app/issues](https://github.com/your-org/seafoundry_app/issues)
 - **Community Forum**: [Link to community forum/Discord/Slack]
-- **Email Support**: support@seafoundry.org (for Pro customers)
+- **Email Support**: support@seafoundry.org
 
 ### Reporting Bugs
 
@@ -1049,7 +1007,6 @@ After completing deployment, verify:
 - [ ] CSV export generates six-field format
 - [ ] Hero image upload working
 - [ ] Public holdings map displays (if org has holdings)
-- [ ] Upgrade CTAs display when trying Pro features
 - [ ] Browser console shows no errors
 - [ ] Firestore indexes all READY status
 - [ ] Cloud Functions deployed and invocable
@@ -1063,21 +1020,10 @@ After successful deployment:
 
 1. **User Training**: Review `docs/user_guides/` for workflow tutorials
 2. **CI/CD Setup**: Configure GitHub Actions (see CI/CD Automation section)
-3. **Monitoring**: Set up Firebase budget alerts and performance monitoring
+3. **Monitoring**: Set up Firebase budget alerts
 4. **Content**: Upload hero imagery and enable public profile
 5. **Testing**: Create sample holdings and verify public map
 6. **Backups**: Configure Firestore export schedule (Firebase Console → Firestore → Export)
-7. **Pro Upgrade**: Explore Pro tier for mobile apps and advanced features
-
-### Pro Tier Upgrade
-
-When ready for mobile apps and advanced features:
-
-1. Review Pro tier features in `docs/architecture/community_vs_pro_rfc.md`
-2. Click **Upgrade to Pro** in app (Organization Management)
-3. Submit the beta waitlist form and coordinate manual upgrade
-4. Follow `docs/deployment/pro_mobile_deployment.md` for mobile app deployment
-5. Migrate to `pro` branch for future deployments
 
 ---
 

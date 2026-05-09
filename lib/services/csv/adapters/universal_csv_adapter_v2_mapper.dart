@@ -14,8 +14,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
     required OrganismKind organismKind,
     required CsvV2LifeStage? csvStage,
   }) {
-    final provenanceId =
-        _string(row['provenanceId']) ?? '';
+    final provenanceId = _string(row['provenanceId']) ?? '';
     if (provenanceId.isEmpty) {
       issues.add(
         CsvTranslationIssue(
@@ -197,13 +196,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       translation['lifeStageId'] = normalizedLifeStageId;
     }
 
-    final normalizedProvenanceType = _normalizeProvenanceType(
-      explicitType: translation['provenanceType'],
-      legacyKind: row['provenanceKind'] ?? translation['provenanceKind'],
-    );
-    if (normalizedProvenanceType != null) {
-      translation['provenanceType'] = normalizedProvenanceType;
-    }
+    _applyNormalizedProvenanceType(translation);
 
     final aliasColumns = _aliasColumnsForImport(row);
     translation['aliasesJson'] = aliasColumns['aliasesJson'] ?? '';
@@ -343,7 +336,6 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'siteBboxSeLat': '',
       'siteBboxSeLng': '',
       'outplantPointsCsv': geom.outplantPointsCsv ?? '',
-      'outplantKmlUrl': row['geometryKmlUrl'] ?? '',
       // Preserve canonical columns for downstream organism-aware services.
       'organismKind': row['organismKind'] ?? '',
       'lifeStage': row['lifeStage'] ?? '',
@@ -430,7 +422,8 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       return null;
     }
 
-    final providedLifeStage = _string(row['lifeStage']) ??
+    final providedLifeStage =
+        _string(row['lifeStage']) ??
         _string(row['lifeStageLabel']) ??
         _string(row['lifeStageName']);
     final resolvedLifeStage = providedLifeStage ?? LifeStage.unknown.name;
@@ -463,8 +456,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'volumeUnit': _string(row['volumeUnit']) ?? '',
       'inventoryCount': _string(row['inventoryCount']) ?? '',
       'inventoryVolumeCm3': _string(row['inventoryVolumeCm3']) ?? '',
-      'inventoryTissueAreaCm2':
-          _string(row['inventoryTissueAreaCm2']) ?? '',
+      'inventoryTissueAreaCm2': _string(row['inventoryTissueAreaCm2']) ?? '',
       'eventType': 'inventory_snapshot',
       'eventDate': eventDate,
       'measurementUnit': measurement.unit,
@@ -510,18 +502,9 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       fallback: selection.provenanceType.metadata.defaultProvenanceKind.name,
     );
 
-    _applyMetadataOverrides(
-      row: row,
-      target: translation,
-    );
+    _applyMetadataOverrides(row: row, target: translation);
 
-    final normalizedProvenanceType = _normalizeProvenanceType(
-      explicitType: translation['provenanceType'],
-      legacyKind: translation['provenanceKind'],
-    );
-    if (normalizedProvenanceType != null) {
-      translation['provenanceType'] = normalizedProvenanceType;
-    }
+    _applyNormalizedProvenanceType(translation);
 
     return translation;
   }
@@ -608,8 +591,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'volumeUnit': _string(row['volumeUnit']) ?? '',
       'inventoryCount': _string(row['inventoryCount']) ?? '',
       'inventoryVolumeCm3': _string(row['inventoryVolumeCm3']) ?? '',
-      'inventoryTissueAreaCm2':
-          _string(row['inventoryTissueAreaCm2']) ?? '',
+      'inventoryTissueAreaCm2': _string(row['inventoryTissueAreaCm2']) ?? '',
       'eventType': _string(row['eventType']) ?? 'inventory_snapshot',
       'eventDate': eventDate,
       'measurementUnit': measurement.unit,
@@ -628,32 +610,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'aliases': '',
     };
 
-    if (holdingKind == 'seededLineBatch') {
-      final lineIdentifier =
-          _string(row['lineIdentifier']) ?? _string(row['lineId']) ?? '';
-      translation['lineId'] = lineIdentifier;
-      translation['structureType'] = _string(row['structureType']) ?? '';
-    }
-
-    final normalizedProvenanceType = _normalizeProvenanceType(
-      explicitType: translation['provenanceType'],
-      legacyKind: translation['provenanceKind'],
-    );
-    if (normalizedProvenanceType != null) {
-      translation['provenanceType'] = normalizedProvenanceType;
-    }
-
-    if (holdingKind == 'gameteBatch') {
-      translation['parentProvenanceIds'] =
-          _string(row['parentProvenanceIds']) ?? '';
-    }
-
-    if (holdingKind == 'larvalBatch') {
-      translation['settlementWindowStart'] =
-          _string(row['settlementWindowStart']) ?? '';
-      translation['settlementWindowEnd'] =
-          _string(row['settlementWindowEnd']) ?? '';
-    }
+    _applyNormalizedProvenanceType(translation);
 
     final normalizedLifeStageId = _normalizeLifeStageId(
       explicitId: row['lifeStageId'],
@@ -675,8 +632,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
     translation['lifeStageId'] = holdingSelection.lifeStage.id;
     translation['lifeStage'] = holdingSelection.lifeStage.name;
     translation['lifeStageLabel'] = holdingSelection.lifeStage.displayName;
-    translation['provenanceType'] =
-        holdingSelection.provenanceType.metadata.id;
+    translation['provenanceType'] = holdingSelection.provenanceType.metadata.id;
     translation['provenanceTypeLabel'] =
         holdingSelection.provenanceType.metadata.displayName;
     translation['provenanceKind'] = _resolvedProvenanceKind(
@@ -685,10 +641,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
           holdingSelection.provenanceType.metadata.defaultProvenanceKind.name,
     );
 
-    _applyMetadataOverrides(
-      row: row,
-      target: translation,
-    );
+    _applyMetadataOverrides(row: row, target: translation);
 
     return translation;
   }
@@ -774,20 +727,8 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
   /// This provides organism-specific defaults that are more appropriate
   /// than the generic ProvenanceType.unknown fallback.
   LifeStage _defaultLifeStageForHolding(String holdingKind) {
-    switch (holdingKind) {
-      case 'gameteBatch':
-        return LifeStage.gamete;
-      case 'larvalBatch':
-        return LifeStage.larva;
-      case 'seededLineBatch':
-      case 'oysterBagHolding':
-      case 'finfishPenHolding':
-      case 'crabPondHolding':
-      case 'seagrassModuleHolding':
-      case 'mangrovePlotHolding':
-        return LifeStage.juvenile;
-      default:
-        return LifeStage.adult;
-    }
+    // Dedicated gamete/larval batch holding types removed in sexual propagation
+    // simplification. All holding kinds default to adult.
+    return LifeStage.adult;
   }
 }

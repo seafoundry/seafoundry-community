@@ -1,8 +1,6 @@
 // @tier: community
-import 'package:seafoundry_app/models/environment/environmental_event.dart';
 import 'package:seafoundry_app/models/factories/event_factory.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/models/monitoring_schedule.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
@@ -81,8 +79,6 @@ class RecordFactory {
           return HoldingRecord.fromJson(normalizedJson) as T;
         case (ModelType.genet):
           return Genet.fromJson(normalizedJson) as T;
-        case (ModelType.reproductiveEvent):
-          return ReproductiveEvent.fromJson(normalizedJson) as T;
         case (ModelType.recordType):
           return CustomRecordType.fromJson(normalizedJson) as T;
         case (ModelType.site):
@@ -106,35 +102,10 @@ class RecordFactory {
           return OrganismRecord.fromJson(normalizedJson) as T;
         case (ModelType.brandProfile):
           return BrandProfile.fromJson(normalizedJson) as T;
-        case (ModelType.mediaAsset):
-          return MediaAsset.fromJson(normalizedJson) as T;
-        case (ModelType.publicPlaylist):
-          return PublicPlaylist.fromJson(normalizedJson) as T;
-        case (ModelType.publicDigest):
-          return PublicDigest.fromJson(normalizedJson) as T;
-        case (ModelType.publicImpactPoint):
-          return PublicImpactPoint.fromJson(normalizedJson) as T;
-        case (ModelType.visualKpiSnapshot):
-          throw RecordFactoryError(
-            message: 'visualKpiSnapshot is not a Record',
-            json: normalizedJson,
-          );
-        case (ModelType.environmentalEvent):
-          return EnvironmentalEvent.fromJson(normalizedJson) as T;
-        case (ModelType.monitoringSchedule):
-          return MonitoringSchedule.fromJson(normalizedJson) as T;
-        case (ModelType.mission):
-          return Mission.fromJson(normalizedJson) as T;
-        case (ModelType.vessel):
-          return Vessel.fromJson(normalizedJson) as T;
         case (ModelType.permit):
           return Permit.fromJson(normalizedJson) as T;
         case (ModelType.deliverable):
           return Deliverable.fromJson(normalizedJson) as T;
-        case (ModelType.post):
-          return Post.fromJson(normalizedJson) as T;
-        case (ModelType.funder):
-          return Funder.fromJson(normalizedJson) as T;
         case (ModelType.unknown):
           throw RecordFactoryError(
             message: 'Empty model type',
@@ -219,8 +190,6 @@ class RecordFactory {
           return HoldingRecord.fromJson(normalizedJson) as T;
         case ModelType.genet:
           return Genet.partial(json: normalizedJson) as T;
-        case ModelType.reproductiveEvent:
-          return ReproductiveEvent.fromJson(normalizedJson) as T;
         case ModelType.recordType:
           return CustomRecordType.partial(json: normalizedJson) as T;
         case ModelType.site:
@@ -244,35 +213,10 @@ class RecordFactory {
           return OrganismRecord.fromJson(normalizedJson) as T;
         case ModelType.brandProfile:
           return BrandProfile.partial(json: normalizedJson) as T;
-        case ModelType.mediaAsset:
-          return MediaAsset.partial(json: normalizedJson) as T;
-        case ModelType.publicPlaylist:
-          return PublicPlaylist.fromJson(normalizedJson) as T;
-        case ModelType.publicDigest:
-          return PublicDigest.fromJson(normalizedJson) as T;
-        case ModelType.publicImpactPoint:
-          return PublicImpactPoint.fromJson(normalizedJson) as T;
-        case ModelType.visualKpiSnapshot:
-          throw RecordFactoryError(
-            message: 'visualKpiSnapshot is not a Record',
-            json: normalizedJson,
-          );
-        case ModelType.environmentalEvent:
-          return EnvironmentalEvent.fromJson(normalizedJson) as T;
-        case ModelType.monitoringSchedule:
-          return MonitoringSchedule.fromJson(normalizedJson) as T;
-        case ModelType.mission:
-          return Mission.fromJson(normalizedJson) as T;
-        case ModelType.vessel:
-          return Vessel.partial(json: normalizedJson) as T;
         case ModelType.permit:
           return Permit.partial(json: normalizedJson) as T;
         case ModelType.deliverable:
           return Deliverable.partial(json: normalizedJson) as T;
-        case ModelType.post:
-          return Post.partial(json: normalizedJson) as T;
-        case ModelType.funder:
-          return Funder.partial(json: normalizedJson) as T;
         case ModelType.unknown:
           throw RecordFactoryError(
             message: 'Empty model type',

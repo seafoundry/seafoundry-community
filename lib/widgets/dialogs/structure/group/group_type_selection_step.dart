@@ -153,7 +153,7 @@ class GroupTypeSelectionStepWidget extends StatelessWidget {
       allTypes = site.siteType.groupTypes;
     } else {
       // Final fallback: expose a minimal set so the dialog is never empty
-      allTypes = const [GroupType.tank, GroupType.tray, GroupType.group];
+      allTypes = const [GroupType.tank, GroupType.group];
     }
 
     // Filter based on parent's category
@@ -232,11 +232,7 @@ class _GroupTypeCard extends StatelessWidget {
 
 /// Returns the appropriate icon for a group type.
 IconData getGroupTypeIcon(String groupTypeId) {
-  if (groupTypeId == GroupType.zone.id) {
-    return Icons.grid_view;
-  } else if (groupTypeId == GroupType.rack.id) {
-    return Icons.table_rows;
-  } else if (groupTypeId == GroupType.reebarTable.id) {
+  if (groupTypeId == GroupType.reebarTable.id) {
     return Icons.table_chart;
   } else if (groupTypeId == GroupType.tank.id) {
     return Icons.water_drop;

@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/organism_creation/organism_creation_cubit.dart';
 import 'package:seafoundry_app/cubits/organism_creation/organism_creation_state.dart';
-import 'package:seafoundry_app/models/types/provenance_type.dart';
-import 'package:seafoundry_app/utils/record_name_suggester.dart';
-import 'package:seafoundry_app/widgets/common/inherited_species_display.dart';
 import 'package:seafoundry_app/widgets/dialogs/organism_creation_wizard/steps/identity_step_existing_genet_section.dart';
 import 'package:seafoundry_app/widgets/dialogs/organism_creation_wizard/steps/identity_step_new_genet_section.dart';
 import 'package:seafoundry_app/widgets/dialogs/local_id_selection_dialog.dart';
@@ -30,10 +27,6 @@ class IdentityStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<OrganismCreationCubit>();
 
-    // Check if species is locked (inherited from source cohort in graduation)
-    final isGraduation = state.provenanceType == ProvenanceType.graduatedIndividual;
-    final isSpeciesLocked = isGraduation && state.species != null;
-
     return OrganismCreationStepScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -43,14 +36,7 @@ class IdentityStep extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
-          if (isSpeciesLocked)
-            // Show locked species inherited from cohort
-            InheritedSpeciesDisplay(
-              species: state.species,
-              lockTooltip: 'Inherited from cohort',
-            )
-          else
-            SpeciesSelector(
+          SpeciesSelector(
               value: state.species,
               organismKind: state.organismKind ?? OrganismKind.coral,
               onChanged: (Species? species) {
@@ -108,10 +94,8 @@ class IdentityStep extends StatelessWidget {
             initialValue: state.recordName,
             decoration: InputDecoration(
               labelText: 'Record Name',
-              hintText:
-                  RecordNameSuggester.suggestFallback(state.effectiveLocalId) ??
-                  'e.g., fuzz-apal-001',
-              helperText: 'Optional. Defaults to a derived name if left blank.',
+              hintText: state.effectiveLocalId ?? 'e.g., Specimen-A',
+              helperText: 'Optional. Defaults to localId if left blank.',
               border: const OutlineInputBorder(),
               prefixIcon: const Icon(Icons.auto_awesome),
             ),
@@ -135,8 +119,8 @@ class IdentityStep extends StatelessWidget {
 }
 
 /// Ownership fields for owner and managing organization.
-/// Uses OrganizationSelectorField (Pro tier) when repository is available,
-/// falling back to plain text fields for Community tier.
+/// Uses OrganizationSelectorField when repository is available,
+/// falling back to plain text fields.
 class _OwnershipFields extends StatelessWidget {
   const _OwnershipFields({required this.state});
 

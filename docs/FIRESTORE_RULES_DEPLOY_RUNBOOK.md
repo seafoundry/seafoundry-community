@@ -20,7 +20,7 @@
 
 This runbook covers deployment procedures for all Firebase security rules:
 - `firestore.rules` - Production Firestore database rules (primary project: `seafoundryapp`)
-- `firestore.community.rules` - Community tier Firestore rules (if using separate project)
+- `firestore.rules` - Community tier Firestore rules when deploying via `firebase.community.json`
 - `storage.rules` - Cloud Storage security rules
 
 **Critical Safety Principle:** Security rules are the last line of defense for data access control. Never deploy without thorough testing and verification.
@@ -49,7 +49,7 @@ This runbook covers deployment procedures for all Firebase security rules:
 firebase --project=seafoundryapp firestore:rules:get > firestore.rules.backup.$(date +%Y%m%d_%H%M%S)
 
 # Community project (if applicable)
-firebase --project=demo-seafoundry firestore:rules:get > firestore.community.rules.backup.$(date +%Y%m%d_%H%M%S)
+firebase --project=demo-seafoundry firestore:rules:get > firestore.rules.community.backup.$(date +%Y%m%d_%H%M%S)
 
 # Storage rules (both projects use same storage bucket structure)
 firebase --project=seafoundryapp storage:rules:get > storage.rules.backup.$(date +%Y%m%d_%H%M%S)
@@ -63,7 +63,7 @@ diff firestore.rules /tmp/deployed.rules
 
 # For community rules (if applicable)
 firebase --project=demo-seafoundry firestore:rules:get > /tmp/deployed.community.rules
-diff firestore.community.rules /tmp/deployed.community.rules
+diff firestore.rules /tmp/deployed.community.rules
 
 # For storage rules
 firebase --project=seafoundryapp storage:rules:get > /tmp/deployed.storage.rules
@@ -298,7 +298,7 @@ firebase storage:rules:get
 firebase use demo-seafoundry
 
 # 2. Restore community rules backup
-cp firestore.community.rules.backup.YYYYMMDD_HHMMSS firestore.community.rules
+cp firestore.rules.community.backup.YYYYMMDD_HHMMSS firestore.rules
 firebase deploy --only firestore:rules --config firebase.community.json
 
 # 3. Verify rollback
@@ -643,8 +643,7 @@ Error: HTTP Error: 403, Permission denied
 
 | File | Purpose | Production Project | Community Project |
 |------|---------|-------------------|-------------------|
-| `firestore.rules` | Main Firestore database rules | `seafoundryapp` | N/A |
-| `firestore.community.rules` | Community tier rules (if separate DB) | N/A | `demo-seafoundry` |
+| `firestore.rules` | Main Firestore database rules (shared) | `seafoundryapp` | `demo-seafoundry` |
 | `storage.rules` | Cloud Storage security rules | `seafoundryapp` | `seafoundryapp` |
 
 ---
@@ -654,7 +653,7 @@ Error: HTTP Error: 403, Permission denied
 | Project ID | Environment | Purpose |
 |-----------|-------------|---------|
 | `seafoundryapp` | Production | Main production database and storage |
-| `demo-seafoundry` | Demo/Testing | Demo mode sandbox (may use `firestore.community.rules`) |
+| `demo-seafoundry` | Demo/Testing | Demo mode sandbox using `firestore.rules` via `firebase.community.json` |
 
 ---
 

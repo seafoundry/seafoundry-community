@@ -14,9 +14,7 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// - Reading custody history from organism records
 /// - Including custody history in transfer manifests
 class CustodyHistoryService {
-  const CustodyHistoryService._();
-
-  static const CustodyHistoryService instance = CustodyHistoryService._();
+  CustodyHistoryService._();
 
   /// Metadata key for custody history in OrganismRecord.metadata.
   static const String custodyHistoryKey = 'custodyHistory';
@@ -25,7 +23,7 @@ class CustodyHistoryService {
   ///
   /// This should be called when creating a new OrganismRecord to establish
   /// the initial chain of custody.
-  CustodyHistoryEntry createInitialEntry({
+  static CustodyHistoryEntry createInitialEntry({
     required Organization organization,
     String? ownerOrganizationId,
     String? managingOrganizationId,
@@ -58,7 +56,7 @@ class CustodyHistoryService {
   ///
   /// Called when an organism is received via transfer to record the new
   /// custody arrangement.
-  CustodyHistoryEntry createTransferEntry({
+  static CustodyHistoryEntry createTransferEntry({
     required String transferId,
     required TransferOwnershipType ownershipType,
     required String ownerOrganizationId,
@@ -82,7 +80,7 @@ class CustodyHistoryService {
     );
   }
 
-  String _defaultNoteForTransferType(TransferOwnershipType type) {
+  static String _defaultNoteForTransferType(TransferOwnershipType type) {
     switch (type) {
       case TransferOwnershipType.fullTransfer:
         return 'Full ownership transfer';
@@ -96,7 +94,7 @@ class CustodyHistoryService {
   /// Reads custody history from an OrganismRecord.
   ///
   /// Returns an empty list if no custody history exists.
-  List<CustodyHistoryEntry> readCustodyHistory(OrganismRecord record) {
+  static List<CustodyHistoryEntry> readCustodyHistory(OrganismRecord record) {
     final metadata = record.metadata;
     if (metadata == null) return const [];
 
@@ -107,7 +105,7 @@ class CustodyHistoryService {
   }
 
   /// Parses custody history from raw JSON data.
-  List<CustodyHistoryEntry> parseCustodyHistory(dynamic raw) {
+  static List<CustodyHistoryEntry> parseCustodyHistory(dynamic raw) {
     if (raw is! List) return const [];
 
     final entries = <CustodyHistoryEntry>[];
@@ -120,14 +118,14 @@ class CustodyHistoryService {
   }
 
   /// Serializes custody history to JSON for storage in metadata.
-  List<Map<String, dynamic>> serializeCustodyHistory(
+  static List<Map<String, dynamic>> serializeCustodyHistory(
     List<CustodyHistoryEntry> history,
   ) {
     return history.map((e) => e.toJson()).toList();
   }
 
   /// Gets the current custody (most recent entry) from an OrganismRecord.
-  CustodyHistoryEntry? getCurrentCustody(OrganismRecord record) {
+  static CustodyHistoryEntry? getCurrentCustody(OrganismRecord record) {
     final history = readCustodyHistory(record);
     return history.isEmpty ? null : history.last;
   }
@@ -135,7 +133,7 @@ class CustodyHistoryService {
   /// Creates updated metadata with a new custody history entry appended.
   ///
   /// Does not mutate the original metadata; returns a new map.
-  Map<String, dynamic> appendCustodyEntry(
+  static Map<String, dynamic> appendCustodyEntry(
     Map<String, dynamic>? existingMetadata,
     CustodyHistoryEntry newEntry,
   ) {
@@ -149,7 +147,7 @@ class CustodyHistoryService {
   /// Creates metadata with initial custody history for a new organism.
   ///
   /// Merges with any existing metadata.
-  Map<String, dynamic> createMetadataWithInitialCustody({
+  static Map<String, dynamic> createMetadataWithInitialCustody({
     Map<String, dynamic>? existingMetadata,
     required Organization organization,
     String? ownerOrganizationId,
@@ -170,7 +168,7 @@ class CustodyHistoryService {
   ///
   /// Returns a JSON-serializable representation suitable for the manifest's
   /// metadata field.
-  Map<String, dynamic> extractCustodyHistoryForManifest(OrganismRecord record) {
+  static Map<String, dynamic> extractCustodyHistoryForManifest(OrganismRecord record) {
     final history = readCustodyHistory(record);
     if (history.isEmpty) return const {};
 
@@ -183,7 +181,7 @@ class CustodyHistoryService {
   ///
   /// Extracts the necessary information from the manifest to create
   /// the receiving organization's custody entry.
-  CustodyHistoryEntry createEntryFromManifest({
+  static CustodyHistoryEntry createEntryFromManifest({
     required TransferManifest manifest,
     required String receivingOrganizationId,
     String? receivingOrganizationName,
@@ -234,7 +232,7 @@ class CustodyHistoryService {
   }
 
   /// Queries whether the given organization has ever had custody of an organism.
-  bool hasOrganizationEverHadCustody(
+  static bool hasOrganizationEverHadCustody(
     OrganismRecord record,
     String organizationId,
   ) {
@@ -243,7 +241,7 @@ class CustodyHistoryService {
   }
 
   /// Queries whether the given organization has ever owned an organism.
-  bool hasOrganizationEverOwned(
+  static bool hasOrganizationEverOwned(
     OrganismRecord record,
     String organizationId,
   ) {
@@ -252,7 +250,7 @@ class CustodyHistoryService {
   }
 
   /// Queries whether the given organization has ever managed an organism.
-  bool hasOrganizationEverManaged(
+  static bool hasOrganizationEverManaged(
     OrganismRecord record,
     String organizationId,
   ) {
@@ -261,7 +259,7 @@ class CustodyHistoryService {
   }
 
   /// Gets all organization IDs that have ever had custody of an organism.
-  Set<String> getAllCustodyOrganizations(OrganismRecord record) {
+  static Set<String> getAllCustodyOrganizations(OrganismRecord record) {
     final history = readCustodyHistory(record);
     return history.allCustodyIds;
   }

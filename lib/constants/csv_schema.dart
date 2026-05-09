@@ -28,19 +28,9 @@ enum CsvTemplateKind {
   inventory,
   inventoryMinimal,
   inventoryCoral,
-  inventoryOyster,
-  inventoryKelp,
-  inventorySeagrass,
-  inventoryMangrove,
-  inventoryFinfish,
-  inventoryCrab,
   outplanting,
   outplantAllocations,
   outplantConsolidated,
-  monitoring,
-  siteBaselines,
-  husbandryObservations,
-  husbandryTasks,
 }
 
 class CsvSchema {
@@ -131,16 +121,18 @@ class CsvSchemas {
 
   static const List<String> _geneticsColumns = <String>[
     'provenanceId',
+    'localId',
     'name',
     'speciesId',
     'organismKind',
-    'genetTypeId',
+    'provenanceType',
     'clonalId',
+    'accessionNumber',
     'aliases',
+    'notes',
     'parentGameteIds',
     'donorGenotypeId',
     'archived',
-    'archivedAt',
     'provenance.habitatType',
     'provenance.collectionDate',
     'provenance.notes',
@@ -167,21 +159,9 @@ class CsvSchemas {
     'notes',
   ];
 
-  // Organism-specific inventory columns - filtered by organism kind
+  // Coral-only inventory columns
   static final List<String> _inventoryCoralColumns =
       CsvV2SpecExtensions.inventoryColumns(organismKind: OrganismKind.coral);
-  static final List<String> _inventoryOysterColumns =
-      CsvV2SpecExtensions.inventoryColumns(organismKind: OrganismKind.oyster);
-  static final List<String> _inventoryKelpColumns =
-      CsvV2SpecExtensions.inventoryColumns(organismKind: OrganismKind.kelp);
-  static final List<String> _inventorySeagrassColumns =
-      CsvV2SpecExtensions.inventoryColumns(organismKind: OrganismKind.seagrass);
-  static final List<String> _inventoryMangroveColumns =
-      CsvV2SpecExtensions.inventoryColumns(organismKind: OrganismKind.mangrove);
-  static final List<String> _inventoryFinfishColumns =
-      CsvV2SpecExtensions.inventoryColumns(organismKind: OrganismKind.finfish);
-  static final List<String> _inventoryCrabColumns =
-      CsvV2SpecExtensions.inventoryColumns(organismKind: OrganismKind.crab);
 
   static const List<String> _outplantColumns = <String>[
     'eventId',
@@ -203,7 +183,6 @@ class CsvSchemas {
     'geometryType',
     'geometryCoordinates',
     'geometrySource',
-    'geometryKmlStoragePath',
     'geometryUpdatedAt',
   ];
 
@@ -238,79 +217,6 @@ class CsvSchemas {
     'tagId', // Optional
   ];
 
-  static const List<String> _monitoringColumns = <String>[
-    'eventId',
-    'outplantEventId',
-    'siteUrlPath',
-    'monitoringDate',
-    'percentCover',
-    'percentBleaching',
-    'percentDisease',
-    'healthIssueTypeId',
-    'imageUrl',
-    'notes',
-    'ageDays',
-    'ageMonths',
-    'tagId',
-    'recordName',
-    'physicalFormId',
-    'sizeBandId',
-    'estimatedVolumeMm3',
-    'growthDeltaMm3',
-    'growthPercentChange',
-    'growthPerDayMm3',
-  ];
-
-  static const List<String> _siteBaselineColumns = <String>[
-    'siteId',
-    'siteName',
-    'siteUrlPath',
-    'siteType',
-    'organismKind',
-    'temperatureC',
-    'salinityPsu',
-    'dissolvedOxygenMgL',
-    'baselineNotes',
-    'baselineUpdatedAt',
-    'baselineUpdatedBy',
-    'metricsJson',
-  ];
-
-  static const List<String> _husbandryObservationColumns = <String>[
-    'eventId',
-    'recordModelType',
-    'recordId',
-    'recordPath',
-    'observedAt',
-    'observedBy',
-    'observationType',
-    'comment',
-    'healthIssueTypeId',
-    'oldHealthStatus',
-    'newHealthStatus',
-    'imageUrl',
-    'followUpTaskId',
-  ];
-
-  static const List<String> _husbandryTaskColumns = <String>[
-    'eventId',
-    'recordModelType',
-    'recordId',
-    'recordPath',
-    'title',
-    'description',
-    'husbandryActionTypeId',
-    'priorityId',
-    'assignedRoleId',
-    'assignedUserId',
-    'deadline',
-    'completedAt',
-    'completedById',
-    'createdAt',
-    'updatedAt',
-    'notes',
-    'sourceObservationId',
-  ];
 
   static final CsvSchema genetics = CsvSchema(
     kind: CsvTemplateKind.genetics,
@@ -340,48 +246,6 @@ class CsvSchemas {
     allColumns: _inventoryCoralColumns,
   );
 
-  static final CsvSchema inventoryOyster = CsvSchema(
-    kind: CsvTemplateKind.inventoryOyster,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _inventoryOysterColumns,
-  );
-
-  static final CsvSchema inventoryKelp = CsvSchema(
-    kind: CsvTemplateKind.inventoryKelp,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _inventoryKelpColumns,
-  );
-
-  static final CsvSchema inventorySeagrass = CsvSchema(
-    kind: CsvTemplateKind.inventorySeagrass,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _inventorySeagrassColumns,
-  );
-
-  static final CsvSchema inventoryMangrove = CsvSchema(
-    kind: CsvTemplateKind.inventoryMangrove,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _inventoryMangroveColumns,
-  );
-
-  static final CsvSchema inventoryFinfish = CsvSchema(
-    kind: CsvTemplateKind.inventoryFinfish,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _inventoryFinfishColumns,
-  );
-
-  static final CsvSchema inventoryCrab = CsvSchema(
-    kind: CsvTemplateKind.inventoryCrab,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _inventoryCrabColumns,
-  );
-
   static final CsvSchema outplanting = CsvSchema(
     kind: CsvTemplateKind.outplanting,
     version: currentVersion,
@@ -404,52 +268,14 @@ class CsvSchemas {
     allColumns: _outplantConsolidatedColumns,
   );
 
-  static final CsvSchema monitoring = CsvSchema(
-    kind: CsvTemplateKind.monitoring,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _monitoringColumns,
-  );
-
-  static final CsvSchema siteBaselines = CsvSchema(
-    kind: CsvTemplateKind.siteBaselines,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _siteBaselineColumns,
-  );
-
-  static final CsvSchema husbandryObservations = CsvSchema(
-    kind: CsvTemplateKind.husbandryObservations,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _husbandryObservationColumns,
-  );
-
-  static final CsvSchema husbandryTasks = CsvSchema(
-    kind: CsvTemplateKind.husbandryTasks,
-    version: currentVersion,
-    metadataFields: _defaultMetadataFields,
-    allColumns: _husbandryTaskColumns,
-  );
-
   static final List<CsvSchema> all = <CsvSchema>[
     genetics,
     inventory,
     inventoryMinimal,
     inventoryCoral,
-    inventoryOyster,
-    inventoryKelp,
-    inventorySeagrass,
-    inventoryMangrove,
-    inventoryFinfish,
-    inventoryCrab,
     outplanting,
     outplantAllocations,
     outplantConsolidated,
-    monitoring,
-    siteBaselines,
-    husbandryObservations,
-    husbandryTasks,
   ];
 
   static CsvSchema schemaForKind(CsvTemplateKind kind) {

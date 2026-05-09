@@ -23,36 +23,16 @@ import { Firestore, getFirestore } from 'firebase-admin/firestore';
 import fs from 'node:fs';
 import path from 'node:path';
 
-type OrganismKindLiteral =
-  | 'coral'
-  | 'oyster'
-  | 'seagrass'
-  | 'kelp'
-  | 'mangrove'
-  | 'echinoid'
-  | 'crab'
-  | 'finfish'
-  | 'seaCucumber';
+type OrganismKindLiteral = 'coral';
 
 const ORGANISM_KIND_VALUES: OrganismKindLiteral[] = [
   'coral',
-  'oyster',
-  'seagrass',
-  'kelp',
-  'mangrove',
-  'echinoid',
-  'crab',
-  'finfish',
-  'seaCucumber',
 ];
 
 type PropagationModeLiteral =
   | 'asexualFragmentation'
-  | 'vegetativeCutting'
   | 'larvalSettlement'
-  | 'sexualSpawning'
-  | 'hatcheryBreeding'
-  | 'clonalExpansion';
+  | 'sexualSpawning';
 
 type CoralMorphologyLiteral =
   | 'branching'
@@ -100,157 +80,7 @@ interface ProvenanceSeed {
 }
 
 const speciesSeeds: SpeciesSeed[] = [
-  // ====== NON-CORAL SPECIES (one per organism kind) ======
-  {
-    id: 'sala',
-    organismKind: 'kelp',
-    genus: 'Saccharina',
-    species: 'latissima',
-    code: 'SALA',
-    commonNames: ['Sugar kelp', 'Sea belt'],
-    aliases: ['species_saccharina_latissima'],
-    classification: {
-      kingdom: 'Chromista',
-      phylum: 'Ochrophyta',
-      class: 'Phaeophyceae',
-      order: 'Laminariales',
-      family: 'Saccharinaceae',
-    },
-    propagationModes: ['vegetativeCutting', 'sexualSpawning'],
-    metadata: {
-      nativeRange: 'North Atlantic',
-      preferredTemperatureC: '4-15',
-      defaultMeasurementUnit: 'kg_per_m',
-    },
-  },
-  {
-    id: 'crvi',
-    organismKind: 'oyster',
-    genus: 'Crassostrea',
-    species: 'virginica',
-    code: 'CRVI',
-    commonNames: ['Eastern oyster', 'American oyster'],
-    aliases: ['species_crassostrea_virginica'],
-    classification: {
-      kingdom: 'Animalia',
-      phylum: 'Mollusca',
-      class: 'Bivalvia',
-      order: 'Ostreoida',
-      family: 'Ostreidae',
-    },
-    propagationModes: ['hatcheryBreeding', 'larvalSettlement'],
-    metadata: {
-      habitat: 'Estuarine',
-      regulatoryBody: 'NSSP',
-      defaultMeasurementUnit: 'count',
-    },
-  },
-  {
-    id: 'thte',
-    organismKind: 'seagrass',
-    genus: 'Thalassia',
-    species: 'testudinum',
-    code: 'THTE',
-    commonNames: ['Turtle grass'],
-    aliases: ['species_thalassia_testudinum'],
-    classification: {
-      kingdom: 'Plantae',
-      phylum: 'Tracheophyta',
-      class: 'Liliopsida',
-      order: 'Alismatales',
-      family: 'Hydrocharitaceae',
-    },
-    propagationModes: ['clonalExpansion', 'sexualSpawning'],
-    metadata: {
-      habitat: 'Shallow coastal lagoons',
-      defaultMeasurementUnit: 'm2',
-    },
-  },
-  {
-    id: 'casa',
-    organismKind: 'crab',
-    genus: 'Callinectes',
-    species: 'sapidus',
-    code: 'CASA',
-    commonNames: ['Blue Crab'],
-    aliases: ['species_callinectes_sapidus'],
-    propagationModes: ['hatcheryBreeding', 'larvalSettlement'],
-    metadata: {
-      habitat: 'Estuarine',
-      defaultMeasurementUnit: 'count',
-    },
-  },
-  {
-    id: 'onmy',
-    organismKind: 'finfish',
-    genus: 'Oncorhynchus',
-    species: 'mykiss',
-    code: 'ONMY',
-    commonNames: ['Rainbow trout'],
-    aliases: ['species_oncorhynchus_mykiss'],
-    propagationModes: ['hatcheryBreeding'],
-    metadata: {
-      habitat: 'Cold freshwater',
-      defaultMeasurementUnit: 'count',
-    },
-  },
-  {
-    id: 'mefr',
-    organismKind: 'echinoid',
-    genus: 'Mesocentrotus',
-    species: 'franciscanus',
-    code: 'MEFR',
-    commonNames: ['Red sea urchin'],
-    aliases: ['species_mesocentrotus_franciscanus'],
-    propagationModes: ['sexualSpawning'],
-    metadata: {
-      habitat: 'Kelp forests',
-      defaultMeasurementUnit: 'count',
-    },
-  },
-  {
-    id: 'rhma',
-    organismKind: 'mangrove',
-    genus: 'Rhizophora',
-    species: 'mangle',
-    code: 'RHMA',
-    commonNames: ['Red mangrove'],
-    aliases: ['species_rhizophora_mangle'],
-    classification: {
-      kingdom: 'Plantae',
-      phylum: 'Tracheophyta',
-      class: 'Magnoliopsida',
-      order: 'Malpighiales',
-      family: 'Rhizophoraceae',
-    },
-    propagationModes: ['vegetativeCutting', 'sexualSpawning'],
-    metadata: {
-      habitat: 'Tropical tidal zones',
-      defaultMeasurementUnit: 'count',
-    },
-  },
-  {
-    id: 'hosc',
-    organismKind: 'seaCucumber',
-    genus: 'Holothuria',
-    species: 'scabra',
-    code: 'HOSC',
-    commonNames: ['Sandfish sea cucumber'],
-    aliases: ['species_holothuria_scabra'],
-    classification: {
-      kingdom: 'Animalia',
-      phylum: 'Echinodermata',
-      class: 'Holothuroidea',
-      order: 'Aspidochirotida',
-      family: 'Holothuriidae',
-    },
-    propagationModes: ['sexualSpawning'],
-    metadata: {
-      habitat: 'Shallow seagrass beds',
-      defaultMeasurementUnit: 'count',
-    },
-  },
-  // ====== COMPREHENSIVE CORAL SPECIES FOR RESTORATION ======
+  // ====== CORAL SPECIES FOR RESTORATION ======
   // Acropora species (ESA-listed, high restoration priority)
   {
     id: 'apal',
@@ -651,19 +481,6 @@ function resolveCoralMorphology(
 
 const provenanceSeeds: ProvenanceSeed[] = [
   {
-    id: 'kelp_broodstock_cb_2024',
-    organismKind: 'kelp',
-    provenanceKind: 'broodstock',
-    displayName: 'Casco Bay Broodstock 2024',
-    speciesId: 'sala',
-    aliasLabels: ['CB-BS-24'],
-    metadata: {
-      partnerOrg: 'Gulf of Maine Kelp Co-op',
-      collectionDate: '2024-03-15',
-      notes: 'Broodstock collected before spring sporulation window.',
-    },
-  },
-  {
     id: 'GENET-AP-001',
     organismKind: 'coral',
     provenanceKind: 'genet',
@@ -685,99 +502,6 @@ const provenanceSeeds: ProvenanceSeed[] = [
       provenanceId: 'GENET-AC-014',
       collectionSite: 'Upper Keys Hatchery',
       permitId: 'FKNMS-2025-OP-112',
-    },
-  },
-  {
-    id: 'oyster_hatchery_batr_2024',
-    organismKind: 'oyster',
-    provenanceKind: 'hatcheryLot',
-    displayName: 'Bay Atlantic Triploid Lot 2024-A',
-    speciesId: 'crvi',
-    aliasLabels: ['BATR-24A'],
-    metadata: {
-      hatchery: 'Bay Atlantic',
-      triploid: true,
-      spawnDate: '2024-05-01',
-    },
-  },
-  {
-    id: 'seagrass_donor_irma_reef',
-    organismKind: 'seagrass',
-    provenanceKind: 'donorMeadow',
-    displayName: 'Irma Reef Donor Meadow',
-    speciesId: 'thte',
-    aliasLabels: ['IR-Donor'],
-    metadata: {
-      site: 'Irma Reef, Marathon Key',
-      permit: 'FL-DEP-2023-441',
-      notes: 'Used for 2024 plot inoculations.',
-    },
-  },
-  {
-    id: 'seagrass_nursery_fb_2025',
-    organismKind: 'seagrass',
-    provenanceKind: 'cohort',
-    displayName: 'Florida Bay Nursery 2025',
-    speciesId: 'thte',
-    metadata: {
-      nursery: 'Florida Bay Plot 12',
-      permitId: 'FL-DEP-FB-2025-01',
-    },
-  },
-  {
-    id: 'crab_broodstock_chesapeake_2025',
-    organismKind: 'crab',
-    provenanceKind: 'broodstock',
-    displayName: 'Chesapeake Broodstock 2025',
-    speciesId: 'casa',
-    metadata: {
-      hatchery: 'Chesapeake Hatchery A',
-      season: 'Spring 2025',
-    },
-  },
-  {
-    id: 'finfish_feather_hatchery_2025',
-    organismKind: 'finfish',
-    provenanceKind: 'broodstock',
-    displayName: 'Feather River Hatchery Lot 2025',
-    speciesId: 'onmy',
-    metadata: {
-      hatchery: 'Feather River Hatchery',
-      stockType: 'Feather River Reach 2',
-    },
-  },
-  {
-    id: 'urchin_cohort_monterey_2025',
-    organismKind: 'echinoid',
-    provenanceKind: 'cohort',
-    displayName: 'Monterey Kelp Cohort 2025',
-    speciesId: 'mefr',
-    metadata: {
-      site: 'Monterey Kelp Site B',
-      permitId: 'CA-DFW-URCHIN-2025',
-    },
-  },
-  {
-    id: 'mangrove_propagule_keys_2025',
-    organismKind: 'mangrove',
-    provenanceKind: 'cohort',
-    displayName: 'Keys Propagule Cohort 2025',
-    speciesId: 'rhma',
-    aliasLabels: ['KEYS-RHMA-25'],
-    metadata: {
-      collectionSite: 'Florida Keys Mangrove Nursery',
-      notes: 'Propagules collected post-hurricane for stabilization plantings.',
-    },
-  },
-  {
-    id: 'sea_cucumber_broodstock_molucca_2025',
-    organismKind: 'seaCucumber',
-    provenanceKind: 'broodstock',
-    displayName: 'Molucca Sea Cucumber Broodstock 2025',
-    speciesId: 'hosc',
-    metadata: {
-      hatchery: 'Molucca Bay Hatchery',
-      cohort: 'Sandfish 2025',
     },
   },
 ];

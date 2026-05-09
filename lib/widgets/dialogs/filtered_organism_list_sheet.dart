@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nested/nested.dart';
 import 'package:provider/provider.dart';
-import 'package:seafoundry_app/cubits/current_user/current_user.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_cubit.dart';
 import 'package:seafoundry_app/cubits/record_display_preferences/record_display_preferences_cubit.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_card_filter.dart';
@@ -12,7 +12,6 @@ import 'package:seafoundry_app/models/group.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/health_status.dart';
-import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
@@ -21,7 +20,6 @@ import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/theme/app_colors.dart';
 import 'package:seafoundry_app/theme/spacing.dart';
-import 'package:seafoundry_app/widgets/common/gamete_sex_chip.dart';
 
 import '../common/organism_reference_links.dart';
 
@@ -320,12 +318,6 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
               detailsLine: _buildDetailsLine(record),
               quantity: _formatQuantity(record),
               healthStatus: record.healthStatus,
-              gameteSexChip: _isGamete(record)
-                  ? GameteSexChip.fromOrganism(
-                      record,
-                      compact: true,
-                    )
-                  : null,
               onTap: onSelected == null
                   ? null
                   : () {
@@ -537,10 +529,6 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
     return parts.join(' • ');
   }
 
-  bool _isGamete(OrganismRecord record) {
-    return record.lifeStage.stage == LifeStage.gamete;
-  }
-
   bool _hasPositiveQuantity(OrganismRecord record) {
     return record.measurement.value > 0;
   }
@@ -605,7 +593,6 @@ class _OrganismListTile extends StatelessWidget {
     required this.detailsLine,
     required this.quantity,
     required this.healthStatus,
-    this.gameteSexChip,
     this.onTap,
   });
 
@@ -615,7 +602,6 @@ class _OrganismListTile extends StatelessWidget {
   final String detailsLine;
   final String quantity;
   final HealthStatus healthStatus;
-  final GameteSexChip? gameteSexChip;
   final VoidCallback? onTap;
 
   @override
@@ -647,10 +633,6 @@ class _OrganismListTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
           ),
-          if (gameteSexChip != null) ...[
-            const SizedBox(width: 8),
-            gameteSexChip!,
-          ],
         ],
       ),
       subtitle: Column(

@@ -7,7 +7,6 @@ import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 
 /// Service for looking up entities during inventory CSV import.
 ///
@@ -65,8 +64,7 @@ class InventoryLookupService {
       // Use resolver for organization-scoped group lookup
       final orgPath =
           '${ModelType.organization.collectionPath}/${_groupRepository.organization.id}/${ModelType.group.collectionPath}';
-      final orgCollection = FirestoreCollectionResolver.instance
-          .collection(_groupRepository.firestore, orgPath);
+      final orgCollection = _groupRepository.firestore.collection(orgPath);
       group = await _queryGroupCollection(orgCollection, urlPath);
     }
 

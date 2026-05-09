@@ -1,7 +1,7 @@
 // @tier: community
 import 'dart:collection';
 
-import 'package:seafoundry_app/constants/schema.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/model_interfaces.dart';
 import 'package:seafoundry_app/models/taxonomy/species_record.dart';
 import 'package:seafoundry_app/models/types/coral_morphology.dart';

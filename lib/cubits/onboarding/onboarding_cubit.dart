@@ -1,7 +1,6 @@
 // @tier: community
 import 'dart:async';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth show User;
 import 'package:flutter/foundation.dart';
@@ -10,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/base/cubit_stream_subscription_mixin.dart';
 import 'package:seafoundry_app/cubits/navigation/deep_link_cubit.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
-import 'package:seafoundry_app/constants/organization_constants.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/mixins/provenance_search_mixin.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/models/provenance_search_state.dart';
@@ -23,11 +22,9 @@ import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/provenance_lookup_service.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/utils/extensions.dart';
-import 'package:seafoundry_app/utils/record_name_suggester.dart';
 import 'package:seafoundry_app/utils/user_identity.dart';
 
 part 'onboarding_state.dart';
-part 'onboarding_text_cubit.dart';
 
 enum OnboardingStep {
   initial,
@@ -421,33 +418,6 @@ class OnboardingCubit extends Cubit<OnboardingState>
   Future<void> _createOrganization(
     OnboardingOrganizationSetup setupState,
   ) async {
-    // Debug: Confirm this method is being called
-    if (kDebugMode) {
-      debugPrint('');
-      debugPrint(
-        '╔══════════════════════════════════════════════════════════════╗',
-      );
-      debugPrint(
-        '║ 🚀 STARTING ORGANIZATION CREATION                            ║',
-      );
-      debugPrint(
-        '╠══════════════════════════════════════════════════════════════╣',
-      );
-      debugPrint('║ Name: ${setupState.name.value}');
-      debugPrint('║ Slug: ${setupState.slug}');
-      debugPrint('║ User ID: ${setupState.user.id}');
-      debugPrint('║ User Email: ${setupState.user.email}');
-      debugPrint(
-        '║ Organisms: ${setupState.selectedOrganisms.map((o) => o.name).join(', ')}',
-      );
-      debugPrint(
-        '║ Site Types: ${setupState.selectedSiteTypes.map((s) => s.name).join(', ')}',
-      );
-      debugPrint(
-        '╚══════════════════════════════════════════════════════════════╝',
-      );
-      debugPrint('');
-    }
     LoggingService.instance.info(
       '🚀 Starting organization creation: ${setupState.name.value}',
     );
@@ -473,11 +443,6 @@ class OnboardingCubit extends Cubit<OnboardingState>
         );
       }
 
-      // Legal acceptances were already accepted when leaving legalAcceptance step
-      if (kDebugMode) {
-        debugPrint('║ 📡 Calling repository.createOrganization...');
-      }
-
       final (Organization organization, User user) = await repository
           .createOrganization(
             setupState.name.value,
@@ -492,25 +457,6 @@ class OnboardingCubit extends Cubit<OnboardingState>
                 setupState.selectedOrganisms, // Pass organisms to organization
           );
 
-      if (kDebugMode) {
-        debugPrint('');
-        debugPrint(
-          '╔══════════════════════════════════════════════════════════════╗',
-        );
-        debugPrint(
-          '║ ✅ ORGANIZATION CREATED SUCCESSFULLY                         ║',
-        );
-        debugPrint(
-          '╠══════════════════════════════════════════════════════════════╣',
-        );
-        debugPrint('║ Org ID: ${organization.id}');
-        debugPrint('║ User ID: ${user.id}');
-        debugPrint('║ User Org ID: ${user.organizationId}');
-        debugPrint(
-          '╚══════════════════════════════════════════════════════════════╝',
-        );
-        debugPrint('');
-      }
       LoggingService.instance.info(
         '✅ Organization created: ${organization.id}',
       );
@@ -530,29 +476,21 @@ class OnboardingCubit extends Cubit<OnboardingState>
     } catch (error, stackTrace) {
       if (isClosed) return;
 
-      // Extract detailed error information
-      final errorMessage = _extractDetailedErrorMessage(
-        error,
-        stackTrace,
-        'create organization',
-      );
-
       LoggingService.instance.error(
-        '🔴 ORGANIZATION CREATION FAILED',
+        'Organization creation failed',
         error,
         stackTrace,
       );
 
-      // Log additional context for debugging
-      if (kDebugMode) {
-        LoggingService.instance.debug('Error type: ${error.runtimeType}');
-        LoggingService.instance.debug('Error toString: $error');
-        if (error is FirebaseException) {
-          LoggingService.instance.debug('Firebase code: ${error.code}');
-          LoggingService.instance.debug('Firebase message: ${error.message}');
-          LoggingService.instance.debug('Firebase plugin: ${error.plugin}');
-        }
-      }
+      final domainError = domainErrors.ErrorHandler.transformError(
+        error,
+        stackTrace: stackTrace,
+        context: 'create organization',
+      );
+      final errorMessage = domainErrors.ErrorHandler.getDisplayMessage(
+        domainError,
+        includeDetails: kDebugMode,
+      );
 
       // Return to setup state with error - user can try again
       emit(setupState.copyWith(errorMessage: errorMessage));
@@ -581,10 +519,10 @@ class OnboardingCubit extends Cubit<OnboardingState>
 
       // Determine best site type for the first site
       // Priority: 1. Ex-Situ Nursery (classic), 2. First selected type, 3. Default
-      String siteTypeId = SiteType.nurseryExSitu.id;
+      String siteTypeId = SiteType.nursery.id;
       if (organization != null && organization.activities.isNotEmpty) {
-        if (organization.activities.contains(SiteType.nurseryExSitu.id)) {
-          siteTypeId = SiteType.nurseryExSitu.id;
+        if (organization.activities.contains(SiteType.nursery.id)) {
+          siteTypeId = SiteType.nursery.id;
         } else {
           siteTypeId = organization.activities.first;
         }
@@ -625,8 +563,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
 
       // Get organism kind from organization
       // Note: We already fetched organization above, but ensuring consistency
-      final organismKind =
-          organization?.primaryOrganismKind ?? OrganismKind.coral;
+      const organismKind = OrganismKind.coral;
       _lastOrganismKind = organismKind; // Store for back navigation
 
       // Proceed to Education (5-Axis model) BEFORE first organism creation
@@ -634,16 +571,19 @@ class OnboardingCubit extends Cubit<OnboardingState>
     } catch (e, stack) {
       if (isClosed) return;
       LoggingService.instance.error(
-        '🔴 SITE/STRUCTURE CREATION FAILED',
+        'Site/structure creation failed',
         e,
         stack,
       );
 
-      // Extract detailed error message
-      final errorMessage = _extractDetailedErrorMessage(
+      final domainError = domainErrors.ErrorHandler.transformError(
         e,
-        stack,
-        'create site and structure',
+        stackTrace: stack,
+        context: 'create site and structure',
+      );
+      final errorMessage = domainErrors.ErrorHandler.getDisplayMessage(
+        domainError,
+        includeDetails: kDebugMode,
       );
 
       emit(siteState.copyWith(errorMessage: errorMessage, isSubmitting: false));
@@ -673,12 +613,9 @@ class OnboardingCubit extends Cubit<OnboardingState>
     final defaultLifeStage = _getDefaultLifeStage(organismKind);
     final defaultLocalId = _getDefaultLocalId(organismKind);
 
-    // Create and register recordName controller with a fast fallback suggestion.
-    final fallbackRecordName = RecordNameSuggester.suggestFallback(
-      defaultLocalId,
-    );
+    // Create and register recordName controller with localId as default.
     final recordNameCtrl = _registerController(
-      TextEditingController(text: fallbackRecordName ?? ''),
+      TextEditingController(text: defaultLocalId),
     );
 
     emit(
@@ -716,22 +653,6 @@ class OnboardingCubit extends Cubit<OnboardingState>
     switch (kind) {
       case OrganismKind.coral:
         return 'CORAL-001';
-      case OrganismKind.oyster:
-        return 'OYSTER-001';
-      case OrganismKind.kelp:
-        return 'KELP-001';
-      case OrganismKind.seagrass:
-        return 'GRASS-001';
-      case OrganismKind.mangrove:
-        return 'MANG-001';
-      case OrganismKind.echinoid:
-        return 'URCHIN-001';
-      case OrganismKind.crab:
-        return 'CRAB-001';
-      case OrganismKind.finfish:
-        return 'FISH-001';
-      case OrganismKind.seaCucumber:
-        return 'CUKE-001';
     }
   }
 
@@ -1098,17 +1019,10 @@ class OnboardingCubit extends Cubit<OnboardingState>
     if (currentState.isRecordNameManuallyEdited) return;
     final trimmed = localId.trim();
     if (trimmed.isEmpty) return;
-    final fallback = RecordNameSuggester.suggestFallback(trimmed);
-    if (fallback != null && currentState.recordNameController != null) {
-      currentState.recordNameController!.text = fallback;
+    if (currentState.recordNameController != null) {
+      currentState.recordNameController!.text = trimmed;
     }
     _scheduleRecordNameSuggestion(trimmed);
-  }
-
-  /// Pre-populate recordName from localId using auto-suggestion.
-  /// Called whenever localId changes (e.g., after async suggestion resolves).
-  void updateRecordNameFromLocalId(String localId) {
-    _processLocalIdChange(localId);
   }
 
   void _scheduleRecordNameSuggestion(String localId, {bool debounce = true}) {
@@ -1200,14 +1114,6 @@ class OnboardingCubit extends Cubit<OnboardingState>
     emit(const OnboardingComplete());
   }
 
-  void setUserImage(String imageUrl) {
-    if (state.step == OnboardingStep.userProfile) {
-      final userState = state as OnboardingUserProfile;
-      emit(
-        userState.copyWith(user: userState.user.copyWith(imageUrl: imageUrl)),
-      );
-    }
-  }
 
   // close() is defined at the end of this class to merge all disposal logic
 
@@ -1600,51 +1506,14 @@ class OnboardingCubit extends Cubit<OnboardingState>
   void setOrganismSelection(OrganismKind organism, bool selected) {
     if (state is OnboardingOrganizationSetup) {
       final currentState = state as OnboardingOrganizationSetup;
-      final updatedOrganisms = List<OrganismKind>.from(
-        currentState.selectedOrganisms,
-      );
-
-      // Community tier restriction: only allow one organism
-      // New organizations default to community tier
-      const isCommunityTier =
-          true; // During onboarding, organizations default to community tier
-
-      if (selected && !updatedOrganisms.contains(organism)) {
-        // Prevent selecting a second organism if community tier
-        if (isCommunityTier && updatedOrganisms.isNotEmpty) {
-          // Don't add - community tier can only have one organism
-          return;
-        }
-        updatedOrganisms.add(organism);
-      } else if (!selected) {
-        updatedOrganisms.remove(organism);
-      }
-
-      // Filter selected site types to only include those available for the selected organisms
-      // Filter selected site types to only include those available for the selected organisms
-      final validSiteTypes = <SiteType>{};
-      for (final org in updatedOrganisms) {
-        // Rule 1: Include sites listed in defaults
-        for (final defaultTypeId in org.metadata.defaultSiteTypes) {
-          final st = SiteType.maybeFromId(defaultTypeId);
-          if (st != null) validSiteTypes.add(st);
-        }
-        // Rule 2: Include sites that primarily belong to this organism (expanding options)
-        for (final st in SiteType.builtins.values) {
-          if (st.organismKind == org) {
-            validSiteTypes.add(st);
-          }
-        }
-      }
-
-      final updatedSiteTypes = currentState.selectedSiteTypes
-          .where((st) => validSiteTypes.contains(st))
-          .toList();
+      final updatedOrganisms =
+          selected && organism == OrganismKind.coral
+          ? <OrganismKind>[OrganismKind.coral]
+          : <OrganismKind>[];
 
       emit(
         currentState.copyWith(
           selectedOrganisms: updatedOrganisms,
-          selectedSiteTypes: updatedSiteTypes,
         ),
       );
     }
@@ -1682,7 +1551,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
   }
 
   /// Set the selected substructure type for site setup.
-  /// Substructures (trays, branches, tags) are a Pro feature for finer organization.
+  /// Substructures (trays, branches, tags) allow finer organization.
   void setSelectedSubstructureType(String? substructureTypeId) {
     if (state is OnboardingSiteSetup) {
       emit(
@@ -1691,10 +1560,6 @@ class OnboardingCubit extends Cubit<OnboardingState>
         ),
       );
     }
-  }
-
-  String? validateState() {
-    return state.validate();
   }
 
   bool _isNameAvailable(String name) {
@@ -1728,96 +1593,6 @@ class OnboardingCubit extends Cubit<OnboardingState>
         ),
       );
     }
-  }
-
-  /// Extract a detailed, user-friendly error message from an exception
-  ///
-  /// In debug mode, includes full technical details.
-  /// In release mode, shows user-friendly messages with recovery hints.
-  String _extractDetailedErrorMessage(
-    Object error,
-    StackTrace stackTrace,
-    String operation,
-  ) {
-    final buffer = StringBuffer();
-
-    // Handle Firebase-specific errors
-    if (error is FirebaseException) {
-      buffer.writeln('Firebase Error: ${error.code}');
-      if (error.message != null && error.message!.isNotEmpty) {
-        buffer.writeln('Message: ${error.message}');
-      }
-
-      // Add specific hints for common Firebase errors
-      switch (error.code) {
-        case 'permission-denied':
-          buffer.writeln('\n💡 Hint: Check Firestore security rules.');
-          buffer.writeln(
-            'User may not have permission to write to this collection.',
-          );
-          break;
-        case 'not-found':
-          buffer.writeln(
-            '\n💡 Hint: A required document or collection was not found.',
-          );
-          break;
-        case 'already-exists':
-          buffer.writeln('\n💡 Hint: A document with this ID already exists.');
-          break;
-        case 'failed-precondition':
-          buffer.writeln('\n💡 Hint: Check if required indexes exist.');
-          break;
-        case 'unauthenticated':
-          buffer.writeln('\n💡 Hint: User authentication may have expired.');
-          break;
-        case 'unavailable':
-          buffer.writeln(
-            '\n💡 Hint: Firebase service may be temporarily unavailable.',
-          );
-          break;
-      }
-
-      if (kDebugMode) {
-        buffer.writeln('\n🔧 Plugin: ${error.plugin}');
-      }
-    } else {
-      // Generic error handling
-      buffer.writeln('Failed to $operation');
-      buffer.writeln('\nError type: ${error.runtimeType}');
-
-      final errorStr = error.toString();
-
-      // Check for common error patterns
-      if (errorStr.contains('permission') || errorStr.contains('denied')) {
-        buffer.writeln('Cause: Permission denied');
-        buffer.writeln('💡 Hint: Check your access rights or sign in again.');
-      } else if (errorStr.contains('network') ||
-          errorStr.contains('connection')) {
-        buffer.writeln('Cause: Network error');
-        buffer.writeln('💡 Hint: Check your internet connection.');
-      } else if (errorStr.contains('timeout')) {
-        buffer.writeln('Cause: Request timed out');
-        buffer.writeln('💡 Hint: The server is slow. Try again in a moment.');
-      } else {
-        // Show raw error in debug mode
-        if (kDebugMode) {
-          buffer.writeln('\nRaw error: $errorStr');
-        } else {
-          buffer.writeln(
-            '\nPlease try again. If the problem persists, contact support.',
-          );
-        }
-      }
-    }
-
-    // Add stack trace snippet in debug mode
-    if (kDebugMode && stackTrace != StackTrace.empty) {
-      final stackLines = stackTrace.toString().split('\n').take(5).join('\n');
-      buffer.writeln('\n📍 Stack trace (first 5 lines):');
-      buffer.writeln(stackLines);
-    }
-
-    return buffer.toString().trim();
   }
 
   @override

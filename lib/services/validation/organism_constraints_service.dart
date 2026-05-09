@@ -20,14 +20,14 @@ class OrganismConstraintsService {
   /// organism kind, life stage, and optional provenance type.
   ///
   /// Returns null if valid, or an [OrganismConstraintViolation] if invalid.
-  Future<OrganismConstraintViolation?> validateLifeStagePhysicalForm({
+  OrganismConstraintViolation? validateLifeStagePhysicalForm({
     required OrganismKind organismKind,
     required LifeStage lifeStage,
     required String formId,
     ProvenanceType? provenanceType,
-  }) async {
+  }) {
     // First check if the formId is in the registry for this organism/lifeStage
-    final isValidInRegistry = await PhysicalFormRegistry.instance.isValidForm(
+    final isValidInRegistry = PhysicalFormRegistry.instance.isValidForm(
       organismKind,
       lifeStage,
       formId,
@@ -54,11 +54,11 @@ class OrganismConstraintsService {
   /// Get the list of allowed physical form IDs for a given organism kind and life stage.
   ///
   /// Returns a list of formId strings that are valid for the specified combination.
-  Future<List<String>> allowedFormIds({
+  List<String> allowedFormIds({
     required OrganismKind organismKind,
     required LifeStage lifeStage,
-  }) async {
-    final forms = await PhysicalFormRegistry.instance.getAvailableForms(
+  }) {
+    final forms = PhysicalFormRegistry.instance.getAvailableForms(
       organismKind,
       lifeStage,
     );

@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/services/csv/adapters/csv_translation_adapter.dart';
 import 'package:seafoundry_app/services/csv/adapters/genetics_csv_translation_adapter.dart';
-import 'package:seafoundry_app/services/csv/adapters/mote_tracks_csv_adapter.dart';
 import 'package:seafoundry_app/services/csv/adapters/passthrough_csv_adapter.dart';
 import 'package:seafoundry_app/services/csv/adapters/universal_csv_adapter_v2.dart';
 
@@ -30,9 +29,7 @@ class CsvTranslationAdapterRegistry {
       CsvTranslationAdapterRegistry._();
 
   static final Map<String, List<CsvTranslationAdapter>> _orgAdapterOverrides =
-      <String, List<CsvTranslationAdapter>>{
-        'mote.org': const [MoteTracksCsvAdapter()],
-      };
+      <String, List<CsvTranslationAdapter>>{};
 
   UnmodifiableListView<CsvTranslationAdapter> get adapters =>
       UnmodifiableListView<CsvTranslationAdapter>(_adapters);

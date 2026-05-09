@@ -225,9 +225,9 @@ Future<_TransferReceiveMode?> _promptTransferReceiveMode(
             onPressed: () =>
                 Navigator.of(dialogContext).pop(_TransferReceiveMode.scan),
             child: const ListTile(
-              leading: Icon(Icons.qr_code_scanner),
-              title: Text('Scan QR Manifest'),
-              subtitle: Text('Use the manifest shared by the sender'),
+              leading: Icon(Icons.content_paste),
+              title: Text('Enter Manifest Payload'),
+              subtitle: Text('Paste the manifest shared by the sender'),
             ),
           ),
           SimpleDialogOption(

@@ -73,8 +73,8 @@ class SiteLoadingService {
       final sites = await loadSites();
 
       final outplantSites = sites
-          .where((site) => site.siteTypeId == SiteType.outplanting.id)
-          .toList(growable: false);
+          .where((site) => SiteType.fromId(site.siteTypeId).isOutplanting)
+          .toList();
 
       _logger.debug(
         'SiteLoadingService: loaded ${outplantSites.length} outplant sites (${sites.length} total)',

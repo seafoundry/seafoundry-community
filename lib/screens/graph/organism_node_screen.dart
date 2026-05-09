@@ -2,17 +2,20 @@
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';
-import 'package:seafoundry_app/models/types/organism_kind.dart';
+import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
+import 'package:seafoundry_app/models/types/life_stage.dart';
+import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/navigation/community_graph_scaffold.dart';
-import 'package:seafoundry_app/services/tour_key_registry.dart';
+import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/theme/spacing.dart';
-import 'package:seafoundry_app/widgets/visual/did_you_know_banner.dart';
+import 'package:seafoundry_app/widgets/common/species_reference_photo.dart';
+import 'package:seafoundry_app/widgets/dialogs/inventory_action_sheet.dart';
+import 'package:seafoundry_app/widgets/graph_node/graph_node_events_section.dart';
+import 'package:seafoundry_app/widgets/dialogs/organism_edit_dialog.dart';
+import 'package:seafoundry_app/widgets/navigation/bottom_action_bar.dart';
 
-import '../../widgets/common/species_reference_photo.dart';
-import '../../widgets/dialogs/observation/organism_observation_images_dialog.dart';
-// GraphNodeEventsList is Pro-only - community uses simplified event display
 
-/// Community version of OrganismNodeScreen without comments feature.
+/// Community version of OrganismNodeScreen with details and split actions.
 class OrganismNodeScreen extends StatelessWidget {
   const OrganismNodeScreen({
     super.key,
@@ -25,7 +28,27 @@ class OrganismNodeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final organismNode = graphNode as OrganismNode;
+
     return CommunitySimpleGraphScreenScaffold(
+      bottomActions: [
+        BottomAction(
+          label: 'Inventory',
+          icon: Icons.inventory_2_outlined,
+          onPressed: () => InventoryActionSheet.show(
+            context,
+            node: graphNode,
+          ),
+        ),
+        BottomAction(
+          label: 'Edit Record',
+          icon: Icons.edit,
+          onPressed: () => OrganismEditDialog.show(
+            context,
+            organismNode: organismNode,
+          ),
+        ),
+      ],
       body: _OrganismNodeBody(
         loadedNodeState: loadedNodeState,
         graphNode: graphNode,
@@ -46,64 +69,142 @@ class _OrganismNodeBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final organism = loadedNodeState.organism;
+    final species = SpeciesRegistry.globalById(organism.speciesId);
+    final theme = Theme.of(context);
+
     return SingleChildScrollView(
       padding: EdgeInsets.all(Spacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-              DidYouKnowBanner(
-                nodeType:
-                    loadedNodeState.organism.organismKind.metadata.displayName,
-                speciesId: loadedNodeState.organism.speciesId,
-                dismissKey: 'dyk-organism-${loadedNodeState.organism.id}',
-              ),
-              SizedBox(height: Spacing.md),
-              // OrganismNodeInfo removed - Pro feature
-              // Display basic organism info card
-              Card(
-                key: TourKeyRegistry.graphNodeInfoCard,
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => OrganismObservationImagesDialog.show(
-                    context,
-                    organism: organism,
-                    events: loadedNodeState.events,
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.all(Spacing.md),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SpeciesReferencePhoto(
-                          speciesId: organism.speciesId,
-                          modelType: organism.modelType,
-                          size: 64,
-                        ),
-                        SizedBox(width: Spacing.md),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+          // Main organism info card
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: EdgeInsets.all(Spacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SpeciesReferencePhoto(
+                        speciesId: organism.speciesId,
+                        modelType: organism.modelType,
+                        size: 72,
+                      ),
+                      SizedBox(width: Spacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              organism.name,
+                              style: theme.textTheme.titleLarge,
+                            ),
+                            if (organism.localId != null &&
+                                organism.localId!.isNotEmpty) ...[
+                              SizedBox(height: 2),
                               Text(
-                                organism.name,
-                                style: Theme.of(context).textTheme.titleLarge,
-                              ),
-                              SizedBox(height: Spacing.xs),
-                              Text(
-                                'Type: ${organism.organismKind.metadata.displayName}',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                'ID: ${organism.localId}',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
-                          ),
+                            SizedBox(height: Spacing.xs),
+                            if (species != null)
+                              Text(
+                                species.name,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontStyle: FontStyle.italic,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ),
+                  SizedBox(height: Spacing.md),
+                  Divider(height: 1),
+                  SizedBox(height: Spacing.md),
+                  // Detail rows
+                  _DetailRow(
+                    icon: Icons.numbers,
+                    label: 'Quantity',
+                    value: '${organism.measurement.value.toInt()}',
+                  ),
+                  _DetailRow(
+                    icon: Icons.eco,
+                    label: 'Life Stage',
+                    value: organism.lifeStage.stage.displayName,
+                  ),
+                  if (organism.physicalForm?.formId != null)
+                    _DetailRow(
+                      icon: Icons.category,
+                      label: 'Physical Form',
+                      value: organism.physicalFormDisplayName ?? 'Unknown',
+                    ),
+                  if (organism.provenanceType != null)
+                    _DetailRow(
+                      icon: Icons.history,
+                      label: 'Provenance',
+                      value: organism.provenanceType!.displayName,
+                    ),
+                  _DetailRow(
+                    icon: Icons.favorite,
+                    label: 'Health',
+                    value: organism.healthStatus.displayName,
+                  ),
+                ],
               ),
+            ),
+          ),
           SizedBox(height: Spacing.md),
-          // Events list removed - Pro feature (GraphNodeEventsList)
+          GraphNodeEventsSection(events: loadedNodeState.events),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: Spacing.sm),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
+          SizedBox(width: Spacing.sm),
+          Text(
+            '$label:',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          SizedBox(width: Spacing.xs),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
         ],
       ),
     );

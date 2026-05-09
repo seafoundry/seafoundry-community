@@ -158,26 +158,6 @@ class GoogleSignInService {
     }
   }
 
-  /// Disconnect from Google (revokes access), ensuring initialization first.
-  ///
-  /// Safe to call even if not signed in or initialization failed.
-  Future<void> disconnect() async {
-    final logger = LoggingService.instance;
-
-    await ready;
-
-    if (!isReady) {
-      logger.debug('GoogleSignIn disconnect skipped - not initialized');
-      return;
-    }
-
-    try {
-      await GoogleSignIn.instance.disconnect();
-    } catch (error) {
-      logger.warning('GoogleSignIn disconnect error (non-fatal)', error);
-    }
-  }
-
   /// Get the underlying GoogleSignIn instance.
   ///
   /// Prefer using the service methods ([authenticate], [signOut]) instead.

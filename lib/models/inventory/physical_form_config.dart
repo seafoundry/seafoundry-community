@@ -27,7 +27,7 @@ enum InventoryCountingMode {
 }
 
 /// Default size band identifier used as a fallback when no explicit band is
-/// specified. Matches the canonical 'medium' band defined in YAML configs.
+/// specified. Matches the canonical 'medium' band defined in physical form data.
 const String kDefaultSizeBandId = 'medium';
 
 /// Configuration for a size band within a physical form
@@ -259,47 +259,4 @@ class PhysicalFormInstance extends Equatable {
 
   @override
   List<Object?> get props => [formId, sizeBandId];
-}
-
-/// Configuration version metadata
-class PhysicalFormConfigVersion extends Equatable {
-  const PhysicalFormConfigVersion({
-    required this.id,
-    required this.createdAt,
-    required this.createdBy,
-    required this.yamlContent,
-  });
-
-  /// Version identifier (e.g., 'v1', 'v2', 'v3')
-  final String id;
-
-  /// When this version was created
-  final DateTime createdAt;
-
-  /// User who created this version
-  final String createdBy;
-
-  /// Full YAML configuration content at this version
-  final Map<String, dynamic> yamlContent;
-
-  factory PhysicalFormConfigVersion.fromJson(Map<String, dynamic> json) {
-    return PhysicalFormConfigVersion(
-      id: json['id'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      createdBy: json['createdBy'] as String,
-      yamlContent: Map<String, dynamic>.from(json['yamlContent'] as Map),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'createdAt': createdAt.toIso8601String(),
-      'createdBy': createdBy,
-      'yamlContent': yamlContent,
-    };
-  }
-
-  @override
-  List<Object?> get props => [id, createdAt, createdBy, yamlContent];
 }

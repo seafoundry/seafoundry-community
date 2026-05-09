@@ -2,7 +2,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/site.dart';
-import 'package:seafoundry_app/models/types/health_status_type.dart';
+import 'package:seafoundry_app/models/types/health_status.dart';
 import 'package:seafoundry_app/models/types/population_loss_reason.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
@@ -58,7 +58,6 @@ class OutplantSubmissionService {
   /// - [comment]: Optional comment/notes
   /// - [attachmentUrls]: Optional attachment URLs (unused, kept for API compatibility)
   /// - [permitMetadata]: Optional permit metadata
-  /// - [missionId]: Optional mission ID to link this outplant event to a mission
   ///
   /// Returns [OutplantSubmissionResult] with created event and affected organisms.
   ///
@@ -71,14 +70,13 @@ class OutplantSubmissionService {
     required String organizationId,
     required String userId,
     OutplantGeometry? geometry,
-    HealthStatusType? healthStatus,
+    HealthStatus? healthStatus,
     double? percentCover,
     double? percentBleaching,
     double? percentDisease,
     String? comment,
     List<String>? attachmentUrls,
     EventPermitMetadata? permitMetadata,
-    String? missionId,
   }) async {
     // Validation
     final trimmedEventName = eventName.trim();
@@ -164,7 +162,6 @@ class OutplantSubmissionService {
       comment: comment?.trim().isEmpty ?? true ? null : comment!.trim(),
       geometry: geometry,
       permitMetadata: permitMetadata ?? const EventPermitMetadata.empty(),
-      missionId: missionId,
       batch: batch,
     );
 

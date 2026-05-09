@@ -19,7 +19,6 @@
   ],
   "hardFailOnIdConflict": true,
   "geometry": {
-    "kmlMaxPoints": 250,
     "storeAs": "GeoJSON",
     "columns": [
       "siteCenterLat",
@@ -28,8 +27,7 @@
       "siteBboxNWLng",
       "siteBboxSELat",
       "siteBboxSELng",
-      "outplantPoints",
-      "outplantKmlUrl"
+      "outplantPoints"
     ]
   },
   "types": {
@@ -120,7 +118,6 @@
     "siteBboxSELat": "number",
     "siteBboxSELng": "number",
     "outplantPoints": "string",
-    "outplantKmlUrl": "string",
     "notes": "string"
   },
   "coherence": [
@@ -303,6 +300,6 @@
     "Use ISO dates (YYYY-MM-DD).",
     "Arbitrary 'id:*' and 'alias:*' columns are accepted and stored in externalIds/aliases.",
     "Role/training columns are captured as metadata in OSS builds; mapped to advanced permissions in paid builds.",
-    "Geometry: KML overlays limited to 250 points; multiple lat/lng will be converted to MultiPoint and a bounding box."
+    "Geometry: Multiple lat/lng will be converted to MultiPoint and a bounding box."
   ]
 }

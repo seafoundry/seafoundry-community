@@ -2,7 +2,6 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 
 import 'package:seafoundry_app/models/utils/json_casts.dart';
 import 'transfer_manifest_snapshots.dart';
@@ -210,21 +209,4 @@ class TransferManifest {
     return TransferManifest.fromJson(json);
   }
 
-  static String checksumForJson(Map<String, dynamic> json) {
-    final data = utf8.encode(jsonEncode(json));
-    return sha256.convert(data).toString();
-  }
-
-  static String? checksumForPayload(String payload) {
-    try {
-      final decoded = utf8.decode(base64Url.decode(payload));
-      return sha256.convert(utf8.encode(decoded)).toString();
-    } catch (_) {
-      return null;
-    }
-  }
-
-  String get checksum {
-    return checksumForJson(toJson());
-  }
 }

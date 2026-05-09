@@ -1,12 +1,9 @@
 // @tier: community
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:seafoundry_app/models/population_measurement.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/population_gain_reason.dart';
 import 'package:seafoundry_app/models/types/population_loss_reason.dart';
-import 'package:seafoundry_app/services/feature_access_service.dart';
-import 'package:seafoundry_app/widgets/common/upgrade_cta.dart';
 
 enum QuantityChangeKind { gain, loss }
 
@@ -36,7 +33,7 @@ class QuantityChangeReason {
   /// intentional management action that doesn't fit `humanError` (accidental)
   /// or `propagated` (fragmentation for propagation purposes).
   PopulationLossReason? toPopulationLossReason({
-    MortalityReason? mortalityReason,
+    PopulationLossReason? mortalityReason,
   }) {
     if (kind != QuantityChangeKind.loss) {
       return null;
@@ -185,8 +182,8 @@ class QuantityChangeEditor extends StatelessWidget {
   final ValueChanged<QuantityChangeReason?> onReasonChanged;
   final double? pendingValue;
   final ValueChanged<double?> onValueChanged;
-  final MortalityReason? mortalityReason;
-  final ValueChanged<MortalityReason?>? onMortalityReasonChanged;
+  final PopulationLossReason? mortalityReason;
+  final ValueChanged<PopulationLossReason?>? onMortalityReasonChanged;
   final String? comment;
   final String? commentHint;
   final ValueChanged<String>? onCommentChanged;
@@ -197,16 +194,7 @@ class QuantityChangeEditor extends StatelessWidget {
     if (kind != QuantityChangeKind.loss) return false;
     if (selectedReason?.id != 'mortality') return false;
     if (onMortalityReasonChanged == null) return false;
-    final access = _featureAccess(context);
-    return access?.supportsMortalityReasons ?? true;
-  }
-
-  FeatureAccessService? _featureAccess(BuildContext context) {
-    try {
-      return context.read<FeatureAccessService>();
-    } catch (_) {
-      return null;
-    }
+    return true;
   }
 
   /// Returns true if the pending value differs from current measurement.
@@ -276,7 +264,7 @@ class QuantityChangeEditor extends StatelessWidget {
           onChanged: isBusy ? null : onReasonChanged,
         ),
 
-        // Mortality cause selector (Pro feature)
+        // Mortality cause selector
         if (_showMortalitySelector(context)) ...[
           const SizedBox(height: 12),
           Text('Mortality cause', style: theme.textTheme.bodyMedium),
@@ -289,28 +277,9 @@ class QuantityChangeEditor extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _MortalityReasonVisualSelector(
-            reasons: MortalityReason.builtins.values.toList(growable: false),
+            reasons: PopulationLossReason.mortalityReasonBuiltins.values.toList(growable: false),
             selectedReason: mortalityReason,
             onChanged: isBusy ? null : onMortalityReasonChanged,
-          ),
-        ] else if (kind == QuantityChangeKind.loss &&
-            selectedReason?.id == 'mortality') ...[
-          const SizedBox(height: 12),
-          _MortalityReadOnlyPreview(),
-          const SizedBox(height: 8),
-          Builder(
-            builder: (context) {
-              final access = _featureAccess(context);
-              final ctaSubtitle =
-                  access?.tierLabel == 'Community (OSS, web-only)'
-                  ? 'Pro adds mortality cause details, imagery, and advanced monitoring.'
-                  : 'Upgrade to enable mortality cause selection.';
-              return UpgradeCta(
-                title: 'Mortality causes - coming soon',
-                subtitle: ctaSubtitle,
-                url: access?.upgradeUrl,
-              );
-            },
           ),
         ],
         const SizedBox(height: 12),
@@ -527,9 +496,9 @@ class _MortalityReasonVisualSelector extends StatelessWidget {
     required this.onChanged,
   });
 
-  final List<MortalityReason> reasons;
-  final MortalityReason? selectedReason;
-  final ValueChanged<MortalityReason?>? onChanged;
+  final List<PopulationLossReason> reasons;
+  final PopulationLossReason? selectedReason;
+  final ValueChanged<PopulationLossReason?>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -653,29 +622,3 @@ class _ValidationBanner extends StatelessWidget {
   }
 }
 
-class _MortalityReadOnlyPreview extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final reasons = MortalityReason.builtins.values.toList(growable: false);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Mortality cause (Pro)'),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: reasons
-              .map(
-                (r) => ChoiceChip(
-                  label: Text(r.name),
-                  selected: false,
-                  onSelected: null, // Disabled to indicate read-only preview
-                ),
-              )
-              .toList(growable: false),
-        ),
-      ],
-    );
-  }
-}

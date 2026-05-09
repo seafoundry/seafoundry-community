@@ -1,25 +1,19 @@
 # SeaFoundry Community Edition (OSS)
 
-SeaFoundry Community Edition is a free, open-source web platform for marine restoration, creating a standard for inventory management and genetics tracking available to any practitioner.
+SeaFoundry Community Edition is a free, open-source web platform for coral restoration, providing a standard for inventory management and genetics tracking available to any practitioner.
 
-## Features (Community)
+## Features
 
-*   **Inventory & Husbandry**: Track organism holdings, fragmentation, and movements (Gene Bank, Nursery).
-*   **Genetics & Lineage**: Manage sexual cohorts, wild collections, and parental lineage.
-*   **Basic Monitoring**: Record environmental parameters (temperature, salinity, etc.) and observations for outplanted sites.
-*   **Restoration Sites**: Create up to **5** outplanting/restoration sites to manage field operations.
-*   **Maps**: Visualize your sites and holdings on an interactive map.
-*   **Data Portability**: Full CSV import/export capabilities (compatible with SeaFoundry ecosystem).
+*   **Coral Inventory**: Track coral holdings, fragmentation, and movements across nursery sites.
+*   **Genetics & Lineage**: Manage genets, provenance chains, and fragmentation lineage.
+*   **Outplanting**: Record where and when corals are outplanted to restoration sites.
+*   **Transfers**: Log external transfers (sending/receiving organisms to/from other organizations).
+*   **Public Holdings Map**: Visualize your sites and holdings on an interactive map.
+*   **Data Portability**: Full CSV import/export capabilities.
 
-## Limitations
+## Site Limits
 
-This is the fully open-source Community build. Advanced features are available in **Pro** and **Scale** tiers:
-*   **Unlimited Sites** (Community limited to 1 nursery + 5 outplanting sites)
-*   **Photo Monitoring** (Image uploads/attachmnets)
-*   **Mobile App** (Offline sync, field mode)
-*   **Advanced Reporting** (Project deliverables, automated reports)
-*   **Team Management** (Role-based access, workforce tracking)
-*   **AI Tools** (Copilot, automated analysis)
+Community Edition supports 1 nursery site and 1 outplanting site per organization.
 
 ## Getting Started
 
@@ -34,14 +28,11 @@ This is the fully open-source Community build. Advanced features are available i
 
 ## Architecture
 
-This build uses the same core architecture as the full platform but is configured for the **Community** tier by default.
-*   **Tier Source**: Main feature gating is handled via `FeatureAccessService` and `config/tier_features.yaml`.
+This build uses Flutter with Firestore for data persistence.
+*   **Feature Gating**: Community-only constraints are enforced via `Tier` normalization and targeted guards (for example, `SiteLimitsService`).
 *   **Services**: Uses standard Firestore repositories for data persistence.
 
 ## Community & Support
 
 *   **Issues**: Please file issues in this repository for bugs or feature requests.
 *   **Contributions**: We welcome PRs! Please see `CONTRIBUTING.md`.
-
----
-*Generated Community Build*

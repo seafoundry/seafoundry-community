@@ -4,7 +4,7 @@
  * Complete User Reset Script
  *
  * Comprehensive reset for a user account that handles ALL edge cases:
- * - Deletes user document (by email ID)
+ * - Deletes user document (UID-based, with legacy email-ID fallback)
  * - Finds and deletes ALL organizations created by or owned by this user
  * - Deletes all org-scoped data (nested collections)
  * - Deletes all root-level records referencing those organizations
@@ -31,7 +31,7 @@ const emailArg = args.find(a => a.startsWith('--email='));
 const USER_EMAIL = emailArg
   ? emailArg.split('=')[1]
   : (process.env.RESET_USER_EMAIL || 'dev@seafoundry.com');
-const USER_ID = USER_EMAIL.toLowerCase(); // User doc IDs are lowercase email
+const LEGACY_EMAIL_DOC_ID = USER_EMAIL.toLowerCase();
 
 // Initialize Firebase Admin using shared config
 require('dotenv').config();
@@ -42,26 +42,17 @@ const { getAuth } = require('firebase-admin/auth');
 const ORG_SCOPED_ROOT_COLLECTIONS = [
   'sites',
   'events',
-  'monitoring_events',
   'holdings',
-  'tasks',
   'transfers',
   'snapshot_records',
   'inventory_snapshots',
   'snapshots',
-  'sync_conflicts',
   'config',
-  'sebastian_conversations',
-  'sebastian_usage',
-  'sebastian_contexts',
-  'sebastian_rate_limits',
-  'sebastian_metrics',
-  'sop_completions',
-  'sops',
-  'environmental_events',
-  'vessels',
+  'media_assets',
   'permits',
   'deliverables',
+  'brand_profiles',
+  'invitations',
 ];
 
 // Collections nested under organizations/{orgId}/
@@ -69,10 +60,12 @@ const ORG_NESTED_COLLECTIONS = [
   'groups',
   'genets',
   'organismRecords',
+  'organism_records',
   'cohorts',
-  'comments',
-  'chat_rooms',
-  'chat_messages',
+  'members',
+  'notifications',
+  'slugCounts',
+  'events',
 ];
 
 // Collections that might have createdById referencing this user
@@ -136,16 +129,46 @@ async function deleteSubcollections(docRef) {
 }
 
 /**
- * Find user document by email (checking both by ID and by email field)
+ * Resolve Firebase Auth UID from email when available.
  */
-async function findUser() {
+async function resolveAuthUid(email) {
+  try {
+    const auth = getAuth();
+    const user = await auth.getUserByEmail(email);
+    return user.uid;
+  } catch (error) {
+    if (error.code !== 'auth/user-not-found') {
+      console.log(`  ⚠️  Could not resolve auth UID: ${error.message}`);
+    }
+    return null;
+  }
+}
+
+/**
+ * Find user document by preferred ID and/or email fields.
+ */
+async function findUser(preferredUserId) {
   console.log(`\n🔍 Looking for user: ${USER_EMAIL}`);
 
-  // Try by document ID (lowercase email)
-  const userDocById = await db.collection('users').doc(USER_ID).get();
-  if (userDocById.exists) {
-    console.log(`  ✅ Found user by doc ID: ${USER_ID}`);
-    return { id: USER_ID, data: userDocById.data(), ref: userDocById.ref };
+  if (preferredUserId) {
+    const preferredDoc = await db.collection('users').doc(preferredUserId).get();
+    if (preferredDoc.exists) {
+      console.log(`  ✅ Found user by preferred doc ID: ${preferredUserId}`);
+      return { id: preferredUserId, data: preferredDoc.data(), ref: preferredDoc.ref };
+    }
+  }
+
+  // Legacy fallback: user docs keyed by lowercase email.
+  if (!preferredUserId || preferredUserId !== LEGACY_EMAIL_DOC_ID) {
+    const userDocByLegacyId = await db.collection('users').doc(LEGACY_EMAIL_DOC_ID).get();
+    if (userDocByLegacyId.exists) {
+      console.log(`  ✅ Found user by legacy email doc ID: ${LEGACY_EMAIL_DOC_ID}`);
+      return {
+        id: LEGACY_EMAIL_DOC_ID,
+        data: userDocByLegacyId.data(),
+        ref: userDocByLegacyId.ref,
+      };
+    }
   }
 
   // Try by email field (case-insensitive search)
@@ -179,7 +202,7 @@ async function findUser() {
 /**
  * Find all organizations created by or associated with this user
  */
-async function findUserOrganizations(userId) {
+async function findUserOrganizations(userId, user) {
   console.log(`\n🔍 Looking for organizations associated with: ${userId}`);
   const organizations = [];
 
@@ -205,8 +228,7 @@ async function findUserOrganizations(userId) {
     }
   }
 
-  // If user has organizationId set, include that org too
-  const user = await findUser();
+  // If user has organizationId set, include that org too.
   if (user && user.data && user.data.organizationId) {
     const userOrgId = user.data.organizationId;
     if (!organizations.find(o => o.id === userOrgId) && userOrgId !== userId && userOrgId !== userId.toLowerCase()) {
@@ -325,11 +347,20 @@ async function resetUser() {
     totalRecordsDeleted: 0,
   };
 
+  const resolvedUid = await resolveAuthUid(USER_EMAIL);
+  const lookupUserId = resolvedUid || LEGACY_EMAIL_DOC_ID;
+  if (resolvedUid) {
+    console.log(`  ✅ Resolved auth UID: ${resolvedUid}`);
+  } else {
+    console.log('  ⚠️  No auth UID found, falling back to legacy email doc lookup');
+  }
+
   // Step 1: Find user
-  const user = await findUser();
+  const user = await findUser(lookupUserId);
+  const finalUserId = user?.id || lookupUserId;
 
   // Step 2: Find all organizations
-  const organizations = await findUserOrganizations(USER_ID);
+  const organizations = await findUserOrganizations(finalUserId, user);
 
   // Step 3: Delete each organization and its data
   for (const org of organizations) {
@@ -339,7 +370,7 @@ async function resetUser() {
   }
 
   // Step 4: Clean up orphaned records
-  const orphanedDeleted = await cleanupOrphanedRecords(USER_ID);
+  const orphanedDeleted = await cleanupOrphanedRecords(finalUserId);
   stats.totalRecordsDeleted += orphanedDeleted;
 
   // Step 5: Delete user subcollections
@@ -356,15 +387,20 @@ async function resetUser() {
     console.log(`  ✅ User document deleted`);
   }
 
-  // Also try to delete by lowercase ID if different
-  if (USER_ID !== USER_EMAIL) {
-    const userDocRef = db.collection('users').doc(USER_ID);
+  // Also delete any fallback IDs if they still exist.
+  const fallbackIds = new Set([lookupUserId, LEGACY_EMAIL_DOC_ID, USER_EMAIL]);
+  if (user != null) {
+    fallbackIds.remove(user.id);
+  }
+  for (const fallbackId of fallbackIds) {
+    if (!fallbackId || fallbackId.trim() === '') continue;
+    const userDocRef = db.collection('users').doc(fallbackId);
     const userDoc = await userDocRef.get();
     if (userDoc.exists) {
-      console.log(`\n🗑️  Deleting user document by ID: ${USER_ID}`);
+      console.log(`\n🗑️  Deleting fallback user document ID: ${fallbackId}`);
       await userDocRef.delete();
       stats.userDeleted = true;
-      console.log(`  ✅ User document deleted`);
+      console.log('  ✅ Fallback user document deleted');
     }
   }
 
@@ -420,7 +456,7 @@ async function promptConfirmation() {
 async function main() {
   try {
     console.log(`\n🎯 Target user: ${USER_EMAIL}`);
-    console.log(`   Document ID: ${USER_ID}`);
+    console.log(`   Legacy email doc ID: ${LEGACY_EMAIL_DOC_ID}`);
 
     if (needsConfirmation) {
       const confirmed = await promptConfirmation();

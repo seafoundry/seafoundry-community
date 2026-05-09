@@ -1,7 +1,0 @@
-sf_csv_version,2.0.0
-sf_csv_template,SeaFoundry Universal CSV v2
-sf_translation_adapter,universal_csv_v2
-org_domain,kelp.collective
-generated_at,2025-01-05T12:00:00Z
-organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,lifeStageSubtype,provenanceType,physicalFormId,physicalForm,sizeBandId,measuredDimension,dimensionUnit,organismsPerUnit,volumeAmount,volumeUnit,eventType,eventDate,measurementUnit,quantityValue,groupId,siteId,siteName,enclosureId,provenanceId,provenanceKind,cohortId,structureType,lineId,dropperId,permitType,permitId,issuingAuthority,validFrom,validTo,habitatType,siteJurisdiction,protectedAreaFlag,geometryFormat,geometryWkt,geometryGeojson,notes
-kelp,Saccharina latissima,SaLa,SALA-001,brisk-sala-001,longline,,sexualCohort,seeded_line,Seeded Line,medium,140,cm,,,,deployment,2025-01-06T09:30:00Z,kg_per_m,1.8,/kelp/sites/bay-1/longline-west,site-kelp-bay-1,Casco Bay Longline Array,bay-1-grid,PID-SALA-001,hatcheryLot,LOT-2025-01,longline,LL-42,,SeaweedAquaculture,DMR-SEAWEED-778,Maine DMR,2024-10-01,2025-10-01,offshore_kelp,Maine,false,WKT,"LINESTRING(-70.1234 43.1234,-70.1250 43.1250)","{""type"":""LineString"",""coordinates"":[[-70.1234,43.1234],[-70.1250,43.1250]]}","Seeded twine deployed on west longline with carbon tracking sensors and DMR permit metadata."

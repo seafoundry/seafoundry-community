@@ -32,12 +32,11 @@ final class AuthUnauthenticated extends AuthState {
 
 /// User is authenticated.
 ///
-/// **Scale-tier SOT pattern**: For Scale-tier organizations, [CurrentUser]
-/// is the single source of truth for user profile data. The [displayName]
-/// field here is ONLY used during initial sign-up to bridge the race
-/// condition where Firebase's authStateChanges fires before updateDisplayName
-/// completes. After the user is loaded in [CurrentUser], use the profile
-/// data from there instead of this field.
+/// [CurrentUser] is the single source of truth for user profile data.
+/// The [displayName] field here is ONLY used during initial sign-up to bridge
+/// the race condition where Firebase's authStateChanges fires before
+/// updateDisplayName completes. After the user is loaded in [CurrentUser],
+/// use the profile data from there instead of this field.
 final class AuthAuthenticated extends AuthState {
   final auth.User authUser;
 
@@ -45,9 +44,9 @@ final class AuthAuthenticated extends AuthState {
   /// [authStateChanges] fires before [updateDisplayName] completes,
   /// so [authUser.displayName] may still be null at this point.
   ///
-  /// **Important**: This is only for initial sign-up flow. For Scale-tier
-  /// organizations, always prefer [CurrentUser] as the source of truth
-  /// for user profile data after initial load.
+  /// **Important**: This is only for initial sign-up flow. Always prefer
+  /// [CurrentUser] as the source of truth for user profile data after
+  /// initial load.
   final String? displayName;
 
   const AuthAuthenticated({required this.authUser, this.displayName});

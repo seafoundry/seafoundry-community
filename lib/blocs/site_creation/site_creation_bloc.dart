@@ -14,11 +14,8 @@ import 'package:seafoundry_app/models/site_capabilities.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
-import 'package:seafoundry_app/repositories/channels/organization_channel_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
-import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/outplant_geometry_builder.dart';
-import 'package:seafoundry_app/services/outplant_geometry_parser.dart';
 import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 
 class SiteCreationBloc extends RecordFormBloc<Site, SiteFormState> {
@@ -105,10 +102,36 @@ class SiteCreationBloc extends RecordFormBloc<Site, SiteFormState> {
     add(RecordFormInitializeForEdit(site));
   }
 
+  /// Parses manually entered coordinate text (one lat,lng pair per line).
+  static List<GeoCoordinate> _parseManualCoordinates(String text) {
+    final lines = text
+        .split(RegExp(r'[\n\r]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) {
+      throw const FormatException('No coordinate pairs found.');
+    }
+    final coordinates = <GeoCoordinate>[];
+    for (final line in lines) {
+      final parts = line.split(RegExp(r'[,\s]+'));
+      if (parts.length < 2) {
+        throw FormatException('Invalid coordinate pair: "$line"');
+      }
+      final lat = double.tryParse(parts[0]);
+      final lng = double.tryParse(parts[1]);
+      if (lat == null || lng == null) {
+        throw FormatException('Non-numeric coordinate: "$line"');
+      }
+      coordinates.add(GeoCoordinate(latitude: lat, longitude: lng));
+    }
+    return coordinates;
+  }
+
   List<OrganismKind> _defaultOrganismsForSiteType(SiteType siteType) {
     return SiteCapabilities.defaultOrganismsForSite(
       siteType,
-      siteRepository.organization.supportedOrganismKinds,
+      const [OrganismKind.coral],
     );
   }
 
@@ -168,14 +191,8 @@ class SiteCreationBloc extends RecordFormBloc<Site, SiteFormState> {
     }
 
     final siteType = state.siteType.value!;
-    final supportsGeometry = siteType.isInSitu;
+    final supportsGeometry = SiteCapabilities.resolve(siteType).supportsGeometry;
     OutplantGeometry? geometry = state.geometry;
-    final selectedOrganisms = state.supportedOrganisms.value;
-    final supportedOrganisms =
-        selectedOrganisms != null && selectedOrganisms.isNotEmpty
-        ? selectedOrganisms
-        : _defaultOrganismsForSiteType(siteType);
-
     double? latitude = (state.locationLatitude.value?.trim().isEmpty ?? true)
         ? null
         : double.tryParse(state.locationLatitude.value!.trim());
@@ -187,12 +204,18 @@ class SiteCreationBloc extends RecordFormBloc<Site, SiteFormState> {
     if (supportsGeometry && geometry == null) {
       final manualText = state.geometryManual?.value?.trim() ?? '';
       if (manualText.isNotEmpty) {
-        // Auto-parse the manually entered coordinates.
-        const parser = OutplantGeometryParser();
+        // Auto-parse the manually entered coordinates (lat,lng per line).
         const builder = OutplantGeometryBuilder();
         try {
-          final parsed = parser.parseManual(manualText);
-          geometry = builder.build(input: parsed.input);
+          final coordinates = _parseManualCoordinates(manualText);
+          final input = OutplantGeometryInput(
+            type: coordinates.length == 1
+                ? OutplantGeometryType.point
+                : OutplantGeometryType.polygon,
+            coordinates: coordinates,
+            source: OutplantGeometrySource.manual,
+          );
+          geometry = builder.build(input: input);
         } on FormatException catch (e) {
           throw RepositoryError(
             message: 'Invalid geometry format: ${e.message}',
@@ -213,13 +236,6 @@ class SiteCreationBloc extends RecordFormBloc<Site, SiteFormState> {
             source: OutplantGeometrySource.siteCentroid,
           ),
           siteCentroid: coordinate,
-        );
-      } else if (siteType.id == SiteType.outplanting.id) {
-        throw RepositoryError(
-          message:
-              'Outplanting sites require at least one coordinate or uploaded geometry.',
-          recoverySuggestion:
-              'Add a coordinate or upload geometry to continue.',
         );
       }
     }
@@ -243,7 +259,6 @@ class SiteCreationBloc extends RecordFormBloc<Site, SiteFormState> {
       latitude: latitude,
       longitude: longitude,
       geometry: geometry,
-      supportedOrganismKinds: supportedOrganisms,
     );
 
     // If editing, update existing record with correction event; otherwise create new
@@ -271,44 +286,7 @@ class SiteCreationBloc extends RecordFormBloc<Site, SiteFormState> {
       newSite,
       siteRepository.organization,
     );
-    await _createSiteChannel(created);
     return created;
-  }
-
-  Future<void> _createSiteChannel(Site site) async {
-    try {
-      final channelRepository = OrganizationChannelRepository(
-        organizationId: site.organizationId,
-        userId: siteRepository.user.id,
-        firestore: siteRepository.db,
-      );
-      final existing = await channelRepository.getChannelForSite(site.id);
-      if (existing != null) return;
-
-      await channelRepository.createChannel(
-        name: _channelSlug(site.name),
-        description: 'Site channel for ${site.name}',
-        isPublic: true,
-        siteId: site.id,
-      );
-    } catch (error, stackTrace) {
-      LoggingService.instance.error(
-        'Failed to create site channel for ${site.name}',
-        error,
-        stackTrace,
-      );
-    }
-  }
-
-  String _channelSlug(String input) {
-    final slug = input
-        .toLowerCase()
-        .trim()
-        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
-        .replaceAll(RegExp(r'^-+'), '')
-        .replaceAll(RegExp(r'-+$'), '');
-    if (slug.isNotEmpty) return slug;
-    return 'site-${input.hashCode.abs()}';
   }
 }
 

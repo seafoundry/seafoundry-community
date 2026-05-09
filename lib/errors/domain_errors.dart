@@ -131,17 +131,13 @@ class RepositoryError extends DomainError {
     super.originalError,
     super.stackTrace,
     super.recoverySuggestion,
-    this.operationType,
     super.category = AppErrorCategory.data,
     super.severity = AppErrorSeverity.medium,
     super.context,
   });
 
-  final RepositoryOperationType? operationType;
-
   factory RepositoryError.fromException(
     Exception error, {
-    RepositoryOperationType? operationType,
     StackTrace? stackTrace,
   }) {
     String message = 'An error occurred while accessing data';
@@ -174,9 +170,7 @@ class RepositoryError extends DomainError {
       originalError: error,
       stackTrace: stackTrace,
       recoverySuggestion: recoverySuggestion,
-      operationType: operationType,
       category: category,
-      context: {'operationType': operationType?.name},
       severity: AppErrorSeverity.high,
     );
   }
@@ -195,20 +189,6 @@ class CapabilityConstraintError extends DomainError {
   });
 
   final String? capability;
-}
-
-/// Error thrown when a feature is not available for the current tier/license.
-class FeatureDisabledError extends DomainError {
-  const FeatureDisabledError({
-    required this.featureKey,
-    super.message = 'This feature is not available for your plan.',
-    super.recoverySuggestion = 'Upgrade your plan to unlock this feature.',
-    super.category = AppErrorCategory.permission,
-    super.severity = AppErrorSeverity.medium,
-    super.context,
-  });
-
-  final String featureKey;
 }
 
 /// Error thrown when a cycle is detected in graph parent traversal.
@@ -245,8 +225,6 @@ class GraphCycleDetectedError extends DomainError {
   final List<String> visitedPath;
 }
 
-enum RepositoryOperationType { read, write, delete, subscribe, unsubscribe }
-
 /// Error thrown when a unique constraint is violated (e.g., duplicate ID).
 ///
 /// Use this for typed collision detection instead of string matching on error
@@ -274,36 +252,6 @@ class UniqueConstraintViolationError extends DomainError {
   final String? existingRecordId;
 }
 
-/// Error thrown when an optimistic concurrency check fails due to concurrent
-/// modifications to the same record.
-///
-/// This occurs when two users attempt to update the same record simultaneously
-/// and the second update detects that the record was modified since it was last
-/// read. The user should refresh their view and try again.
-class ConcurrentModificationException extends DomainError {
-  ConcurrentModificationException({
-    required super.message,
-    this.recordId,
-    this.expectedUpdatedAt,
-    this.actualUpdatedAt,
-    super.context,
-  }) : super(
-          category: AppErrorCategory.conflict,
-          severity: AppErrorSeverity.medium,
-          recoverySuggestion:
-              'The record was modified by another user. Please refresh and try again.',
-        );
-
-  /// The ID of the record that was concurrently modified.
-  final String? recordId;
-
-  /// The timestamp the client expected the record to have.
-  final DateTime? expectedUpdatedAt;
-
-  /// The actual timestamp found on the record.
-  final DateTime? actualUpdatedAt;
-}
-
 /// Utility class for handling and transforming errors
 class ErrorHandler {
   static DomainError transformError(
@@ -321,8 +269,6 @@ class ErrorHandler {
         stackTrace: stackTrace,
       );
     }
-
-    // Note: RecordDataError handling removed since RecordDataError no longer exists
 
     if (error is Exception) {
       return RepositoryError.fromException(error, stackTrace: stackTrace);

@@ -5,14 +5,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/repositories/contracts/i_group_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/inventory_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/structure_capacity_service.dart';
 
-class GroupRepository extends InventoryRecordRepository<Group>
-    implements IGroupRepository {
+class GroupRepository extends InventoryRecordRepository<Group> {
   GroupRepository({
     required super.organization,
     required super.user,
@@ -79,7 +77,6 @@ class GroupRepository extends InventoryRecordRepository<Group>
     );
   }
 
-  @override
   Stream<List<Group>> groupsForSite(Site site, {bool shallow = false}) =>
       streamRecordsForUrlPath(site.urlPath, shallow: shallow);
 
@@ -87,7 +84,6 @@ class GroupRepository extends InventoryRecordRepository<Group>
   ///
   /// Computes field-level diffs between original and updated records,
   /// persists the update, and creates a CorrectionEvent with EventType.inventoryRecordCorrection.
-  @override
   Future<Group> updateGroupWithCorrection({
     required Group originalGroup,
     required Group updatedGroup,
@@ -273,7 +269,6 @@ class GroupRepository extends InventoryRecordRepository<Group>
   ///
   /// Returns the first matching group or null if not found.
   /// Uses an in-memory filter on the current snapshot for efficiency.
-  @override
   Future<Group?> findByNameInSite(String siteId, String groupName) async {
     if (siteId.trim().isEmpty || groupName.trim().isEmpty) return null;
 

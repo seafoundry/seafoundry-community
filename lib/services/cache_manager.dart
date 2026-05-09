@@ -1,13 +1,9 @@
 // @tier: community
 import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/models/species.dart';
-import 'package:seafoundry_app/services/environmental_threshold_registry.dart';
-import 'package:seafoundry_app/services/husbandry_schedule_registry.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/mortality_cause_registry.dart';
 import 'package:seafoundry_app/services/physical_form_registry.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
-import 'package:seafoundry_app/services/training_gate_registry.dart';
 import 'package:seafoundry_app/services/validation_rule_registry.dart';
 
 /// Centralized manager for clearing all global caches and singletons on logout.
@@ -20,8 +16,7 @@ import 'package:seafoundry_app/services/validation_rule_registry.dart';
 /// - SpeciesRegistry (global species/taxonomy cache)
 /// - TaxonomyService caches (via SpeciesRegistry refresh)
 /// - SiteBaselineService caches (cleared when RepositoriesProvider rebuilds)
-/// - SyncManager configuration (repositories and feature gates)
-/// - Organism config registries (environmental thresholds, husbandry schedules, etc.)
+/// - Organism config registries (environmental thresholds, etc.)
 class CacheManager {
   CacheManager._();
 
@@ -37,7 +32,6 @@ class CacheManager {
 
     _clearSpeciesRegistry();
     _clearOrganismConfigRegistries();
-    _clearProTierServices();
 
     LoggingService.instance.info('All global caches cleared on logout');
   }
@@ -71,20 +65,8 @@ class CacheManager {
   /// Clears all organism configuration registries (thresholds, schedules, etc.).
   void _clearOrganismConfigRegistries() {
     try {
-      // Clear EnvironmentalThresholdRegistry
-      EnvironmentalThresholdRegistry.instance.reset();
-
-      // Clear HusbandryScheduleRegistry
-      HusbandryScheduleRegistry.instance.reset();
-
       // Clear ValidationRuleRegistry
       ValidationRuleRegistry.instance.reset();
-
-      // Clear MortalityCauseRegistry
-      MortalityCauseRegistry.instance.reset();
-
-      // Clear TrainingGateRegistry
-      TrainingGateRegistry.instance.reset();
 
       // Clear PhysicalFormRegistry
       PhysicalFormRegistry.instance.clearCache();
@@ -101,30 +83,4 @@ class CacheManager {
     }
   }
 
-  /// Optional callback to reset pro-tier services like SyncManager.
-  /// Set by pro tier initialization code.
-  static void Function()? _proTierResetCallback;
-
-  /// Registers a callback to reset pro-tier services.
-  /// Called by pro tier initialization to enable SyncManager reset on logout.
-  static void registerProTierReset(void Function() callback) {
-    _proTierResetCallback = callback;
-  }
-
-  /// Resets pro-tier services if available.
-  void _clearProTierServices() {
-    try {
-      // Call the pro tier reset callback if registered
-      _proTierResetCallback?.call();
-      if (kDebugMode) {
-        LoggingService.instance.debug('CacheManager: tier services reset (if available)');
-      }
-    } catch (e, stackTrace) {
-      LoggingService.instance.error(
-        'Failed to reset pro tier services',
-        e,
-        stackTrace,
-      );
-    }
-  }
 }

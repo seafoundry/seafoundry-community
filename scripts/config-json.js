@@ -22,7 +22,7 @@ if (envServiceAccountPath && fs.existsSync(envServiceAccountPath)) {
     // Fallback to environment variables
     serviceAccount = {
         type: 'service_account',
-        project_id: process.env.FIREBASE_PROJECT_ID || 'seafoundryapp',
+        project_id: process.env.FIREBASE_PROJECT_ID || 'seafoundry-community',
         private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
         private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
         client_email: process.env.FIREBASE_CLIENT_EMAIL,
@@ -34,17 +34,24 @@ if (envServiceAccountPath && fs.existsSync(envServiceAccountPath)) {
     };
 }
 
+// Detect emulator mode
+const isEmulator = !!(process.env.FIRESTORE_EMULATOR_HOST || process.env.FIREBASE_AUTH_EMULATOR_HOST);
+
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
     try {
-        if (serviceAccount && serviceAccount.type === 'authorized_user') {
+        if (isEmulator && (!serviceAccount || !serviceAccount.private_key)) {
+            // Emulator mode: no real credentials needed
+            console.log('📁 Using emulator mode (no credentials required)...');
+            admin.initializeApp({ projectId: 'seafoundry-community' });
+        } else if (serviceAccount && serviceAccount.type === 'authorized_user') {
             // ADC user credentials — use applicationDefault() instead of cert()
             console.log('📁 Using Application Default Credentials (authorized_user)...');
-            admin.initializeApp({ projectId: 'seafoundryapp' });
+            admin.initializeApp({ projectId: 'seafoundry-community' });
         } else {
             admin.initializeApp({
                 credential: admin.credential.cert(serviceAccount),
-                projectId: serviceAccount.project_id || 'seafoundryapp',
+                projectId: serviceAccount.project_id || 'seafoundry-community',
             });
         }
         console.log('✅ Firebase Admin SDK initialized successfully');

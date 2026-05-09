@@ -1,10 +1,9 @@
 // @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
-/// Service for validating unique names for structures and corals
+/// Service for validating unique names for structures, sites, and genets.
 class UniqueNameValidationService {
   UniqueNameValidationService({required FirebaseFirestore firestore})
     : _db = firestore;
@@ -16,8 +15,6 @@ class UniqueNameValidationService {
   // Key: "$organizationDomain:$speciesId"
   static final Map<String, _CachedSuggestion> _suggestionCache = {};
   static const Duration _cacheTtl = Duration(minutes: 5);
-  static final Map<String, _CachedRecordNameEntries> _recordNameEntriesCache = {};
-  static const Duration _recordNameCacheTtl = Duration(minutes: 2);
 
   /// Check if a structure name is unique within its site and type
   ///
@@ -34,8 +31,8 @@ class UniqueNameValidationService {
     try {
       // Query nested collection (the only source of truth)
       // Root collections like /groups are blocked by Firestore rules
-      final query = FirestoreCollectionResolver.instance
-          .collection(_db, ModelType.organization.collectionPath)
+      final query = _db
+          .collection(ModelType.organization.collectionPath)
           .doc(site.organizationId)
           .collection(modelType.collectionPath)
           .where('urlPath', isGreaterThanOrEqualTo: site.urlPath)
@@ -65,8 +62,8 @@ class UniqueNameValidationService {
           organizationDomain.trim().isEmpty ? organizationId : organizationDomain;
       // Query nested collection (the only source of truth for org-scoped queries)
       // Root /sites collection requires complex permission checks that fail with urlPath queries
-      final query = FirestoreCollectionResolver.instance
-          .collection(_db, ModelType.organization.collectionPath)
+      final query = _db
+          .collection(ModelType.organization.collectionPath)
           .doc(organizationId)
           .collection(ModelType.site.collectionPath);
 
@@ -79,79 +76,6 @@ class UniqueNameValidationService {
     } catch (e) {
       _logger.error('Failed to validate unique site name', e);
       rethrow;
-    }
-  }
-
-  /// Check if an organism record name is unique within the organization.
-  ///
-  /// Uniqueness is enforced across active inventory records only.
-  Future<bool> isOrganismRecordNameUnique({
-    required String name,
-    required String organizationId,
-    String? excludeRecordId,
-  }) async {
-    try {
-      final normalizedName = normalizeRecordName(name);
-      _logger.debug(
-        '🔍 isOrganismRecordNameUnique: checking "$normalizedName" for org=$organizationId',
-      );
-
-      final entries = await _fetchRecordNameEntries(
-        organizationId: organizationId,
-      );
-      for (final entry in entries) {
-        if (excludeRecordId != null && entry.id == excludeRecordId) {
-          continue;
-        }
-        if (entry.isArchived) {
-          continue;
-        }
-        final recordName = entry.recordName;
-        if (recordName == null) {
-          continue;
-        }
-        if (normalizeRecordName(recordName) == normalizedName) {
-          _logger.info(
-            'Organism record name conflict found: "$name" already exists in organization $organizationId',
-          );
-          return false;
-        }
-      }
-
-      return true;
-    } catch (e) {
-      _logger.error('Failed to validate unique organism record name', e);
-      // Fail open (allow) if check fails, or rethrow?
-      // Rethrowing allows the UI to show an error or handle it.
-      rethrow;
-    }
-  }
-
-  /// Get all conflicting names for a given name and type
-  Future<List<String>> getConflictingNames({
-    required String name,
-    required ModelType modelType,
-    required Site site,
-    String? excludeRecordId,
-  }) async {
-    try {
-      // Query nested collection (the only source of truth)
-      // Root collections like /groups are blocked by Firestore rules
-      final query = FirestoreCollectionResolver.instance
-          .collection(_db, ModelType.organization.collectionPath)
-          .doc(site.organizationId)
-          .collection(modelType.collectionPath)
-          .where('urlPath', isGreaterThanOrEqualTo: site.urlPath)
-          .where('urlPath', isLessThanOrEqualTo: '${site.urlPath}\uf8ff');
-
-      return _getConflictingNamesInQuery(
-        query: query,
-        name: name,
-        excludeRecordId: excludeRecordId,
-      );
-    } catch (e) {
-      _logger.error('Failed to get conflicting names', e);
-      return [];
     }
   }
 
@@ -189,36 +113,6 @@ class UniqueNameValidationService {
     return true;
   }
 
-  /// Helper to find conflicting names within a query.
-  Future<List<String>> _getConflictingNamesInQuery({
-    required Query query,
-    required String name,
-    String? excludeRecordId,
-  }) async {
-    final conflicts = <String>[];
-    final snapshot = await query.get();
-    final lowerName = name.toLowerCase();
-
-    for (final doc in snapshot.docs) {
-      final data = doc.data() as Map<String, dynamic>;
-      final docName = data['name'] as String?;
-      final docId = data['id'] as String?;
-
-      // Skip if this is the record being edited
-      if (excludeRecordId != null && docId == excludeRecordId) {
-        continue;
-      }
-
-      // Check if name matches (case-insensitive)
-      if (docName != null &&
-          docName.toLowerCase() == lowerName &&
-          !conflicts.contains(docName)) {
-        conflicts.add(docName);
-      }
-    }
-    return conflicts;
-  }
-
   /// Check if a genet name (local genet ID) is unique within the organization
   ///
   /// Unique constraints:
@@ -236,13 +130,10 @@ class UniqueNameValidationService {
           organizationDomain.trim().isEmpty ? organizationId : organizationDomain;
       // Query for genets under this organization with the same name
       final lowerName = name.toLowerCase();
-      final scopedCollection = FirestoreCollectionResolver.instance
-          .subcollection(
-            _db,
-            'organizations',
-            organizationId,
-            ModelType.genet.collectionPath,
-          );
+      final scopedCollection = _db
+          .collection('organizations')
+          .doc(organizationId)
+          .collection(ModelType.genet.collectionPath);
 
       final scopedExact = await scopedCollection
           .where('nameLowercase', isEqualTo: lowerName)
@@ -304,13 +195,10 @@ class UniqueNameValidationService {
         return true;
       }
 
-      final scopedCollection = FirestoreCollectionResolver.instance
-          .subcollection(
-            _db,
-            'organizations',
-            organizationId,
-            ModelType.genet.collectionPath,
-          );
+      final scopedCollection = _db
+          .collection('organizations')
+          .doc(organizationId)
+          .collection(ModelType.genet.collectionPath);
 
       // Fast path: exact localId matches.
       final exactSnapshot = await scopedCollection
@@ -416,13 +304,10 @@ class UniqueNameValidationService {
       // Query genets for this species in the organization
       // Using organization subcollection is more efficient and consistent with validation
       // which checks against the genets collection.
-      final snapshot = await FirestoreCollectionResolver.instance
-          .subcollection(
-            _db,
-            'organizations',
-            organizationId,
-            ModelType.genet.collectionPath,
-          )
+      final snapshot = await _db
+          .collection('organizations')
+          .doc(organizationId)
+          .collection(ModelType.genet.collectionPath)
           .where('speciesId', isEqualTo: speciesId)
           .get();
 
@@ -438,10 +323,10 @@ class UniqueNameValidationService {
         final data = doc.data();
         // Do not skip archived genets. If "Apal-001" is archived, we should NOT reuse it.
         // We want the next ID to be "Apal-002".
-        
+
         // Genet Local ID is primarily stored in 'name', but check others for safety
-        final localId = (data['name'] ?? 
-                         data['localId'] ?? 
+        final localId = (data['name'] ??
+                         data['localId'] ??
                          data['displayName']) as String?;
 
         if (localId != null) {
@@ -491,48 +376,6 @@ class UniqueNameValidationService {
     _logger.debug('Invalidated organism local ID suggestion cache for $cacheKey');
   }
 
-  Future<RecordNameUsage> getRecordNameUsage({
-    required String organizationId,
-    String? excludeRecordId,
-  }) async {
-    final entries = await _fetchRecordNameEntries(
-      organizationId: organizationId,
-    );
-    final activeRecordNames = <String>{};
-    final activeAdjectives = <String>{};
-    // Track max suffix per adjective organization-wide (not per-localId)
-    final adjectiveMaxSuffix = <String, int>{};
-
-    for (final entry in entries) {
-      if (excludeRecordId != null && entry.id == excludeRecordId) {
-        continue;
-      }
-      final recordName = entry.recordName;
-      if (recordName == null) continue;
-      final normalized = normalizeRecordName(recordName);
-      final adjective = _parseRecordNameAdjective(normalized);
-      if (adjective != null) {
-        activeAdjectives.add(adjective.base);
-        // Track max suffix organization-wide for this adjective
-        final previous = adjectiveMaxSuffix[adjective.base] ?? -1;
-        if (adjective.suffix > previous) {
-          adjectiveMaxSuffix[adjective.base] = adjective.suffix;
-        }
-      }
-      activeRecordNames.add(normalized);
-    }
-
-    return RecordNameUsage(
-      activeRecordNames: activeRecordNames,
-      activeAdjectives: activeAdjectives,
-      adjectiveMaxSuffix: adjectiveMaxSuffix,
-    );
-  }
-
-  void invalidateRecordNameUsageCache({required String organizationId}) {
-    _recordNameEntriesCache.remove(organizationId);
-  }
-
   /// Suggests the next generation local ID for graduation/spawning workflows.
   ///
   /// Given a base local ID (e.g., `APAL-COH-001` for cohort graduation or
@@ -556,13 +399,10 @@ class UniqueNameValidationService {
 
     try {
       // Query genets for this organization
-      final snapshot = await FirestoreCollectionResolver.instance
-          .subcollection(
-            _db,
-            'organizations',
-            organizationId,
-            ModelType.genet.collectionPath,
-          )
+      final snapshot = await _db
+          .collection('organizations')
+          .doc(organizationId)
+          .collection(ModelType.genet.collectionPath)
           .get();
 
       // Find the highest generation number used for this base local ID
@@ -606,134 +446,11 @@ class UniqueNameValidationService {
     }
   }
 
-  static String normalizeRecordName(String name) {
-    return name.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
-  }
-
   static String? normalizeLocalId(String? localId) {
     if (localId == null) return null;
     final trimmed = localId.trim();
     if (trimmed.isEmpty) return null;
     return trimmed.replaceAll(RegExp(r'\s+'), '-').toLowerCase();
-  }
-
-  Future<List<_RecordNameEntry>> _fetchRecordNameEntries({
-    required String organizationId,
-  }) async {
-    final cached = _recordNameEntriesCache[organizationId];
-    if (cached != null && !cached.isExpired) {
-      return cached.entries;
-    }
-
-    final query = FirestoreCollectionResolver.instance
-        .subcollection(
-          _db,
-          ModelType.organization.collectionPath,
-          organizationId,
-          ModelType.organismRecord.collectionPath,
-        );
-    final snapshot = await query.get();
-    final entries = <_RecordNameEntry>[];
-
-    for (final doc in snapshot.docs) {
-      final data = doc.data();
-      final recordName = _readRecordName(data);
-      final localId = _readLocalId(data);
-      final archived = _isArchivedData(data);
-      final docId = data['id'] as String? ?? doc.id;
-      entries.add(
-        _RecordNameEntry(
-          id: docId,
-          recordName: recordName,
-          localId: localId,
-          isArchived: archived,
-        ),
-      );
-    }
-
-    _recordNameEntriesCache[organizationId] = _CachedRecordNameEntries(
-      entries: entries,
-      expiresAt: DateTime.now().add(_recordNameCacheTtl),
-    );
-    return entries;
-  }
-
-  /// Parses adjective base and numeric suffix from a recordName.
-  ///
-  /// Handles two formats:
-  /// - New adjective-only format: "Fluffy", "Fluffy2" (normalized to "fluffy", "fluffy2")
-  /// - Old format with localId: "fluffy-apal-001", "fluffy2-apal-001"
-  _RecordNameAdjective? _parseRecordNameAdjective(String recordName) {
-    // Try new adjective-only format first: "fluffy" or "fluffy2"
-    final newMatch = RegExp(r'^([a-zA-Z]+)(\d*)$').firstMatch(recordName);
-    if (newMatch != null) {
-      final base = newMatch.group(1)?.toLowerCase();
-      if (base == null || base.isEmpty) return null;
-      final suffixText = newMatch.group(2);
-      final suffix = suffixText == null || suffixText.isEmpty
-          ? 0
-          : int.tryParse(suffixText) ?? 0;
-      return _RecordNameAdjective(base: base, suffix: suffix);
-    }
-
-    // Fall back to old format with localId: "fluffy-apal-001" or "fluffy2-apal-001"
-    final oldMatch = RegExp(r'^([a-z]+)(\d*)-.*$').firstMatch(recordName);
-    if (oldMatch == null) return null;
-    final base = oldMatch.group(1);
-    if (base == null || base.isEmpty) return null;
-    final suffixText = oldMatch.group(2);
-    final suffix = suffixText == null || suffixText.isEmpty
-        ? 0
-        : int.tryParse(suffixText) ?? 0;
-    return _RecordNameAdjective(base: base, suffix: suffix);
-  }
-
-  String? _readRecordName(Map<String, dynamic> data) {
-    String? read(dynamic value) {
-      if (value == null) return null;
-      final text = value.toString().trim();
-      return text.isEmpty ? null : text;
-    }
-
-    final organismRecord = data['organismRecord'];
-    if (organismRecord is Map) {
-      final recordName =
-          read(organismRecord['recordName']) ??
-          read(organismRecord['record_name']);
-      if (recordName != null) return recordName;
-    }
-
-    return read(data['recordName']) ?? read(data['record_name']);
-  }
-
-  String? _readLocalId(Map<String, dynamic> data) {
-    String? read(dynamic value) {
-      if (value == null) return null;
-      final text = value.toString().trim();
-      return text.isEmpty ? null : text;
-    }
-
-    final organismRecord = data['organismRecord'];
-    if (organismRecord is Map) {
-      final localId =
-          read(organismRecord['localId']) ??
-          read(organismRecord['local_id']);
-      if (localId != null) return localId;
-    }
-
-    // Top-level localId is canonical; no metadata fallbacks
-    return read(data['localId']) ?? read(data['local_id']);
-  }
-
-  bool _isArchivedData(Map<String, dynamic> data) {
-    if (data['archived'] == true || data['isDeleted'] == true) {
-      return true;
-    }
-    final metadata = data['metadata'];
-    if (metadata is Map) {
-      return metadata['archived'] == true || metadata['isDeleted'] == true;
-    }
-    return false;
   }
 }
 
@@ -745,59 +462,4 @@ class _CachedSuggestion {
   final DateTime expiresAt;
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
-}
-
-class _CachedRecordNameEntries {
-  _CachedRecordNameEntries({
-    required this.entries,
-    required this.expiresAt,
-  });
-
-  final List<_RecordNameEntry> entries;
-  final DateTime expiresAt;
-
-  bool get isExpired => DateTime.now().isAfter(expiresAt);
-}
-
-class _RecordNameEntry {
-  _RecordNameEntry({
-    required this.id,
-    required this.recordName,
-    required this.localId,
-    required this.isArchived,
-  });
-
-  final String id;
-  final String? recordName;
-  final String? localId;
-  final bool isArchived;
-}
-
-class _RecordNameAdjective {
-  _RecordNameAdjective({
-    required this.base,
-    required this.suffix,
-  });
-
-  final String base;
-  final int suffix;
-}
-
-class RecordNameUsage {
-  const RecordNameUsage({
-    required this.activeRecordNames,
-    required this.activeAdjectives,
-    required this.adjectiveMaxSuffix,
-  });
-
-  final Set<String> activeRecordNames;
-  final Set<String> activeAdjectives;
-  /// Max suffix per adjective, tracked organization-wide
-  final Map<String, int> adjectiveMaxSuffix;
-
-  /// Returns the max suffix used for the given adjective organization-wide.
-  /// Returns -1 if the adjective has not been used.
-  int maxSuffixForAdjective(String adjectiveBase) {
-    return adjectiveMaxSuffix[adjectiveBase] ?? -1;
-  }
 }

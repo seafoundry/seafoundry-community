@@ -62,8 +62,6 @@ CsvTemplateKind templateKindForImportType(CSVImportType type) {
     case CSVImportType.inventory:
       return CsvTemplateKind.inventory;
     case CSVImportType.outplanting:
-      return CsvTemplateKind.outplanting;
-    case CSVImportType.monitoring:
-      return CsvTemplateKind.monitoring;
+      return CsvTemplateKind.outplantConsolidated;
   }
 }

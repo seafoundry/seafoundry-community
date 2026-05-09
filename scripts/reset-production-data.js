@@ -647,7 +647,7 @@ async function main() {
 
     console.log('\n✅ Production data reset complete!');
     console.log('\n📝 Next steps:');
-    console.log('   1. Run demo seeding: node scripts/seed-demo.js --reset --tier=pro --org=ORG_ID --user=USER_EMAIL');
+    console.log('   1. Run demo seeding: node scripts/seed-demo.js --reset --org=ORG_ID --user=USER_EMAIL');
     console.log('   2. Or import fresh data using CSV imports');
 
   } catch (error) {

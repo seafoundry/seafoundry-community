@@ -17,16 +17,12 @@ import 'package:seafoundry_app/services/password_recovery_service.dart';
 
 /// BLoC for handling authentication status (signed in/out).
 ///
-/// **Scale-tier SOT pattern**: This bloc handles only authentication status.
-/// For Scale-tier organizations, [CurrentUser] is the single source of truth
-/// for user profile data (name, role, etc.). The [displayName] field in
-/// [AuthAuthenticated] is only used during the initial sign-up flow to bridge
-/// the race condition where Firebase's authStateChanges fires before
+/// This bloc handles only authentication status. [CurrentUser] is the single
+/// source of truth for user profile data (name, role, etc.). The [displayName]
+/// field in [AuthAuthenticated] is only used during the initial sign-up flow
+/// to bridge the race condition where Firebase's authStateChanges fires before
 /// updateDisplayName completes - it should not be used as a source of truth
 /// after the user is loaded in [CurrentUser].
-///
-/// Community tier behavior remains unchanged - this bloc manages auth status
-/// for all tiers, but profile data sourcing follows tier-specific patterns.
 class AuthBloc extends SafeCubit<AuthState> {
   final AuthRepository _authRepository;
   final GoogleSignInService _googleSignInService;

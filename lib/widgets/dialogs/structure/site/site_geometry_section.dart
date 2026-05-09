@@ -5,14 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/events/outplant_geometry.dart';
 import 'package:seafoundry_app/services/outplant_geometry_builder.dart';
-import 'package:seafoundry_app/services/outplant_geometry_parser.dart';
 import 'package:seafoundry_app/widgets/ui.dart';
 import 'package:seafoundry_app/widgets/ui_text.dart';
 
 /// Widget for entering and parsing site geometry coordinates.
 ///
 /// Supports manual coordinate entry (lat,lng pairs) and file uploads
-/// (CSV, GeoJSON, KML formats). Coordinates are parsed and validated
+/// (CSV, GeoJSON formats). Coordinates are parsed and validated
 /// before being stored in the site creation bloc.
 class SiteGeometrySection extends StatefulWidget {
   const SiteGeometrySection({super.key, required this.formState});
@@ -24,7 +23,6 @@ class SiteGeometrySection extends StatefulWidget {
 }
 
 class _SiteGeometrySectionState extends State<SiteGeometrySection> {
-  final OutplantGeometryParser _parser = const OutplantGeometryParser();
   final OutplantGeometryBuilder _builder = const OutplantGeometryBuilder();
   late final TextEditingController _controller;
   bool _isParsing = false;
@@ -91,8 +89,15 @@ class _SiteGeometrySectionState extends State<SiteGeometrySection> {
 
     setState(() => _isParsing = true);
     try {
-      final parsed = _parser.parseManual(raw);
-      final geometry = _builder.build(input: parsed.input);
+      final coordinates = _parseManualCoordinates(raw);
+      final input = OutplantGeometryInput(
+        type: coordinates.length == 1
+            ? OutplantGeometryType.point
+            : OutplantGeometryType.polygon,
+        coordinates: coordinates,
+        source: OutplantGeometrySource.manual,
+      );
+      final geometry = _builder.build(input: input);
       final normalized = _formatCoordinates(geometry);
       _setControllerText(normalized);
       bloc.add(
@@ -122,7 +127,7 @@ class _SiteGeometrySectionState extends State<SiteGeometrySection> {
       final result = await FilePicker.platform.pickFiles(
         withData: true,
         type: FileType.custom,
-        allowedExtensions: const ['csv', 'geojson', 'json', 'kml'],
+        allowedExtensions: const ['csv', 'geojson', 'json'],
       );
       if (result == null || result.files.isEmpty) {
         return;
@@ -133,11 +138,16 @@ class _SiteGeometrySectionState extends State<SiteGeometrySection> {
         throw const FormatException('Unable to read file bytes.');
       }
 
-      final parsed = await _parser.parseFile(
-        data: file.bytes!,
-        extension: file.extension ?? '',
+      final content = String.fromCharCodes(file.bytes!);
+      final coordinates = _parseManualCoordinates(content);
+      final input = OutplantGeometryInput(
+        type: coordinates.length == 1
+            ? OutplantGeometryType.point
+            : OutplantGeometryType.polygon,
+        coordinates: coordinates,
+        source: OutplantGeometrySource.csv,
       );
-      final geometry = _builder.build(input: parsed.input);
+      final geometry = _builder.build(input: input);
       final normalized = _formatCoordinates(geometry);
       _setControllerText(normalized);
       bloc.add(
@@ -168,6 +178,32 @@ class _SiteGeometrySectionState extends State<SiteGeometrySection> {
     _handleChanged(_controller.text);
   }
 
+  /// Parses manually entered coordinate text (one lat,lng pair per line).
+  static List<GeoCoordinate> _parseManualCoordinates(String text) {
+    final lines = text
+        .split(RegExp(r'[\n\r]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) {
+      throw const FormatException('No coordinate pairs found.');
+    }
+    final coordinates = <GeoCoordinate>[];
+    for (final line in lines) {
+      final parts = line.split(RegExp(r'[,\s]+'));
+      if (parts.length < 2) {
+        throw FormatException('Invalid coordinate pair: "$line"');
+      }
+      final lat = double.tryParse(parts[0]);
+      final lng = double.tryParse(parts[1]);
+      if (lat == null || lng == null) {
+        throw FormatException('Non-numeric coordinate: "$line"');
+      }
+      coordinates.add(GeoCoordinate(latitude: lat, longitude: lng));
+    }
+    return coordinates;
+  }
+
   String _formatCoordinates(OutplantGeometry geometry) {
     return geometry.coordinates
         .map(
@@ -189,8 +225,8 @@ class _SiteGeometrySectionState extends State<SiteGeometrySection> {
         UIText.bodyMedium('Site Geometry'),
         UI.spacingVerticalSm,
         Text(
-          'Paste latitude/longitude pairs (one per line) or upload a CSV, '
-          'GeoJSON, or KML file. Provide at least one coordinate pair.',
+          'Paste latitude/longitude pairs (one per line) or upload a CSV '
+          'or GeoJSON file. Provide at least one coordinate pair.',
           style: Theme.of(context).textTheme.bodySmall,
         ),
         UI.spacingVerticalSm,
@@ -218,7 +254,7 @@ class _SiteGeometrySectionState extends State<SiteGeometrySection> {
             OutlinedButton.icon(
               onPressed: _isParsing ? null : _pickGeometryFile,
               icon: const Icon(Icons.upload_file),
-              label: const Text('Upload CSV/GeoJSON/KML'),
+              label: const Text('Upload CSV/GeoJSON'),
             ),
             TextButton.icon(
               onPressed: _isParsing ? null : _addCoordinateRow,

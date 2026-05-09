@@ -1,4 +1,5 @@
 // @tier: community
+import 'package:seafoundry_app/screens/graph/group_node_screen.dart';
 import 'package:seafoundry_app/screens/graph/organism_node_screen.dart';
 import 'package:seafoundry_app/screens/graph/organization_node_screen.dart';
 import 'package:seafoundry_app/screens/graph/site_node_screen.dart';
@@ -13,12 +14,10 @@ import 'package:seafoundry_app/blocs/graph_node/organization_node.dart';
 import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/widgets/common/error_details_widget.dart';
-import 'package:seafoundry_app/widgets/common/upgrade_cta.dart';
 
-/// Community-tier container widget that provides graph node data to the screen
+/// Container widget that provides graph node data to the screen.
 ///
-/// This container routes to community-tier screens instead of Pro screens.
-/// For node types without community screens, shows an upgrade prompt.
+/// Routes graph nodes to the appropriate screen based on record type.
 class CommunityGraphNodeContainer extends StatelessWidget {
   final GraphNode node;
 
@@ -98,11 +97,9 @@ class CommunityGraphNodeContainer extends StatelessWidget {
           graphNode: node,
         );
       case ModelType.group:
-        // Groups don't have a community screen - show upgrade prompt
-        return _buildUpgradeScreen(
-          context,
-          title: 'Group Details',
-          message: 'Detailed group management coming soon.',
+        return GroupNodeScreen(
+          loadedNodeState: loadedState as GroupLoadedState,
+          graphNode: node,
         );
       case ModelType.organismRecord:
         return OrganismNodeScreen(
@@ -114,22 +111,4 @@ class CommunityGraphNodeContainer extends StatelessWidget {
     }
   }
 
-  Widget _buildUpgradeScreen(
-    BuildContext context, {
-    required String title,
-    required String message,
-  }) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: UpgradeCta(
-            title: title,
-            subtitle: message,
-          ),
-        ),
-      ),
-    );
-  }
 }

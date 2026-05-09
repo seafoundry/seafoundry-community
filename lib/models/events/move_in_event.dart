@@ -1,5 +1,5 @@
 // @tier: community
-import 'package:seafoundry_app/constants/schema.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/events/move_event.dart';
 import 'package:seafoundry_app/models/types/event_type.dart';
@@ -40,7 +40,6 @@ class MoveInEvent extends Event with MoveEvent {
     required super.urlPath,
     required super.internalPath,
     required super.slug,
-    super.missionId,
     super.metadata,
     super.base,
   }) : super(eventTypeId: 'event_move_in');
@@ -140,8 +139,6 @@ class MoveInEvent extends Event with MoveEvent {
     String? organizationId,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     String? urlPath,
     String? internalPath,
     String? slug,
@@ -169,7 +166,6 @@ class MoveInEvent extends Event with MoveEvent {
       urlPath: urlPath ?? this.urlPath,
       internalPath: internalPath ?? this.internalPath,
       slug: slug ?? this.slug,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,

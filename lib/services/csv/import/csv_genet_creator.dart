@@ -36,10 +36,11 @@ class CsvGenetCreator {
     required String genetName,
     String? localId,
     String? provenanceId,
+    String? clonalId,
+    String? accessionNumber,
     required Species species,
     required ProvenanceType provenanceType,
     LifeStage? lifeStage,
-    ProvenanceGameteRole? gameteRole,
     String? notes,
     bool archived = false,
     OrganismKind organismKind = OrganismKind.coral,
@@ -125,6 +126,9 @@ class CsvGenetCreator {
             slug: slug,
             localId: localId?.isNotEmpty == true ? localId : null,
             provenanceId: null,
+            clonalId: clonalId?.isNotEmpty == true ? clonalId : null,
+            accessionNumber:
+                accessionNumber?.isNotEmpty == true ? accessionNumber : null,
             speciesId: species.id,
             provenanceTypeId: provenanceType.id,
             notes: notes,
@@ -133,8 +137,6 @@ class CsvGenetCreator {
             aliases: aliases
                 ?.map((alias) => alias.toJson())
                 .toList(growable: false),
-            parentGameteIds: parentGameteIds,
-            donorGenotypeId: donorGenotypeId,
             provenance: provenanceMetadata,
           ),
         );
@@ -149,7 +151,6 @@ class CsvGenetCreator {
         'speciesId': species.id,
         'provenanceType': provenanceType.name,
         if (lifeStage != null) 'lifeStage': lifeStage.name,
-        if (gameteRole != null) 'gameteRole': gameteRole.name,
         if (localId != null && localId.isNotEmpty) 'localId': localId,
       },
     );

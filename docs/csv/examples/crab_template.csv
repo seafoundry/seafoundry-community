@@ -1,6 +1,0 @@
-# SeaFoundry CSV v2 crab pond holdings
-# `averageCarapaceWidthMm` helps capacity rules distinguish juvenile vs. grow-out ponds; capture the most recent measurement at stocking.
-# Keep `structureType=pond` and `groupId` pointing at the exact pond path so CSV imports link to the correct GraphNode.
-# Use `measurementUnit=count` for live crabs, and highlight the hatchery permit that authorized the cohort in the permit columns.
-holdingKind,provenanceId,organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,eventType,eventDate,measurementUnit,quantityValue,structureType,groupId,averageCarapaceWidthMm,permitId,permitType,issuingAuthority,validFrom,validTo,habitatType,siteJurisdiction,protectedAreaFlag,siteName,geometryFormat,geometryWkt,observer,sourceSystem,notes
-crabPondHolding,PID-CRAB-00001,crab,Callinectes sapidus,CaSa,CASA-001,crisp-casa-001,juvenile,inventory_create,2025-11-08T06:00:00Z,count,600,pond,/orgs/demo/sites/chesapeake-hatchery/groups/pond-a,82.0,MD-DNR-POND-2025,broodstock,MD DNR,2025-01-01,2025-12-31,hatchery,Maryland,false,Chesapeake Pond A,WKT,"POLYGON ((-76.28 38.92,-76.27 38.92,-76.27 38.91,-76.28 38.91,-76.28 38.92))",L.Torres,HatcheryLog,"Juvenile blue crabs stocked for grow-out"

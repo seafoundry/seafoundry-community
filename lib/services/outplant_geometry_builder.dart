@@ -63,7 +63,6 @@ class OutplantGeometryBuilder {
       centroid: centroid,
       centroidGeohash: geohash,
       source: input.source,
-      kmlAttachment: input.kmlAttachment,
       updatedAtIso: updatedAtIso ?? DateTime.now().toUtc().toIso8601String(),
     );
   }

@@ -2,20 +2,17 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
-import 'package:seafoundry_app/mixins/safe_stream_controller_mixin.dart';
 import 'package:seafoundry_app/models/factories/record_factory.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/user_role.dart';
 import 'package:seafoundry_app/models/user.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/utils/user_identity.dart';
 
 /// Repository for managing current user and organization data
-class CurrentUserRepository with SafeStreamControllerMixin {
+class CurrentUserRepository {
   // Singleton pattern with configurable Firestore for testing
   static bool get isInitialized => instance != null;
 
@@ -36,7 +33,6 @@ class CurrentUserRepository with SafeStreamControllerMixin {
   static CurrentUserRepository? instance;
 
   final FirebaseFirestore db;
-  final _resolver = FirestoreCollectionResolver.instance;
 
   StreamSubscription<DocumentSnapshot>? _userSubscription;
   StreamSubscription<DocumentSnapshot>? _organizationSubscription;
@@ -45,6 +41,25 @@ class CurrentUserRepository with SafeStreamControllerMixin {
       StreamController<User?>.broadcast();
   late StreamController<Organization?> _organizationStreamController =
       StreamController<Organization?>.broadcast();
+
+  /// Safely add a value to a StreamController, handling closure race conditions.
+  ///
+  /// Returns true if the value was successfully added, false if the controller
+  /// was closed (either before or during the add operation).
+  bool tryAddToSink<T>(
+    StreamController<T> controller,
+    T value, {
+    String? debugLabel,
+  }) {
+    try {
+      controller.add(value);
+      return true;
+    } catch (e) {
+      final label = debugLabel ?? 'StreamController';
+      LoggingService.instance.debug('$label closed during add, value dropped');
+      return false;
+    }
+  }
 
   /// Stream of current user
   Stream<User?> get userStream => _userStreamController.stream;
@@ -58,7 +73,7 @@ class CurrentUserRepository with SafeStreamControllerMixin {
     try {
       final docId = UserIdentity.normalizeUserDocId(userId);
       if (docId.isEmpty) return null;
-      final doc = await _resolver.collection(db, 'users').doc(docId).get();
+      final doc = await db.collection('users').doc(docId).get();
       if (!doc.exists) return null;
 
       final data = doc.data();
@@ -96,8 +111,8 @@ class CurrentUserRepository with SafeStreamControllerMixin {
     }
 
     try {
-      final doc = await _resolver
-          .collection(db, 'organizations')
+      final doc = await db
+          .collection('organizations')
           .doc(organizationId)
           .get();
 
@@ -160,7 +175,7 @@ class CurrentUserRepository with SafeStreamControllerMixin {
     );
 
     final data = user.toJson();
-    await _resolver.collection(db, 'users').doc(userId).set(data);
+    await db.collection('users').doc(userId).set(data);
 
     return user;
   }
@@ -170,7 +185,7 @@ class CurrentUserRepository with SafeStreamControllerMixin {
     required User user,
     required String organizationId,
   }) async {
-    await _resolver.collection(db, 'users').doc(user.id).update({
+    await db.collection('users').doc(user.id).update({
       'organizationId': organizationId,
       'updatedAt': FieldValue.serverTimestamp(),
     });
@@ -197,7 +212,7 @@ class CurrentUserRepository with SafeStreamControllerMixin {
     if (tagline != null) updates['tagline'] = tagline;
     if (imageUrl != null) updates['imageUrl'] = imageUrl;
 
-    await _resolver.collection(db, 'users').doc(user.id).update(updates);
+    await db.collection('users').doc(user.id).update(updates);
 
     return user.copyWith(
       name: name,
@@ -227,9 +242,16 @@ class CurrentUserRepository with SafeStreamControllerMixin {
       LoggingService.instance.trace(
         'CurrentUserRepository: subscribing to users/$resolvedId snapshots',
       );
-      final userDocRef = _resolver.collection(db, 'users').doc(resolvedId);
-      _userSubscription = _resolver
-          .wrapDocumentStream(userDocRef)
+      final userDocRef = db.collection('users').doc(resolvedId);
+      _userSubscription = userDocRef.snapshots()
+          .handleError((error, stackTrace) {
+            LoggingService.instance.error(
+              'Firestore stream error [${userDocRef.path}]',
+              error,
+              stackTrace,
+            );
+            throw error;
+          })
           .listen(
             (snapshot) {
               LoggingService.instance.trace(
@@ -298,17 +320,8 @@ class CurrentUserRepository with SafeStreamControllerMixin {
               }
             },
             onError: (error, stackTrace) {
-              // DEBUG: Log when user stream has an error
-              if (kDebugMode) {
-                debugPrint('🔴 USER STREAM ERROR: $error');
-              }
               if (error is FirebaseException &&
                   error.code == 'permission-denied') {
-                if (kDebugMode) {
-                  debugPrint(
-                    '🔴 USER STREAM: permission-denied caught and handled',
-                  );
-                }
                 LoggingService.instance.debug(
                   'User stream permission denied after sign-out; emitting null.',
                 );
@@ -378,11 +391,18 @@ class CurrentUserRepository with SafeStreamControllerMixin {
       LoggingService.instance.trace(
         'CurrentUserRepository: subscribing to organizations/$organizationId snapshots',
       );
-      final orgDocRef = _resolver
-          .collection(db, 'organizations')
+      final orgDocRef = db
+          .collection('organizations')
           .doc(organizationId);
-      _organizationSubscription = _resolver
-          .wrapDocumentStream(orgDocRef)
+      _organizationSubscription = orgDocRef.snapshots()
+          .handleError((error, stackTrace) {
+            LoggingService.instance.error(
+              'Firestore stream error [${orgDocRef.path}]',
+              error,
+              stackTrace,
+            );
+            throw error;
+          })
           .listen(
             (snapshot) {
               LoggingService.instance.trace(
@@ -444,17 +464,8 @@ class CurrentUserRepository with SafeStreamControllerMixin {
               }
             },
             onError: (error, stackTrace) {
-              // DEBUG: Log when org stream has an error
-              if (kDebugMode) {
-                debugPrint('🔴 ORGANIZATION STREAM ERROR: $error');
-              }
               if (error is FirebaseException &&
                   error.code == 'permission-denied') {
-                if (kDebugMode) {
-                  debugPrint(
-                    '🔴 ORG STREAM: permission-denied caught and handled',
-                  );
-                }
                 LoggingService.instance.debug(
                   'Organization stream permission denied after sign-out; emitting null.',
                 );
@@ -478,11 +489,6 @@ class CurrentUserRepository with SafeStreamControllerMixin {
               _organizationStreamController.addError(domainError, stackTrace);
             },
           );
-      if (kDebugMode) {
-        debugPrint(
-          '📡 ORG STREAM: Listener set up successfully for org: $organizationId',
-        );
-      }
       LoggingService.instance.debug(
         'CurrentUserRepository: Organization snapshot listener successfully created',
       );
@@ -527,8 +533,8 @@ class CurrentUserRepository with SafeStreamControllerMixin {
     }
 
     try {
-      final membershipRef = _resolver
-          .collection(db, 'organizations')
+      final membershipRef = db
+          .collection('organizations')
           .doc(organizationId)
           .collection('members')
           .doc(userId);
@@ -683,167 +689,4 @@ class CurrentUserRepository with SafeStreamControllerMixin {
     }
   }
 
-  /// Verify that the membership document exists for the given user and organization.
-  /// Returns a [MembershipCheckResult] with the status and any issues found.
-  ///
-  /// This is useful for diagnosing permission issues that occur when the membership
-  /// document at `/organizations/{orgId}/members/{userId}` is missing.
-  Future<MembershipCheckResult> verifyMembership({
-    required String userId,
-    required String organizationId,
-  }) async {
-    if (userId.isEmpty || organizationId.isEmpty) {
-      return MembershipCheckResult(
-        hasMembership: false,
-        issue: 'Empty userId or organizationId',
-        userId: userId,
-        organizationId: organizationId,
-      );
-    }
-
-    try {
-      final membershipRef = _resolver
-          .collection(db, 'organizations')
-          .doc(organizationId)
-          .collection('members')
-          .doc(userId);
-
-      final snapshot = await membershipRef.get();
-
-      if (!snapshot.exists) {
-        LoggingService.instance.warning(
-          '⚠️ Membership document missing!\n'
-          '   - Path: ${membershipRef.path}\n'
-          '   - userId: $userId\n'
-          '   - organizationId: $organizationId',
-        );
-        return MembershipCheckResult(
-          hasMembership: false,
-          issue: 'Membership document does not exist at ${membershipRef.path}',
-          userId: userId,
-          organizationId: organizationId,
-        );
-      }
-
-      LoggingService.instance.debug(
-        '✅ Membership document verified:\n'
-        '   - Path: ${membershipRef.path}\n'
-        '   - userId: $userId',
-      );
-
-      return MembershipCheckResult(
-        hasMembership: true,
-        issue: null,
-        userId: userId,
-        organizationId: organizationId,
-        membershipData: snapshot.data(),
-      );
-    } on FirebaseException catch (e) {
-      LoggingService.instance.error(
-        '🔴 Error checking membership: ${e.code}',
-        e,
-      );
-      return MembershipCheckResult(
-        hasMembership: false,
-        issue: 'Firebase error: ${e.code} - ${e.message}',
-        userId: userId,
-        organizationId: organizationId,
-      );
-    } catch (e) {
-      LoggingService.instance.error(
-        '🔴 Unexpected error checking membership',
-        e,
-      );
-      return MembershipCheckResult(
-        hasMembership: false,
-        issue: 'Unexpected error: $e',
-        userId: userId,
-        organizationId: organizationId,
-      );
-    }
-  }
-
-  /// Attempts to repair a missing membership document.
-  /// Returns true if successful, false if the repair failed.
-  ///
-  /// This should only be called after [verifyMembership] returns hasMembership=false.
-  Future<bool> repairMembership({
-    required String userId,
-    required String email,
-    required String organizationId,
-    // Default to 'practitioner' (UserRole.practitioner.id) — can't call
-    // a static method in a default parameter value, so we use the literal.
-    String role = 'practitioner',
-  }) async {
-    if (userId.isEmpty || organizationId.isEmpty) {
-      LoggingService.instance.error(
-        'Cannot repair membership: empty userId or organizationId',
-      );
-      return false;
-    }
-
-    try {
-      final membershipRef = _resolver
-          .collection(db, 'organizations')
-          .doc(organizationId)
-          .collection('members')
-          .doc(userId);
-
-      await membershipRef.set({
-        'uid': userId,
-        'email': email.toLowerCase(),
-        'role': role,
-        'joinedAt': DateTime.now().toIso8601String(),
-        'createdById': userId,
-        'organizationId': organizationId,
-        'repairedAt': DateTime.now().toIso8601String(),
-      });
-
-      LoggingService.instance.info(
-        '✅ Membership document repaired:\n'
-        '   - Path: ${membershipRef.path}\n'
-        '   - userId: $userId\n'
-        '   - organizationId: $organizationId',
-      );
-
-      return true;
-    } on FirebaseException catch (e) {
-      LoggingService.instance.error(
-        '🔴 Failed to repair membership: ${e.code}',
-        e,
-      );
-      return false;
-    } catch (e) {
-      LoggingService.instance.error(
-        '🔴 Unexpected error repairing membership',
-        e,
-      );
-      return false;
-    }
-  }
-}
-
-/// Result of a membership verification check.
-class MembershipCheckResult {
-  const MembershipCheckResult({
-    required this.hasMembership,
-    required this.issue,
-    required this.userId,
-    required this.organizationId,
-    this.membershipData,
-  });
-
-  final bool hasMembership;
-  final String? issue;
-  final String userId;
-  final String organizationId;
-  final Map<String, dynamic>? membershipData;
-
-  @override
-  String toString() =>
-      'MembershipCheckResult('
-      'hasMembership: $hasMembership, '
-      'issue: $issue, '
-      'userId: $userId, '
-      'organizationId: $organizationId)';
 }

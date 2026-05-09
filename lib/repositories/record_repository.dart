@@ -2,12 +2,10 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:rxdart/rxdart.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/services/auth_session_service.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
+import 'package:seafoundry_app/repositories/auth_error_suppression_mixin.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Repository for generic record operations across model types.
@@ -17,8 +15,8 @@ import 'package:seafoundry_app/services/logging_service.dart';
 ///
 /// See also:
 /// - [RepositoryBase] for simple lookup data patterns
-/// - [BaseInventoryRecordRepository] for org-scoped inventory with URL paths
-class RecordRepository {
+/// - [InventoryRecordRepository] for org-scoped inventory with URL paths
+class RecordRepository with AuthErrorSuppressionMixin {
   RecordRepository({required this.db});
 
   // ---------------------------------------------------------------------------
@@ -50,7 +48,6 @@ class RecordRepository {
   // ---------------------------------------------------------------------------
 
   final FirebaseFirestore db;
-  final _resolver = FirestoreCollectionResolver.instance;
 
   /// Apply organization scoping to a collection query when organizationId is
   /// provided and the model type uses a root collection (not nested).
@@ -74,7 +71,7 @@ class RecordRepository {
     return query
         .snapshots()
         .onErrorResume((error, stackTrace) {
-          if (_shouldSuppressAuthError(error)) {
+          if (shouldSuppressAuthError(error)) {
             LoggingService.instance.debug(
               'Suppressing ${modelType.name} stream error after sign out',
             );
@@ -121,7 +118,7 @@ class RecordRepository {
         .doc(id)
         .snapshots()
         .onErrorResume((error, stackTrace) {
-          if (_shouldSuppressAuthError(error)) {
+          if (shouldSuppressAuthError(error)) {
             LoggingService.instance.debug(
               'Suppressing ${modelType.name} record stream error after sign out',
               {'id': id},
@@ -177,32 +174,6 @@ class RecordRepository {
         modelType == ModelType.subplot;
   }
 
-  bool _shouldSuppressAuthError(Object error) {
-    if (!_isSignedOut()) {
-      return false;
-    }
-    return _isPermissionError(error);
-  }
-
-  bool _isSignedOut() {
-    try {
-      return AuthSessionService.instance.isSigningOut ||
-          FirebaseAuth.instance.currentUser == null;
-    } catch (_) {
-      return AuthSessionService.instance.isSigningOut;
-    }
-  }
-
-  bool _isPermissionError(Object error) {
-    if (error is FirebaseException) {
-      return error.code == 'permission-denied' || error.code == 'unauthenticated';
-    }
-    final message = error.toString().toLowerCase();
-    return message.contains('permission-denied') ||
-        message.contains('permission') ||
-        message.contains('unauthenticated');
-  }
-
   /// Get the correct collection reference, using nested collection for certain model types
   CollectionReference<Map<String, dynamic>> _getCollectionRef(
     ModelType modelType,
@@ -212,15 +183,13 @@ class RecordRepository {
     final usesNestedCollection = _usesNestedCollection(modelType);
 
     if (usesNestedCollection && organizationId != null) {
-      return _resolver.subcollection(
-        db,
-        ModelType.organization.collectionPath,
-        organizationId,
-        modelType.collectionPath,
-      );
+      return db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organizationId)
+          .collection(modelType.collectionPath);
     }
 
-    return _resolver.collection(db, modelType.collectionPath);
+    return db.collection(modelType.collectionPath);
   }
 
   Future<T?> getRecord<T extends Record>(
@@ -309,8 +278,8 @@ class RecordRepository {
     if (trimmed.isEmpty) return null;
 
     Future<Organization?> queryByField(String field, String value) async {
-      final snapshot = await _resolver
-          .collection(db, ModelType.organization.collectionPath)
+      final snapshot = await db
+          .collection(ModelType.organization.collectionPath)
           .where(field, isEqualTo: value)
           .limit(1)
           .get();

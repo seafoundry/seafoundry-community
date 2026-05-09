@@ -146,24 +146,6 @@ extension ProvenanceSchema on ProvenanceRecord {
           _hasProvenanceValue(const ['collection_date', 'collectionDate']),
         );
         break;
-      case ProvenanceType.sexualCohort:
-        final parentCount =
-            parentGameteIds.where(_hasMeaningfulValue).length;
-        final hasParentPair = parentCount >= 2;
-        final hasDam =
-            _hasMeaningfulList(damGameteIds) || hasParentPair;
-        final hasSire =
-            _hasMeaningfulList(sireGameteIds) || hasParentPair;
-        requireField('Dam gamete linkage', hasDam);
-        requireField('Sire gamete linkage', hasSire);
-        requireField('Cross/spawn date', crossDate != null);
-        break;
-      case ProvenanceType.graduatedIndividual:
-        requireField(
-          'Parent cohort linkage',
-          _hasMeaningfulValue(parentCohortId),
-        );
-        break;
       case ProvenanceType.transfer:
         requireField(
           'Source organization',
@@ -188,6 +170,10 @@ extension ProvenanceSchema on ProvenanceRecord {
               _hasMeaningfulValue(donorGenotypeId),
         );
         break;
+      case ProvenanceType.cohort:
+      case ProvenanceType.graduatedIndividual:
+        // Nursery-reared batches and graduated individuals use universal baseline.
+        break;
       case ProvenanceType.unknown:
         requireField('Provenance type', false);
         break;
@@ -211,11 +197,6 @@ extension ProvenanceSchema on ProvenanceRecord {
       if (_hasMeaningfulValue(metadata[key])) return true;
     }
     return false;
-  }
-
-  bool _hasMeaningfulList(List<String> values) {
-    if (values.isEmpty) return false;
-    return values.any(_hasMeaningfulValue);
   }
 
   bool _hasMeaningfulValue(dynamic value) {

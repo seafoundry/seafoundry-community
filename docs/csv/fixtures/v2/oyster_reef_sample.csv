@@ -1,7 +1,0 @@
-sf_csv_version,2.0.0
-sf_csv_template,SeaFoundry Universal CSV v2
-sf_translation_adapter,universal_csv_v2
-org_domain,oyster.lab
-generated_at,2025-02-10T08:00:00Z
-organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,lifeStageSubtype,provenanceType,physicalFormId,physicalForm,sizeBandId,measuredDimension,dimensionUnit,organismsPerUnit,volumeAmount,volumeUnit,eventType,eventDate,measurementUnit,quantityValue,groupId,siteId,siteName,enclosureId,provenanceId,provenanceKind,cohortId,structureType,permitType,permitId,issuingAuthority,validFrom,validTo,habitatType,siteJurisdiction,protectedAreaFlag,geometryFormat,geometryWkt,geometryGeojson,notes
-oyster,Crassostrea virginica,CrVi,CRVI-001,steady-crvi-001,spat,,wild,spat_bag,Spat Bag,small,25,mm,,,,inventory_create,2025-02-09T18:15:00Z,count,1500,/oyster/sites/reef-12/bag-04,site-reef-12,Cape Shore Living Reef,,PID-CRVI-001,broodstock,,reefPatch,ShellfishRelay,NSSP-Tag-992,FDA-NSSP,2025-02-01,2025-08-01,reef_patch,Chesapeake,true,GEOJSON,,"{""type"":""Point"",""coordinates"":[-76.1234,38.9876]}","Bagged spat stocked on reef module 12 with NSSP permit + site jurisdiction metadata."

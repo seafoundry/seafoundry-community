@@ -2,23 +2,14 @@
 import 'dart:convert';
 
 import 'package:seafoundry_app/models/group.dart';
-import 'package:seafoundry_app/models/holdings/gamete_batch.dart';
-import 'package:seafoundry_app/models/holdings/larval_batch.dart';
-import 'package:seafoundry_app/models/holdings/seeded_line_batch.dart';
-import 'package:seafoundry_app/models/holdings/oyster_bag_holding.dart';
-import 'package:seafoundry_app/models/holdings/finfish_pen_holding.dart';
-import 'package:seafoundry_app/models/holdings/crab_pond_holding.dart';
-import 'package:seafoundry_app/models/holdings/seagrass_module_holding.dart';
-import 'package:seafoundry_app/models/holdings/mangrove_plot_holding.dart';
 import 'package:seafoundry_app/models/inventory/holding_record.dart';
 import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 
-/// Builds spreadsheet/export rows for organism holdings (seeded kelp lines,
-/// gamete/larval batches, etc.) so permit/site metadata survives through the
-/// CSV pipeline.
+/// Builds spreadsheet/export rows for organism holdings (gamete/larval batches)
+/// so permit/site metadata survives through the CSV pipeline.
 class InventoryHoldingRowBuilder {
   const InventoryHoldingRowBuilder._();
 
@@ -169,9 +160,6 @@ class InventoryHoldingRowBuilder {
       'volumeAmount': sizeSpec.volumeAmount?.toString() ?? '',
       'volumeUnit': sizeSpec.volumeUnit?.id ?? '',
       'inventoryCount': resolvedMetrics.count?.toString() ?? '',
-      'inventoryVolumeCm3': resolvedMetrics.volumeCm3?.toString() ?? '',
-      'inventoryTissueAreaCm2':
-          resolvedMetrics.tissueAreaCm2?.toString() ?? '',
       'groupId': groupPath,
       'groupIdRaw': group?.id ?? holding.groupId ?? '',
       'siteId': siteId,
@@ -215,163 +203,14 @@ class InventoryHoldingRowBuilder {
       'aliases': aliasLabels,
     };
 
-    final resolvedOverrides =
-        overrides ?? overridesForHolding(holding);
-    if (resolvedOverrides != null) {
-      resolvedOverrides.forEach((key, value) {
-        if (value == null) return;
-        row[key] = value;
-      });
+    if (overrides != null) {
+      for (final entry in overrides.entries) {
+        if (entry.value == null) continue;
+        row[entry.key] = entry.value;
+      }
     }
 
     return row;
-  }
-
-  static Map<String, dynamic>? overridesForHolding(HoldingRecord holding) {
-    if (holding is SeededLineBatch) {
-      return seededLineOverrides(holding);
-    }
-    if (holding is OysterBagHolding) {
-      return oysterBagOverrides(holding);
-    }
-    if (holding is FinfishPenHolding) {
-      return finfishPenOverrides(holding);
-    }
-    if (holding is CrabPondHolding) {
-      return crabPondOverrides(holding);
-    }
-    if (holding is GameteBatch) {
-      return gameteOverrides(holding);
-    }
-    if (holding is LarvalBatch) {
-      return larvalOverrides(holding);
-    }
-    if (holding is SeagrassModuleHolding) {
-      return seagrassModuleOverrides(holding);
-    }
-    if (holding is MangrovePlotHolding) {
-      return mangrovePlotOverrides(holding);
-    }
-    return null;
-  }
-
-  static Map<String, dynamic> seededLineOverrides(SeededLineBatch batch) {
-    return {
-      'eventDate': coalesce(
-        formatDate(batch.deployedAt),
-        metadataValue(batch.metadata, 'eventDate'),
-      ),
-      'lineId': batch.lineIdentifier ?? metadataValue(batch.metadata, 'lineId'),
-      'lineIdentifier':
-          batch.lineIdentifier ??
-          metadataValue(batch.metadata, 'lineIdentifier'),
-      'lineLengthMeters':
-          batch.lineLengthMeters?.toString() ??
-          metadataValue(batch.metadata, 'lineLengthMeters'),
-    };
-  }
-
-  static Map<String, dynamic> gameteOverrides(GameteBatch batch) {
-    return {
-      'eventDate': coalesce(
-        formatDate(batch.spawnedAt),
-        metadataValue(batch.metadata, 'eventDate'),
-      ),
-      'parentProvenanceIds': batch.parentProvenanceIds.join('; '),
-      'measurementUnit': batch.measurement.unit.id,
-    };
-  }
-
-  static Map<String, dynamic> larvalOverrides(LarvalBatch batch) {
-    return {
-      'eventDate': coalesce(
-        formatDate(batch.settlementWindowStart),
-        metadataValue(batch.metadata, 'eventDate'),
-      ),
-      'settlementWindowStart': coalesce(
-        formatDate(batch.settlementWindowStart),
-        metadataValue(batch.metadata, 'settlementWindowStart'),
-      ),
-      'settlementWindowEnd': coalesce(
-        formatDate(batch.settlementWindowEnd),
-        metadataValue(batch.metadata, 'settlementWindowEnd'),
-      ),
-    };
-  }
-
-  static Map<String, dynamic> oysterBagOverrides(OysterBagHolding holding) {
-    return {
-      'eventDate': coalesce(
-        formatDate(holding.deployedAt),
-        metadataValue(holding.metadata, 'eventDate'),
-      ),
-      'bagIdentifier':
-          holding.bagIdentifier ??
-          metadataValue(holding.metadata, 'bagIdentifier'),
-      'depthMeters':
-          holding.depthMeters?.toString() ??
-          metadataValue(holding.metadata, 'depthMeters'),
-    };
-  }
-
-  static Map<String, dynamic> finfishPenOverrides(FinfishPenHolding holding) {
-    return {
-      'eventDate': coalesce(
-        formatDate(holding.stockedAt),
-        metadataValue(holding.metadata, 'eventDate'),
-      ),
-      'averageWeightGrams': holding.averageWeightGrams?.toString() ??
-          metadataValue(holding.metadata, 'averageWeightGrams'),
-    };
-  }
-
-  static Map<String, dynamic> crabPondOverrides(CrabPondHolding holding) {
-    return {
-      'eventDate': coalesce(
-        formatDate(holding.stockedAt),
-        metadataValue(holding.metadata, 'eventDate'),
-      ),
-      'averageCarapaceWidthMm':
-          holding.averageCarapaceWidthMm?.toString() ??
-              metadataValue(holding.metadata, 'averageCarapaceWidthMm'),
-    };
-  }
-
-  static Map<String, dynamic> seagrassModuleOverrides(
-    SeagrassModuleHolding holding,
-  ) {
-    return {
-      'eventDate': coalesce(
-        formatDate(holding.plantedAt),
-        metadataValue(holding.metadata, 'eventDate'),
-      ),
-      'coveragePercent':
-          holding.coveragePercent?.toString() ??
-          metadataValue(holding.metadata, 'coveragePercent'),
-      'canopyHeightCm':
-          holding.canopyHeightCm?.toString() ??
-          metadataValue(holding.metadata, 'canopyHeightCm'),
-      'moduleAreaSquareMeters':
-          holding.moduleAreaSquareMeters?.toString() ??
-          metadataValue(holding.metadata, 'moduleAreaSquareMeters'),
-    };
-  }
-
-  static Map<String, dynamic> mangrovePlotOverrides(
-    MangrovePlotHolding holding,
-  ) {
-    return {
-      'eventDate': coalesce(
-        formatDate(holding.plantedAt),
-        metadataValue(holding.metadata, 'eventDate'),
-      ),
-      'averageHeightCm':
-          holding.averageHeightCm?.toString() ??
-          metadataValue(holding.metadata, 'averageHeightCm'),
-      'survivalPercent':
-          holding.survivalPercent?.toString() ??
-          metadataValue(holding.metadata, 'survivalPercent'),
-    };
   }
 
   static String metadataValue(Map<String, dynamic>? metadata, String key) {

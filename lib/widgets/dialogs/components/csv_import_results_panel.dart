@@ -37,7 +37,7 @@ class CsvImportResultsPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasBlockingErrors = result.hasErrors;
     final hasWarnings = result.hasWarnings;
-    final missingEntities = templateKind == CsvTemplateKind.inventory
+    final missingEntities = _shouldCollectMissingEntities(templateKind)
         ? _collectMissingEntities(result)
         : <MissingEntity>[];
 
@@ -97,9 +97,7 @@ class CsvImportResultsPanel extends StatelessWidget {
         const SizedBox(height: 12),
         if (validateOnly)
           Text(
-            templateKind == CsvTemplateKind.monitoring
-                ? 'Resolve any issues below, then choose Import Data to apply the updates.'
-                : 'No changes have been applied yet. Resolve any issues then choose Import Data to apply updates.',
+            'No changes have been applied yet. Resolve any issues then choose Import Data to apply updates.',
             style: Theme.of(context).textTheme.bodyMedium,
           )
         else
@@ -192,12 +190,6 @@ class CsvImportResultsPanel extends StatelessWidget {
       case CsvTemplateKind.inventory:
       case CsvTemplateKind.inventoryMinimal:
       case CsvTemplateKind.inventoryCoral:
-      case CsvTemplateKind.inventoryOyster:
-      case CsvTemplateKind.inventoryKelp:
-      case CsvTemplateKind.inventorySeagrass:
-      case CsvTemplateKind.inventoryMangrove:
-      case CsvTemplateKind.inventoryFinfish:
-      case CsvTemplateKind.inventoryCrab:
         if (result.updatedOrganisms.isNotEmpty) {
           return Text(
             'Updated ${result.updatedOrganisms.length} organism holding${result.updatedOrganisms.length == 1 ? '' : 's'} with refreshed five-axis (provenance, life stage, physical form, size) metadata.',
@@ -205,45 +197,6 @@ class CsvImportResultsPanel extends StatelessWidget {
           );
         }
         return const Text('No inventory changes were required.');
-      case CsvTemplateKind.monitoring:
-        final created = result.createdMonitoringEvents.length;
-        final updated = result.updatedMonitoringEvents.length;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (created > 0) ...[
-              Text(
-                'Created $created monitoring record${created == 1 ? '' : 's'}.',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              ...result.createdMonitoringEvents
-                  .take(3)
-                  .map((event) => _buildMonitoringTile(context, event)),
-              if (created > 3)
-                Text(
-                  '... and ${created - 3} more',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              const SizedBox(height: 12),
-            ],
-            if (updated > 0) ...[
-              Text(
-                'Updated $updated monitoring record${updated == 1 ? '' : 's'}.',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              ...result.updatedMonitoringEvents
-                  .take(3)
-                  .map((event) => _buildMonitoringTile(context, event)),
-              if (updated > 3)
-                Text(
-                  '... and ${updated - 3} more',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-            ],
-          ],
-        );
       case CsvTemplateKind.outplanting:
         if (result.updatedOutplantEvents.isNotEmpty) {
           return Text(
@@ -283,34 +236,17 @@ class CsvImportResultsPanel extends StatelessWidget {
           );
         }
         return const Text('No genetics changes were required.');
-      case CsvTemplateKind.husbandryObservations:
-      case CsvTemplateKind.husbandryTasks:
-      case CsvTemplateKind.outplantAllocations:
       case CsvTemplateKind.outplantConsolidated:
-        return const SizedBox.shrink();
-      case CsvTemplateKind.siteBaselines:
+        if (result.updatedOutplantEvents.isNotEmpty) {
+          return Text(
+            'Created ${result.updatedOutplantEvents.length} outplant event${result.updatedOutplantEvents.length == 1 ? '' : 's'}.',
+            style: Theme.of(context).textTheme.titleMedium,
+          );
+        }
+        return const Text('No outplant events were created.');
+      case CsvTemplateKind.outplantAllocations:
         return const SizedBox.shrink();
     }
-  }
-
-  Widget _buildMonitoringTile(
-    BuildContext context,
-    MonitoringEventRecord event,
-  ) {
-    final date = event.monitoringDate ?? DateTime.tryParse(event.createdAt);
-    final formattedDate = date != null
-        ? '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}'
-        : event.createdAt;
-
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.monitor_heart, color: Colors.blue),
-      title: Text(event.siteNameSnapshot ?? event.recordId),
-      subtitle: Text(
-        'Date: $formattedDate · Cover: ${event.percentCover?.toStringAsFixed(1) ?? '-'}%',
-      ),
-    );
   }
 
   Widget _buildSuccessDetails(BuildContext context, CSVImportResult result) {
@@ -318,12 +254,6 @@ class CsvImportResultsPanel extends StatelessWidget {
       case CsvTemplateKind.inventory:
       case CsvTemplateKind.inventoryMinimal:
       case CsvTemplateKind.inventoryCoral:
-      case CsvTemplateKind.inventoryOyster:
-      case CsvTemplateKind.inventoryKelp:
-      case CsvTemplateKind.inventorySeagrass:
-      case CsvTemplateKind.inventoryMangrove:
-      case CsvTemplateKind.inventoryFinfish:
-      case CsvTemplateKind.inventoryCrab:
         if (result.updatedOrganisms.isNotEmpty) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,13 +318,8 @@ class CsvImportResultsPanel extends StatelessWidget {
         }
         return const SizedBox.shrink();
       case CsvTemplateKind.genetics:
-      case CsvTemplateKind.monitoring:
-      case CsvTemplateKind.husbandryObservations:
-      case CsvTemplateKind.husbandryTasks:
       case CsvTemplateKind.outplantAllocations:
       case CsvTemplateKind.outplantConsolidated:
-        return const SizedBox.shrink();
-      case CsvTemplateKind.siteBaselines:
         return const SizedBox.shrink();
     }
   }
@@ -430,6 +355,20 @@ class CsvImportResultsPanel extends StatelessWidget {
     );
   }
 
+  static bool _shouldCollectMissingEntities(CsvTemplateKind kind) {
+    switch (kind) {
+      case CsvTemplateKind.inventory:
+      case CsvTemplateKind.inventoryMinimal:
+      case CsvTemplateKind.inventoryCoral:
+      case CsvTemplateKind.outplantConsolidated:
+        return true;
+      case CsvTemplateKind.genetics:
+      case CsvTemplateKind.outplanting:
+      case CsvTemplateKind.outplantAllocations:
+        return false;
+    }
+  }
+
   List<MissingEntity> _collectMissingEntities(CSVImportResult result) {
     final entries = <MissingEntity>[];
     final seen = <String>{};
@@ -440,7 +379,8 @@ class CsvImportResultsPanel extends StatelessWidget {
       final normalizedMessage = error.message.toLowerCase();
       final value = error.value.isNotEmpty ? error.value : error.field;
 
-      if (normalizedField.contains('group') &&
+      if ((normalizedField.contains('group') ||
+              normalizedField.contains('structure')) &&
           normalizedMessage.contains('unknown')) {
         if (seen.add('group:$value')) {
           entries.add(

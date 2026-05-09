@@ -1,6 +1,6 @@
 // @tier: community
 import 'package:equatable/equatable.dart';
-import 'package:seafoundry_app/constants/schema.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/taxonomy/organism_classification.dart';
 import 'package:seafoundry_app/models/taxonomy/propagation_mode.dart';
 import 'package:seafoundry_app/models/types/coral_morphology.dart';

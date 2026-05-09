@@ -13,8 +13,6 @@ import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/unique_name_validation_service.dart';
-import 'package:seafoundry_app/utils/record_name_suggester.dart';
 
 class OrganismSplitBloc
     extends AsyncRecordFormBloc<OrganismRecord, OrganismSplitState> {
@@ -22,11 +20,9 @@ class OrganismSplitBloc
     required OrganismRecord sourceOrganism,
     required OrganismRecordRepository organismRepository,
     required GraphRepository graphRepository,
-    required UniqueNameValidationService validationService,
   })  : _sourceOrganism = sourceOrganism,
         _organismRepository = organismRepository,
         _graphRepository = graphRepository,
-        _validationService = validationService,
         _logger = LoggingService.instance,
         super(
           OrganismSplitState(
@@ -59,7 +55,6 @@ class OrganismSplitBloc
   final OrganismRecord _sourceOrganism;
   final OrganismRecordRepository _organismRepository;
   final GraphRepository _graphRepository;
-  final UniqueNameValidationService _validationService;
   final LoggingService _logger;
 
   @override
@@ -67,17 +62,8 @@ class OrganismSplitBloc
 
   @override
   Future<OrganismSplitState> loadInitialData() async {
-    // Get suggested record name for split
-    final suggestedName = await RecordNameSuggester.suggestSplitRecordName(
-      sourceRecordName: _sourceOrganism.recordName,
-      organizationId: _sourceOrganism.organizationId,
-      validationService: _validationService,
-    );
-
-    // Get existing record names for validation
-    final usage = await _validationService.getRecordNameUsage(
-      organizationId: _sourceOrganism.organizationId,
-    );
+    // Default recordName for split: use source's localId or recordName
+    final suggestedName = _sourceOrganism.localId ?? _sourceOrganism.recordName;
 
     final sourceQuantity = _sourceOrganism.measurement.value;
     final defaultSplitQuantity = (sourceQuantity / 2).floorToDouble().clamp(
@@ -108,7 +94,6 @@ class OrganismSplitBloc
               SplitRecordNameInput.dirty(
                 value: suggestedName,
                 isRequired: true,
-                existingNames: usage.activeRecordNames,
               ),
               const SplitReasonInput.pure(),
               const SplitNotesInput.pure(),

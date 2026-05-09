@@ -20,7 +20,6 @@ import 'package:seafoundry_app/models/types/health_status.dart';
 import 'package:seafoundry_app/services/life_stage_constraint_service.dart';
 import 'package:seafoundry_app/services/physical_form_constraint_service.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
-import 'package:seafoundry_app/utils/record_name_derived.dart';
 
 /// Neutral five-axis payload stored next to holdings, cohorts, and future
 /// organism-aware repositories. Repositories and CSV adapters should treat this
@@ -549,12 +548,6 @@ class OrganismRecord extends InventoryRecord
     if (inventoryMetrics.count != null) {
       payload['inventoryCount'] = inventoryMetrics.count;
     }
-    if (inventoryMetrics.volumeCm3 != null) {
-      payload['inventoryVolumeCm3'] = inventoryMetrics.volumeCm3;
-    }
-    if (inventoryMetrics.tissueAreaCm2 != null) {
-      payload['inventoryTissueAreaCm2'] = inventoryMetrics.tissueAreaCm2;
-    }
     if (aliases.isNotEmpty) {
       payload['aliases'] = aliases.map((alias) => alias.toJson()).toList();
     }
@@ -640,52 +633,14 @@ class OrganismRecord extends InventoryRecord
     final resolvedProvenanceType =
         ProvenanceTypeX.tryParse(provenanceTypeId) ?? fallbackProvenanceType;
 
-    ProvenanceGameteRole? resolveGameteRole() {
-      final rawRole = read(['gameteRole', 'gamete_role', 'gameteSex', 'gamete_sex']);
-      final parsedRole = ProvenanceGameteRoleX.tryParse(rawRole);
-      if (parsedRole != null) {
-        return parsedRole;
-      }
-      if (rawRole != null) {
-        final normalized = rawRole.toLowerCase();
-        if (normalized == 'egg' || normalized == 'eggs') {
-          return ProvenanceGameteRole.egg;
-        }
-        if (normalized == 'sperm' || normalized == 'sire') {
-          return ProvenanceGameteRole.sperm;
-        }
-      }
-
-      final eggFlag = normalizedMetadata['egg'] == true ||
-          normalizedMetadata['isEgg'] == true;
-      if (eggFlag) return ProvenanceGameteRole.egg;
-      final sireFlag = normalizedMetadata['sire'] == true ||
-          normalizedMetadata['isSire'] == true;
-      if (sireFlag) return ProvenanceGameteRole.sperm;
-      return null;
-    }
-
     final resolvedProvenanceAttributes =
         provenanceAttributes ??
         ProvenanceAttributes(
-          gameteRole: resolveGameteRole(),
-          sireProvenanceId: read([
-            'sireProvenanceId',
-            'provenanceSireId',
-            'sireLineageId',
-          ]),
-          damProvenanceId: read([
-            'damProvenanceId',
-            'provenanceDamId',
-            'damLineageId',
-          ]),
-          sourceCohortId: read(['sourceCohortId', 'cohortId']),
           wildCollectionMethod: read([
             'wildCollectionMethod',
             'wildMethod',
             'collectionMethod',
           ]),
-          isAliquoted: normalizedMetadata['isAliquoted'] == true,
         );
 
     final sizeMapFromMeta = safeMapCast(normalizedMetadata['size']);
@@ -775,8 +730,8 @@ class OrganismRecord extends InventoryRecord
     }
     final direct = read(json['recordName']) ?? read(json['record_name']);
     if (direct != null) return direct;
-    final fallbackLocalId = _readLocalId(json);
-    return RecordNameDerived.fromLocalId(fallbackLocalId);
+    // Fallback: use localId as recordName for backward compatibility
+    return _readLocalId(json);
   }
 
   static List<LifeStageTransition> _parseLifeStageHistory(dynamic raw) {
@@ -924,22 +879,7 @@ class OrganismRecord extends InventoryRecord
 
     // Fallback to hardcoded validation for backward compatibility
     // (used when config not loaded or no constraints defined for this provenance type)
-    if (provenanceType == ProvenanceType.sexualCohort) {
-      final formId = physicalForm!.formId.toLowerCase();
-
-      // Check if physical form is compatible with cohort
-      // Container types: spat_bag, gamete_vial, any form with "container" or "bag" in name
-      // Shared substrate types: settlement_substrate, any form with "substrate" in name
-      // Individual types: fragment, colony, individual (NOT allowed for cohorts)
-
-      if (formId.contains('fragment') ||
-          formId.contains('colony') ||
-          formId.contains('individual') ||
-          formId.contains('microfragment')) {
-        return 'Sexual cohorts can only be associated with container or shared substrate physical forms. '
-            'Individual physical forms (fragments, colonies) are not compatible with cohorts.';
-      }
-    }
+    // Cohort validation removed (sexualCohort provenance type eliminated)
     return null;
   }
 
@@ -989,19 +929,10 @@ class OrganismRecord extends InventoryRecord
   /// Validates that the life stage is biologically valid for the organism taxonomy.
   /// Per 5 Axis Overview: "Taxonomy determines which Life Stages are valid"
   ///
-  /// Examples:
-  /// - Coral can be: gamete, embryo, larva, juvenile, adult, broodstock
-  /// - Kelp can be: gamete (spore), embryo, larva (gametophyte), juvenile, adult
-  /// - Oyster can be: gamete, embryo, larva, juvenile (spat), adult, broodstock
-  ///
-  /// Uses LifeStageConstraintService if initialized, otherwise returns null (no validation).
+  /// Example: Coral can be: gamete, embryo, larva, juvenile, adult, broodstock
   String? validateLifeStageForTaxonomy() {
-    final constraintService = LifeStageConstraintService.instance;
-    if (!constraintService.isInitialized) {
-      return null; // Service not loaded, skip validation
-    }
-
-    return constraintService.validateLifeStage(organismKind, lifeStage.stage);
+    return LifeStageConstraintService.instance
+        .validateLifeStage(organismKind, lifeStage.stage);
   }
 
   /// Validates that measurement values are within reasonable bounds.
@@ -1164,22 +1095,14 @@ SizeMetrics _resolveInventoryMetrics(
   final metrics = sizeSpec.resolvedMetrics();
   final rawCount = json?['inventoryCount'];
   final countFromJson = rawCount is num ? rawCount.toInt() : null;
-  final rawVolume = json?['inventoryVolumeCm3'];
-  final volumeFromJson = rawVolume is num ? rawVolume.toDouble() : null;
-  final rawTissue = json?['inventoryTissueAreaCm2'];
-  final tissueFromJson = rawTissue is num ? rawTissue.toDouble() : null;
   final count =
       metrics.count ??
       countFromJson ??
       (measurement.unit == MeasurementUnit.count
           ? measurement.value.toInt()
           : null);
-  final volume = metrics.volumeCm3 ?? volumeFromJson;
-  final tissue = metrics.tissueAreaCm2 ?? tissueFromJson;
   return metrics.copyWith(
     count: count,
-    volumeCm3: volume,
-    tissueAreaCm2: tissue,
   );
 }
 

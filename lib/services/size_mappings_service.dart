@@ -33,7 +33,7 @@ class SizeBand {
 
 /// Loads and serves per-organism/per-physical-form size band definitions. Admin
 /// tooling can override the defaults by creating a new instance with merged
-/// YAML; dialogs can then call [bandsFor] to populate dropdowns.
+/// data; dialogs can then call [bandsFor] to populate dropdowns.
 class SizeMappingsService {
   SizeMappingsService._(this._bands);
 
@@ -41,6 +41,31 @@ class SizeMappingsService {
       SizeMappingsService._(<OrganismKind, Map<String, List<SizeBand>>>{});
 
   final Map<OrganismKind, Map<String, List<SizeBand>>> _bands;
+
+  // ---------------------------------------------------------------------------
+  // Hardcoded defaults (previously loaded from size_mappings.defaults.yaml)
+  // ---------------------------------------------------------------------------
+
+  static final SizeMappingsService _defaults = SizeMappingsService._({
+    OrganismKind.coral: UnmodifiableMapView(<String, List<SizeBand>>{
+      'fragment': List<SizeBand>.unmodifiable(const [
+        SizeBand(code: 'XS', unit: 'cm', max: 5),
+        SizeBand(code: 'S', unit: 'cm', min: 5, max: 10),
+        SizeBand(code: 'M', unit: 'cm', min: 10, max: 20),
+        SizeBand(code: 'L', unit: 'cm', min: 20),
+      ]),
+      'microfragment': List<SizeBand>.unmodifiable(const [
+        SizeBand(code: 'XS', unit: 'cm', max: 1),
+        SizeBand(code: 'S', unit: 'cm', min: 1, max: 2),
+      ]),
+      'settlement_substrate': List<SizeBand>.unmodifiable(const [
+        SizeBand(code: 'Standard', unit: 'cm', min: 2, max: 10),
+      ]),
+    }),
+  });
+
+  /// Returns the hardcoded default size mappings.
+  static SizeMappingsService defaults() => _defaults;
 
   Map<OrganismKind, Map<String, List<SizeBand>>> get bands {
     final entries = <OrganismKind, Map<String, List<SizeBand>>>{};

@@ -4,16 +4,13 @@
     "description": "Database seeder for SeaFoundry app using Firebase Admin SDK",
     "main": "scripts/seed-demo.js",
     "scripts": {
-        "seed:demo:community": "node scripts/seed-demo.js --tier=community",
-        "seed:demo:pro": "node scripts/seed-demo.js --tier=pro",
-        "seed:demo:scale": "node scripts/seed-demo.js --tier=scale",
+        "seed:demo": "node scripts/seed-demo.js --reset",
         "seed:taxonomy": "ts-node --project tsconfig.scripts.json scripts/firestore/seed_taxonomy_data.ts",
         "seed:taxonomy:emulator": "FIRESTORE_EMULATOR_HOST=localhost:58080 ts-node --project tsconfig.scripts.json scripts/firestore/seed_taxonomy_data.ts",
         "fetch:taxonomy-images": "node scripts/fetch-taxonomy-images.js",
         "fetch:taxonomy-images:dry": "node scripts/fetch-taxonomy-images.js --dry-run",
         "upload:taxonomy-images": "node scripts/upload-taxonomy-images.js",
         "upload:taxonomy-images:thumbs": "node scripts/upload-taxonomy-images.js --generate-thumbs",
-        "seed:training": "node scripts/seed-training.js",
         "setup": "node scripts/setup.js",
         "generate-models": "node scripts/generate-models.js",
         "generate-dart": "node scripts/generate-dart-models.js",
@@ -28,7 +25,6 @@
         "podc:backfills": "node scripts/run_podc_backfills.js",
         "update-records": "node scripts/update-records.js",
         "remove-records": "node scripts/remove-records.js",
-        "clear:community-posts": "node scripts/clear-community-posts.js",
         "clear:all": "node scripts/clear-all-data.js",
         "reset:deploy": "./scripts/reset-and-deploy.sh",
         "reset:deploy:dry": "./scripts/reset-and-deploy.sh --dry-run",
@@ -71,8 +67,7 @@
         "test:smoke:training": "FIRESTORE_EMULATOR_HOST=localhost:58080 FIREBASE_AUTH_EMULATOR_HOST=localhost:9555 node scripts/verify-permissions.js --category=training",
         "test:smoke:storage": "FIRESTORE_EMULATOR_HOST=localhost:58080 FIREBASE_AUTH_EMULATOR_HOST=localhost:9555 node scripts/verify-permissions.js --category=storage",
         "test:smoke:production": "GOOGLE_APPLICATION_CREDENTIALS=./firebase-service-account.json node scripts/verify-permissions.js --production",
-        "postinstall": "node scripts/provision_java.js",
-        "lint:tiers": "dart run tool/bin/tier_check.dart"
+        "postinstall": "node scripts/provision_java.js"
     },
     "dependencies": {
         "dotenv": "^16.4.7",

@@ -47,8 +47,6 @@ extension _TransferServiceAcceptance on TransferService {
         updatedAt: now.toIso8601String(),
         updatedById: userId,
         manifest: manifest.toJson(),
-        manifestChecksum: manifest.checksum,
-        qrPayload: safeQrPayload(manifest),
         trackingNumber: trackingNumber ?? transfer.trackingNumber,
         comment: comment ?? transfer.comment,
         shippedAt: manifest.shippedAt?.toIso8601String(),
@@ -135,60 +133,6 @@ extension _TransferServiceAcceptance on TransferService {
       }
 
       final manifest = requireManifest(transfer);
-      final storedChecksum = transfer.manifestChecksum;
-      if (storedChecksum != null) {
-        final calculatedChecksum = manifest.checksum;
-        if (calculatedChecksum != storedChecksum) {
-          String? rawChecksum;
-          if (transfer.manifest != null) {
-            try {
-              rawChecksum = TransferManifest.checksumForJson(
-                Map<String, dynamic>.from(transfer.manifest!),
-              );
-            } catch (e) {
-              LoggingService.instance.debug(
-                'Failed to compute raw manifest checksum: $e',
-              );
-            }
-          }
-          final payloadChecksum = transfer.qrPayload == null
-              ? null
-              : TransferManifest.checksumForPayload(transfer.qrPayload!);
-          final storedMatchesRaw =
-              rawChecksum != null && rawChecksum == storedChecksum;
-          final storedMatchesPayload =
-              payloadChecksum != null && payloadChecksum == storedChecksum;
-          final calculatedMatchesRaw =
-              rawChecksum != null && rawChecksum == calculatedChecksum;
-          final calculatedMatchesPayload =
-              payloadChecksum != null && payloadChecksum == calculatedChecksum;
-          if (!storedMatchesRaw &&
-              !storedMatchesPayload &&
-              !calculatedMatchesRaw &&
-              !calculatedMatchesPayload) {
-            LoggingService.instance.warning(
-              'Manifest checksum mismatch for transfer ${transfer.id}: '
-              'stored=$storedChecksum, calculated=$calculatedChecksum',
-              {
-                'rawChecksum': rawChecksum,
-                'payloadChecksum': payloadChecksum,
-              },
-            );
-            throw TransferWorkflowException(
-              'Transfer manifest checksum mismatch',
-            );
-          }
-          LoggingService.instance.info(
-            'Manifest checksum normalized for transfer ${transfer.id}',
-            {
-              'stored': storedChecksum,
-              'calculated': calculatedChecksum,
-              'rawChecksum': rawChecksum,
-              'payloadChecksum': payloadChecksum,
-            },
-          );
-        }
-      }
       if (manifest.transferId != transfer.id) {
         LoggingService.instance.warning(
           'Manifest ${manifest.transferId} does not match transfer ${transfer.id}',
@@ -199,15 +143,17 @@ extension _TransferServiceAcceptance on TransferService {
       // Extract and validate species compatibility BEFORE creating genet
       final rawSpecies =
           (manifest.genet['speciesId'] as String?)?.trim().isNotEmpty == true
-              ? (manifest.genet['speciesId'] as String?)!.trim()
-              : (manifest.genet['speciesCode'] as String?)?.trim();
+          ? (manifest.genet['speciesId'] as String?)!.trim()
+          : (manifest.genet['speciesCode'] as String?)?.trim();
       if (rawSpecies == null || rawSpecies.isEmpty) {
         throw TransferWorkflowException(
           'Transfer manifest is missing species information',
         );
       }
-      final resolvedSpecies =
-          SpeciesRegistry.globalById(rawSpecies, allowFallback: false);
+      final resolvedSpecies = SpeciesRegistry.globalById(
+        rawSpecies,
+        allowFallback: false,
+      );
       if (resolvedSpecies == null) {
         throw TransferWorkflowException(
           'Transfer manifest contains unknown species "$rawSpecies". '
@@ -216,14 +162,8 @@ extension _TransferServiceAcceptance on TransferService {
       }
       final speciesId = resolvedSpecies.id;
 
-      // Extract and validate organism type compatibility BEFORE creating genet
-      final organismKindRaw = manifest.metadata?['organismKind']?.toString() ??
-          manifest.genet['organismKind']?.toString() ??
-          'coral';
-      final transferOrganismKind = OrganismKind.values.firstWhere(
-        (kind) => kind.name.toLowerCase() == organismKindRaw.toLowerCase(),
-        orElse: () => OrganismKind.coral,
-      );
+      // Community deployment is coral-only.
+      const transferOrganismKind = OrganismKind.coral;
 
       validateOrganismTypeCompatibility(
         receivingOrganization: organization,
@@ -238,32 +178,17 @@ extension _TransferServiceAcceptance on TransferService {
         actorId: _provenanceRepository.user.id,
       );
 
-      // Determine ownership type from manifest metadata
-      final ownershipType = TransferOwnershipTypeX.tryParse(
-        manifest.metadata?['ownershipType']?.toString(),
-      ) ?? TransferOwnershipType.fullTransfer;
-
-      // Resolve owner/manager based on ownership type
-      String resolvedOwnerOrgId;
-      String resolvedManagerOrgId;
-
-      switch (ownershipType) {
-        case TransferOwnershipType.fullTransfer:
-          // Current behavior: receiver is owner + manager
-          resolvedOwnerOrgId = ownerOrganizationId ?? organization.id;
-          resolvedManagerOrgId = managingOrganizationId ?? organization.id;
-
-        case TransferOwnershipType.retainedOwnership:
-          // Sender retains ownership
-          resolvedOwnerOrgId = manifest.fromOrganization.id ?? organization.id;
-          resolvedManagerOrgId = managingOrganizationId ?? organization.id;
-
-        case TransferOwnershipType.thirdPartyTransfer:
-          // Original owner keeps ownership
-          final originalOwnerId = manifest.metadata?['originalOwnerOrganizationId']?.toString();
-          resolvedOwnerOrgId = originalOwnerId ?? manifest.fromOrganization.id ?? organization.id;
-          resolvedManagerOrgId = managingOrganizationId ?? organization.id;
-      }
+      final ownershipType = _ownershipTypeFromMetadata(manifest.metadata);
+      final resolvedOwnerOrgId = _resolvedTransferOwnerOrganizationId(
+        ownershipType: ownershipType,
+        manifest: manifest,
+        receivingOrganization: organization,
+        ownerOrganizationId: ownerOrganizationId,
+      );
+      final resolvedManagerOrgId = _resolvedManagingOrganizationId(
+        receivingOrganizationId: organization.id,
+        managingOrganizationId: managingOrganizationId,
+      );
 
       final genetCandidate = createGenetFromManifest(
         manifest: receiptedManifest,
@@ -274,10 +199,9 @@ extension _TransferServiceAcceptance on TransferService {
         ownerOrganizationId: resolvedOwnerOrgId,
         managingOrganizationId: resolvedManagerOrgId,
       );
-      final resolvedGenetCandidate =
-          (resolvedDestinationSiteId.isNotEmpty)
-              ? genetCandidate.copyWith(siteId: resolvedDestinationSiteId)
-              : genetCandidate;
+      final resolvedGenetCandidate = (resolvedDestinationSiteId.isNotEmpty)
+          ? genetCandidate.copyWith(siteId: resolvedDestinationSiteId)
+          : genetCandidate;
 
       final history = appendStateHistory(
         transfer,
@@ -303,80 +227,78 @@ extension _TransferServiceAcceptance on TransferService {
       TransferEvent updatedTransfer;
       OrganismRecord? createdOrganismRecord;
       try {
-        final result =
-            await _db.runTransaction<(ProvenanceRecord, TransferEvent, OrganismRecord?)>(
-          (transaction) async {
-            // Re-check transfer status inside transaction to prevent accept/reject race
-            final docRef = _resolver.collection(_db, 'events').doc(transfer.id);
-            final freshDoc = await transaction.get(docRef);
+        final result = await _db
+            .runTransaction<
+              (ProvenanceRecord, TransferEvent, OrganismRecord?)
+            >((transaction) async {
+              // Re-check transfer status inside transaction to prevent accept/reject race
+              final docRef = _db.collection('events').doc(transfer.id);
+              final freshDoc = await transaction.get(docRef);
 
-            if (!freshDoc.exists) {
-              throw TransferWorkflowException(
-                'Transfer ${transfer.id} no longer exists',
+              if (!freshDoc.exists) {
+                throw TransferWorkflowException(
+                  'Transfer ${transfer.id} no longer exists',
+                );
+              }
+              final freshData = freshDoc.data();
+              if (freshData == null) {
+                throw TransferWorkflowException(
+                  'Transfer ${transfer.id} has no data',
+                );
+              }
+              final freshStatus = parseTransferStatus(
+                freshData['status'] as String?,
+                fallback: TransferStatus.pending,
               );
-            }
-            final freshData = freshDoc.data();
-            if (freshData == null) {
-              throw TransferWorkflowException(
-                'Transfer ${transfer.id} has no data',
+              if (!TransferStateMachine.canTransition(
+                freshStatus,
+                TransferStatus.received,
+              )) {
+                throw TransferWorkflowException(
+                  'Transfer ${transfer.id} status changed to ${freshStatus.value} - '
+                  'cannot accept (possible concurrent reject)',
+                );
+              }
+
+              // Create the genet within the transaction
+              final genet = await _provenanceRepository.createProvenanceRecord(
+                resolvedGenetCandidate,
+                transaction: transaction,
               );
-            }
-            final freshStatus = parseTransferStatus(
-              freshData['status'] as String?,
-              fallback: TransferStatus.pending,
-            );
-            if (!TransferStateMachine.canTransition(
-              freshStatus,
-              TransferStatus.received,
-            )) {
-              throw TransferWorkflowException(
-                'Transfer ${transfer.id} status changed to ${freshStatus.value} - '
-                'cannot accept (possible concurrent reject)',
+
+              // Create the organism record for inventory tracking
+              final organismRecord = await _createOrganismRecordInTransaction(
+                transaction: transaction,
+                manifest: receiptedManifest,
+                createdGenet: genet,
+                quantity: transfer.quantity,
+                targetUrlPath: resolvedTargetUrlPath,
+                destinationSiteId: resolvedDestinationSiteId,
+                destinationGroupId: destinationGroupId,
+                localId: localId,
+                provenanceTypeOverride: provenanceTypeOverride,
+                lifeStageOverride: lifeStageOverride,
+                ownerOrganizationId: resolvedOwnerOrgId,
+                managingOrganizationId: resolvedManagerOrgId,
               );
-            }
 
-            // Create the genet within the transaction
-            final genet = await _provenanceRepository.createProvenanceRecord(
-              resolvedGenetCandidate,
-              transaction: transaction,
-            );
+              // Update the transfer event within the transaction
+              final updated = transfer.copyWith(
+                status: TransferStatus.received.value,
+                updatedAt: now.toIso8601String(),
+                updatedById: _provenanceRepository.user.id,
+                manifest: receiptedManifest.toJson(),
+                receivedAt: receiptedManifest.receivedAt?.toIso8601String(),
+                receivedById: receiptedManifest.receivedById,
+                targetUrlPath: resolvedTargetUrlPath,
+                stateHistory: history,
+                geometry: geometry ?? transfer.geometry,
+              );
 
-            // Create the organism record for inventory tracking
-            final organismRecord = await _createOrganismRecordInTransaction(
-              transaction: transaction,
-              manifest: receiptedManifest,
-              createdGenet: genet,
-              quantity: transfer.quantity,
-              targetUrlPath: resolvedTargetUrlPath,
-              destinationSiteId: resolvedDestinationSiteId,
-              destinationGroupId: destinationGroupId,
-              localId: localId,
-              provenanceTypeOverride: provenanceTypeOverride,
-              lifeStageOverride: lifeStageOverride,
-              ownerOrganizationId: resolvedOwnerOrgId,
-              managingOrganizationId: resolvedManagerOrgId,
-            );
+              await updateTransferEventInTransaction(transaction, updated);
 
-            // Update the transfer event within the transaction
-            final updated = transfer.copyWith(
-              status: TransferStatus.received.value,
-              updatedAt: now.toIso8601String(),
-              updatedById: _provenanceRepository.user.id,
-              manifest: receiptedManifest.toJson(),
-              manifestChecksum: receiptedManifest.checksum,
-              qrPayload: safeQrPayload(receiptedManifest),
-              receivedAt: receiptedManifest.receivedAt?.toIso8601String(),
-              receivedById: receiptedManifest.receivedById,
-              targetUrlPath: resolvedTargetUrlPath,
-              stateHistory: history,
-              geometry: geometry ?? transfer.geometry,
-            );
-
-            await updateTransferEventInTransaction(transaction, updated);
-
-            return (genet, updated, organismRecord);
-          },
-        );
+              return (genet, updated, organismRecord);
+            });
         createdGenet = result.$1;
         updatedTransfer = result.$2;
         createdOrganismRecord = result.$3;
@@ -406,32 +328,12 @@ extension _TransferServiceAcceptance on TransferService {
         organizationId: transfer.organizationId,
       );
 
-      // Legacy fallback: Notify source org to decrement inventory only if
-      // the transfer was NOT pre-decremented at initiation. Modern transfers
-      // (with pre-decrement) already have inventory adjusted, so no notification
-      // is needed - the inventory is already correct.
-      final inventoryAdjusted =
-          transfer.metadata?['inventoryAdjusted'] == true;
-      if (!inventoryAdjusted) {
-        LoggingService.instance.debug(
-          'Transfer ${transfer.id} was not pre-decremented; '
-          'sending legacy inventory decrement notification',
-        );
-        await notifySourceOrganizationForInventoryDecrement(
-          transfer: updatedTransfer,
-          manifest: receiptedManifest,
-          quantity: updatedTransfer.quantity,
-        );
-      } else {
-        LoggingService.instance.debug(
-          'Transfer ${transfer.id} was pre-decremented; '
-          'no inventory decrement notification needed',
-        );
-      }
+      LoggingService.instance.debug(
+        'Transfer ${transfer.id} acceptance complete; '
+        'source inventory is adjusted during initiation.',
+      );
 
-      // Notify owner org to create mirror site for retained/third-party ownership
-      if (ownershipType == TransferOwnershipType.retainedOwnership ||
-          ownershipType == TransferOwnershipType.thirdPartyTransfer) {
+      if (_requiresExternalHoldingMirror(ownershipType)) {
         await _notifyOwnerOfExternalHolding(
           ownerOrganizationId: resolvedOwnerOrgId,
           holdingOrganizationId: organization.id,
@@ -538,8 +440,6 @@ extension _TransferServiceAcceptance on TransferService {
         targetUrlPath: targetUrlPath,
         manifest: manifest.toJson(),
         manifestVersion: manifest.version,
-        manifestChecksum: manifest.checksum,
-        qrPayload: safeQrPayload(manifest),
         receivedAt: manifest.receivedAt?.toIso8601String(),
         receivedById: manifest.receivedById,
         stateHistory: stateHistory,
@@ -553,7 +453,9 @@ extension _TransferServiceAcceptance on TransferService {
       LoggingService.instance.warning(
         'Failed to create local transfer receipt event (non-fatal): $e',
       );
-      LoggingService.instance.debug('Transfer receipt event error: $stackTrace');
+      LoggingService.instance.debug(
+        'Transfer receipt event error: $stackTrace',
+      );
     }
   }
 
@@ -571,7 +473,8 @@ extension _TransferServiceAcceptance on TransferService {
     try {
       final organization = _provenanceRepository.organization;
       final user = _provenanceRepository.user;
-      final eventTimestamp = manifest.receivedAt?.toUtc() ?? DateTime.now().toUtc();
+      final eventTimestamp =
+          manifest.receivedAt?.toUtc() ?? DateTime.now().toUtc();
       final eventIso = eventTimestamp.toIso8601String();
       final eventId = _idGenerator();
       final slug = await _eventRepository.nextSlugForModelType(ModelType.event);
@@ -610,8 +513,6 @@ extension _TransferServiceAcceptance on TransferService {
         targetUrlPath: updatedTransfer.targetUrlPath ?? transfer.targetUrlPath,
         manifest: manifest.toJson(),
         manifestVersion: manifest.version,
-        manifestChecksum: manifest.checksum,
-        qrPayload: safeQrPayload(manifest),
         receivedAt: manifest.receivedAt?.toIso8601String(),
         receivedById: manifest.receivedById,
         stateHistory: stateHistory,
@@ -692,18 +593,12 @@ extension _TransferServiceAcceptance on TransferService {
         updatedById: userId,
         comment: updatedComment,
         manifest: updatedManifest?.toJson(),
-        manifestChecksum:
-            updatedManifest?.checksum ?? transfer.manifestChecksum,
-        qrPayload:
-            updatedManifest != null
-                ? safeQrPayload(updatedManifest) ?? transfer.qrPayload
-                : transfer.qrPayload,
         stateHistory: history,
       );
 
       // Use transaction to prevent accept/reject race condition
       await _db.runTransaction<void>((transaction) async {
-        final docRef = _resolver.collection(_db, 'events').doc(transfer.id);
+        final docRef = _db.collection('events').doc(transfer.id);
         final freshDoc = await transaction.get(docRef);
         if (!freshDoc.exists) {
           throw TransferWorkflowException(
@@ -744,26 +639,19 @@ extension _TransferServiceAcceptance on TransferService {
       // Notify the sender organization to restore their inventory
       await _notifySenderForInventoryRestoration(transfer: transfer);
 
-      // Notify owner org to cleanup mirror site for retained/third-party ownership
-      final ownershipType = TransferOwnershipTypeX.tryParse(
-        transfer.metadata?['ownershipType']?.toString(),
+      final ownershipType = _ownershipTypeFromMetadata(transfer.metadata);
+      final ownerOrganizationId = _ownerOrganizationIdForHoldingRemoval(
+        ownershipType: ownershipType,
+        senderOrganizationId: transfer.fromOrganizationId,
+        originalOwnerOrganizationId: _originalOwnerOrganizationId(
+          transfer.metadata,
+        ),
       );
-
-      if (ownershipType == TransferOwnershipType.retainedOwnership) {
+      if (ownerOrganizationId != null) {
         await _notifyOwnerOfHoldingRemoval(
-          ownerOrganizationId: transfer.fromOrganizationId!,
+          ownerOrganizationId: ownerOrganizationId,
           transferId: transfer.id,
         );
-      }
-
-      if (ownershipType == TransferOwnershipType.thirdPartyTransfer) {
-        final originalOwnerId = transfer.metadata?['originalOwnerOrganizationId']?.toString();
-        if (originalOwnerId != null) {
-          await _notifyOwnerOfHoldingRemoval(
-            ownerOrganizationId: originalOwnerId,
-            transferId: transfer.id,
-          );
-        }
       }
 
       final notificationOutcome = await updateTransferNotificationStatus(
@@ -835,7 +723,7 @@ extension _TransferServiceAcceptance on TransferService {
 
       // Use transaction to prevent race with accept/reject
       await _db.runTransaction<void>((transaction) async {
-        final docRef = _resolver.collection(_db, 'events').doc(transfer.id);
+        final docRef = _db.collection('events').doc(transfer.id);
         final freshDoc = await transaction.get(docRef);
 
         if (!freshDoc.exists) {
@@ -865,28 +753,26 @@ extension _TransferServiceAcceptance on TransferService {
       // Cancel is always done by the sender, so we can restore directly
       await restoreTransferInventory(transfer);
 
-      // Notify owner org to cleanup mirror site for retained/third-party ownership
-      final ownershipType = TransferOwnershipTypeX.tryParse(
-        transfer.metadata?['ownershipType']?.toString(),
+      final ownershipType = _ownershipTypeFromMetadata(transfer.metadata);
+      final ownerOrganizationId = _ownerOrganizationIdForHoldingRemoval(
+        ownershipType: ownershipType,
+        senderOrganizationId: transfer.fromOrganizationId,
+        originalOwnerOrganizationId: _originalOwnerOrganizationId(
+          transfer.metadata,
+        ),
+        actingOrganizationId: organization.id,
+        skipWhenActorIsOwner: true,
       );
-
-      if (ownershipType == TransferOwnershipType.retainedOwnership) {
-        // For retained ownership, sender is the owner - no notification needed
-        // since cancellation is initiated by the sender/owner
+      if (ownerOrganizationId != null) {
+        await _notifyOwnerOfHoldingRemoval(
+          ownerOrganizationId: ownerOrganizationId,
+          transferId: transfer.id,
+        );
+      } else if (ownershipType == TransferOwnershipType.retainedOwnership) {
         LoggingService.instance.debug(
           'Transfer ${transfer.id} cancelled with retained ownership - '
           'no external holding notification needed (sender is owner)',
         );
-      }
-
-      if (ownershipType == TransferOwnershipType.thirdPartyTransfer) {
-        final originalOwnerId = transfer.metadata?['originalOwnerOrganizationId']?.toString();
-        if (originalOwnerId != null && originalOwnerId != organization.id) {
-          await _notifyOwnerOfHoldingRemoval(
-            ownerOrganizationId: originalOwnerId,
-            transferId: transfer.id,
-          );
-        }
       }
 
       // Notify recipient if exists
@@ -911,7 +797,7 @@ extension _TransferServiceAcceptance on TransferService {
   }
 
   /// Updates a pending transfer's quantity/comment while regenerating the
-  /// manifest and checksum.
+  /// manifest.
   Future<TransferEvent> performUpdatePendingTransfer({
     required String transferEventId,
     required int quantity,
@@ -943,7 +829,9 @@ extension _TransferServiceAcceptance on TransferService {
         );
       }
 
-      final genet = await _provenanceRepository.getRecordForId(transfer.genetId!);
+      final genet = await _provenanceRepository.getRecordForId(
+        transfer.genetId!,
+      );
       if (genet == null) {
         throw TransferWorkflowException('Genet not found: ${transfer.genetId}');
       }
@@ -954,7 +842,8 @@ extension _TransferServiceAcceptance on TransferService {
         overrideLifeStage: lifeStageOverride,
       );
       final manifestMetadata = extractManifestMetadata(transfer);
-      final resolvedPhysicalForm = physicalFormOverride ??
+      final resolvedPhysicalForm =
+          physicalFormOverride ??
           physicalFormFromMetadata(transfer.metadata) ??
           physicalFormFromMetadata(manifestMetadata) ??
           physicalFormFromMetadata(genet.metadata);
@@ -996,8 +885,6 @@ extension _TransferServiceAcceptance on TransferService {
         updatedById: user.id,
         manifest: updatedManifest.toJson(),
         manifestVersion: updatedManifest.version,
-        manifestChecksum: updatedManifest.checksum,
-        qrPayload: safeQrPayload(updatedManifest),
         permitMetadata: permitMetadata ?? transfer.permitMetadata,
         metadata: nextMetadata.isEmpty ? null : nextMetadata,
         geometry: geometry ?? transfer.geometry,
@@ -1009,10 +896,7 @@ extension _TransferServiceAcceptance on TransferService {
       // from the existing document. Explicitly delete the nested 'size' key
       // when an empty SizeSpec is provided.
       if (sizeSpecOverride != null && sizeSpecOverride.isEmpty) {
-        await _resolver
-            .collection(_db, 'events')
-            .doc(updatedTransfer.id)
-            .update({
+        await _db.collection('events').doc(updatedTransfer.id).update({
           'metadata.size': FieldValue.delete(),
           'manifest.metadata.size': FieldValue.delete(),
         });
@@ -1070,10 +954,13 @@ extension _TransferServiceAcceptance on TransferService {
       // Generate unique identifiers for the organism record
       final recordId = _idGenerator();
       final slugBase = createdGenet.localId ?? 'organism';
-      final recordSlug = await _organismRecordRepository.nextSlugForBase(slugBase);
+      final recordSlug = await _organismRecordRepository.nextSlugForBase(
+        slugBase,
+      );
 
       // Check if we have a group destination
-      final hasGroup = destinationGroupId != null && destinationGroupId.isNotEmpty;
+      final hasGroup =
+          destinationGroupId != null && destinationGroupId.isNotEmpty;
 
       // Build the full paths for the organism record
       final urlPath = '$targetUrlPath/$recordSlug';
@@ -1116,10 +1003,7 @@ extension _TransferServiceAcceptance on TransferService {
       if (organismRecord.genetId != null) {
         foreignKeys['genetId'] = ForeignKeyReference(
           id: organismRecord.genetId!,
-          metadata: {
-            'source': 'transfer_acceptance',
-            'linkedAt': nowIso,
-          },
+          metadata: {'source': 'transfer_acceptance', 'linkedAt': nowIso},
         );
       }
 
@@ -1142,13 +1026,10 @@ extension _TransferServiceAcceptance on TransferService {
 
       // Write the organism record to Firestore within the transaction.
       // Organism records are org-scoped under organizations/{orgId}/organismRecords.
-      final docRef = _resolver
-          .subcollection(
-            _db,
-            ModelType.organization.collectionPath,
-            organization.id,
-            ModelType.organismRecord.collectionPath,
-          )
+      final docRef = _db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection(ModelType.organismRecord.collectionPath)
           .doc(recordId);
       transaction.set(docRef, organismRecord.toJson());
 
@@ -1168,20 +1049,87 @@ extension _TransferServiceAcceptance on TransferService {
     }
   }
 
+  TransferOwnershipType _ownershipTypeFromMetadata(
+    Map<String, dynamic>? metadata, {
+    TransferOwnershipType fallback = TransferOwnershipType.fullTransfer,
+  }) {
+    return TransferOwnershipTypeX.tryParse(
+          metadata?['ownershipType']?.toString(),
+        ) ??
+        fallback;
+  }
+
+  String? _originalOwnerOrganizationId(Map<String, dynamic>? metadata) {
+    final value = metadata?['originalOwnerOrganizationId']?.toString().trim();
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+    return value;
+  }
+
+  bool _requiresExternalHoldingMirror(TransferOwnershipType ownershipType) {
+    return ownershipType == TransferOwnershipType.retainedOwnership ||
+        ownershipType == TransferOwnershipType.thirdPartyTransfer;
+  }
+
+  String _resolvedTransferOwnerOrganizationId({
+    required TransferOwnershipType ownershipType,
+    required TransferManifest manifest,
+    required Organization receivingOrganization,
+    String? ownerOrganizationId,
+  }) {
+    switch (ownershipType) {
+      case TransferOwnershipType.fullTransfer:
+        return ownerOrganizationId ?? receivingOrganization.id;
+      case TransferOwnershipType.retainedOwnership:
+        return manifest.fromOrganization.id ?? receivingOrganization.id;
+      case TransferOwnershipType.thirdPartyTransfer:
+        return _originalOwnerOrganizationId(manifest.metadata) ??
+            manifest.fromOrganization.id ??
+            receivingOrganization.id;
+    }
+  }
+
+  String _resolvedManagingOrganizationId({
+    required String receivingOrganizationId,
+    String? managingOrganizationId,
+  }) {
+    return managingOrganizationId ?? receivingOrganizationId;
+  }
+
+  String? _ownerOrganizationIdForHoldingRemoval({
+    required TransferOwnershipType ownershipType,
+    required String? senderOrganizationId,
+    required String? originalOwnerOrganizationId,
+    String? actingOrganizationId,
+    bool skipWhenActorIsOwner = false,
+  }) {
+    final ownerOrganizationId = switch (ownershipType) {
+      TransferOwnershipType.fullTransfer => null,
+      TransferOwnershipType.retainedOwnership => senderOrganizationId,
+      TransferOwnershipType.thirdPartyTransfer => originalOwnerOrganizationId,
+    };
+    if (skipWhenActorIsOwner &&
+        ownerOrganizationId != null &&
+        ownerOrganizationId == actingOrganizationId) {
+      return null;
+    }
+    return ownerOrganizationId;
+  }
+
   /// Fetches the site name from Firestore for external holding notifications.
   Future<String> _getSiteName(String siteId) async {
     try {
-      final doc = await _resolver
-          .collection(_db, 'sites')
-          .doc(siteId)
-          .get();
+      final doc = await _db.collection('sites').doc(siteId).get();
       final data = doc.data();
       if (data != null && data['name'] is String) {
         return data['name'] as String;
       }
       return 'Unknown Site';
     } catch (e) {
-      LoggingService.instance.debug('Failed to fetch site name for $siteId: $e');
+      LoggingService.instance.debug(
+        'Failed to fetch site name for $siteId: $e',
+      );
       return 'Unknown Site';
     }
   }
@@ -1205,7 +1153,7 @@ extension _TransferServiceAcceptance on TransferService {
           .doc();
 
       await notificationRef.set({
-        'type': ExternalHoldingNotificationType.created.id,
+        'type': 'externalHoldingCreated',
         'transferId': transferId,
         'holdingOrganizationId': holdingOrganizationId,
         'holdingOrganizationName': holdingOrganizationName,
@@ -1241,7 +1189,7 @@ extension _TransferServiceAcceptance on TransferService {
           .doc();
 
       await notificationRef.set({
-        'type': ExternalHoldingNotificationType.removed.id,
+        'type': 'externalHoldingRemoved',
         'transferId': transferId,
         'createdAt': FieldValue.serverTimestamp(),
         'processed': false,

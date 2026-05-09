@@ -2,7 +2,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/site.dart';
-import 'package:seafoundry_app/services/tier.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/site_limits_service.dart';
@@ -24,10 +23,8 @@ class SiteTypeResolution {
 /// Resolves available site types for the site creation dialog.
 ///
 /// Handles the intersection of:
-/// - Tier-based limits (community tier has limits per site category)
-/// - Organization-configured site types (Pro/Scale)
-/// - Community tier uses tier defaults to avoid blocking creation when
-///   activities were limited during onboarding.
+/// - Community tier limits per site category
+/// - Organization-configured site types
 /// - Fallback to outplanting if no types available
 class SiteTypeResolver {
   SiteTypeResolver._();
@@ -50,35 +47,14 @@ class SiteTypeResolver {
       );
     }
 
-    final tier = organization.tier;
-
-    // Get tier-filtered site types based on existing sites and limits
-    final tierFilteredSiteTypes = SiteLimitsService.getAvailableSiteTypes(
-      tier: tier,
+    // Get available site types based on existing sites and limits
+    final availableSiteTypes = SiteLimitsService.getAvailableSiteTypes(
       existingSites: existingSites,
       editingSite: editingSite,
     );
 
-    final configuredSiteTypes = organization.siteTypes;
-    late final List<SiteType> availableSiteTypes;
-    if (tier == Tier.community) {
-      availableSiteTypes = tierFilteredSiteTypes;
-    } else if (configuredSiteTypes.isNotEmpty) {
-      availableSiteTypes = configuredSiteTypes
-          .where((siteType) => tierFilteredSiteTypes.contains(siteType))
-          .toList();
-    } else {
-      availableSiteTypes = tierFilteredSiteTypes;
-    }
+    _logDebugInfo(availableSiteTypes: availableSiteTypes);
 
-    _logDebugInfo(
-      tierFilteredSiteTypes: tierFilteredSiteTypes,
-      configuredSiteTypes: configuredSiteTypes,
-      availableSiteTypes: availableSiteTypes,
-    );
-
-    // If no site types available after filtering, we return empty list
-    // The UI should handle the "no available sites" state (e.g. by showing an upgrade message)
     final effectiveSiteTypes = availableSiteTypes;
 
     if (kDebugMode) {
@@ -100,29 +76,19 @@ class SiteTypeResolver {
   }
 
   static SiteType _findDefaultSiteType(List<SiteType> siteTypes) {
-    // Prefer outplanting as default
+    // Prefer nursery as default
     for (final type in siteTypes) {
-      if (type.id == SiteType.outplanting.id) {
+      if (type.id == SiteType.nursery.id) {
         return type;
       }
     }
-    return siteTypes.isNotEmpty ? siteTypes.first : SiteType.outplanting;
+    return siteTypes.isNotEmpty ? siteTypes.first : SiteType.nursery;
   }
 
   static void _logDebugInfo({
-    required List<SiteType> tierFilteredSiteTypes,
-    required List<SiteType> configuredSiteTypes,
     required List<SiteType> availableSiteTypes,
   }) {
     if (kDebugMode) {
-      LoggingService.instance.debug(
-        'SiteTypeResolver: tierFilteredSiteTypes = '
-        '${tierFilteredSiteTypes.map((t) => t.id).toList()}',
-      );
-      LoggingService.instance.debug(
-        'SiteTypeResolver: configuredSiteTypes = '
-        '${configuredSiteTypes.map((t) => t.id).toList()}',
-      );
       LoggingService.instance.debug(
         'SiteTypeResolver: availableSiteTypes = '
         '${availableSiteTypes.map((t) => t.id).toList()}',

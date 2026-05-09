@@ -2,7 +2,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 
 class ArchivedOrganismRecordRepository {
   ArchivedOrganismRecordRepository({
@@ -14,24 +13,17 @@ class ArchivedOrganismRecordRepository {
   final Organization organization;
   final User user;
   final FirebaseFirestore firestore;
-  final FirestoreCollectionResolver _resolver =
-      FirestoreCollectionResolver.instance;
-
   CollectionReference<Map<String, dynamic>> get _archivedCollection =>
-      _resolver.subcollection(
-        firestore,
-        ModelType.organization.collectionPath,
-        organization.id,
-        'archived_organism_records',
-      );
+      firestore
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection('archived_organism_records');
 
   CollectionReference<Map<String, dynamic>> get _activeCollection =>
-      _resolver.subcollection(
-        firestore,
-        ModelType.organization.collectionPath,
-        organization.id,
-        ModelType.organismRecord.collectionPath,
-      );
+      firestore
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection(ModelType.organismRecord.collectionPath);
 
   Stream<List<OrganismRecord>> streamAll() {
     final archivedStream = _archivedCollection.snapshots().map(_parseSnapshot);

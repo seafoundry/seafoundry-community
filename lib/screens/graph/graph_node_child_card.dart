@@ -22,14 +22,12 @@ import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/theme/app_colors.dart';
 import 'package:seafoundry_app/theme/spacing.dart';
-import 'package:seafoundry_app/widgets/common/gamete_sex_chip.dart';
 import 'package:seafoundry_app/widgets/graph_node_safe_wrapper.dart';
 import 'package:seafoundry_app/widgets/ui_text.dart';
 
 import '../../widgets/common/organism_reference_links.dart';
 import '../../widgets/common/species_reference_photo.dart';
 import '../../widgets/graph_node/organism_summary_helpers.dart';
-import '../../widgets/observation/observation_image_gallery.dart';
 import '../../widgets/optimized/optimized_network_image.dart';
 
 abstract class GraphNodeChildCard<T extends GraphNode> extends StatelessWidget {
@@ -184,8 +182,6 @@ class GraphNodeSiteCard extends GraphNodeChildCard<SiteNode> {
     }
   }
 
-  bool get _isMonitoringSite => node.initialRecord.siteType.isMonitoringOnly;
-
   @override
   Widget build(BuildContext context) {
     return GraphNodeSafeWrapper<SiteNode>(
@@ -252,22 +248,6 @@ class GraphNodeSiteCard extends GraphNodeChildCard<SiteNode> {
                         ],
                       ),
                     ),
-                    if (_isMonitoringSite) ...[
-                      Chip(
-                        avatar: Icon(
-                          Icons.visibility,
-                          size: 14,
-                          color: Colors.blue.shade700,
-                        ),
-                        label:
-                            Text('Monitoring', style: TextStyle(fontSize: 10)),
-                        backgroundColor: Colors.blue.shade50,
-                        side: BorderSide(color: Colors.blue.shade200),
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      SizedBox(width: Spacing.sm),
-                    ],
                     if (summary.recordCount > 0) ...[
                       _buildSummaryCountChip(
                         icon: Icons.scatter_plot,
@@ -593,10 +573,6 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
                             _buildInfoChip('Pending outplant', Colors.amber),
                           if (lifeStageLabel != null)
                             _buildInfoChip(lifeStageLabel, Colors.teal),
-                          // Gamete sex chip (shown after life stage for gametes)
-                          if (organism.lifeStage.stage == LifeStage.gamete)
-                            if (GameteSexChip.fromOrganism(organism) != null)
-                              GameteSexChip.fromOrganism(organism)!,
                           if (physicalFormLabel != null)
                             _buildInfoChip(physicalFormLabel, Colors.orange),
                           if (provenanceLabel != null)
@@ -647,25 +623,6 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (state is OrganismLoadedState &&
-            state.propagationReadyStatus != null) ...[
-          Chip(
-            avatar: Icon(
-              Icons.content_cut,
-              size: 14,
-              color: Colors.green.shade700,
-            ),
-            label: Text(
-              'Ready to propagate',
-              style: const TextStyle(fontSize: 10),
-            ),
-            backgroundColor: Colors.green.shade50,
-            side: BorderSide(color: Colors.green.shade200),
-            visualDensity: VisualDensity.compact,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          SizedBox(width: Spacing.sm),
-        ],
         ...childCount(state),
         const Icon(Icons.chevron_right),
       ],
@@ -781,15 +738,8 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
   }
 
   String? _latestObservationImage(GraphNodeState state) {
-    if (state is! GraphLoadedState<OrganismRecord>) {
-      return null;
-    }
-    final images = collectObservationImages(
-      events: state.events,
-      organismId: node.organism.id,
-    );
-    if (images.isEmpty) return null;
-    return images.first.imageUrl;
+    // Observation image gallery removed - community tier
+    return null;
   }
 }
 

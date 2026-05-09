@@ -2,7 +2,6 @@
 
 **Purpose**: Verify Firestore and Storage security rules after Phase 0-2 remediation fixes.
 **Context**: FP3-B1 - Demo/Prod Smoke Tests
-**Related**: `.github/issues/firestore-permissions-remediation-plan.md`
 
 ## Pre-Flight Checks
 
@@ -10,7 +9,7 @@ Before running smoke tests:
 
 - [ ] Firestore rules deployed: `firebase deploy --only firestore:rules`
 - [ ] Storage rules deployed: `firebase deploy --only storage:rules`
-- [ ] Demo data seeded (if testing demo): `npm run seed:demo:pro -- --reset`
+- [ ] Demo data seeded (if testing demo): `npm run seed:demo`
 - [ ] Test user credentials available (see `.env.demo` for demo users)
 
 ## Test Environment Setup
@@ -22,8 +21,8 @@ Before running smoke tests:
 firebase emulators:start --only auth,firestore,storage
 
 # In separate terminal, seed demo data
-npm run seed:demo:pro -- --reset
-npm run seed:demo:community -- --reset
+npm run seed:demo
+npm run seed:demo
 ```
 
 ### Option B: Production (Use with Caution)
@@ -33,8 +32,7 @@ npm run seed:demo:community -- --reset
 export GOOGLE_APPLICATION_CREDENTIALS=./firebase-service-account.json
 
 # Seed production demo data
-node scripts/seed-demo.js --tier=pro --reset --production
-node scripts/seed-demo.js --tier=community --reset --production
+node scripts/seed-demo.js --reset
 ```
 
 ---
@@ -107,7 +105,7 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --cat
 2. **Click "Create Site" or "Add Site"**
 3. **Fill site creation form**:
    - Site name: "North Nursery"
-   - Site type: "Nursery - Ex Situ"
+   - Site type: "Nursery"
    - Location: Any valid coordinates
    - Submit
 
@@ -184,7 +182,7 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --cat
 
 **Expected**:
 - Demo user doc exists at `/users/{uid}`
-- Demo org exists (`demo_org_pro` or `demo_org_community`)
+- Demo org exists (`demo_org_community`)
 - Demo sites/organisms accessible
 
 ---
@@ -324,45 +322,38 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --cat
 #### Automated Verification
 
 ```bash
-# Verify training progress UID-based access
-FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --category=training --uid="test_uid"
+# Verify UID-based onboarding identity checks
+FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --category=onboarding --uid="test_uid"
 ```
 
 **Expected**:
-- Document at `/training_progress/{progressId}` has `userId` field with Firebase UID
-- User can read/write their own progress (UID match)
+- User document exists at `/users/{uid}`
+- `organizationId` and membership documents align with UID-based rules
 
 ### 3.2 User Cannot Read Other User's Training Progress
 
 #### Automated Verification
 
-```bash
-# Verify isolation between users
-FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --category=training --uid="user1_uid"
-```
-
-**Expected**:
-- User 1 CAN read their own progress
-- User 1 CANNOT read User 2's progress (permission denied)
+Community build note: training-progress flows are not part of this fork.
 
 ### 3.3 Demo Training Progress Isolation
 
 #### Manual Steps
 
 1. **Sign in as demo user**
-2. **Complete training steps**
-3. **Verify progress saved to `demo_training_progress` collection**
+2. **Complete onboarding + initial inventory flow**
+3. **Verify all created documents remain UID-keyed and org-scoped**
 
 #### Automated Verification
 
 ```bash
-# Verify demo training progress uses separate collection
-FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --category=demo --demo-tier=pro
+# Verify demo-mode checks for community org
+FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --category=demo --demo-tier=community
 ```
 
 **Expected**:
-- Demo user progress in `/demo_training_progress/{progressId}`
-- Still uses `userId` field with UID (not email)
+- Demo user identity remains UID-based
+- Demo org routing targets `demo_org_community`
 
 ---
 
@@ -443,7 +434,7 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --cat
 2. **Upload image to demo org**
 
 3. **Expected Outcomes**:
-   - ✅ Upload succeeds to `/organizations/demo_org_pro/...`
+   - ✅ Upload succeeds to `/organizations/demo_org_community/...`
    - ✅ Demo user document lookup succeeds via UID
 
 #### Automated Verification
@@ -486,7 +477,7 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --cat
 
 ```bash
 # Verify demo collection routing
-FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --category=demo --demo-tier=pro
+FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --category=demo --demo-tier=community
 ```
 
 **Expected**:
@@ -494,7 +485,6 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 node scripts/verify-permissions.js --cat
 - `taxonomy_provenances` → NOT prefixed (global collection)
 - `taxonomy_lineages` → NOT prefixed (global collection)
 - `taxonomy_overrides` → NOT prefixed (global collection)
-- `training_progress` → PREFIXED to `demo_training_progress` (user-specific)
 - `sites` → PREFIXED to `demo_sites` (org-scoped)
 - `events` → PREFIXED to `demo_events` (org-scoped)
 
@@ -521,7 +511,7 @@ grep -n "demo_taxonomy_lineages" firestore.rules
 
 ### 6.1 Community Rules Identity Consistency
 
-**Fixed Issue**: `firestore.community.rules` updated to UID-based identity (email only for invitations).
+**Fixed Issue**: `firestore.rules` updated to UID-based identity (email only for invitations).
 
 #### Automated Verification
 
@@ -613,7 +603,6 @@ firebase deploy --only firestore:rules,storage:rules --dry-run
 
 ## Related Documentation
 
-- **Remediation Plan**: `.github/issues/firestore-permissions-remediation-plan.md`
 - **Identity Scheme**: `docs/architecture/identity_scheme.md`
 - **Demo Mode**: `docs/DEMO_RESEED.md`
 - **Firestore Collections**: `docs/architecture/firestore_collections.md`

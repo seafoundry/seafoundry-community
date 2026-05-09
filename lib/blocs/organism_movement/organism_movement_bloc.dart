@@ -14,8 +14,6 @@ import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/unique_name_validation_service.dart';
-import 'package:seafoundry_app/utils/record_name_suggester.dart';
 
 class OrganismMovementBloc
     extends AsyncRecordFormBloc<OrganismRecord, OrganismMovementState> {
@@ -24,14 +22,12 @@ class OrganismMovementBloc
     required OrganismRecordRepository organismRepository,
     required GroupRepository groupRepository,
     required GraphRepository graphRepository,
-    required UniqueNameValidationService validationService,
     Set<String>? allowedOrganismIds,
     Set<String>? initialSelectedOrganismIds,
   })  : _sourceGroup = sourceGroup,
         _organismRepository = organismRepository,
         _groupRepository = groupRepository,
         _graphRepository = graphRepository,
-        _validationService = validationService,
         _allowedOrganismIds = allowedOrganismIds,
         _initialSelectedOrganismIds = initialSelectedOrganismIds,
         _logger = LoggingService.instance,
@@ -65,7 +61,6 @@ class OrganismMovementBloc
   final OrganismRecordRepository _organismRepository;
   final GroupRepository _groupRepository;
   final GraphRepository _graphRepository;
-  final UniqueNameValidationService _validationService;
   final Set<String>? _allowedOrganismIds;
   final Set<String>? _initialSelectedOrganismIds;
   final LoggingService _logger;
@@ -281,17 +276,10 @@ class OrganismMovementBloc
         );
         final now = DateTime.now().toIso8601String();
 
-        // Generate unique recordName for split organism
-        final splitRecordName = await RecordNameSuggester.suggestSplitRecordName(
-          sourceRecordName: organism.recordName,
-          organizationId: organism.organizationId,
-          validationService: _validationService,
-        );
-
         // Create new organism at target with partial quantity
         // Preserve provenance and track source organism
         final newOrganism = organism.copyWith(
-          recordName: splitRecordName ?? organism.recordName,
+          recordName: organism.recordName,
           id: newOrganismId,
           slug: newOrganismSlug,
           urlPath: '${targetGroup.urlPath}/$newOrganismSlug',

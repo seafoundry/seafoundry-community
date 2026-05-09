@@ -480,18 +480,7 @@ class _GenetListTile extends StatelessWidget {
                       ],
                     ),
                     // Additional metadata
-                    if (provenanceType != null &&
-                        provenanceType.metadata.description != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        provenanceType.metadata.description!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                    // Provenance description removed (simplified)
                   ],
                 ),
               ),
@@ -506,10 +495,10 @@ class _GenetListTile extends StatelessWidget {
     switch (type) {
       case ProvenanceType.wild:
         return Icons.nature;
-      case ProvenanceType.sexualCohort:
-        return Icons.group;
+      case ProvenanceType.cohort:
+        return Icons.groups;
       case ProvenanceType.graduatedIndividual:
-        return Icons.school;
+        return Icons.star_outline;
       case ProvenanceType.transfer:
         return Icons.swap_horiz;
       case ProvenanceType.unknown:
@@ -521,10 +510,10 @@ class _GenetListTile extends StatelessWidget {
     switch (type) {
       case ProvenanceType.wild:
         return Colors.green;
-      case ProvenanceType.sexualCohort:
-        return Colors.blue;
+      case ProvenanceType.cohort:
+        return Colors.teal;
       case ProvenanceType.graduatedIndividual:
-        return Colors.purple;
+        return Colors.amber;
       case ProvenanceType.transfer:
         return Colors.orange;
       case ProvenanceType.unknown:

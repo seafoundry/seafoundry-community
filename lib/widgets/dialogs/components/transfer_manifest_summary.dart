@@ -117,7 +117,7 @@ class TransferManifestSummary extends StatelessWidget {
           if (provenanceSelection != null) ...[
             _SummaryRow(
               label: 'Provenance Type',
-              value: provenanceSelection.provenanceType.metadata.displayName,
+              value: provenanceSelection.provenanceType.displayName,
             ),
             _SummaryRow(
               label: 'Life Stage',

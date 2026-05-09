@@ -43,9 +43,9 @@ const testData = {
       name: 'Test Research Institute',
       domain: 'test-institute',
       // NOTE: Must use 'activities' field - Organization.fromJson reads from 'activities' not 'siteTypeIds'
-      activities: ['nes', 'nis', 'op', 'gb', 'bl', 'ref'],
+      activities: ['nes', 'op'],
       speciesIds: [],
-      tier: 'pro',
+      tier: 'community',
       supportedOrganismKinds: ['coral'],
       urlPath: 'test-institute',
       internalPath: `organizations/${ORG_ID}`,

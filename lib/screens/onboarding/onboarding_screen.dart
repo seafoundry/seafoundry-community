@@ -1,7 +1,7 @@
 // @tier: community
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/auth/auth.dart';
+import 'package:seafoundry_app/blocs/auth/auth_bloc.dart';
 import 'package:seafoundry_app/cubits/onboarding/onboarding_cubit.dart';
 import 'package:seafoundry_app/screens/onboarding/onboarding_info_page.dart';
 import 'package:seafoundry_app/screens/onboarding/organization_setup_page.dart';

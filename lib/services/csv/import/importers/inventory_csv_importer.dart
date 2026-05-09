@@ -2,21 +2,12 @@
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
-import 'package:seafoundry_app/repositories/inventory/gamete_batch_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/larval_batch_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/seeded_line_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/oyster_bag_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/finfish_pen_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/crab_pond_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/seagrass_module_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/mangrove_plot_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/csv/import/csv_import_models.dart';
-import 'package:seafoundry_app/services/csv/import/importers/inventory/holding/holding_row_processor.dart';
 import 'package:seafoundry_app/services/csv/import/importers/inventory/inventory_lookup_service.dart';
-import 'package:seafoundry_app/services/csv/import/importers/inventory/organism/organism_row_processor.dart';
+import 'package:seafoundry_app/services/csv/import/importers/inventory/organism_row_processor.dart';
 import 'package:seafoundry_app/services/csv/import/models/dual_path_validation_result.dart';
 import 'package:seafoundry_app/utils/performance_analyzer.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
@@ -26,51 +17,15 @@ class InventoryCsvImporter {
     required OrganismRecordRepository organismRecordRepository,
     required GroupRepository groupRepository,
     required GenetRepository genetRepository,
-    Map<OrganismKind, SeededLineRepository>? seededLineRepositories,
-    Map<OrganismKind, GameteBatchRepository>? gameteBatchRepositories,
-    Map<OrganismKind, LarvalBatchRepository>? larvalBatchRepositories,
-    Map<OrganismKind, OysterBagRepository>? oysterBagRepositories,
-    Map<OrganismKind, FinfishPenRepository>? finfishPenRepositories,
-    Map<OrganismKind, CrabPondRepository>? crabPondRepositories,
-    Map<OrganismKind, SeagrassModuleRepository>? seagrassModuleRepositories,
-    Map<OrganismKind, MangrovePlotRepository>? mangrovePlotRepositories,
   })  : _organismRecordRepository = organismRecordRepository,
         _lookupService = InventoryLookupService(
           organismRecordRepository: organismRecordRepository,
           groupRepository: groupRepository,
           genetRepository: genetRepository,
-        ),
-        _seededLineRepositories = seededLineRepositories ?? const {},
-        _gameteBatchRepositories = gameteBatchRepositories ?? const {},
-        _larvalBatchRepositories = larvalBatchRepositories ?? const {},
-        _oysterBagRepositories = oysterBagRepositories ?? const {},
-        _finfishPenRepositories = finfishPenRepositories ?? const {},
-        _crabPondRepositories = crabPondRepositories ?? const {},
-        _seagrassModuleRepositories = seagrassModuleRepositories ?? const {},
-        _mangrovePlotRepositories = mangrovePlotRepositories ?? const {};
+        );
 
   final OrganismRecordRepository _organismRecordRepository;
   final InventoryLookupService _lookupService;
-  final Map<OrganismKind, SeededLineRepository> _seededLineRepositories;
-  final Map<OrganismKind, GameteBatchRepository> _gameteBatchRepositories;
-  final Map<OrganismKind, LarvalBatchRepository> _larvalBatchRepositories;
-  final Map<OrganismKind, OysterBagRepository> _oysterBagRepositories;
-  final Map<OrganismKind, FinfishPenRepository> _finfishPenRepositories;
-  final Map<OrganismKind, CrabPondRepository> _crabPondRepositories;
-  final Map<OrganismKind, SeagrassModuleRepository> _seagrassModuleRepositories;
-  final Map<OrganismKind, MangrovePlotRepository> _mangrovePlotRepositories;
-
-  late final HoldingRowProcessor _holdingRowProcessor = HoldingRowProcessor(
-    lookupService: _lookupService,
-    seededLineRepositories: _seededLineRepositories,
-    gameteBatchRepositories: _gameteBatchRepositories,
-    larvalBatchRepositories: _larvalBatchRepositories,
-    oysterBagRepositories: _oysterBagRepositories,
-    finfishPenRepositories: _finfishPenRepositories,
-    crabPondRepositories: _crabPondRepositories,
-    seagrassModuleRepositories: _seagrassModuleRepositories,
-    mangrovePlotRepositories: _mangrovePlotRepositories,
-  );
 
   late final OrganismRowProcessor _organismRowProcessor = OrganismRowProcessor(
     lookupService: _lookupService,
@@ -145,25 +100,6 @@ class InventoryCsvImporter {
           final row = rows[i];
           final rowNum = i + 2;
           final rowErrors = <CSVImportError>[];
-
-          // Check for holding row
-          final holdingKind = (row['holdingKind'] ?? '').trim();
-          if (holdingKind.isNotEmpty) {
-            final handled = await _holdingRowProcessor.processRow(
-              row,
-              holdingKind: holdingKind,
-              rowNumber: rowNum,
-              rowErrors: rowErrors,
-              validateOnly: validateOnly,
-              sourceName: sourceName,
-            );
-            if (rowErrors.isNotEmpty) {
-              errors.addAll(rowErrors);
-            } else if (handled) {
-              successCount += 1;
-            }
-            continue;
-          }
 
           // Process organism row
           final result = await _organismRowProcessor.processRow(

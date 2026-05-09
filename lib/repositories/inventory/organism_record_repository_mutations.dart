@@ -45,7 +45,7 @@ mixin _OrganismRecordRepositoryMutations
     // Add initial custody history if not already present (transfers add their own)
     var recordMetadata = partialRecord.metadata ?? <String, dynamic>{};
     if (recordMetadata[CustodyHistoryService.custodyHistoryKey] == null) {
-      recordMetadata = CustodyHistoryService.instance.createMetadataWithInitialCustody(
+      recordMetadata = CustodyHistoryService.createMetadataWithInitialCustody(
         existingMetadata: recordMetadata,
         organization: organization,
         ownerOrganizationId: partialRecord.ownerOrganizationId,
@@ -151,7 +151,6 @@ mixin _OrganismRecordRepositoryMutations
   ///
   /// Use this for comprehensive property edits that may change multiple
   /// fields at once (e.g., from OrganismRecordEditDialog).
-  @override
   Future<List<Event>> updateRecordWithEvents(
     OrganismRecord originalRecord,
     OrganismRecord updatedRecord, {
@@ -272,23 +271,6 @@ mixin _OrganismRecordRepositoryMutations
       createdEvents.add(event);
     }
 
-    // Validate name uniqueness (event emission handled by cubit-level
-    // _emitIdentityChangeEvents which emits typed recordNameChange/localIdChange
-    // events with structured metadata)
-    if (changeSet.nameChanged) {
-      final newName = recordToSave.localId ?? 'Unnamed';
-      final isUnique = await _nameValidationService.isOrganismRecordNameUnique(
-        name: newName,
-        organizationId: organization.id,
-        excludeRecordId: originalRecord.id,
-      );
-      if (!isUnique) {
-        throw RepositoryError(
-          message: 'Record name "$newName" is already in use.',
-        );
-      }
-    }
-
     // Note: Identity change events (recordName, localId, ownership) are emitted
     // by the cubit's _emitIdentityChangeEvents() with proper EventType constants.
     // Do NOT create observation events for these changes here to avoid duplicates.
@@ -325,7 +307,6 @@ mixin _OrganismRecordRepositoryMutations
   }
 
   /// Update size and create SizeChangeEvent.
-  @override
   Future<OrganismSizeChangePayload> updateSize(
     OrganismRecord organism,
     SizeSpec newSize, {
@@ -394,13 +375,12 @@ mixin _OrganismRecordRepositoryMutations
   }
 
   /// Update population and return event with updated organism for propagation.
-  @override
   Future<OrganismPopulationChangePayload> updatePopulation(
     OrganismRecord organism,
     int newQuantity, {
     PopulationLossReason? lossReason,
-    MortalityReason? mortalityReason,
-    DiseaseType? diseaseType,
+    PopulationLossReason? mortalityReason,
+    String? diseaseTypeId,
     PopulationGainReason? gainReason,
     String? comment,
     WriteBatch? batch,
@@ -472,64 +452,34 @@ mixin _OrganismRecordRepositoryMutations
         );
       }
 
-      // Check if this is an outplant mortality (OutplantLossReason)
-      final isOutplantLoss = OutplantLossReason.builtins.containsKey(
-        lossReason.id,
+      // Create standard PopulationLossEvent
+      InventoryEvent populationLossEvent = PopulationLossEvent(
+        id: eventId,
+        createdById: user.id,
+        createdAt: now,
+        recordId: organism.id,
+        recordModelType: ModelType.organismRecord,
+        urlPath: '${organism.urlPath}/$eventSlug',
+        internalPath: '${organism.internalPath}/$eventId',
+        slug: eventSlug,
+        oldPopulation: currentQuantity,
+        newPopulation: newQuantity,
+        snapshot: organism,
+        eventTypeId: InventoryEventType.populationLoss.id,
+        lossReasonId: lossReason.id,
+        comment: comment,
+        updatedAt: now,
+        updatedById: user.id,
+        organizationId: organization.id,
       );
 
-      InventoryEvent populationLossEvent;
-      if (isOutplantLoss) {
-        // Create OutplantMortalityEvent for outplant-specific mortalities
-        populationLossEvent = OutplantMortalityEvent(
-          id: eventId,
-          createdById: user.id,
-          createdAt: now,
-          recordId: organism.id,
-          recordModelType: ModelType.organismRecord,
-          urlPath: '${organism.urlPath}/$eventSlug',
-          internalPath: '${organism.internalPath}/$eventId',
-          slug: eventSlug,
-          oldPopulation: currentQuantity,
-          newPopulation: newQuantity,
-          snapshot: organism,
-          eventTypeId: InventoryEventType.populationLoss.id,
-          outplantLossReasonId: lossReason.id,
-          diseaseTypeId: diseaseType?.id,
-          comment: comment,
-          updatedAt: now,
-          updatedById: user.id,
-          organizationId: organization.id,
+      // Wrap as MortalityEvent if mortality reason is provided (nursery mortalities)
+      if (mortalityReason != null) {
+        populationLossEvent = MortalityEvent.fromPopulationLossEvent(
+          populationLossEvent as PopulationLossEvent,
+          mortalityReasonId: mortalityReason.id,
+          diseaseTypeId: diseaseTypeId,
         );
-      } else {
-        // Create standard PopulationLossEvent
-        populationLossEvent = PopulationLossEvent(
-          id: eventId,
-          createdById: user.id,
-          createdAt: now,
-          recordId: organism.id,
-          recordModelType: ModelType.organismRecord,
-          urlPath: '${organism.urlPath}/$eventSlug',
-          internalPath: '${organism.internalPath}/$eventId',
-          slug: eventSlug,
-          oldPopulation: currentQuantity,
-          newPopulation: newQuantity,
-          snapshot: organism,
-          eventTypeId: InventoryEventType.populationLoss.id,
-          lossReasonId: lossReason.id,
-          comment: comment,
-          updatedAt: now,
-          updatedById: user.id,
-          organizationId: organization.id,
-        );
-
-        // Wrap as MortalityEvent if mortality reason is provided (nursery mortalities)
-        if (mortalityReason != null) {
-          populationLossEvent = MortalityEvent.fromPopulationLossEvent(
-            populationLossEvent as PopulationLossEvent,
-            mortalityReasonId: mortalityReason.id,
-            diseaseTypeId: diseaseType?.id,
-          );
-        }
       }
 
       if (newQuantity == 0) {
@@ -593,7 +543,6 @@ mixin _OrganismRecordRepositoryMutations
   /// This is the canonical entry point for management dialogs that record partial
   /// removals or measurement adjustments across organism kinds. It keeps event
   /// metadata in sync and appends measurement history snapshots for auditing.
-  @override
   Future<OrganismQuantityChangePayload> updateMeasurement({
     required OrganismRecord organism,
     required PopulationMeasurement newMeasurement,
@@ -763,10 +712,7 @@ mixin _OrganismRecordRepositoryMutations
 
   bool _isMortalityReason(PopulationLossReason? reason) {
     if (reason == null) return false;
-    if (reason is MortalityReason || reason is OutplantLossReason) {
-      return true;
-    }
-    return reason.id == PopulationLossReason.mortality.id;
+    return reason.isMortality;
   }
 
   /// Ensures foreignKeys['genetId'] is set with a ForeignKeyReference when
@@ -804,7 +750,6 @@ mixin _OrganismRecordRepositoryMutations
   ///
   /// For datasets <= 500 records, uses a Firestore transaction for true
   /// atomicity. For larger datasets, uses batches with 500-operation chunks.
-  @override
   Future<int> updateLocalIdGenetWide({
     required String genetId,
     required String newLocalId,

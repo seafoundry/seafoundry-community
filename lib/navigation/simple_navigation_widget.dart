@@ -1,19 +1,19 @@
-// @tier: pro
+// @tier: community
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_cubit.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_state.dart';
-import 'package:seafoundry_app/cubits/navigation_view_mode/navigation_view_mode.dart';
+import 'package:seafoundry_app/cubits/navigation_view_mode/navigation_view_mode_cubit.dart';
+import 'package:seafoundry_app/cubits/navigation_view_mode/navigation_view_mode_state.dart';
 import 'package:seafoundry_app/screens/graph/community_graph_node_container.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
-/// Community version of SimpleNavigationWidget
+/// SimpleNavigationWidget renders the current node in the navigation stack.
 ///
-/// This is identical to the Pro version as the actual screen filtering
-/// happens in GraphNodeContainer and the app drawer. The navigation widget
-/// itself just renders whatever node is current in the navigation stack.
+/// The actual screen filtering happens elsewhere. This widget just renders
+/// whatever node is current in the navigation stack.
 ///
-/// All Pro/Scale screen restrictions are enforced at:
+/// All screen restrictions are enforced at:
 /// - AppDrawer level (which screens appear in menu)
 /// - GraphNodeContainer level (which screens are rendered)
 /// - Feature access service level (permission checks)
@@ -45,11 +45,6 @@ class SimpleNavigationWidget extends StatelessWidget {
 
     return BlocBuilder<NavigationViewModeCubit, NavigationViewModeState>(
       builder: (context, viewModeState) {
-        if (viewModeState.mode == NavigationViewMode.community) {
-          return const Center(child: Text('Community Feed - coming soon'));
-        }
-
-        // Existing organization view logic
         return BlocBuilder<NavigationCubit, NavigationState>(
           builder: (context, state) {
             final currentNode = state.currentNode;

@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart'
 
 /// Shared Firebase emulator configuration utilities.
 ///
-/// Used by [main.dart] for SDK-level emulator setup and by
-/// [SebastianService] for HTTP endpoint resolution.
+/// Used by [main.dart] for SDK-level emulator setup and
+/// HTTP endpoint resolution.
 class FirebaseEmulatorConfig {
   const FirebaseEmulatorConfig._();
 

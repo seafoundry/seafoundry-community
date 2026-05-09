@@ -38,7 +38,7 @@ class SiteTypeSelectionStep extends StatelessWidget {
             UI.spacingVerticalSm,
             UIText.bodyMedium(
               'You have reached the limit for site creation on the Community tier.\n\n'
-              'Community organizations are limited to 1 nursery and 3 outplanting sites. Upgrade your plan to create more sites.',
+              'Community organizations are limited to 1 nursery and 1 outplanting site. Upgrade your plan to create more sites.',
               textAlign: TextAlign.center,
               color: Colors.grey.shade700,
             ),
@@ -47,18 +47,15 @@ class SiteTypeSelectionStep extends StatelessWidget {
       );
     }
 
-    // Auto-advance when only one site type available (outplanting)
-    if (availableSiteTypes.length == 1 &&
-        availableSiteTypes.first.id == SiteType.outplanting.id) {
+    // Auto-advance when only one site type available
+    if (availableSiteTypes.length == 1) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) return;
         final bloc = context.read<SiteCreationBloc>();
-        
-        // If not selected yet, select it. The rebuild will then hit the else branch to advance.
-        if (formState.siteType.value?.id != SiteType.outplanting.id) {
-          bloc.add(SiteTypeSelected(SiteType.outplanting));
+
+        if (formState.siteType.value?.id != availableSiteTypes.first.id) {
+          bloc.add(SiteTypeSelected(availableSiteTypes.first));
         } else {
-          // If already selected, advance to next step
           bloc.add(const RecordFormNextStep());
         }
       });
@@ -72,22 +69,7 @@ class SiteTypeSelectionStep extends StatelessWidget {
     final bloc = context.read<SiteCreationBloc>();
     final selectedSiteType = formState.siteType.value;
 
-    final outplantingType = availableSiteTypes.firstWhere(
-      (type) => type.id == SiteType.outplanting.id,
-      orElse: () => SiteType.outplanting,
-    );
-
-    // Auto-select outplanting type if nothing selected yet
-    if (selectedSiteType == null &&
-        availableSiteTypes.isNotEmpty &&
-        availableSiteTypes.contains(outplantingType)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        bloc.add(SiteTypeSelected(outplantingType));
-      });
-    }
-
-    final updatedSelectedType = selectedSiteType ?? outplantingType;
+    final updatedSelectedType = selectedSiteType ?? SiteType.nursery;
 
     return DialogScrollView(
       child: SizedBox(
@@ -128,8 +110,6 @@ class _SiteTypeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isMonitoringOnly = siteType.isMonitoringOnly;
-
     return Card(
       color: isSelected ? Theme.of(context).secondaryHeaderColor : null,
       child: Column(
@@ -141,37 +121,13 @@ class _SiteTypeCard extends StatelessWidget {
               color: isSelected ? Theme.of(context).primaryColor : null,
             ),
             title: Text(siteType.name),
-            subtitle: isMonitoringOnly
-                ? Row(
-                    children: [
-                      Icon(Icons.visibility, size: 14, color: Colors.blue.shade700),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Monitoring Only',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue.shade700,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  )
-                : null,
+            subtitle: Text(
+              siteType.description,
+              style: const TextStyle(fontSize: 12),
+            ),
             selected: isSelected,
             onTap: onTap,
           ),
-          if (isMonitoringOnly)
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Text(
-                'Observation-only site. Cannot add inventory or receive transfers from other sites.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.blue.shade900,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -181,26 +137,10 @@ class _SiteTypeCard extends StatelessWidget {
 /// Returns the appropriate icon for a site type.
 IconData getSiteTypeIcon(String siteTypeId) {
   switch (siteTypeId) {
-    case 'nes':
-    case 'site_type_nursery_ex_situ':
+    case 'site_type_nursery':
       return Icons.warehouse;
-    case 'nis':
-    case 'site_type_nursery_in_situ':
-      return Icons.water;
-    case 'op':
     case 'site_type_outplanting':
       return Icons.terrain;
-    case 'gb':
-    case 'site_type_gene_bank':
-      return Icons.science;
-    case 'fc':
-      return Icons.explore;
-    case 'bl':
-    case 'site_type_baseline':
-      return Icons.analytics_outlined;
-    case 'ref':
-    case 'site_type_reference':
-      return Icons.compare_arrows;
     default:
       return Icons.location_on;
   }

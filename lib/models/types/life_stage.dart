@@ -94,9 +94,9 @@ class _LifeStageMetadata {
   final List<String> aliases;
 }
 
-/// Wraps a neutral life stage with an optional subtype (e.g., oyster
-/// pediveliger, finfish broodstock). This lets dialogs and CSV adapters capture
-/// organism-specific nuance without creating additional enums.
+/// Wraps a neutral life stage with an optional subtype. This lets dialogs
+/// and CSV adapters capture organism-specific nuance without creating
+/// additional enums.
 class LifeStageSpec extends Equatable {
   const LifeStageSpec({required this.stage, this.subtype});
 

@@ -30,7 +30,6 @@ import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/services/validation_service.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/utils/performance_analyzer.dart';
-import 'package:seafoundry_app/utils/record_name_derived.dart';
 
 class GeneticsCsvImporter {
   GeneticsCsvImporter({
@@ -93,11 +92,10 @@ class GeneticsCsvImporter {
             validation.addError(
               field: 'organismKind',
               value: organismKindRaw ?? '',
-              message: 'Unknown organism kind. Use names like "coral".',
+              message: 'Unknown organism kind. Use "coral".',
             );
             continue;
           }
-          final isCoralOrganism = organismKind == OrganismKind.coral;
 
           final speciesCodeRaw = lookup.valueFor(GeneticsCsvKeys.speciesKeys) ?? '';
           final species = _resolveSpecies(speciesCodeRaw);
@@ -123,6 +121,9 @@ class GeneticsCsvImporter {
 
           final genetNotesRaw = lookup.valueFor(GeneticsCsvKeys.genetNotesKeys) ?? '';
           final genetNotes = genetNotesRaw.isNotEmpty ? genetNotesRaw : null;
+          final rawClonalId = lookup.valueFor(GeneticsCsvKeys.clonalIdKeys) ?? '';
+          final rawAccessionNumber =
+              lookup.valueFor(GeneticsCsvKeys.accessionNumberKeys) ?? '';
           final rawLocalId = lookup.valueFor(GeneticsCsvKeys.localIdKeys) ?? '';
           final rawProvenanceId = lookup.valueFor(GeneticsCsvKeys.provenanceIdKeys) ?? '';
           String? localId = rawLocalId.trim().isEmpty ? null : rawLocalId.trim();
@@ -160,15 +161,22 @@ class GeneticsCsvImporter {
                   donorGenotypeId,
                 );
 
+                final clonalId =
+                    rawClonalId.trim().isEmpty ? null : rawClonalId.trim();
+                final accessionNumber = rawAccessionNumber.trim().isEmpty
+                    ? null
+                    : rawAccessionNumber.trim();
+
                 final genetResult = await _genetCreator.ensureGenet(
                   rowNumber: rowNum,
                   genetName: genetName,
                   localId: localId,
                   provenanceId: provenanceId,
+                  clonalId: clonalId,
+                  accessionNumber: accessionNumber,
                   species: species,
                   provenanceType: provenanceData.provenanceType,
                   lifeStage: provenanceData.lifeStage,
-                  gameteRole: provenanceData.gameteRole,
                   notes: genetNotes,
                   archived: archivedFlag ?? false,
                   organismKind: organismKind,
@@ -195,220 +203,208 @@ class GeneticsCsvImporter {
                 }
 
                 var recordName = (row['Record Name'] ?? '').trim();
-                if (!isCoralOrganism && recordName.isNotEmpty) {
+                final organismLocalId =
+                    (localId != null && localId.trim().isNotEmpty)
+                        ? localId.trim()
+                        : (genet.localId?.trim().isNotEmpty == true
+                              ? genet.localId!.trim()
+                              : null);
+                if (organismLocalId == null) {
+                  validation.addError(
+                    field: 'Local ID',
+                    value: localId ?? '',
+                    message:
+                        'Local ID is required for coral organism rows.',
+                  );
+                  return;
+                }
+
+                if (recordName.isEmpty) {
+                  recordName = organismLocalId;
+                }
+                if (recordName.isEmpty) {
                   validation.addError(
                     field: 'Record Name',
                     value: recordName,
                     message:
-                        'Coral-specific fields are only supported for coral organism rows.',
+                        'Record Name is required for coral organism rows.',
                   );
                   return;
                 }
-                if (isCoralOrganism) {
-                  final organismLocalId =
-                      (localId != null && localId.trim().isNotEmpty)
-                          ? localId.trim()
-                          : (genet.localId?.trim().isNotEmpty == true
-                                ? genet.localId!.trim()
-                                : null);
-                  if (organismLocalId == null) {
-                    validation.addError(
-                      field: 'Local ID',
-                      value: localId ?? '',
-                      message:
-                          'Local ID is required for coral organism rows.',
-                    );
-                    return;
-                  }
 
-                  if (recordName.isEmpty) {
-                    recordName =
-                        RecordNameDerived.fromLocalId(organismLocalId) ?? '';
-                  }
-                  if (recordName.isEmpty) {
-                    validation.addError(
-                      field: 'Record Name',
-                      value: recordName,
-                      message:
-                          'Record Name is required for coral organism rows.',
-                    );
-                    return;
-                  }
+                if (!validation.validateValue(
+                  'Record Name',
+                  recordName,
+                  ValidationService.recordName,
+                )) {
+                  return;
+                }
 
+                final quantityStr = (row['Quantity'] ?? '1').trim();
+                if (!validation.validateValue(
+                  'Quantity',
+                  quantityStr,
+                  ValidationService.quantity,
+                )) {
+                  return;
+                }
+                final quantity = int.tryParse(quantityStr);
+                if (quantity == null) {
+                  validation.addError(
+                    field: 'Quantity',
+                    value: quantityStr,
+                    message: 'Invalid number format',
+                  );
+                  return;
+                }
+
+                final sizeStr = (row['Size'] ?? '0').trim();
+                double? size;
+                if (sizeStr.isNotEmpty && sizeStr != '0') {
                   if (!validation.validateValue(
-                    'Record Name',
-                    recordName,
-                    ValidationService.recordName,
+                    'Size',
+                    sizeStr,
+                    ValidationService.coralSize,
                   )) {
                     return;
                   }
-
-                  final quantityStr = (row['Quantity'] ?? '1').trim();
-                  if (!validation.validateValue(
-                    'Quantity',
-                    quantityStr,
-                    ValidationService.quantity,
-                  )) {
-                    return;
-                  }
-                  final quantity = int.tryParse(quantityStr);
-                  if (quantity == null) {
+                  size = double.tryParse(sizeStr);
+                  if (size == null) {
                     validation.addError(
-                      field: 'Quantity',
-                      value: quantityStr,
+                      field: 'Size',
+                      value: sizeStr,
                       message: 'Invalid number format',
                     );
                     return;
                   }
+                }
 
-                  final sizeStr = (row['Size'] ?? '0').trim();
-                  double? size;
-                  if (sizeStr.isNotEmpty && sizeStr != '0') {
-                    if (!validation.validateValue(
-                      'Size',
-                      sizeStr,
-                      ValidationService.coralSize,
-                    )) {
-                      return;
-                    }
-                    size = double.tryParse(sizeStr);
-                    if (size == null) {
-                      validation.addError(
-                        field: 'Size',
-                        value: sizeStr,
-                        message: 'Invalid number format',
-                      );
-                      return;
-                    }
-                  }
-
-                  final parentGroupPath = _resolveGroupPath(row);
-                  Group? parentGroup;
-                  if (parentGroupPath != null && parentGroupPath.isNotEmpty) {
-                    parentGroup = await _lookupGroup(
-                      parentGroupPath,
-                      groupCache,
-                    );
-                    if (parentGroup == null) {
-                      validation.addError(
-                        field: 'Group Path',
-                        value: parentGroupPath,
-                        message: 'Parent group not found. Verify the URL path.',
-                      );
-                      return;
-                    }
-                  } else {
+                final parentGroupPath = _resolveGroupPath(row);
+                Group? parentGroup;
+                if (parentGroupPath != null && parentGroupPath.isNotEmpty) {
+                  parentGroup = await _lookupGroup(
+                    parentGroupPath,
+                    groupCache,
+                  );
+                  if (parentGroup == null) {
                     validation.addError(
                       field: 'Group Path',
-                      value: parentGroupPath ?? '',
-                      message:
-                          'Parent group path required when creating organisms.',
+                      value: parentGroupPath,
+                      message: 'Parent group not found. Verify the URL path.',
                     );
                     return;
                   }
-
-                  final physicalFormId = _resolvePhysicalFormId(row);
-                  if (physicalFormId == null) {
-                    final rawType = _readPhysicalFormValue(row) ?? '';
-                    validation.addError(
-                      field: 'Physical Form',
-                      value: rawType,
-                      message:
-                          'Unable to determine physical form. Provide a valid physical form name or ID.',
-                    );
-                    return;
-                  }
-                  var sizeBandId = _resolveSizeBandId(row);
-                  var formConfig = formConfigCache[physicalFormId];
-                  if (!formConfigCache.containsKey(physicalFormId)) {
-                    formConfig = await PhysicalFormRegistry.instance
-                        .getFormConfig(
-                      organismKind,
-                      provenanceData.lifeStage ?? LifeStage.juvenile,
-                      physicalFormId,
-                    );
-                    formConfigCache[physicalFormId] = formConfig;
-                  }
-                  if (sizeBandId == null || sizeBandId.isEmpty) {
-                    sizeBandId = formConfig?.defaultSizeBand?.id;
-                  }
-                  if (sizeBandId == null || sizeBandId.isEmpty) {
-                    validation.addError(
-                      field: 'sizeBandId',
-                      value: '',
-                      message:
-                          'Missing sizeBandId and no default size band is configured for this physical form.',
-                    );
-                    return;
-                  }
-
-                  final organismNotesRaw =
-                      (row['Coral Notes'] ?? row['Notes'] ?? '').trim();
-                  final organismNotes = organismNotesRaw.isNotEmpty
-                      ? organismNotesRaw
-                      : null;
-
-                  final Group group = parentGroup;
-
-                  // Create OrganismRecord with metadata for coral-specific fields
-                  final foreignKeyMetadata = <String, dynamic>{
-                    if (genet.localId != null) 'localId': genet.localId,
-                    'provenanceId': genet.provenanceId,
-                    'displayName': genet.displayName,
-                  };
-                  final foreignKeys = <String, ForeignKeyReference>{
-                    'genetId': ForeignKeyReference(
-                      id: genet.id,
-                      metadata: foreignKeyMetadata,
-                    ),
-                  };
-
-                  final sizeSpec = size != null
-                      ? SizeSpec(
-                          measuredDimension: size,
-                          dimensionUnit: MeasurementUnit.centimeter,
-                        )
-                      : null;
-
-                  final organismPartial = OrganismRecord.partial(
-                    organismKind: organismKind,
-                    speciesId: species.id,
-                    recordName: recordName,
-                    localId: organismLocalId,
-                    measurement: PopulationMeasurement(
-                      value: quantity.toDouble(),
-                      unit: MeasurementUnit.count,
-                    ),
-                    lifeStage: LifeStageSpec(stage: LifeStage.juvenile),
-                    physicalForm: PhysicalFormInstance(
-                      formId: physicalFormId,
-                      sizeBandId: sizeBandId,
-                    ),
-                    sizeSpec: sizeSpec,
-                    foreignKeys: foreignKeys,
-                    metadata: {
-                      'physicalFormId': physicalFormId,
-                      if (size != null) 'actualSizeCm': size,
-                      if (organismNotes != null) 'notes': organismNotes,
-                    },
+                } else {
+                  validation.addError(
+                    field: 'Group Path',
+                    value: parentGroupPath ?? '',
+                    message:
+                        'Parent group path required when creating organisms.',
                   );
-
-                  final organism = await _organismCreator.createOrganism(
-                    rowNumber: rowNum,
-                    organism: organismPartial,
-                    parentGroup: group,
-                    errors: errors,
-                    messageBuilder: (error) => _describeRecordCreationFailure(
-                      error,
-                      parentGroup: group,
-                      recordName: recordName,
-                    ),
-                  );
-                  if (organism == null) {
-                    return;
-                  }
-                  importedOrganisms.add(organism);
+                  return;
                 }
+
+                final physicalFormId = _resolvePhysicalFormId(row);
+                if (physicalFormId == null) {
+                  final rawType = _readPhysicalFormValue(row) ?? '';
+                  validation.addError(
+                    field: 'Physical Form',
+                    value: rawType,
+                    message:
+                        'Unable to determine physical form. Provide a valid physical form name or ID.',
+                  );
+                  return;
+                }
+                var sizeBandId = _resolveSizeBandId(row);
+                var formConfig = formConfigCache[physicalFormId];
+                if (!formConfigCache.containsKey(physicalFormId)) {
+                  formConfig = PhysicalFormRegistry.instance
+                      .getFormConfig(
+                    organismKind,
+                    provenanceData.lifeStage ?? LifeStage.juvenile,
+                    physicalFormId,
+                  );
+                  formConfigCache[physicalFormId] = formConfig;
+                }
+                if (sizeBandId == null || sizeBandId.isEmpty) {
+                  sizeBandId = formConfig?.defaultSizeBand?.id;
+                }
+                if (sizeBandId == null || sizeBandId.isEmpty) {
+                  validation.addError(
+                    field: 'sizeBandId',
+                    value: '',
+                    message:
+                        'Missing sizeBandId and no default size band is configured for this physical form.',
+                  );
+                  return;
+                }
+
+                final organismNotesRaw =
+                    (row['Coral Notes'] ?? row['Notes'] ?? '').trim();
+                final organismNotes = organismNotesRaw.isNotEmpty
+                    ? organismNotesRaw
+                    : null;
+
+                final Group group = parentGroup;
+
+                // Create OrganismRecord with metadata for coral fields
+                final foreignKeyMetadata = <String, dynamic>{
+                  if (genet.localId != null) 'localId': genet.localId,
+                  'provenanceId': genet.provenanceId,
+                  'displayName': genet.displayName,
+                };
+                final foreignKeys = <String, ForeignKeyReference>{
+                  'genetId': ForeignKeyReference(
+                    id: genet.id,
+                    metadata: foreignKeyMetadata,
+                  ),
+                };
+
+                final sizeSpec = size != null
+                    ? SizeSpec(
+                        measuredDimension: size,
+                        dimensionUnit: MeasurementUnit.centimeter,
+                      )
+                    : null;
+
+                final organismPartial = OrganismRecord.partial(
+                  organismKind: organismKind,
+                  speciesId: species.id,
+                  recordName: recordName,
+                  localId: organismLocalId,
+                  measurement: PopulationMeasurement(
+                    value: quantity.toDouble(),
+                    unit: MeasurementUnit.count,
+                  ),
+                  lifeStage: LifeStageSpec(stage: LifeStage.juvenile),
+                  physicalForm: PhysicalFormInstance(
+                    formId: physicalFormId,
+                    sizeBandId: sizeBandId,
+                  ),
+                  sizeSpec: sizeSpec,
+                  foreignKeys: foreignKeys,
+                  metadata: {
+                    'physicalFormId': physicalFormId,
+                    if (size != null) 'actualSizeCm': size,
+                    if (organismNotes != null) 'notes': organismNotes,
+                  },
+                );
+
+                final organism = await _organismCreator.createOrganism(
+                  rowNumber: rowNum,
+                  organism: organismPartial,
+                  parentGroup: group,
+                  errors: errors,
+                  messageBuilder: (error) => _describeRecordCreationFailure(
+                    error,
+                    parentGroup: group,
+                    recordName: recordName,
+                  ),
+                );
+                if (organism == null) {
+                  return;
+                }
+                importedOrganisms.add(organism);
               }
 
               successCount++;
@@ -769,8 +765,4 @@ class _ProvenanceData {
 
   final ProvenanceType provenanceType;
   final LifeStage? lifeStage;
-
-  // gameteRole is not currently parsed from CSV, but the field exists for
-  // future extension when CSV import supports gamete role specification.
-  ProvenanceGameteRole? get gameteRole => null;
 }

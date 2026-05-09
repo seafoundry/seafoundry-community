@@ -62,6 +62,7 @@ class GeneticsCsvTranslationAdapter extends CsvTranslationAdapter {
     );
     setIfPresent('provenanceType', _firstValue(row, GeneticsCsvKeys.provenanceTypeKeys));
     setIfPresent('clonalId', _firstValue(row, GeneticsCsvKeys.clonalIdKeys));
+    setIfPresent('accessionNumber', _firstValue(row, GeneticsCsvKeys.accessionNumberKeys));
     setIfPresent('donorGenotypeId', _firstValue(row, GeneticsCsvKeys.donorGenotypeKeys));
 
     final parentGametes = GeneticsRowNormalizer.collectParentGameteIds(row);

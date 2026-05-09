@@ -4,19 +4,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
 import 'package:seafoundry_app/models/public_read_models/brand_profile.dart';
-import 'package:seafoundry_app/models/types/site_type.dart';
 import 'package:seafoundry_app/navigation/community_graph_scaffold.dart';
 import 'package:seafoundry_app/providers/brand_theme_provider.dart';
 import 'package:seafoundry_app/screens/graph/graph_node_section.dart';
 import 'package:seafoundry_app/services/public_read_models_service.dart';
 import 'package:seafoundry_app/theme/spacing.dart';
+import 'package:seafoundry_app/widgets/dialogs/inventory_action_sheet.dart';
+import 'package:seafoundry_app/widgets/dialogs/structure_dialog.dart';
+import 'package:seafoundry_app/widgets/graph_node/graph_node_events_section.dart';
 import 'package:seafoundry_app/widgets/graph_node/site_summary_cards.dart';
 import 'package:seafoundry_app/widgets/graph_node/site_node_view_adapter.dart';
 import 'package:seafoundry_app/widgets/in_situ/in_situ_grid_section.dart';
-import 'package:seafoundry_app/widgets/visual/did_you_know_banner.dart';
-// GraphNodeEventsList is Pro-only - community uses simplified event display
+import 'package:seafoundry_app/widgets/navigation/bottom_action_bar.dart';
 
-/// Community version of SiteNodeScreen without monitoring features.
+/// Screen for displaying a site node with its children and events.
 class SiteNodeScreen extends StatefulWidget {
   const SiteNodeScreen({
     super.key,
@@ -72,6 +73,25 @@ class _SiteNodeScreenState extends State<SiteNodeScreen> {
         return BrandThemeProvider(
           theme: theme,
           child: CommunitySimpleGraphScreenScaffold(
+            bottomActions: [
+              BottomAction(
+                label: 'Inventory',
+                icon: Icons.inventory_2_outlined,
+                onPressed: () => InventoryActionSheet.show(
+                  context,
+                  node: widget.graphNode,
+                ),
+              ),
+              BottomAction(
+                label: 'Edit Record',
+                icon: Icons.edit,
+                onPressed: () => StructureDialog.show(
+                  context,
+                  type: StructureType.site,
+                  existingSite: widget.loadedNodeState.site,
+                ),
+              ),
+            ],
             body: _SiteNodeBody(
               loadedNodeState: widget.loadedNodeState,
               graphNode: widget.graphNode,
@@ -105,27 +125,15 @@ class _SiteNodeBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-              // Monitoring button removed - Pro feature
-              // Breadcrumbs moved to AppBar
-              // CommunityNavigationBreadcrumbs(
-              //   showLogo: false,
-              //   nodes: graphNode.lineage,
-              // ),
-              DidYouKnowBanner(
-                nodeType: _resolveNodeType(adapter.capabilities.siteType),
-                dismissKey: 'dyk-site-${loadedNodeState.site.id}',
-              ),
-              SizedBox(height: Spacing.sm),
               SizedBox(height: Spacing.sm),
               SiteSummaryCards(
                 siteNode: graphNode as SiteNode,
               ),
               SizedBox(height: Spacing.md),
-              if (adapter.capabilities.siteType == SiteType.nurseryInSitu) ...[
+              if (adapter.capabilities.supportsGeometry) ...[
                 InSituGridSection(state: loadedNodeState, siteNode: siteNode),
                 SizedBox(height: Spacing.md),
               ],
-              // SiteNodeInfo removed - Pro feature
               if (sections.isNotEmpty) ...[
                 Text(
                   adapter.capabilities.childSectionTitle,
@@ -143,18 +151,9 @@ class _SiteNodeBody extends StatelessWidget {
                   ),
                 ),
               ],
-              // Events list removed - Pro feature (GraphNodeEventsList)
+              SizedBox(height: Spacing.md),
+              GraphNodeEventsSection(events: loadedNodeState.events),
             ],
           ),
         );
-  }
-
-  String _resolveNodeType(SiteType type) {
-    if (type.id.contains('nursery')) {
-      return 'nursery';
-    } else if (type.id.contains('outplant') || type.id.contains('outplanting')) {
-      return 'outplant';
-    }
-    return 'site';
-  }
-}
+  }}

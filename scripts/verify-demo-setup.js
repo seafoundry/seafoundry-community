@@ -3,7 +3,7 @@
 /**
  * Demo Setup Verification Script
  *
- * Verifies that demo data has been properly seeded for the specified tier.
+ * Verifies that community demo data has been properly seeded.
  * Use this after running seed-demo.js to confirm everything is set up correctly.
  *
  * NOTE: Production DB must be wiped/reset after Data Field Unification (SOT)
@@ -12,11 +12,11 @@
  * Usage:
  *   node scripts/verify-demo-setup.js --org=ORG_ID
  *   node scripts/verify-demo-setup.js --org=ORG_ID --tier=community
- *   node scripts/verify-demo-setup.js --org=ORG_ID --tier=pro --verbose
+ *   node scripts/verify-demo-setup.js --org=ORG_ID --verbose
  *
  * Options:
  *   --org=ORG_ID           Organization ID to verify (required)
- *   --tier=TIER            Expected tier (community|pro|scale) for validation
+ *   --tier=TIER            Expected tier (community only)
  *   --verbose, -v          Show detailed counts
  *   --help, -h             Show this help message
  */
@@ -53,7 +53,7 @@ Usage: node scripts/verify-demo-setup.js --org=ORG_ID [options]
 
 Options:
   --org=ORG_ID           Organization ID to verify (required)
-  --tier=TIER            Expected tier (community|pro|scale) for validation
+  --tier=TIER            Expected tier (community only)
   --verbose, -v          Show detailed counts
   --help, -h             Show this help message
 
@@ -62,7 +62,7 @@ Examples:
   node scripts/verify-demo-setup.js --org=my-demo-org
 
   # Verify with expected tier and verbose output
-  node scripts/verify-demo-setup.js --org=my-demo-org --tier=pro --verbose
+  node scripts/verify-demo-setup.js --org=my-demo-org --tier=community --verbose
 `);
   process.exit(0);
 }
@@ -70,6 +70,11 @@ Examples:
 if (!options.orgId) {
   console.error('❌ Missing required --org parameter');
   console.error('Usage: node scripts/verify-demo-setup.js --org=ORG_ID');
+  process.exit(1);
+}
+
+if (options.tier && options.tier !== 'community') {
+  console.error('❌ Invalid --tier value for community fork. Use --tier=community.');
   process.exit(1);
 }
 
@@ -315,7 +320,7 @@ async function main() {
     if (checks.failed > 0) {
       console.log('\n❌ Verification FAILED - some checks did not pass');
       console.log('\nTo fix:');
-      console.log(`  1. Run: node scripts/seed-demo.js --reset --org=${options.orgId} --user=YOUR_EMAIL --tier=${options.tier || 'pro'}`);
+      console.log(`  1. Run: node scripts/seed-demo.js --reset --org=${options.orgId} --user=YOUR_EMAIL`);
       console.log('  2. If taxonomy is missing: npm run seed:taxonomy');
       process.exit(1);
     } else if (checks.warnings > 0) {

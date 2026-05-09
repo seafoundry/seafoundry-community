@@ -2,7 +2,6 @@
 import 'dart:typed_data';
 
 import 'package:seafoundry_app/models/events/event.dart';
-import 'package:seafoundry_app/models/events/monitoring_event_record.dart';
 import 'package:seafoundry_app/models/genet.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/services/csv/adapters/csv_translation_adapter.dart';
@@ -17,8 +16,6 @@ class CSVImportResult {
     required this.importedOrganisms,
     this.updatedOrganisms = const [],
     this.updatedOutplantEvents = const [],
-    this.createdMonitoringEvents = const [],
-    this.updatedMonitoringEvents = const [],
     this.translationSummary,
   });
 
@@ -29,8 +26,6 @@ class CSVImportResult {
   final List<OrganismRecord> importedOrganisms;
   final List<OrganismRecord> updatedOrganisms;
   final List<OutplantEvent> updatedOutplantEvents;
-  final List<MonitoringEventRecord> createdMonitoringEvents;
-  final List<MonitoringEventRecord> updatedMonitoringEvents;
   final CsvTranslationSummary? translationSummary;
 
   /// Returns true if there are any blocking errors (excludes warnings).
@@ -61,8 +56,6 @@ class CSVImportResult {
     List<OrganismRecord>? importedOrganisms,
     List<OrganismRecord>? updatedOrganisms,
     List<OutplantEvent>? updatedOutplantEvents,
-    List<MonitoringEventRecord>? createdMonitoringEvents,
-    List<MonitoringEventRecord>? updatedMonitoringEvents,
     CsvTranslationSummary? translationSummary,
   }) {
     return CSVImportResult(
@@ -74,10 +67,6 @@ class CSVImportResult {
       updatedOrganisms: updatedOrganisms ?? this.updatedOrganisms,
       updatedOutplantEvents:
           updatedOutplantEvents ?? this.updatedOutplantEvents,
-      createdMonitoringEvents:
-          createdMonitoringEvents ?? this.createdMonitoringEvents,
-      updatedMonitoringEvents:
-          updatedMonitoringEvents ?? this.updatedMonitoringEvents,
       translationSummary: translationSummary ?? this.translationSummary,
     );
   }
@@ -179,7 +168,7 @@ class CsvTranslationSummary {
 }
 
 /// Types of CSV imports supported.
-enum CSVImportType { genetics, inventory, outplanting, monitoring }
+enum CSVImportType { genetics, inventory, outplanting }
 
 /// Types of conflicts that can occur during CSV import.
 enum ConflictType {
@@ -271,8 +260,6 @@ extension CSVImportTypeExtension on CSVImportType {
         return 'Inventory Data';
       case CSVImportType.outplanting:
         return 'Outplanting Data';
-      case CSVImportType.monitoring:
-        return 'Monitoring Data';
     }
   }
 
@@ -284,8 +271,6 @@ extension CSVImportTypeExtension on CSVImportType {
         return 'Import organism holdings with canonical five-axis data (provenance type, life stage, physical form, size spec) plus location, permit, and geometry context.';
       case CSVImportType.outplanting:
         return 'Import outplanting records and allocation details that include organism kind, provenance/life-stage metadata, and geometry/permit information.';
-      case CSVImportType.monitoring:
-        return 'Import monitoring observations with provenance-aware organism metadata in addition to cover, bleaching, and disease metrics.';
     }
   }
 }

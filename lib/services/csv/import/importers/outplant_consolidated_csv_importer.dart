@@ -7,7 +7,6 @@ import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
-import 'package:seafoundry_app/services/csv/import/conflict_detector.dart';
 import 'package:seafoundry_app/services/csv/import/csv_import_models.dart';
 import 'package:seafoundry_app/services/csv/import/local_id_matcher.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
@@ -69,29 +68,10 @@ class OutplantConsolidatedCsvImporter {
     final createdEvents = <OutplantEvent>[];
     int successCount = 0;
 
-    // Pre-validation: Check for intra-file duplicate localIds
-    final duplicateConflicts = ConflictDetector.detectIntraFileDuplicates(
-      rows,
-      'localId',
-    );
-    if (duplicateConflicts.isNotEmpty) {
-      errors.addAll(ConflictDetector.conflictsToErrors(duplicateConflicts));
-    }
-
-    // If there are blocking conflicts, return early
-    final blockingDuplicates = ConflictDetector.blockingConflicts(
-      duplicateConflicts,
-    );
-    if (blockingDuplicates.isNotEmpty) {
-      return CSVImportResult(
-        totalRows: totalRowCount ?? rows.length,
-        successfulImports: 0,
-        errors: errors,
-        importedGenets: const [],
-        importedOrganisms: const [],
-        translationSummary: translationSummary,
-      );
-    }
+    // Note: No intra-file duplicate detection on localId because the
+    // consolidated format is row-per-allocation — the same organism can
+    // legitimately appear in multiple allocation rows (different events
+    // or different structures within the same event).
 
     // Pass 1: Parse and validate all rows, group by eventId
     final eventGroups = <String, _ResolvedEventGroup>{};
@@ -165,8 +145,12 @@ class OutplantConsolidatedCsvImporter {
         continue;
       }
 
-      // Create the outplant event
-      if (!validateOnly && errors.isEmpty) {
+      // Flush any per-group warnings (e.g., from resolution fallbacks)
+      errors.addAll(groupErrors);
+
+      // Create the outplant event — each group is independent, so only check
+      // this group's errors, not the global list.
+      if (!validateOnly && !groupErrors.any((e) => e.isBlockingError)) {
         try {
           final event = await _eventRepository.createOutplantEvent(
             site: site,

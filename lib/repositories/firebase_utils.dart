@@ -1,6 +1,5 @@
 // @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 
 extension StringFieldStartsWith on Query {
   Query whereStringField(String field, {required String startsWith}) {
@@ -16,5 +15,5 @@ extension StringFieldStartsWith on Query {
 }
 
 String generateId({required FirebaseFirestore firestore}) {
-  return FirestoreCollectionResolver.instance.generateId(firestore);
+  return firestore.collection('temp').doc().id;
 }

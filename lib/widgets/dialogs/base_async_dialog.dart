@@ -72,33 +72,19 @@ abstract class BaseAsyncDialogState<T extends BaseAsyncDialog> extends State<T>
     }
   }
 
-  /// Override to provide initialization logic
   Future<void> initialize() async {
     // Default: no initialization needed
   }
 
-  /// The dialog title
   String get title;
-
-  /// Optional icon for the title
   Widget? get titleIcon => null;
-
-  /// Dialog width (null for default)
   double? get dialogWidth => null;
-
-  /// Dialog max height (null for default)
   double? get dialogMaxHeight => null;
-
-  /// Whether to show a close button in the title
   bool get showCloseButton => true;
-
-  /// Label for the primary action button
   String get primaryActionLabel => 'Save';
 
-  /// Build the main content of the dialog
   Widget buildContent(BuildContext context);
 
-  /// Build the dialog actions
   List<Widget> buildActions(BuildContext context) {
     return [
       TextButton(
@@ -118,10 +104,8 @@ abstract class BaseAsyncDialogState<T extends BaseAsyncDialog> extends State<T>
     ];
   }
 
-  /// Perform the main async operation
   Future<void> performAsyncOperation(BuildContext context);
 
-  /// Called when operation succeeds
   void onSuccess() {
     popDialog(true);
   }
@@ -284,16 +268,10 @@ abstract class BaseAsyncDialogState<T extends BaseAsyncDialog> extends State<T>
     showDialogSnackBar(message, isError: isError, isSuccess: !isError);
   }
 
-  /// Check if we're currently loading
   bool get isLoading => _isLoading;
-
-  /// Check if there's an error
   bool get hasError => _error != null;
-
-  /// Get the current error message
   String? get error => _error;
 
-  /// Clear the current error
   void clearError() {
     setState(() {
       _error = null;
@@ -320,50 +298,5 @@ class _BaseAsyncDialogState extends BaseAsyncDialogState<BaseAsyncDialog> {
   @override
   Future<void> performAsyncOperation(BuildContext context) async {
     // Default implementation - override in subclasses
-  }
-}
-
-/// Mixin for dialogs that need form validation
-mixin FormValidationMixin<T extends StatefulWidget> on State<T> {
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
-  /// Validate the form
-  bool validateForm() {
-    return formKey.currentState?.validate() ?? false;
-  }
-
-  /// Save the form
-  void saveForm() {
-    formKey.currentState?.save();
-  }
-
-  /// Reset the form
-  void resetForm() {
-    formKey.currentState?.reset();
-  }
-}
-
-/// Mixin for dialogs that handle file operations
-mixin FileOperationsMixin<T extends StatefulWidget> on State<T> {
-  /// Format file size for display
-  String formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    }
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
-  }
-
-  /// Get file extension
-  String getFileExtension(String fileName) {
-    final parts = fileName.split('.');
-    return parts.length > 1 ? parts.last.toLowerCase() : '';
-  }
-
-  /// Validate file type
-  bool isValidFileType(String fileName, List<String> allowedExtensions) {
-    final extension = getFileExtension(fileName);
-    return allowedExtensions.contains(extension);
   }
 }

@@ -4,7 +4,6 @@ import 'package:seafoundry_app/models/events/outplant_geometry.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/models/model_interfaces.dart';
 import 'package:seafoundry_app/models/records/records.dart';
-import 'package:seafoundry_app/models/site_capabilities.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
@@ -22,7 +21,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     required this.siteTypeId,
     required this.name,
     required this.groupIdHierarchy,
-    List<OrganismKind>? supportedOrganismKinds,
     this.geometry,
     this.description,
     this.latitude,
@@ -37,19 +35,10 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     required super.internalPath,
     required super.slug,
     super.metadata,
-  }) : supportedOrganismKinds = _normalizeOrganismKinds(
-         supportedOrganismKinds,
-         siteTypeId,
-       );
+  });
 
   Site.fromJson(super.json)
     : siteTypeId = _readSiteTypeId(json),
-      supportedOrganismKinds = _normalizeOrganismKinds(
-        _parseOrganismKinds(
-          json['supportedOrganismKinds'] ?? json['organismKinds'],
-        ),
-        _readSiteTypeId(json),
-      ),
       name = json['name'] ??
           json['createdEvent']?['name'] ??
           Missing.string,
@@ -94,7 +83,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     String? siteTypeId,
     String? name,
     List<String>? groupIdHierarchy,
-    List<OrganismKind>? supportedOrganismKinds,
     Map<String, String>? groupTypeLabels,
     String? description,
     double? latitude,
@@ -112,13 +100,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
            List<String>.unmodifiable(json?['groupIdHierarchy'] ?? const []),
        groupTypeLabels =
            groupTypeLabels ?? _parseGroupTypeLabels(json?['groupTypeLabels']),
-       supportedOrganismKinds = _normalizeOrganismKinds(
-         supportedOrganismKinds ??
-             _parseOrganismKinds(
-               json?['supportedOrganismKinds'] ?? json?['organismKinds'],
-             ),
-         siteTypeId ?? json?['siteTypeId'] ?? Missing.string,
-       ),
        description = description ?? json?['description'],
        latitude = latitude ?? safeDouble(json?['latitude']),
        longitude = longitude ?? safeDouble(json?['longitude']),
@@ -146,7 +127,9 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
   final double? longitude;
   final int? rowCount;
   final int? colCount;
-  final List<OrganismKind> supportedOrganismKinds;
+
+  /// Coral-only build: always returns [OrganismKind.coral].
+  List<OrganismKind> get supportedOrganismKinds => const [OrganismKind.coral];
 
   /// Organization ID where organisms are held externally (for retained ownership).
   final String? externalHoldingOrganizationId;
@@ -163,7 +146,7 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
   SiteType get siteType => _resolveSiteType(siteTypeId);
 
   /// Whether this site represents organisms held at an external organization.
-  bool get isExternalHolding => siteType.isExternalHolding;
+  bool get isExternalHolding => externalHoldingOrganizationId != null;
 
   List<GroupType> get groupTypeHierarchy {
     // Primary: respect persisted hierarchy
@@ -226,9 +209,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
       "groupIdHierarchy": groupIdHierarchy,
       if (groupTypeLabels != null && groupTypeLabels!.isNotEmpty)
         "groupTypeLabels": groupTypeLabels,
-      "supportedOrganismKinds": supportedOrganismKinds
-          .map((kind) => kind.name)
-          .toList(growable: false),
       if (description != null) "description": description,
       if (geometry != null) "geometry": geometry!.toJson(),
       if (latitude != null) "latitude": latitude,
@@ -268,7 +248,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     String? slug,
     int? rowCount,
     int? colCount,
-    List<OrganismKind>? supportedOrganismKinds,
     Map<String, dynamic>? metadata,
     String? externalHoldingOrganizationId,
     bool clearExternalHoldingOrganizationId = false,
@@ -299,7 +278,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     internalPath: internalPath ?? this.internalPath,
     slug: slug ?? this.slug,
     metadata: metadata ?? this.metadata,
-    supportedOrganismKinds: supportedOrganismKinds ?? this.supportedOrganismKinds,
     externalHoldingOrganizationId: clearExternalHoldingOrganizationId
         ? null
         : (externalHoldingOrganizationId ?? this.externalHoldingOrganizationId),
@@ -348,7 +326,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
         geometry,
         rowCount,
         colCount,
-        supportedOrganismKinds,
         externalHoldingOrganizationId,
         externalHoldingSiteId,
         externalHoldingGroupPath,
@@ -358,50 +335,16 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
 
   GeoCoordinate? get centroid => geometry?.centroid;
 
-  bool supportsOrganism(OrganismKind kind) =>
-      supportedOrganismKinds.contains(kind);
+  /// Always returns true in the coral-only build.
+  bool supportsOrganism(OrganismKind kind) => kind == OrganismKind.coral;
 
   GeoBounds? get bounds => geometry?.bounds;
 
   List<GeoCoordinate> get placements =>
       geometry?.coordinates ?? const <GeoCoordinate>[];
 
-  static List<OrganismKind> _normalizeOrganismKinds(
-    List<OrganismKind>? kinds,
-    String siteTypeId,
-  ) {
-    final resolved = (kinds == null || kinds.isEmpty)
-        ? _defaultOrganismsForSiteType(siteTypeId)
-        : kinds;
-    final deduped = <OrganismKind>{...resolved}.toList(growable: false);
-    return List<OrganismKind>.unmodifiable(deduped);
-  }
-
-  static List<OrganismKind> _defaultOrganismsForSiteType(String siteTypeId) {
-    final siteType = _resolveSiteType(siteTypeId);
-    final supported = SiteCapabilities.resolve(
-      siteType,
-    ).supportedOrganisms.toList();
-    if (supported.isNotEmpty) {
-      return List<OrganismKind>.unmodifiable(supported);
-    }
-    return const [OrganismKind.coral];
-  }
-
   static SiteType _resolveSiteType(String siteTypeId) {
     return SiteType.fromId(siteTypeId);
-  }
-
-  static List<OrganismKind>? _parseOrganismKinds(dynamic raw) {
-    if (raw is! List) return null;
-    final kinds = <OrganismKind>[];
-    for (final entry in raw) {
-      final parsed = OrganismKindX.tryParse(entry?.toString());
-      if (parsed != null) {
-        kinds.add(parsed);
-      }
-    }
-    return kinds;
   }
 
   static Map<String, String>? _parseGroupTypeLabels(dynamic raw) {
@@ -416,7 +359,7 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
   }
 
   static String _readSiteTypeId(Map<String, dynamic>? json) {
-    if (json == null) return SiteType.nurseryExSitu.id;
+    if (json == null) return SiteType.nursery.id;
     final direct = json['siteTypeId'];
     if (direct is String && direct.isNotEmpty) {
       return direct;
@@ -428,6 +371,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
         return createdType;
       }
     }
-    return SiteType.nurseryExSitu.id;
+    return SiteType.nursery.id;
   }
 }

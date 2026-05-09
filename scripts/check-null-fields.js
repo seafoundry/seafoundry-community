@@ -9,12 +9,13 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+const TARGET_ORG_ID = process.env.DEMO_ORG_ID || 'demo_org_community';
 
 async function checkNullFields() {
   console.log('=== Checking All Field Types ===\n');
 
   const eventSnap = await db.collection('events')
-    .where('organizationId', '==', 'demo_org_pro')
+    .where('organizationId', '==', TARGET_ORG_ID)
     .limit(500)
     .get();
 

@@ -19,10 +19,6 @@ class SizeChangeEditor extends StatelessWidget {
     this.validationMessage,
     this.placeholderLabel = 'Size class',
     this.isBusy = false,
-    this.volumeCm3,
-    this.onVolumeCm3Changed,
-    this.tissueAreaCm2,
-    this.onTissueAreaCm2Changed,
     this.showCurrentSize = true,
   });
 
@@ -43,12 +39,6 @@ class SizeChangeEditor extends StatelessWidget {
   final String? validationMessage;
   final String placeholderLabel;
   final bool isBusy;
-  
-  // Optional extra metrics
-  final double? volumeCm3;
-  final ValueChanged<double?>? onVolumeCm3Changed;
-  final double? tissueAreaCm2;
-  final ValueChanged<double?>? onTissueAreaCm2Changed;
 
   @override
   Widget build(BuildContext context) {
@@ -83,73 +73,6 @@ class SizeChangeEditor extends StatelessWidget {
             onChanged: isBusy ? null : onSizeClassChanged,
           ),
 
-        // Secondary metrics if enabled by size band
-        if (useSizeBands) ...[
-          Builder(
-            builder: (context) {
-              final activeBand = sizeBandConfigs
-                  .where((b) => b.id == selectedSizeClass)
-                  .firstOrNull;
-
-              if (activeBand == null) return const SizedBox.shrink();
-
-              final showVolume = activeBand.enableVolume;
-              final showTissue = activeBand.enableTissueArea;
-
-              if (!showVolume && !showTissue) return const SizedBox.shrink();
-
-              return Column(
-                children: [
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      if (showVolume)
-                        Expanded(
-                          child: TextFormField(
-                            key: ValueKey('vol-${activeBand.id}'),
-                            initialValue: volumeCm3?.toString() ?? '',
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: InputDecoration(
-                              labelText: activeBand.volumeLabel ??
-                                  'Volume (cm³)',
-                              helperText: () {
-                                final defaultVolume = activeBand.defaultVolumeCm3 ??
-                                    (activeBand.volumeMm3 / 1000.0);
-                                return 'Default: ${_formatMetric(defaultVolume)} cm³';
-                              }(),
-                            ),
-                            onChanged: (text) =>
-                                onVolumeCm3Changed?.call(double.tryParse(text)),
-                          ),
-                        ),
-                      if (showVolume && showTissue) const SizedBox(width: 12),
-                      if (showTissue)
-                        Expanded(
-                          child: TextFormField(
-                            key: ValueKey('tissue-${activeBand.id}'),
-                            initialValue: tissueAreaCm2?.toString() ?? '',
-                            keyboardType: const TextInputType.numberWithOptions(
-                                decimal: true),
-                            decoration: InputDecoration(
-                              labelText: activeBand.tissueAreaLabel ??
-                                  'Tissue Area (cm²)',
-                              helperText: activeBand.defaultTissueAreaCm2 !=
-                                      null
-                                  ? 'Default: ${_formatMetric(activeBand.defaultTissueAreaCm2!)} cm²'
-                                  : null,
-                            ),
-                            onChanged: (text) =>
-                                onTissueAreaCm2Changed?.call(double.tryParse(text)),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              );
-            },
-          ),
-        ],
         if (validationMessage != null) ...[
           const SizedBox(height: 12),
           _ValidationBanner(message: validationMessage!),
@@ -164,9 +87,6 @@ class SizeChangeEditor extends StatelessWidget {
     );
   }
 
-  String _formatMetric(double value) {
-    return value.round().toString();
-  }
 }
 
 class _CurrentSizeTile extends StatelessWidget {

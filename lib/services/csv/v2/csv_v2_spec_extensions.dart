@@ -67,13 +67,6 @@ class CsvV2SpecExtensions {
     'provenanceId', // Provenance axis
   ];
 
-  /// Minimal columns for monitoring import.
-  static const List<String> minimalMonitoringInputs = [
-    'monitoringDate', // Required event date
-    'outplantEventId', // Required outplant event reference
-    // At least one metric should be present, but not all required
-  ];
-
   // ============================================================
   // LEGACY: Full required inputs (kept for backwards compatibility)
   // ============================================================
@@ -201,15 +194,6 @@ class CsvV2SpecExtensions {
     'permanenceRiskScore',
   ];
 
-  /// CSR (Corporate Social Responsibility) metadata surfaced in templates.
-  static const List<String> csrColumns = [
-    'volunteerHours',
-    'trainingHours',
-    'credentialId',
-    'irisMetricIds[]',
-    'sdgTargets[]',
-  ];
-
   /// Environmental panel columns shared across organisms.
   static const List<String> environmentalPanelColumns = [
     'environmentalPanel.temperatureC',
@@ -223,55 +207,13 @@ class CsvV2SpecExtensions {
   ];
 
   /// Organism-specific detail columns called out in the CSV spec.
+  /// Coral-only for the community edition.
   static const Map<String, List<String>> organismSpecificColumns = {
     'coral': [
       'bleachingState',
       'diseaseCode',
       'partialMortalityPct',
       'benthicCoverPct',
-    ],
-    'oyster': [
-      'shellHeightMm',
-      'oysterDensityPerM2',
-      'reefAreaM2',
-      'reefHeightCm',
-    ],
-    'kelp': [
-      'lineBiomassKgPerM',
-      'bladeLengthCm',
-      'foulingIndex05',
-      'grazingDamageIndex',
-    ],
-    'seagrass': [
-      'shootDensityPerM2',
-      'coverPctOrClass',
-      'secchiDepthM',
-    ],
-    'mangrove': [
-      'dbhCm',
-      'heightCm',
-      'survivalPct',
-    ],
-    'echinoid': [
-      'densityPerM2',
-    ],
-    'crab': [
-      'carapaceWidthMm',
-      'weightG',
-      'moltStage',
-      'eggsVisibleBool',
-      'eggColor',
-      'eggCountEst',
-      'feedType',
-      'feedRatePctBw',
-      'mortalityPct',
-    ],
-    'finfish': [
-      'weightG',
-      'lengthMm',
-      'fcr',
-      'releaseCount',
-      'healthCertificateId',
     ],
   };
 
@@ -326,7 +268,6 @@ class CsvV2SpecExtensions {
     addAll(eventColumns);
     addAll(permitColumns);
     addAll(mrvColumns);
-    addAll(csrColumns);
     addAll(environmentalPanelColumns);
     addAll(['notes', 'photoUrl']);
     return ordered.toList(growable: false);

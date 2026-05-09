@@ -19,8 +19,8 @@ const auth = getAuth(app);
 
 const isDemoMode = process.argv.includes('--demo');
 
-const USER_EMAIL = isDemoMode ? 'pro@provenance.app' : 'dev@seafoundry.com';
-const ORG_ID = isDemoMode ? 'demo_org_pro' : '0X7z4AiZBbnKxcMWx5KJ';
+const USER_EMAIL = isDemoMode ? 'community@provenance.app' : 'dev@seafoundry.com';
+const ORG_ID = isDemoMode ? 'demo_org_community' : '0X7z4AiZBbnKxcMWx5KJ';
 
 async function simulateRulesCheck() {
   console.log('🔍 Simulating Firestore Security Rules Check (UID-based)\n');

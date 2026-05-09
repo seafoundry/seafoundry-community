@@ -57,7 +57,7 @@ class FiveAxisEducationWidget extends StatelessWidget {
             color: Colors.blue,
             title: '1. Taxonomy (does not ever change)',
             description: 'What organism type and species?',
-            example: 'Example: Coral - Acropora cervicornis, Kelp - Macrocystis pyrifera',
+            example: 'Example: Coral - Acropora cervicornis',
           ),
           const SizedBox(height: 16),
 

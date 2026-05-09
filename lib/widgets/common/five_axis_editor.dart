@@ -98,9 +98,9 @@ class _FiveAxisEditorState extends State<FiveAxisEditor> {
     final allowedTypes =
         widget.allowedProvenanceTypes ??
         const [
-          ProvenanceType.wild, // founder
-          ProvenanceType.sexualCohort, // cohort
-          ProvenanceType.graduatedIndividual, // sexual recruit
+          ProvenanceType.wild,
+          ProvenanceType.transfer,
+          ProvenanceType.unknown,
         ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

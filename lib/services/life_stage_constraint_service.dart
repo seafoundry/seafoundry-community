@@ -1,21 +1,16 @@
 // @tier: community
-import 'package:flutter/services.dart';
-import 'package:yaml/yaml.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
-import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Service for validating life stage compatibility with organism taxonomy.
 ///
-/// This service loads constraints from `config/life_stage_constraints.yaml` and provides
-/// validation methods to ensure data integrity across the 5-axis model.
+/// Constraint data is hardcoded as Dart constants (no YAML loading required).
 ///
 /// Per 5 Axis Overview: "Taxonomy determines which Life Stages are valid"
 ///
 /// Usage:
 /// ```dart
 /// final service = LifeStageConstraintService.instance;
-/// await service.initialize();
 ///
 /// final error = service.validateLifeStage(
 ///   OrganismKind.coral,
@@ -35,47 +30,25 @@ class LifeStageConstraintService {
 
   LifeStageConstraintService._internal();
 
-  bool _initialized = false;
-  Map<String, dynamic>? _config;
+  // ---------------------------------------------------------------------------
+  // Hardcoded constraint data (previously loaded from life_stage_constraints.yaml)
+  // ---------------------------------------------------------------------------
 
-  /// Initialize the service by loading the YAML configuration.
-  /// Should be called during app startup.
-  Future<void> initialize() async {
-    if (_initialized) return;
-
-    try {
-      final yamlString =
-          await rootBundle.loadString('config/life_stage_constraints.yaml');
-      final yaml = loadYaml(yamlString);
-      _config = _yamlToMap(yaml);
-      _initialized = true;
-    } catch (e) {
-      // If config fails to load, log but don't crash
-      // Fallback to no validation (allow all stages)
-      LoggingService.instance.warning(
-        'Failed to load life stage constraints config. All life stages will be allowed for all organisms.',
-        e,
-      );
-      _config = null;
-      _initialized = true; // Mark as initialized to avoid retry loops
-    }
-  }
-
-  /// Convert YamlMap to regular Map for easier access
-  dynamic _yamlToMap(dynamic yaml) {
-    if (yaml is YamlMap) {
-      return Map<String, dynamic>.fromEntries(
-        yaml.entries.map((entry) => MapEntry(
-              entry.key.toString(),
-              _yamlToMap(entry.value),
-            )),
-      );
-    } else if (yaml is YamlList) {
-      return yaml.map((item) => _yamlToMap(item)).toList();
-    } else {
-      return yaml;
-    }
-  }
+  static const _organismConstraints = <String, Map<String, dynamic>>{
+    'coral': {
+      'allowed_stages': [
+        'unknown',
+        'gamete',
+        'embryo',
+        'larva',
+        'juvenile',
+        'adult',
+        'broodstock',
+      ],
+      'error_message':
+          "Life stage '{stage}' is not valid for coral. Valid stages: unknown, gamete, embryo, larva, juvenile, adult, broodstock",
+    },
+  };
 
   /// Validate life stage compatibility with organism taxonomy.
   ///
@@ -92,16 +65,12 @@ class LifeStageConstraintService {
     OrganismKind organismKind,
     LifeStage lifeStage,
   ) {
-    if (!_initialized || _config == null) {
-      return null; // No constraints loaded, allow all
-    }
-
-    final organismConstraints = getOrganismConstraints(organismKind);
-    if (organismConstraints == null || organismConstraints.isEmpty) {
+    final organismConstraint = getOrganismConstraints(organismKind);
+    if (organismConstraint == null || organismConstraint.isEmpty) {
       return null; // No constraints for this organism
     }
 
-    final allowedStages = _extractStageList(organismConstraints['allowed_stages']);
+    final allowedStages = _extractStageList(organismConstraint['allowed_stages']);
     if (allowedStages.isEmpty) {
       return null; // No constraints defined
     }
@@ -112,7 +81,7 @@ class LifeStageConstraintService {
     );
 
     if (!isAllowed) {
-      final errorTemplate = organismConstraints['error_message'] as String?;
+      final errorTemplate = organismConstraint['error_message'] as String?;
       if (errorTemplate != null) {
         return errorTemplate.replaceAll('{stage}', lifeStage.displayName);
       }
@@ -125,16 +94,12 @@ class LifeStageConstraintService {
 
   /// Get list of valid life stages for an organism kind
   List<LifeStage> getValidLifeStages(OrganismKind organismKind) {
-    if (!_initialized || _config == null) {
-      return LifeStage.values; // No constraints, all stages valid
-    }
-
-    final organismConstraints = getOrganismConstraints(organismKind);
-    if (organismConstraints == null || organismConstraints.isEmpty) {
+    final organismConstraint = getOrganismConstraints(organismKind);
+    if (organismConstraint == null || organismConstraint.isEmpty) {
       return LifeStage.values; // No constraints for this organism
     }
 
-    final allowedStageNames = _extractStageList(organismConstraints['allowed_stages']);
+    final allowedStageNames = _extractStageList(organismConstraint['allowed_stages']);
     if (allowedStageNames.isEmpty) {
       return LifeStage.values; // No constraints defined
     }
@@ -151,7 +116,7 @@ class LifeStageConstraintService {
     return validStages.isEmpty ? LifeStage.values : validStages;
   }
 
-  /// Extract stage list from YAML structure
+  /// Extract stage list from structure
   List<String> _extractStageList(dynamic stages) {
     if (stages is List) {
       return stages.map((s) => s.toString()).toList();
@@ -181,17 +146,6 @@ class LifeStageConstraintService {
 
   /// Get all constraints for a specific organism kind (for debugging/UI)
   Map<String, dynamic>? getOrganismConstraints(OrganismKind organismKind) {
-    if (!_initialized || _config == null) return null;
-    final constraints = _config?['organism_constraints'];
-    return constraints?[organismKind.name];
-  }
-
-  /// Check if service is initialized
-  bool get isInitialized => _initialized;
-
-  /// Reset service (primarily for testing)
-  void reset() {
-    _initialized = false;
-    _config = null;
+    return _organismConstraints[organismKind.name];
   }
 }

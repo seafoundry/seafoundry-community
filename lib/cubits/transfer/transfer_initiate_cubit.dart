@@ -8,7 +8,6 @@ import 'package:seafoundry_app/models/transfer_manifest.dart';
 import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 import 'package:seafoundry_app/repositories/organization_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/outplant_geometry_parser.dart';
 import 'package:seafoundry_app/services/transfer_service.dart';
 import 'package:seafoundry_app/utils/validation_utils.dart';
 
@@ -186,9 +185,7 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
     ProvenanceLifeStageSelection? initialProvenanceSelection,
     String? initialPhysicalFormId,
     SizeSpec? initialSizeSpec,
-    OutplantGeometryParser? geometryParser,
-  }) : _geometryParser = geometryParser ?? const OutplantGeometryParser(),
-       super(
+  }) : super(
          TransferInitiateState(
            recipientMode: _initialRecipientMode(originalEvent),
            recipientEmail: originalEvent?.toOrganizationEmail ?? '',
@@ -216,7 +213,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
   final OrganizationRepository organizationRepository;
   final String? sourceStructureUrlPath;
   final TransferEvent? originalEvent;
-  final OutplantGeometryParser _geometryParser;
 
   /// Sets the recipient mode (organization lookup vs email)
   void setRecipientMode(RecipientMode mode) {
@@ -441,11 +437,7 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
       if (transfer.manifest != null) {
         return TransferManifest.fromJson(transfer.manifest!);
       }
-      final payload = transfer.qrPayload;
-      if (payload == null || payload.isEmpty) {
-        return null;
-      }
-      return transferService.decodeManifestPayload(payload);
+      return null;
     } catch (e, stackTrace) {
       LoggingService.instance.error(
         'Failed to decode transfer manifest for ${transfer.id}',
@@ -470,11 +462,18 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
     }
 
     try {
-      final parsed = _geometryParser.parseManual(value);
+      final coordinates = _parseManualCoordinates(value);
+      final input = OutplantGeometryInput(
+        type: coordinates.length == 1
+            ? OutplantGeometryType.point
+            : OutplantGeometryType.polygon,
+        coordinates: coordinates,
+        source: OutplantGeometrySource.manual,
+      );
       emit(
         state.copyWith(
           geometryText: value,
-          geometryInput: parsed.input,
+          geometryInput: input,
           geometryValidationMessage: null,
         ),
       );
@@ -487,6 +486,32 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
         ),
       );
     }
+  }
+
+  /// Parses manually entered coordinate text (one lat,lng pair per line).
+  static List<GeoCoordinate> _parseManualCoordinates(String text) {
+    final lines = text
+        .split(RegExp(r'[\n\r]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) {
+      throw const FormatException('No coordinate pairs found.');
+    }
+    final coordinates = <GeoCoordinate>[];
+    for (final line in lines) {
+      final parts = line.split(RegExp(r'[,\s]+'));
+      if (parts.length < 2) {
+        throw FormatException('Invalid coordinate pair: "$line"');
+      }
+      final lat = double.tryParse(parts[0]);
+      final lng = double.tryParse(parts[1]);
+      if (lat == null || lng == null) {
+        throw FormatException('Non-numeric coordinate: "$line"');
+      }
+      coordinates.add(GeoCoordinate(latitude: lat, longitude: lng));
+    }
+    return coordinates;
   }
 
   static String _initialGeometryText(TransferEvent? event) {
@@ -506,7 +531,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
       type: geometry.type,
       coordinates: List<GeoCoordinate>.from(geometry.coordinates),
       source: geometry.source,
-      kmlAttachment: geometry.kmlAttachment,
     );
   }
 

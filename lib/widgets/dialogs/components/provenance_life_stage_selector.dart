@@ -158,7 +158,7 @@ class _ProvenanceLifeStageSelectorState
         .map(
           (type) => DropdownMenuItem<ProvenanceType>(
             value: type,
-            child: Text(type.metadata.displayName),
+            child: Text(type.displayName),
           ),
         )
         .toList();

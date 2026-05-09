@@ -2,9 +2,8 @@
 import 'package:seafoundry_app/models/events/event.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 
-/// An event that represents a specific activity with flexible parameters
-/// Used for tracking various activities like fragmentation steps, maintenance tasks,
-/// husbandry activities, etc.
+/// An event that represents a specific activity with flexible parameters.
+/// Used for tracking various activities like fragmentation steps, maintenance tasks, etc.
 class ActivityEvent extends Event {
   final String activityType;
   final String? description;
@@ -25,7 +24,6 @@ class ActivityEvent extends Event {
     required super.urlPath,
     required super.internalPath,
     required super.slug,
-    super.missionId,
     super.metadata,
     super.base,
   }) : super(eventTypeId: 'event_activity');
@@ -97,8 +95,6 @@ class ActivityEvent extends Event {
     String? organizationId,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     String? urlPath,
     String? internalPath,
     String? slug,
@@ -122,7 +118,6 @@ class ActivityEvent extends Event {
       urlPath: urlPath ?? this.urlPath,
       internalPath: internalPath ?? this.internalPath,
       slug: slug ?? this.slug,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,

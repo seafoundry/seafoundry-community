@@ -4,20 +4,17 @@
 - Use `FirebaseService` and `FirestoreCollectionResolver` for all Firestore access.
 - Keep taxonomy mutations inside `TaxonomyAdminService` and admin tabs; do not
   inline writes.
-- Use `TierGate` and `FeatureAccessService` for gating. Do not hide tabs without
-  a gate.
-- Sync conflict actions should go through `SyncConflictResolutionService`.
+- Tier handling is community-only (`Tier.fromString` normalizes legacy values).
 
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Verify onboarding supports non-coral setup and CSV import flows (`lib/screens/onboarding/organization_setup_page.dart`, `lib/screens/onboarding/data_import_page.dart`).
-- Billing/tier settings should align with `FeatureAccessService` and `PaymentService`.
+- Verify onboarding supports coral setup and CSV import flows.
+- Community tier only; no billing/payment features.
 
 ## Touchpoints
-- Admin UI: `lib/widgets/admin/`
-- Taxonomy tabs: `lib/screens/admin/taxonomy/tabs/`
-- Organization screen: `lib/screens/admin/organization_structure_screen.dart`
+- Organization node screen: `lib/screens/graph/organization_node_screen.dart`
+- Profile dialog: `lib/screens/admin/edit_organization_profile_dialog.dart`
 
 ## When Updating
 - Update `docs/architecture/taxonomy/README.md` and

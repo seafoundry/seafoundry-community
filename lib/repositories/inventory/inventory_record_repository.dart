@@ -1,40 +1,544 @@
 // @tier: community
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fbAuth;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
-import 'package:seafoundry_app/repositories/inventory/base_inventory_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
+import 'package:seafoundry_app/repositories/auth_error_suppression_mixin.dart';
+import 'package:seafoundry_app/services/firestore_recovery_service.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/snapshot_service.dart';
+import 'package:seafoundry_app/services/url_path_resolver.dart';
+import 'package:seafoundry_app/utils/stream_factory.dart';
+import 'package:seafoundry_app/widgets/repositories/registry/disposable.dart';
 
 abstract class InventoryRecordRepository<T extends InventoryRecord>
-    extends BaseInventoryRecordRepository<T> {
+    with AuthErrorSuppressionMixin
+    implements Disposable {
   InventoryRecordRepository({
-    required super.modelType,
-    required super.organization,
-    required super.user,
-    required this.eventRepository,
-    this.enforceAuth = true,
+    required this.modelType,
+    required this.organization,
+    required this.user,
+    required FirebaseFirestore firestore,
+    OrganismContext? organismContext,
+    EventRepository? eventRepository,
     SnapshotService? snapshotService,
-    required super.firestore,
-    super.organismContext,
-  }) : snapshotService =
-           snapshotService ?? SnapshotService(firestore: firestore);
+    this.enforceAuth = true,
+  }) : organismContext =
+           organismContext ?? OrganismContext.forKind(OrganismKind.coral),
+       db = firestore,
+       _eventRepository = eventRepository,
+       _snapshotService = snapshotService ??
+           (eventRepository != null
+               ? SnapshotService(firestore: firestore)
+               : null) {
+    // Certain model types use nested collections under organizations/{orgId}/
+    // This matches how demo data is seeded and provides better data isolation
+    if (_usesNestedCollection(modelType)) {
+      collectionRef = db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection(modelType.collectionPath);
+    } else {
+      collectionRef = db.collection(modelType.collectionPath);
+    }
+    _slugCountsRef = db
+        .collection(ModelType.organization.collectionPath)
+        .doc(organization.id)
+        .collection('slugCounts');
+  }
 
-  final EventRepository eventRepository;
-  final SnapshotService snapshotService;
+  /// Model types that use nested collections under organizations/{orgId}/
+  /// These are inventory records that benefit from being scoped to an organization
+  /// at the Firestore path level (in addition to the organizationId field)
+  static bool _usesNestedCollection(ModelType type) {
+    return type == ModelType.group ||
+        type == ModelType.organismRecord ||
+        type == ModelType.genet ||
+        type == ModelType.zone ||
+        type == ModelType.subplot;
+  }
+
+  final FirebaseFirestore db;
+  FirebaseFirestore get firestore => db;
+  final ModelType modelType;
+  final Organization organization;
+  final User user;
+  final OrganismContext organismContext;
   final bool enforceAuth;
+  late CollectionReference<Map<String, dynamic>> collectionRef;
+  late final CollectionReference<Map<String, dynamic>> _slugCountsRef;
+  final BehaviorSubject<List<T>> _collectionSubject = BehaviorSubject.seeded(
+    <T>[],
+  );
+
+  /// Backing field for [eventRepository]. Nullable because subclasses that
+  /// don't need event/snapshot support (e.g. EventRepository) omit it.
+  final EventRepository? _eventRepository;
+
+  /// Backing field for [snapshotService]. Auto-created from firestore when
+  /// [eventRepository] is provided and no explicit service is given.
+  final SnapshotService? _snapshotService;
+
+  /// The event repository for creating inventory events.
+  ///
+  /// Throws [StateError] if accessed on a repository that was constructed
+  /// without an [EventRepository].
+  EventRepository get eventRepository {
+    final repo = _eventRepository;
+    if (repo == null) {
+      throw StateError(
+        '$runtimeType was constructed without an EventRepository. '
+        'eventRepository is required for createRecord/moveRecord operations.',
+      );
+    }
+    return repo;
+  }
+
+  /// The snapshot service for creating before/after snapshots.
+  ///
+  /// Throws [StateError] if accessed on a repository that was constructed
+  /// without an [EventRepository] (and thus has no snapshot service).
+  SnapshotService get snapshotService {
+    final svc = _snapshotService;
+    if (svc == null) {
+      throw StateError(
+        '$runtimeType was constructed without a SnapshotService. '
+        'snapshotService is required for createRecord operations.',
+      );
+    }
+    return svc;
+  }
+
+  /// Subscription to the Firestore collection stream.
+  /// Non-final to allow resubscription during error recovery.
+  StreamSubscription<List<T>>? _collectionSubscription;
+  bool _initialized = false;
+  bool _isDisposed = false;
+
+  /// Completer-based mutex to prevent concurrent initialization.
+  /// When initialization is in progress, subsequent callers await this completer.
+  Completer<void>? _initializationCompleter;
+
+  @protected
+  bool shouldIncludeRecord(T record) {
+    return true;
+  }
+
+  /// Initializes the repository and begins streaming from Firestore.
+  ///
+  /// This method is idempotent and uses a completer-based mutex to prevent
+  /// race conditions when called concurrently from multiple callers.
+  /// Returns a Future that completes when initialization is done.
+  @mustCallSuper
+  Future<void> initialize() async {
+    // Already initialized - return immediately
+    if (_initialized) {
+      return;
+    }
+
+    // Initialization in progress - wait for it to complete
+    if (_initializationCompleter != null) {
+      return _initializationCompleter!.future;
+    }
+
+    // Start initialization with mutex
+    _initializationCompleter = Completer<void>();
+
+    try {
+      _subscribeToCollection();
+      _initialized = true;
+      _initializationCompleter!.complete();
+    } catch (e) {
+      // On error, allow retry by clearing the completer
+      _initializationCompleter!.completeError(e);
+      _initializationCompleter = null;
+      rethrow;
+    }
+  }
+
+  /// Subscribes to the Firestore collection stream.
+  ///
+  /// This method can be called multiple times for recovery purposes.
+  /// It cancels any existing subscription before creating a new one.
+  void _subscribeToCollection() {
+    // Cancel existing subscription if any (for recovery scenarios)
+    _collectionSubscription?.cancel();
+
+    _collectionSubscription = collectionQuery(collectionRef)
+        .snapshots()
+        .map((snapshot) {
+          final records = <T>[];
+          final errors = <DomainError>[];
+
+          for (final doc in snapshot.docs) {
+            try {
+              final record = RecordFactory.recordFromJson<T>(
+                doc.data() as Map<String, dynamic>,
+              );
+              if (!shouldIncludeRecord(record)) {
+                continue;
+              }
+              records.add(record);
+            } catch (e, stackTrace) {
+              final error = ErrorHandler.transformError(
+                e,
+                stackTrace: stackTrace,
+                context: 'Loading ${modelType.name} from Firestore',
+              );
+              errors.add(error);
+
+              // Log the error but continue processing other records
+              // error is always a DomainError from ErrorHandler.transformError
+              LoggingService.instance.logDomainError(
+                error,
+                context: 'Parsing ${modelType.name} document ${doc.id}',
+                stackTrace: stackTrace,
+              );
+            }
+          }
+
+          // If we have some valid records, emit them
+          // Errors are logged but don't prevent other records from loading
+          // Even if all records failed, return empty list to allow stream to continue
+          if (errors.isNotEmpty && records.isEmpty) {
+            LoggingService.instance.warning(
+              'All ${modelType.name} records failed to parse (${errors.length} errors). Returning empty list.',
+            );
+          }
+
+          return records;
+        })
+        .listen(
+          (records) {
+            if (_isDisposed || _collectionSubject.isClosed) {
+              return;
+            }
+            _collectionSubject.add(records);
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            _handleStreamError(error, stackTrace);
+          },
+        );
+  }
+
+  /// Handles stream errors, including recovery from Firestore internal errors.
+  void _handleStreamError(Object error, StackTrace stackTrace) {
+    if (_isDisposed || _collectionSubject.isClosed) {
+      return;
+    }
+    if (shouldSuppressAuthError(error)) {
+      _collectionSubscription?.cancel();
+      _collectionSubscription = null;
+      return;
+    }
+    final domainError = ErrorHandler.transformError(
+      error,
+      stackTrace: stackTrace,
+      context: 'Streaming ${modelType.name} collection',
+    );
+
+    LoggingService.instance.error(
+      'Stream error for ${modelType.name}',
+      domainError,
+    );
+
+    // Check if this is a Firestore internal assertion error
+    final recoveryService = FirestoreRecoveryService.instance;
+    if (recoveryService.isFirestoreInternalError(error)) {
+      LoggingService.instance.warning(
+        'Firestore internal error detected for ${modelType.name}, initiating recovery',
+      );
+
+      // Report error and register for recovery
+      recoveryService.reportError(
+        error: error,
+        repositoryType: '${modelType.name}Repository',
+        onReconnect: _subscribeToCollection,
+      );
+    }
+
+    // Add error to the subject so BLoCs can handle it
+    if (!_collectionSubject.isClosed) {
+      _collectionSubject.addError(domainError, stackTrace);
+    }
+  }
+
+  Stream<List<T>> get streamAll {
+    if (!_initialized) {
+      // Fire and forget - stream will emit once initialization completes.
+      // Using unawaited to make the async call explicit.
+      unawaited(initialize());
+    }
+    return _collectionSubject.stream;
+  }
+
+  Future<List<T>> getAll() async {
+    final snapshot = await collectionQuery(collectionRef).get();
+    final records = <T>[];
+    final errors = <DomainError>[];
+
+    for (final doc in snapshot.docs) {
+      try {
+        final data = doc.data() as Map<String, dynamic>;
+        final record = RecordFactory.recordFromJson<T>(data);
+        if (!shouldIncludeRecord(record)) {
+          continue;
+        }
+        records.add(record);
+      } catch (e, stackTrace) {
+        final error = ErrorHandler.transformError(
+          e,
+          stackTrace: stackTrace,
+          context: 'Fetching ${modelType.name} documents',
+        );
+        errors.add(error);
+        LoggingService.instance.logDomainError(
+          error,
+          context: 'Parsing ${modelType.name} document ${doc.id}',
+          stackTrace: stackTrace,
+        );
+      }
+    }
+
+    if (errors.isNotEmpty && records.isEmpty) {
+      LoggingService.instance.warning(
+        'InventoryRecordRepository.getAll: all ${modelType.name} records failed to parse (${errors.length}). Returning empty list.',
+      );
+    }
+
+    return records;
+  }
+
+  Query<Object?> collectionQuery(
+    CollectionReference<Map<String, dynamic>> collectionRef,
+  ) {
+    // Keep organization filter explicit for consistency across root and nested
+    // collection layouts.
+    return collectionRef.where('organizationId', isEqualTo: organization.id);
+  }
+
+  Future<String> nextSlugForModelType(ModelType modelType) async {
+    return nextSlugForBase(modelType.name);
+  }
+
+  /// Generates the next unique slug for a given base string.
+  ///
+  /// Uses Firestore transactions with exponential backoff retry to handle
+  /// contention when multiple concurrent operations try to increment the
+  /// same counter. This is common during batch operations or heavy usage.
+  Future<String> nextSlugForBase(String slugBase) async {
+    final slugCountRef = _slugCountsRef.doc(slugBase);
+    const maxRetries = 5;
+    const baseDelayMs = 100;
+
+    for (var attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        final result = await db.runTransaction((transaction) async {
+          // Use transaction.get() to ensure atomic read within transaction context
+          final snapshot = await transaction.get(slugCountRef);
+          int newCount = 1;
+          if (snapshot.exists) {
+            newCount = snapshot.get('count') + 1;
+          }
+          transaction.set(slugCountRef, {'count': newCount});
+          return '$slugBase$newCount';
+        });
+        return result;
+      } on FirebaseException catch (e, stackTrace) {
+        // Handle permission-denied errors with a clear message
+        if (e.code == 'permission-denied') {
+          LoggingService.instance.error(
+            'nextSlugForBase: Permission denied for slug transaction!\n'
+            '   - slugCountRef.path: ${slugCountRef.path}\n'
+            '   - organization.id: ${organization.id}\n'
+            '   - user.id: ${user.id}\n'
+            '   This likely means the membership doc at '
+            '/organizations/${organization.id}/members/${user.id} does not exist.',
+            e,
+            stackTrace,
+          );
+          throw RepositoryError(
+            message:
+                'Permission denied: Your account may not be properly '
+                'configured for this organization. Please sign out and sign '
+                'back in, or contact support if the issue persists.',
+            technicalDetails:
+                'Missing membership document for user ${user.id} '
+                'in organization ${organization.id}. '
+                'Path: /organizations/${organization.id}/members/${user.id}',
+            originalError: e,
+            stackTrace: stackTrace,
+            category: AppErrorCategory.permission,
+          );
+        }
+        // Retry on failed-precondition (transaction contention) with exponential backoff
+        if (e.code == 'failed-precondition' && attempt < maxRetries) {
+          // Exponential backoff with jitter: baseDelay * 2^attempt + random(0-100ms)
+          final delayMs =
+              (baseDelayMs * pow(2, attempt)).toInt() +
+              Random().nextInt(baseDelayMs);
+          LoggingService.instance.warning(
+            'nextSlugForBase: Transaction contention for $slugBase, '
+            'retry ${attempt + 1}/$maxRetries after ${delayMs}ms',
+          );
+          await Future<void>.delayed(Duration(milliseconds: delayMs));
+          continue;
+        }
+        // Non-retryable error or max retries exceeded
+        LoggingService.instance.error(
+          'nextSlugForBase: Transaction FAILED after ${attempt + 1} attempts!',
+          e,
+          stackTrace,
+        );
+        rethrow;
+      } catch (e, stackTrace) {
+        // Non-Firebase errors - don't retry
+        LoggingService.instance.error(
+          'nextSlugForBase: Transaction FAILED with non-Firebase error!',
+          e,
+          stackTrace,
+        );
+        rethrow;
+      }
+    }
+    // This should never be reached due to the rethrow above
+    throw StateError('nextSlugForBase: Unreachable code');
+  }
+
+  Future<T?> getRecordForId(String id) async {
+    final snapshot = await collectionRef.doc(id).get();
+    if (!snapshot.exists) return null;
+
+    final data = snapshot.data();
+    if (data == null) {
+      LoggingService.instance.warning(
+        'Document ${snapshot.id} exists but has null data',
+        {'collection': modelType.collectionPath, 'docId': snapshot.id},
+      );
+      return null;
+    }
+    return RecordFactory.recordFromJson<T>(data);
+  }
+
+  Stream<List<T>> streamRecordsForUrlPath(
+    String urlPath, {
+    bool shallow = false,
+  }) {
+    final normalizedUrlPath = UrlPathResolver.normalizePath(urlPath);
+    if (normalizedUrlPath.isEmpty) {
+      LoggingService.instance.warning(
+        '${modelType.name} streamRecordsForUrlPath called with empty urlPath; returning empty stream.',
+      );
+      return Stream<List<T>>.value(const []);
+    }
+
+    return streamAll
+        .map((recordList) {
+          final filtered = recordList.where((record) {
+            try {
+              // Skip records with missing/empty urlPath to avoid resolver errors.
+              final recordPath = UrlPathResolver.normalizePath(
+                record.urlPath,
+              );
+              if (recordPath.isEmpty) return false;
+
+              // Guard against cross-organization bleed. Prefer authoritative orgId
+              // when present on the record; fall back to urlPath prefix checks for
+              // older records that may not have organizationId populated.
+              final hasOrgId = record.organizationId.isNotEmpty;
+              if (hasOrgId && record.organizationId != organization.id) {
+                return false;
+              }
+
+              if (!hasOrgId) {
+                final orgPrefix = '${organization.slug}/';
+                if (!(recordPath == organization.slug ||
+                    recordPath.startsWith(orgPrefix))) {
+                  return false;
+                }
+              }
+
+              // Only include descendants, NOT exact matches (to avoid self-referencing)
+              // A record should not appear as its own child
+              final isDescendant = UrlPathResolver.isDescendantOf(
+                recordPath,
+                normalizedUrlPath,
+              );
+              // Apply shallow filter if needed
+              final shallowFilter = shallow
+                  ? UrlPathResolver.isChildOf(
+                      recordPath,
+                      normalizedUrlPath,
+                    )
+                  : true;
+              return isDescendant && shallowFilter;
+            } catch (e, stackTrace) {
+              LoggingService.instance.logDomainError(
+                ErrorHandler.transformError(
+                  e,
+                  stackTrace: stackTrace,
+                  context:
+                      'Filtering ${modelType.name} by urlPath "$urlPath" for record ${record.id}',
+                ),
+                context:
+                    'streamRecordsForUrlPath(${modelType.name}) filter failure',
+                stackTrace: stackTrace,
+              );
+              return false;
+            }
+          }).toList();
+
+          return filtered;
+        })
+        .toBroadcastIfNeeded(StreamType.children);
+  }
+
+  Future<List<T>> getRecordsForUrlPath(
+    String urlPath, {
+    bool shallow = false,
+  }) async => streamRecordsForUrlPath(urlPath, shallow: shallow).first;
+
+  Future<void> updateRecord(T record, {WriteBatch? batch}) async {
+    final payload = Map<String, dynamic>.from(record.toJson());
+    // Preserve immutable creation ownership on updates.
+    payload.remove('createdById');
+
+    if (batch != null) {
+      batch.update(collectionRef.doc(record.id), payload);
+    } else {
+      try {
+        await collectionRef.doc(record.id).update(payload);
+      } catch (e, stackTrace) {
+        LoggingService.instance.error(
+          'updateRecord FAILED for ${record.id}',
+          e,
+          stackTrace,
+        );
+        rethrow;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // createRecord / moveRecord — require eventRepository
+  // ---------------------------------------------------------------------------
 
   Future<T> createRecord(
     T partialRecord,
     GraphNodeRecord parent, {
     EventBaseParams base = const EventBaseParams(),
   }) async {
+    assert(_eventRepository != null,
+        'createRecord requires an EventRepository');
+
     if (enforceAuth) {
       String? authUid;
       var authAvailable = true;
@@ -135,7 +639,6 @@ abstract class InventoryRecordRepository<T extends InventoryRecord>
 
     try {
       await batch.commit();
-      LoggingService.instance.debug('InventoryRecordRepository.createRecord: batch commit succeeded!');
     } catch (e, stackTrace) {
       LoggingService.instance.error('InventoryRecordRepository.createRecord: batch commit FAILED!', e, stackTrace);
       rethrow;
@@ -158,6 +661,9 @@ abstract class InventoryRecordRepository<T extends InventoryRecord>
     String? moveReason,
     EventBaseParams base = const EventBaseParams(),
   }) async {
+    assert(_eventRepository != null,
+        'moveRecord requires an EventRepository');
+
     final now = DateTime.now().toIso8601String();
 
     // Detect if this is a partial move that requires splitting
@@ -347,5 +853,19 @@ abstract class InventoryRecordRepository<T extends InventoryRecord>
     );
 
     return newOrganism;
+  }
+
+  @override
+  @mustCallSuper
+  void dispose() {
+    if (_isDisposed) {
+      return;
+    }
+    _isDisposed = true;
+    _collectionSubscription?.cancel();
+    _collectionSubscription = null;
+    if (!_collectionSubject.isClosed) {
+      _collectionSubject.close();
+    }
   }
 }

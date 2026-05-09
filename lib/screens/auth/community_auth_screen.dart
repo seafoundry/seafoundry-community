@@ -1,8 +1,8 @@
-// @tier: pro
-// NOTE: This file is a template for community builds - copied and patched during sync
+// @tier: community
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/auth/auth.dart';
+import 'package:seafoundry_app/blocs/auth/auth_bloc.dart';
+import 'package:seafoundry_app/blocs/auth/auth_state.dart';
 import 'package:seafoundry_app/cubits/auth_form_cubit.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/theme/theme.dart';
@@ -208,7 +208,7 @@ class _CommunityAuthScreenState extends State<CommunityAuthScreen> {
         UIText.h3('SeaFoundry Community'),
         UI.spacingVerticalSm,
         UIText.bodyMedium(
-          'Open-source coral restoration tracking',
+          'Open-source marine aquaculture tracking',
           color: AppColors.textSecondary,
           textAlign: TextAlign.center,
         ),

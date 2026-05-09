@@ -1,9 +1,7 @@
 # Module Documentation Index
 
 This directory contains module-level README and CLAUDE docs.
-Keep it in sync with drawer modules in `lib/widgets/app_drawer.dart` and
-`lib/widgets/community_app_drawer.dart`, plus cross-cutting surfaces like
-community feed, settings, field work kit, and public screens.
+Community tier only, coral-only, web-only.
 
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
@@ -13,25 +11,12 @@ community feed, settings, field work kit, and public screens.
 
 ## Administration
 - Organization: [README](organization/README.md) | [CLAUDE](organization/CLAUDE.md)
-- Workforce: [README](workforce/README.md) | [CLAUDE](workforce/CLAUDE.md)
-- Reporting: [README](reporting/README.md) | [CLAUDE](reporting/CLAUDE.md)
 
 ## Core Modules
 - Inventory: [README](inventory/README.md) | [CLAUDE](inventory/CLAUDE.md)
-- Genetics: [README](genetics/README.md) | [CLAUDE](genetics/CLAUDE.md)
 - Outplanting: [README](outplanting/README.md) | [CLAUDE](outplanting/CLAUDE.md)
-- Monitoring: [README](monitoring/README.md) | [CLAUDE](monitoring/CLAUDE.md)
-
-## Pro and Scale Modules
-- Husbandry and Observations: [README](husbandry/README.md) | [CLAUDE](husbandry/CLAUDE.md)
-- Operations Hub: [README](operations/README.md) | [CLAUDE](operations/CLAUDE.md)
-- Training Library: [README](training/README.md) | [CLAUDE](training/CLAUDE.md)
-- SOP Builder: [README](sop_builder/README.md) | [CLAUDE](sop_builder/CLAUDE.md)
-- Sebastian AI: [README](sebastian_ai/README.md) | [CLAUDE](sebastian_ai/CLAUDE.md)
-- Sync Conflicts: [README](sync_conflicts/README.md) | [CLAUDE](sync_conflicts/CLAUDE.md)
 
 ## Additional Screens
-- Community Feed: [README](community_feed/README.md) | [CLAUDE](community_feed/CLAUDE.md)
 - Settings: [README](settings/README.md) | [CLAUDE](settings/CLAUDE.md)
 - Field Work Kit: [README](field_work_kit/README.md) | [CLAUDE](field_work_kit/CLAUDE.md)
 - Public Screens: [README](public/README.md) | [CLAUDE](public/CLAUDE.md)

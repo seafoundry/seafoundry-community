@@ -19,7 +19,7 @@ This document describes the repository patterns used in SeaFoundry. Understandin
 - Batch operation support
 - Custom query builders
 
-**Examples**: Brand profiles, beta signups, global configuration
+**Examples**: Brand profiles, global configuration
 
 ```dart
 class MyLookupRepository extends RepositoryBase<MyRecord> {
@@ -40,9 +40,9 @@ class MyLookupRepository extends RepositoryBase<MyRecord> {
 }
 ```
 
-### 2. BaseInventoryRecordRepository<T> - Org-Scoped Inventory
+### 2. InventoryRecordRepository<T> - Org-Scoped Inventory
 
-**Location**: `lib/repositories/inventory/base_inventory_record_repository.dart`
+**Location**: `lib/repositories/inventory/inventory_record_repository.dart`
 
 **Use when**:
 - Data is scoped to an organization
@@ -61,7 +61,7 @@ class MyLookupRepository extends RepositoryBase<MyRecord> {
 **Examples**: Sites, groups, organisms, genets, zones, events
 
 ```dart
-class MySiteRepository extends BaseInventoryRecordRepository<Site> {
+class MySiteRepository extends InventoryRecordRepository<Site> {
   MySiteRepository({
     required Organization organization,
     required User user,
@@ -122,7 +122,7 @@ These repositories implement their own patterns tailored to their domain needs r
 | Requirement | Pattern |
 |-------------|---------|
 | Global lookup data, no org scoping | RepositoryBase |
-| Org-scoped with urlPath hierarchy | BaseInventoryRecordRepository |
+| Org-scoped with urlPath hierarchy | InventoryRecordRepository |
 | Cross-type record access | RecordRepository |
 | Complex domain logic | Ad-hoc |
 
@@ -145,7 +145,7 @@ Used for better data isolation and security rule simplicity:
 
 ## Key Principles
 
-1. **Prefer BaseInventoryRecordRepository** for inventory data - it handles the complexity of org scoping, URL path filtering, and real-time updates.
+1. **Prefer InventoryRecordRepository** for inventory data - it handles the complexity of org scoping, URL path filtering, and real-time updates.
 
 2. **Never use RecordRepository singleton in production** - always inject via Provider.
 
@@ -157,6 +157,5 @@ Used for better data isolation and security rule simplicity:
 
 ## See Also
 
-- `lib/services/firestore_collection_resolver.dart` - Demo-aware collection paths
 - `lib/services/url_path_resolver.dart` - URL path normalization and hierarchy checks
 - `CLAUDE.md` - Overall architecture patterns and conventions

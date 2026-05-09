@@ -5,7 +5,6 @@ import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
-import 'package:seafoundry_app/utils/record_name_derived.dart';
 import 'package:seafoundry_app/utils/string_formatters.dart';
 import 'organism_creation_step_scroll_view.dart';
 
@@ -116,10 +115,7 @@ class ReviewStep extends StatelessWidget {
                     'Record Name',
                     state.recordName?.trim().isNotEmpty == true
                         ? state.recordName!.trim()
-                        : (RecordNameDerived.fromLocalId(
-                              state.effectiveLocalId,
-                            ) ??
-                            'Unknown'),
+                        : (state.effectiveLocalId ?? 'Unknown'),
                   ),
                   _buildReviewRow(
                     'Mode',
@@ -130,23 +126,6 @@ class ReviewStep extends StatelessWidget {
                       'Provenance Type',
                       provenanceTypeLabel,
                     ),
-                    if (state.provenanceType ==
-                        ProvenanceType.sexualCohort) ...[
-                      _buildReviewRow(
-                        'Sire Gamete',
-                        state.sireProvenanceId ?? 'Not set',
-                      ),
-                      _buildReviewRow(
-                        'Dam Gamete',
-                        state.damProvenanceId ?? 'Not set',
-                      ),
-                    ],
-                    if (state.provenanceType ==
-                        ProvenanceType.graduatedIndividual)
-                      _buildReviewRow(
-                        'Source Cohort',
-                        state.sourceCohortId ?? 'Not set',
-                      ),
                     if (state.provenanceType == ProvenanceType.transfer) ...[
                       _buildReviewRow(
                         'Source Organization',

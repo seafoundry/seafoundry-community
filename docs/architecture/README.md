@@ -20,14 +20,7 @@ This directory contains essential architectural reference documents for the SeaF
 |----------|-------------|
 | [MANAGEMENT_DIALOG_ARCHITECTURE.md](MANAGEMENT_DIALOG_ARCHITECTURE.md) | Management dialog pattern with mode enum delegation |
 | [EVENT_STREAM_PAGINATION.md](EVENT_STREAM_PAGINATION.md) | Event stream limits and pagination strategy |
-| [sebastian_ai.md](sebastian_ai.md) | Sebastian AI assistant architecture (Gemini integration) |
-| [taxonomy/README.md](taxonomy/README.md) | Multi-organism taxonomy architecture and five-axis model |
-
-## Tier Strategy
-
-| Document | Description |
-|----------|-------------|
-| [community_vs_pro_rfc.md](community_vs_pro_rfc.md) | RFC for Community/Pro/Scale tier strategy, entitlements, CI/CD |
+| [taxonomy/README.md](taxonomy/README.md) | Taxonomy architecture and five-axis model |
 
 ## Related Documentation
 

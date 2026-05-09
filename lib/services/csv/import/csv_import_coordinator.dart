@@ -8,7 +8,6 @@ import 'package:seafoundry_app/services/csv/import/csv_import_parser.dart';
 import 'package:seafoundry_app/services/csv/import/csv_import_version_utils.dart';
 import 'package:seafoundry_app/services/csv/import/importers/genetics_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/inventory_csv_importer.dart';
-import 'package:seafoundry_app/services/csv/import/importers/monitoring_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/outplant_allocations_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/outplant_consolidated_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/outplanting_csv_importer.dart';
@@ -32,7 +31,6 @@ class CsvImportCoordinator {
     required OutplantingCsvImporter outplantingImporter,
     required OutplantAllocationsCsvImporter outplantAllocationsImporter,
     required OutplantConsolidatedCsvImporter outplantConsolidatedImporter,
-    required MonitoringCsvImporter monitoringImporter,
     SpeciesRegistry? speciesRegistry,
   }) : _eventRepository = eventRepository,
        _versioningService = versioningService,
@@ -42,7 +40,6 @@ class CsvImportCoordinator {
        _outplantingImporter = outplantingImporter,
        _outplantAllocationsImporter = outplantAllocationsImporter,
        _outplantConsolidatedImporter = outplantConsolidatedImporter,
-       _monitoringImporter = monitoringImporter,
        _speciesRegistry =
            speciesRegistry ?? SpeciesRegistry.globalInstance ?? SpeciesRegistry();
 
@@ -54,7 +51,6 @@ class CsvImportCoordinator {
   final OutplantingCsvImporter _outplantingImporter;
   final OutplantAllocationsCsvImporter _outplantAllocationsImporter;
   final OutplantConsolidatedCsvImporter _outplantConsolidatedImporter;
-  final MonitoringCsvImporter _monitoringImporter;
   final SpeciesRegistry _speciesRegistry;
 
   Future<CSVImportResult> import({
@@ -151,12 +147,6 @@ class CsvImportCoordinator {
       case CsvTemplateKind.inventory:
       case CsvTemplateKind.inventoryMinimal:
       case CsvTemplateKind.inventoryCoral:
-      case CsvTemplateKind.inventoryOyster:
-      case CsvTemplateKind.inventoryKelp:
-      case CsvTemplateKind.inventorySeagrass:
-      case CsvTemplateKind.inventoryMangrove:
-      case CsvTemplateKind.inventoryFinfish:
-      case CsvTemplateKind.inventoryCrab:
         return _inventoryImporter.import(
           rows: translatedRows,
           validateOnly: validateOnly,
@@ -190,51 +180,6 @@ class CsvImportCoordinator {
           sourceName: sourceName,
           translationSummary: summary,
           totalRowCount: originalRowCount,
-        );
-      case CsvTemplateKind.monitoring:
-        return _monitoringImporter.import(
-          rows: translatedRows,
-          validateOnly: validateOnly,
-          metadata: effectiveMetadata,
-          sourceName: sourceName,
-          translationSummary: summary,
-          totalRowCount: originalRowCount,
-        );
-      case CsvTemplateKind.siteBaselines:
-        return CSVImportResult(
-          totalRows: originalRowCount,
-          successfulImports: 0,
-          errors: [
-            CSVImportError(
-              row: 0,
-              field: 'template',
-              value: templateKind.name,
-              message: 'Site baseline CSV imports are not supported.',
-            ),
-          ],
-          importedGenets: const [],
-          importedOrganisms: const [],
-          translationSummary: summary,
-        );
-      case CsvTemplateKind.husbandryObservations:
-      case CsvTemplateKind.husbandryTasks:
-        // Husbandry CSV import functionality has been removed
-        // Return error result instead of crashing
-        return CSVImportResult(
-          totalRows: originalRowCount,
-          successfulImports: 0,
-          errors: [
-            CSVImportError(
-              row: 0,
-              field: 'template',
-              value: templateKind.name,
-              message:
-                  'Husbandry CSV imports are not supported. Please use the in-app forms to create observations and tasks.',
-            ),
-          ],
-          importedGenets: const [],
-          importedOrganisms: const [],
-          translationSummary: summary,
         );
     }
   }

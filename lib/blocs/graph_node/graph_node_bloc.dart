@@ -12,7 +12,29 @@ import 'package:seafoundry_app/repositories/repositories.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/utils/stream_factory.dart';
 
-import 'graph_node_stream_adapter.dart';
+/// Bundle of streams that feed a [GraphNode]'s reactive state.
+class GraphNodeStreamBundle<T extends GraphNodeRecord> {
+  const GraphNodeStreamBundle({
+    required this.recordStream,
+    required this.childrenStream,
+    required this.eventsStream,
+    required this.shallowEventsStream,
+    required this.creatorStream,
+  });
+
+  final Stream<T?> recordStream;
+  final Stream<List<GraphNode>> childrenStream;
+  final Stream<List<Event>> eventsStream;
+  final Stream<List<Event>> shallowEventsStream;
+  final Stream<User?> creatorStream;
+
+  List<Stream<dynamic>> get subStreams => <Stream<dynamic>>[
+    recordStream,
+    childrenStream,
+    eventsStream,
+    creatorStream,
+  ];
+}
 
 /// Index constants for stream data tuple positions in [GraphNode].
 ///
@@ -252,17 +274,12 @@ abstract class GraphNode<T extends GraphNodeRecord>
 
   @protected
   GraphNodeStreamBundle<T> buildStreamBundle() {
-    final defaultBundle = GraphNodeStreamBundle<T>(
+    return GraphNodeStreamBundle<T>(
       recordStream: buildRecordStream(),
       childrenStream: buildDefaultChildrenStream(),
       eventsStream: buildEventsStream(),
       shallowEventsStream: buildShallowEventsStream(),
       creatorStream: buildCreatorStream(),
-    );
-
-    return graphRepository.streamAdapter.configureBundle(
-      node: this,
-      defaultBundle: defaultBundle,
     );
   }
 
@@ -401,8 +418,7 @@ abstract class GraphNode<T extends GraphNodeRecord>
 
     late final List<dynamic> data;
     try {
-      data = await graphRepository.streamAdapter
-          .combine(subStreams)
+      data = await CombineLatestStream.list(subStreams)
           .first
           .timeout(const Duration(seconds: 10));
     } on TimeoutException catch (error, stackTrace) {

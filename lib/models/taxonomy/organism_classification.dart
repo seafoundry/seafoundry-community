@@ -2,8 +2,7 @@
 import 'package:equatable/equatable.dart';
 
 /// Captures the taxonomic hierarchy for a species so we can group organisms
-/// with shared physical form/propagation patterns (e.g., sessile cnidarians vs
-/// finfish vs aquatic plants).
+/// with shared physical form/propagation patterns.
 class OrganismClassification extends Equatable {
   const OrganismClassification({
     this.kingdom,

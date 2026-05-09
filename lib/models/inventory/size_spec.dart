@@ -10,36 +10,26 @@ const _sizeSpecSentinel = Object();
 class SizeMetrics extends Equatable {
   const SizeMetrics({
     this.count,
-    this.volumeCm3,
-    this.tissueAreaCm2,
   });
 
   final int? count;
-  final double? volumeCm3;
-  final double? tissueAreaCm2;
 
   SizeMetrics copyWith({
     int? count,
-    double? volumeCm3,
-    double? tissueAreaCm2,
   }) {
     return SizeMetrics(
       count: count ?? this.count,
-      volumeCm3: volumeCm3 ?? this.volumeCm3,
-      tissueAreaCm2: tissueAreaCm2 ?? this.tissueAreaCm2,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       if (count != null) 'count': count,
-      if (volumeCm3 != null) 'volumeCm3': volumeCm3,
-      if (tissueAreaCm2 != null) 'tissueAreaCm2': tissueAreaCm2,
     };
   }
 
   @override
-  List<Object?> get props => [count, volumeCm3, tissueAreaCm2];
+  List<Object?> get props => [count];
 }
 
 /// Size specification with dual interpretation support.
@@ -73,8 +63,6 @@ class SizeSpec extends Equatable {
     this.volumeUnit,
     // Overrides for resolved metrics
     this.countOverride,
-    this.volumeCm3Override,
-    this.tissueAreaCm2Override,
   });
 
   /// Size class (xs, small, medium, large, xl) - categorical reference
@@ -100,10 +88,8 @@ class SizeSpec extends Equatable {
   /// Volume unit for density calculation (mL, L)
   final MeasurementUnit? volumeUnit;
 
-  /// Overrides for resolved metrics (count, volume cm^3, tissue area cm^2)
+  /// Override for resolved count metric
   final int? countOverride;
-  final double? volumeCm3Override;
-  final double? tissueAreaCm2Override;
 
   bool get isEmpty =>
       (sizeClass == null || sizeClass!.trim().isEmpty) &&
@@ -113,8 +99,6 @@ class SizeSpec extends Equatable {
       volumeAmount == null &&
       volumeUnit == null &&
       countOverride == null &&
-      volumeCm3Override == null &&
-      tissueAreaCm2Override == null &&
       sizeBandId == null;
 
   /// Returns true if this SizeSpec has size information (either sizeClass or measurements)
@@ -156,8 +140,6 @@ class SizeSpec extends Equatable {
     MeasurementUnit? volumeUnit,
     // Use Object? with sentinel to allow explicitly setting null
     Object? countOverride = _sizeSpecSentinel,
-    Object? volumeCm3Override = _sizeSpecSentinel,
-    Object? tissueAreaCm2Override = _sizeSpecSentinel,
   }) {
     return SizeSpec(
       sizeClass: sizeClass ?? this.sizeClass,
@@ -171,12 +153,6 @@ class SizeSpec extends Equatable {
       countOverride: countOverride == _sizeSpecSentinel
           ? this.countOverride
           : countOverride as int?,
-      volumeCm3Override: volumeCm3Override == _sizeSpecSentinel
-          ? this.volumeCm3Override
-          : volumeCm3Override as double?,
-      tissueAreaCm2Override: tissueAreaCm2Override == _sizeSpecSentinel
-          ? this.tissueAreaCm2Override
-          : tissueAreaCm2Override as double?,
     );
   }
 
@@ -198,10 +174,6 @@ class SizeSpec extends Equatable {
 
     // Metric overrides
     if (countOverride != null) json['countOverride'] = countOverride;
-    if (volumeCm3Override != null) json['volumeCm3Override'] = volumeCm3Override;
-    if (tissueAreaCm2Override != null) {
-      json['tissueAreaCm2Override'] = tissueAreaCm2Override;
-    }
 
     return json;
   }
@@ -222,8 +194,6 @@ class SizeSpec extends Equatable {
       volumeAmount: safeDouble(json['volumeAmount']),
       volumeUnit: MeasurementUnitX.tryParse(json['volumeUnit']?.toString()),
       countOverride: safeInt(json['countOverride']),
-      volumeCm3Override: safeDouble(json['volumeCm3Override']),
-      tissueAreaCm2Override: safeDouble(json['tissueAreaCm2Override']),
     );
   }
 
@@ -240,39 +210,19 @@ class SizeSpec extends Equatable {
     return MeasurementUnitX.tryParse(json['dimensionUnit']?.toString());
   }
 
-  /// Model-level 3-tier resolution for size metrics.
+  /// Model-level resolution for size metrics (count only).
   ///
-  /// Resolves metrics using the following priority chain:
-  ///   - **Tier 1**: Per-record override ([countOverride], [volumeCm3Override],
-  ///     [tissueAreaCm2Override])
-  ///   - **Tier 3**: YAML default from [sizeBand] config (defaultCount,
-  ///     defaultVolumeCm3, defaultTissueAreaCm2)
-  ///   - **Tier 4**: Legacy mm3 conversion ([SizeBandConfig.volumeMm3] / 1000)
-  ///
-  /// **Tier 2 (org admin overrides)** is intentionally omitted here because
-  /// models should not depend on services. [SizeMetricsResolver] in the service
-  /// layer adds tier 2 via [OrgSizeOverridesService], providing the full 4-tier
-  /// chain. Use this method in contexts where org overrides are unavailable
-  /// (e.g., pure model logic, offline fallback, or display-only paths).
+  /// Resolves count using the following priority chain:
+  ///   - **Tier 1**: Per-record override ([countOverride])
+  ///   - **Tier 2**: YAML default from [sizeBand] config (defaultCount,
+  ///     estimatedIndividuals)
   SizeMetrics resolvedMetrics({SizeBandConfig? sizeBand}) {
     final resolvedCount =
         countOverride ?? sizeBand?.defaultCount ?? sizeBand?.estimatedIndividuals;
-    final resolvedVolume =
-        volumeCm3Override ?? sizeBand?.defaultVolumeCm3 ?? _convertFromMm3(sizeBand?.volumeMm3);
-    final resolvedTissueArea =
-        tissueAreaCm2Override ?? sizeBand?.defaultTissueAreaCm2;
 
     return SizeMetrics(
       count: resolvedCount,
-      volumeCm3: resolvedVolume,
-      tissueAreaCm2: resolvedTissueArea,
     );
-  }
-
-  double? _convertFromMm3(double? mm3) {
-    if (mm3 == null) return null;
-    // 1 cubic centimeter = 1000 cubic millimeters
-    return mm3 / 1000.0;
   }
 
   @override
@@ -285,7 +235,5 @@ class SizeSpec extends Equatable {
         volumeAmount,
         volumeUnit,
         countOverride,
-        volumeCm3Override,
-        tissueAreaCm2Override,
       ];
 }

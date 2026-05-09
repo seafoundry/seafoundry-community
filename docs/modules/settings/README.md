@@ -3,8 +3,7 @@
 Organization settings dialog focused on public brand profile and links.
 
 ## Entry Points
-- `lib/widgets/dialogs/settings_dialog.dart`
-- `lib/widgets/dialogs/site_settings_dialog.dart`
+- `lib/screens/admin/edit_organization_profile_dialog.dart`
 
 ## Key UI and State
 - Brand profile fields (hero image, logo, accent color, social links).
@@ -24,8 +23,7 @@ Organization settings dialog focused on public brand profile and links.
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Upgrade/billing surfaces should route to correct tier URLs and IAP flows.
-- Feature flag config should align with `config/features.yaml` and `config/tier_features.yaml`.
+- Community tier only; upgrade surfaces show external URL, no in-app billing.
 
 ## Related Docs
 - `docs/api/public_read_models.md`

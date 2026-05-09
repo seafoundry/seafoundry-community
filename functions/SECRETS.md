@@ -4,20 +4,10 @@ This document explains how to configure secrets for Firebase Cloud Functions.
 
 ## Required Secrets
 
-### GEMINI_API_KEY
-**Purpose**: API key for Google Gemini AI service (used by Sebastian AI assistant)
-
-**Required by**: `sebastianChat` Cloud Function
-
 ### RESEND_API_KEY
 **Purpose**: API key for Resend email service (invitation emails)
 
 **Required by**: `sendInvitationEmail`, `resendInvitationEmail` Cloud Functions
-
-### STRIPE_SECRET_KEY
-**Purpose**: Secret key for Stripe API (billing portal + checkout sessions)
-
-**Required by**: `createCustomerPortalSession` Cloud Function
 
 ## Production Setup
 
@@ -29,14 +19,8 @@ To configure secrets for production deployment:
 # Navigate to functions directory
 cd functions
 
-# Set the Gemini API key
-firebase functions:secrets:set GEMINI_API_KEY
-
 # Set the Resend API key
 firebase functions:secrets:set RESEND_API_KEY
-
-# Set the Stripe API key
-firebase functions:secrets:set STRIPE_SECRET_KEY
 ```
 
 You will be prompted to enter the secret value. The secret will be encrypted and stored securely in Google Cloud Secret Manager.
@@ -46,9 +30,7 @@ You will be prompted to enter the secret value. The secret will be encrypted and
 To list all configured secrets:
 
 ```bash
-firebase functions:secrets:access GEMINI_API_KEY
 firebase functions:secrets:access RESEND_API_KEY
-firebase functions:secrets:access STRIPE_SECRET_KEY
 ```
 
 ### Updating Secrets
@@ -56,14 +38,12 @@ firebase functions:secrets:access STRIPE_SECRET_KEY
 To update an existing secret:
 
 ```bash
-firebase functions:secrets:set GEMINI_API_KEY
 firebase functions:secrets:set RESEND_API_KEY
-firebase functions:secrets:set STRIPE_SECRET_KEY
 ```
 
 ### Granting Access
 
-Secrets are automatically made available to functions that declare them in their configuration. The `sebastianChat` function includes `secrets: [geminiApiKey]`, the invitation email functions include `secrets: [resendApiKey]`, and the billing portal function includes `secrets: [stripeSecretKey]`.
+Secrets are automatically made available to functions that declare them in their configuration. The invitation email functions include `secrets: [resendApiKey]`.
 
 ## Local Development Setup
 
@@ -77,14 +57,10 @@ For local development and testing:
 
 2. **Add the secret**:
    ```
-   GEMINI_API_KEY=your-actual-gemini-api-key-here
    RESEND_API_KEY=your-actual-resend-api-key-here
-   STRIPE_SECRET_KEY=your-stripe-secret-key-here
    ```
 
 3. **Security**: The `.env` file is gitignored and should NEVER be committed to version control.
-
-4. **Get an API key**: Obtain a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 
 ## Deployment
 
@@ -93,23 +69,11 @@ When deploying functions that use secrets:
 ```bash
 # Deploy all functions (secrets must be set first)
 firebase deploy --only functions
-
-# Deploy specific function
-firebase deploy --only functions:sebastianChat
 ```
 
 If a secret is missing during deployment, you'll see an error message. Set the secret using the production setup commands above.
 
 ## Troubleshooting
-
-### Error: "GEMINI_API_KEY secret is not configured"
-
-**Cause**: The secret has not been set in Firebase Secret Manager
-
-**Solution**:
-```bash
-firebase functions:secrets:set GEMINI_API_KEY
-```
 
 ### Error: "RESEND_API_KEY secret is not configured"
 
@@ -120,22 +84,13 @@ firebase functions:secrets:set GEMINI_API_KEY
 firebase functions:secrets:set RESEND_API_KEY
 ```
 
-### Error: "STRIPE_SECRET_KEY secret is not configured"
-
-**Cause**: The secret has not been set in Firebase Secret Manager
-
-**Solution**:
-```bash
-firebase functions:secrets:set STRIPE_SECRET_KEY
-```
-
 ### Local Function Returns "Secret not configured" Error
 
 **Cause**: Missing or incorrect `.env` file in functions directory
 
 **Solution**:
 1. Ensure `.env` file exists at `/functions/.env`
-2. Verify it contains: `GEMINI_API_KEY=your-key-here`
+2. Verify it contains: `RESEND_API_KEY=your-key-here`
 3. Restart the Firebase emulator if running
 
 ### Permission Denied When Accessing Secrets
@@ -156,9 +111,7 @@ gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
 
 **Solution**: Set all required secrets before deploying:
 ```bash
-firebase functions:secrets:set GEMINI_API_KEY
 firebase functions:secrets:set RESEND_API_KEY
-firebase functions:secrets:set STRIPE_SECRET_KEY
 firebase deploy --only functions
 ```
 
@@ -175,4 +128,3 @@ firebase deploy --only functions
 
 - [Firebase Functions Secrets Documentation](https://firebase.google.com/docs/functions/config-env#secret-manager)
 - [Google Cloud Secret Manager](https://cloud.google.com/secret-manager/docs)
-- [Google AI Studio](https://makersuite.google.com/)

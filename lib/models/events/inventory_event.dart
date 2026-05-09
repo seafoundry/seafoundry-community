@@ -17,7 +17,6 @@ abstract class InventoryEvent extends Event with SnapshotEvent {
     required super.urlPath,
     required super.internalPath,
     required super.slug,
-    super.missionId,
     super.metadata,
     super.base,
     required this.snapshot,

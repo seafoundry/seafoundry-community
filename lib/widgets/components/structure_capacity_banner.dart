@@ -1,7 +1,7 @@
 // @tier: community
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/services/structure_capacity_service.dart';
-import 'package:seafoundry_app/theme/colors.dart';
+import 'package:seafoundry_app/theme/app_colors.dart';
 
 class StructureCapacityBanner extends StatelessWidget {
   const StructureCapacityBanner({

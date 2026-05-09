@@ -1,4 +1,4 @@
-// @tier: pro
+// @tier: community
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/cubits/navigation/navigation_cubit.dart';
@@ -220,7 +220,7 @@ class NavigationRouterDelegate extends RouterDelegate<String>
 
   @override
   Future<bool> popRoute() async {
-    // First check if the Navigator has routes to pop (e.g., pushed screens like Training, SOP)
+    // First check if the Navigator has routes to pop (e.g., pushed screens)
     final navigatorState = _navigatorKey.currentState;
     if (navigatorState != null && navigatorState.canPop()) {
       LoggingService.instance.debug(

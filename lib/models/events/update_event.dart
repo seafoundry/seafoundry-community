@@ -24,7 +24,6 @@ class UpdateEvent extends Event {
     required super.urlPath,
     required super.internalPath,
     required super.slug,
-    super.missionId,
     super.metadata,
     super.base,
   }) : super(eventTypeId: EventType.update.id);
@@ -91,8 +90,6 @@ class UpdateEvent extends Event {
     String? eventTypeId,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     String? urlPath,
     String? internalPath,
     String? slug,
@@ -115,7 +112,6 @@ class UpdateEvent extends Event {
       urlPath: urlPath ?? this.urlPath,
       internalPath: internalPath ?? this.internalPath,
       slug: slug ?? this.slug,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,

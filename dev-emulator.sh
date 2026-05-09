@@ -1,15 +1,15 @@
 #!/bin/bash
 # Development script to run the app with Firebase Emulators
-# This bypasses all Firebase authentication domain issues for local development
+# Seeds community-tier demo data for local development
 
 set -e
 
-echo "🔥 Starting Firebase Emulators..."
+echo "Starting Firebase Emulators..."
 
 # Check if emulators are already running
 EMULATORS_ALREADY_RUNNING=false
 if lsof -Pi :9555 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "✅ Firebase Emulators are already running"
+    echo "Firebase Emulators are already running"
     EMULATORS_ALREADY_RUNNING=true
 else
     echo "Starting emulators in background..."
@@ -22,10 +22,10 @@ else
     sleep 5
 
     if ! lsof -Pi :9555 -sTCP:LISTEN -t >/dev/null 2>&1; then
-        echo "❌ Failed to start emulators. Check firebase-emulator.log for details."
+        echo "Failed to start emulators. Check firebase-emulator.log for details."
         exit 1
     fi
-    echo "✅ Firebase Emulators started successfully"
+    echo "Firebase Emulators started successfully"
 fi
 
 # Ensure seed scripts target the emulator (admin SDK uses these env vars)
@@ -33,19 +33,16 @@ export FIRESTORE_EMULATOR_HOST=localhost:58080
 export FIREBASE_AUTH_EMULATOR_HOST=localhost:9555
 export FIREBASE_STORAGE_EMULATOR_HOST=localhost:59199
 
-# Seed demo data (all tiers) + training content
+# Seed community demo data
 if [ "$EMULATORS_ALREADY_RUNNING" = false ]; then
     echo ""
-    echo "📦 Seeding demo data..."
-    echo "   Seeding Community, Pro, and Scale tiers..."
-    node scripts/seed-demo.js --seed-all-tiers --reset
-    echo "   Seeding training media + SOPs..."
-    npm run seed:training --silent
-    echo "✅ Demo data seeded successfully"
+    echo "Seeding community demo data..."
+    node scripts/seed-demo.js --reset
+    echo "Demo data seeded successfully"
 fi
 
 echo ""
-echo "🚀 Starting Flutter app with emulator connection..."
+echo "Starting Flutter app with emulator connection..."
 echo "   Auth Emulator: http://localhost:9555"
 echo "   Firestore Emulator: http://localhost:58080"
 echo "   Storage Emulator: http://localhost:59199"

@@ -49,7 +49,7 @@ enum CsvV2LifeStage {
 }
 
 /// Enumerates supported measurement units. These groupings enable validation
-/// rules (e.g., kelp biomass must be in kg/m, finfish length in mm, etc.).
+/// rules for organism-specific measurements.
 enum CsvV2MeasurementUnitCategory {
   count,
   length,
@@ -115,7 +115,7 @@ class CsvV2Spec {
   ];
 
   /// 3-field measurement metrics columns for detailed organism measurements.
-  /// These are enabled/disabled per physical form via organism_physical_forms.yaml.
+  /// These are enabled/disabled per physical form via PhysicalFormRegistry.
   static const List<String> metricsColumns = [
     'metricsCount',      // Number of individuals (int?)
     'metricsVolumeCm3', // Volume in cubic centimeters (double?)
@@ -158,14 +158,6 @@ class CsvV2Spec {
     'permanenceRiskScore',
   ];
 
-  static const List<String> csrColumns = [
-    'volunteerHours',
-    'trainingHours',
-    'credentialId',
-    'irisMetricIds[]',
-    'sdgTargets[]',
-  ];
-
   static const List<String> environmentalPanelColumns = [
     'environmentalPanel.temperatureC',
     'environmentalPanel.salinityPsu',
@@ -186,57 +178,6 @@ class CsvV2Spec {
       CsvV2LifeStage.colony,
       CsvV2LifeStage.fragment,
     ],
-    OrganismKind.oyster: [
-      CsvV2LifeStage.larvae,
-      CsvV2LifeStage.spat,
-      CsvV2LifeStage.growOut,
-      CsvV2LifeStage.reef,
-    ],
-    OrganismKind.seagrass: [
-      CsvV2LifeStage.seed,
-      CsvV2LifeStage.shoot,
-      CsvV2LifeStage.plot,
-    ],
-    OrganismKind.kelp: [
-      CsvV2LifeStage.spore,
-      CsvV2LifeStage.seededTwine,
-      CsvV2LifeStage.longline,
-      CsvV2LifeStage.harvest,
-    ],
-    OrganismKind.mangrove: [
-      CsvV2LifeStage.propagule,
-      CsvV2LifeStage.nursery,
-      CsvV2LifeStage.sapling,
-      CsvV2LifeStage.adult,
-    ],
-    OrganismKind.echinoid: [
-      CsvV2LifeStage.broodstock,
-      CsvV2LifeStage.larvae,
-      CsvV2LifeStage.juvenile,
-      CsvV2LifeStage.adult,
-    ],
-    OrganismKind.crab: [
-      CsvV2LifeStage.broodstock,
-      CsvV2LifeStage.larvae,
-      CsvV2LifeStage.zoea,
-      CsvV2LifeStage.megalopa,
-      CsvV2LifeStage.juvenile,
-      CsvV2LifeStage.adult,
-    ],
-    OrganismKind.finfish: [
-      CsvV2LifeStage.egg,
-      CsvV2LifeStage.larvae,
-      CsvV2LifeStage.fry,
-      CsvV2LifeStage.fingerling,
-      CsvV2LifeStage.juvenile,
-      CsvV2LifeStage.adult,
-    ],
-    OrganismKind.seaCucumber: [
-      CsvV2LifeStage.broodstock,
-      CsvV2LifeStage.larvae,
-      CsvV2LifeStage.juvenile,
-      CsvV2LifeStage.adult,
-    ],
   };
 
   /// Organism-specific metric columns (subset used by validation + UI).
@@ -247,43 +188,5 @@ class CsvV2Spec {
       'partialMortalityPct',
       'benthicCoverPct',
     ],
-    OrganismKind.oyster: [
-      'shellHeightMm',
-      'oysterDensityPerM2',
-      'reefAreaM2',
-      'reefHeightCm',
-    ],
-    OrganismKind.seagrass: [
-      'shootDensityPerM2',
-      'coverPctOrClass',
-      'secchiDepthM',
-    ],
-    OrganismKind.kelp: [
-      'lineBiomassKgPerM',
-      'bladeLengthCm',
-      'foulingIndex05',
-      'grazingDamageIndex',
-    ],
-    OrganismKind.mangrove: ['dbhCm', 'heightCm', 'survivalPct'],
-    OrganismKind.echinoid: ['densityPerM2'],
-    OrganismKind.crab: [
-      'carapaceWidthMm',
-      'weightG',
-      'moltStage',
-      'eggsVisibleBool',
-      'eggColor',
-      'eggCountEst',
-      'feedType',
-      'feedRatePctBw',
-      'mortalityPct',
-    ],
-    OrganismKind.finfish: [
-      'lengthMm',
-      'weightG',
-      'fcr',
-      'releaseCount',
-      'healthCertificateId',
-    ],
-    OrganismKind.seaCucumber: ['lengthMm', 'weightG', 'mortalityPct'],
   };
 }

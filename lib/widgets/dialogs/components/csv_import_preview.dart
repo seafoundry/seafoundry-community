@@ -29,12 +29,7 @@ class CsvImportPreview extends StatelessWidget {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 16),
-        if (templateKind == CsvTemplateKind.monitoring)
-          const Text(
-            'Every row can create a new site-level monitoring record or update an existing monitoring event using its event ID.',
-          )
-        else
-          Text(
+        Text(
             'Validate your CSV first to review proposed changes, then apply them once you are ready.',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
@@ -188,8 +183,6 @@ class CsvImportPreview extends StatelessWidget {
     final schema = CsvSchemas.schemaForKind(kind);
     final sample = <String>[
       'provenance_csv_version,${schema.version}',
-      if (kind == CsvTemplateKind.monitoring)
-        'provenance_csv_template,${kind.name}',
       'org_domain,your-org-domain',
       schema.allColumns.join(','),
     ].join('\n');

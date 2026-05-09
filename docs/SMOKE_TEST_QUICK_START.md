@@ -21,7 +21,7 @@ firebase --version
 firebase emulators:start --only auth,firestore,storage
 
 # 2. Seed demo data (in terminal 2)
-npm run seed:demo:pro -- --reset
+npm run seed:demo
 npm run seed:taxonomy:emulator
 
 # 3. Run all smoke tests (in terminal 2)
@@ -44,7 +44,7 @@ See detailed checklist in `/docs/SMOKE_TEST_CHECKLIST.md`
 firebase emulators:start --only auth,firestore,storage,ui
 
 # 2. Seed demo data
-npm run seed:demo:pro -- --reset
+npm run seed:demo
 
 # 3. Run app against emulators
 npm run flutter:run:web
@@ -114,7 +114,7 @@ Total Tests: 20
 
 ```
 ⚠️  No demo sites found
-   Warning: Run: npm run seed:demo:pro -- --reset
+   Warning: Run: npm run seed:demo
 ```
 
 ### Failure Example
@@ -143,8 +143,8 @@ firebase emulators:start --only auth,firestore,storage
 **Fix**:
 ```bash
 # Seed demo data
-npm run seed:demo:pro -- --reset
-npm run seed:demo:community -- --reset
+npm run seed:demo
+npm run seed:demo
 npm run seed:taxonomy:emulator
 ```
 
@@ -174,14 +174,11 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 \
   node scripts/verify-permissions.js --email="your.email@example.com"
 ```
 
-### Test Specific Demo Tier
+### Test Demo Mode
 
 ```bash
-# Test community tier
-npm run test:smoke:demo -- --demo-tier=community
-
-# Test pro tier
-npm run test:smoke:demo -- --demo-tier=pro
+# Test community tier (community build only supports community tier)
+npm run test:smoke:demo
 ```
 
 ### Verbose Output
@@ -192,29 +189,10 @@ FIRESTORE_EMULATOR_HOST=localhost:58080 \
   node scripts/verify-permissions.js --verbose
 ```
 
-## CI/CD Integration
-
-Add to your CI pipeline:
-
-```yaml
-# .github/workflows/firestore-permissions-tests.yml
-- name: Start Firebase Emulators
-  run: firebase emulators:start --only auth,firestore,storage &
-
-- name: Seed Test Data
-  run: |
-    npm run seed:demo:pro -- --reset
-    npm run seed:taxonomy:emulator
-
-- name: Run Smoke Tests
-  run: npm run test:smoke
-```
-
 ## Documentation
 
 - **Full Checklist**: `/docs/SMOKE_TEST_CHECKLIST.md`
 - **Verification Script**: `/scripts/verify-permissions.js`
-- **Remediation Plan**: `/.github/issues/firestore-permissions-remediation-plan.md`
 - **Identity Scheme**: `/docs/architecture/identity_scheme.md`
 
 ## Next Steps After Phase 3-B1

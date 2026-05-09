@@ -21,7 +21,6 @@ class TransferEvent extends Event {
   final Map<String, dynamic>? manifest;
   final String? manifestVersion;
   final String? manifestChecksum;
-  final String? qrPayload;
   final String? shippedAt;
   final String? shippedById;
   final String? receivedAt;
@@ -40,7 +39,6 @@ class TransferEvent extends Event {
     required super.urlPath,
     required super.internalPath,
     required super.slug,
-    super.missionId,
     super.metadata,
     required super.recordModelType,
     EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
@@ -58,7 +56,6 @@ class TransferEvent extends Event {
     this.manifest,
     this.manifestVersion,
     this.manifestChecksum,
-    this.qrPayload,
     this.shippedAt,
     this.shippedById,
     this.receivedAt,
@@ -89,7 +86,6 @@ class TransferEvent extends Event {
           : null,
       manifestVersion = json['manifestVersion'] as String?,
       manifestChecksum = json['manifestChecksum'] as String?,
-      qrPayload = json['qrPayload'] as String?,
       shippedAt = _timestampToString(json['shippedAt']),
       shippedById = json['shippedById'] as String?,
       receivedAt = _timestampToString(json['receivedAt']),
@@ -240,7 +236,6 @@ class TransferEvent extends Event {
           : null,
       manifestVersion = json['manifestVersion'] as String?,
       manifestChecksum = json['manifestChecksum'] as String?,
-      qrPayload = json['qrPayload'] as String?,
       shippedAt = _timestampToString(json['shippedAt']),
       shippedById = json['shippedById'] as String?,
       receivedAt = _timestampToString(json['receivedAt']),
@@ -274,7 +269,6 @@ class TransferEvent extends Event {
       'manifest': manifest,
       'manifestVersion': manifestVersion,
       'manifestChecksum': manifestChecksum,
-      'qrPayload': qrPayload,
       'shippedAt': shippedAt,
       'shippedById': shippedById,
       'receivedAt': receivedAt,
@@ -305,8 +299,6 @@ class TransferEvent extends Event {
     String? organizationId,
     String? eventTypeId,
     String? recordId,
-    String? missionId,
-    bool clearMissionId = false,
     String? urlPath,
     String? internalPath,
     String? slug,
@@ -323,7 +315,6 @@ class TransferEvent extends Event {
     Map<String, dynamic>? manifest,
     String? manifestVersion,
     String? manifestChecksum,
-    String? qrPayload,
     String? shippedAt,
     String? shippedById,
     String? receivedAt,
@@ -345,7 +336,6 @@ class TransferEvent extends Event {
       urlPath: urlPath ?? this.urlPath,
       internalPath: internalPath ?? this.internalPath,
       slug: slug ?? this.slug,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,
@@ -365,7 +355,6 @@ class TransferEvent extends Event {
       manifest: manifest ?? this.manifest,
       manifestVersion: manifestVersion ?? this.manifestVersion,
       manifestChecksum: manifestChecksum ?? this.manifestChecksum,
-      qrPayload: qrPayload ?? this.qrPayload,
       shippedAt: shippedAt ?? this.shippedAt,
       shippedById: shippedById ?? this.shippedById,
       receivedAt: receivedAt ?? this.receivedAt,

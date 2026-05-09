@@ -30,7 +30,6 @@ abstract class GraphLoadedState<T extends GraphNodeRecord> extends GraphNodeStat
   final User? creator;
 
   List<EventType> get eventTypes;
-  List<StatusEvent> get statusEvents => events.whereType<StatusEvent>().toList();
 
   @mustBeOverridden
   GraphNodeState<T> copyWith({T? record, List<GraphNode>? children, List<Event>? events, User? creator});

@@ -4,7 +4,7 @@ import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
 import 'package:seafoundry_app/blocs/graph_node/group_node.dart';
 import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
-import 'package:seafoundry_app/constants/in_situ_grid_constants.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/group.dart';
 import 'package:seafoundry_app/models/site.dart';

@@ -115,8 +115,6 @@ extension _TransferServiceInitiation on TransferService {
         updatedById: user.id,
         manifest: manifest.toJson(),
         manifestVersion: manifest.version,
-        manifestChecksum: manifest.checksum,
-        qrPayload: safeQrPayload(manifest),
         stateHistory: pendingHistory,
       );
 
@@ -152,7 +150,7 @@ extension _TransferServiceInitiation on TransferService {
 
       // Create the transfer event with atomic organism locking
       final enriched = _eventRepository.withOrganismMetadata(pendingEvent);
-      final docRef = _resolver.collection(_db, 'events').doc(enriched.id);
+      final docRef = _db.collection('events').doc(enriched.id);
 
       LoggingService.instance.debug(
         'Creating transfer event',
@@ -468,8 +466,6 @@ extension _TransferServiceInitiation on TransferService {
         updatedById: user.id,
         manifest: manifest.toJson(),
         manifestVersion: manifest.version,
-        manifestChecksum: manifest.checksum,
-        qrPayload: safeQrPayload(manifest),
         stateHistory: pendingHistory,
       );
 
@@ -504,7 +500,7 @@ extension _TransferServiceInitiation on TransferService {
 
       // Create the transfer event with atomic organism locking
       final enriched = _eventRepository.withOrganismMetadata(pendingEvent);
-      final docRef = _resolver.collection(_db, 'events').doc(enriched.id);
+      final docRef = _db.collection('events').doc(enriched.id);
 
       LoggingService.instance.debug(
         'Creating email-based transfer event',

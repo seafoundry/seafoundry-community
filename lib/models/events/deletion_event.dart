@@ -51,7 +51,6 @@ class DeletionEvent extends Event {
     required super.urlPath,
     required super.internalPath,
     required super.slug,
-    super.missionId,
     super.metadata,
     super.base,
     required super.recordModelType,
@@ -141,8 +140,6 @@ class DeletionEvent extends Event {
     String? organizationId,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     String? urlPath,
     String? internalPath,
     String? slug,
@@ -170,7 +167,6 @@ class DeletionEvent extends Event {
       urlPath: urlPath ?? this.urlPath,
       internalPath: internalPath ?? this.internalPath,
       slug: slug ?? this.slug,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,
@@ -191,28 +187,4 @@ class DeletionEvent extends Event {
         parentDeletionId,
         cascadeCount,
       ];
-}
-
-/// Reasons for record deletion
-class DeletionReason {
-  const DeletionReason._();
-
-  static const String cleanup = 'cleanup';
-  static const String duplicate = 'duplicate';
-  static const String dataError = 'data_error';
-  static const String reorganization = 'reorganization';
-  static const String decommissioned = 'decommissioned';
-  static const String other = 'other';
-
-  static const Map<String, String> displayNames = {
-    cleanup: 'Data Cleanup',
-    duplicate: 'Duplicate Record',
-    dataError: 'Data Entry Error',
-    reorganization: 'Site/Group Reorganization',
-    decommissioned: 'Decommissioned',
-    other: 'Other',
-  };
-
-  static String getDisplayName(String reason) =>
-      displayNames[reason] ?? reason;
 }

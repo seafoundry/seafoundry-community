@@ -6,7 +6,7 @@
   `RecordNameDerived` before persistence.
 - Inventory events must include `snapshotData` and use
   `recordModelType: organismRecord`.
-- Use `EventSpreadsheetShell` or `SpreadsheetBase` rather than custom tables.
+- Use `SpreadsheetBase` rather than custom tables.
 - Organism creation wizard (`lib/widgets/dialogs/organism_creation_wizard/`) supports provenance autocomplete in NEW genet mode. Uses `ProvenanceSearchMixin` and `PidStatusChip` for PID conflict detection. The wizard returns an `OrganismCreationResult` (type-safe wrapper with `.record` and `.inheritedProvenanceId` fields) — the caller passes `.inheritedProvenanceId` to `GenetRepository.createGenet(inheritedProvenanceId:)`.
 
 ## Dialog & Creation Entry Points
@@ -26,34 +26,21 @@
   `record.foreignKeys['genetId']?.id` directly. This applies to event
   hydration, spreadsheet data, volume calculations, and search integrations.
 
-### Health-Related Dialogs
-- **`HealthStatusDialog`** (`lib/widgets/dialogs/health_status_dialog.dart`):
-  Mutates the organism's canonical `healthStatus` field AND logs an observation.
-  Use this when the user explicitly changes an organism's health status (e.g.,
-  healthy -> stressed).
+### Health-Related Observations
 - **`UnifiedObservationDialog` with `ObservationDialogType.healthIssue`**:
   Logs a health-related observation WITHOUT changing the organism's health
   status. Use this to record an issue (pest, disease, discoloration, etc.)
   that does not directly alter the organism's status.
 
-### Field Collection
-- **`OrganismCollectionDialog`** (`lib/widgets/dialogs/organism_collection_dialog.dart`):
-  Records a wild-collection event. Creates both a `Genet` and an
-  `OrganismRecord`, then logs a `CollectionEvent` activity. Captures five-axis
-  data, GPS, permit metadata, and health status at time of collection.
-  `genetId` is passed as a top-level field on `OrganismRecord.create`,
-  consistent with the wizard output (aligned in 2C.3).
-
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Ensure bulk action executors are implemented (`lib/widgets/graph_node/actions/bulk_action_executors.dart`).
-- Verify non-coral inventory creation flows (inventory tiles/actions).
+- Verify coral inventory creation flows (inventory tiles/actions).
 
 ## Touchpoints
-- Screen: `lib/screens/inventory_screen.dart`
-- Spreadsheets: `lib/widgets/spreadsheet/holdings/holdings_spreadsheet.dart`,
-  `lib/widgets/spreadsheet/inventory/inventory_events_spreadsheet.dart`
+- Screen: `lib/screens/spreadsheet/module_spreadsheet_screen.dart`
+- Holdings view: `lib/widgets/spreadsheet/inventory/inventory_holdings_view.dart`
+- Events table: `lib/widgets/spreadsheet/inventory/inventory_events_table.dart`
 - Services: `lib/services/inventory/`, `lib/services/export/`
 
 ## When Updating
@@ -80,11 +67,7 @@ bool get isCustodian {
 
 ### Key Files
 - `lib/models/types/transfer_ownership_type.dart` - Enum
-- `lib/services/external_holding_service.dart` - Cross-org notifications
-- `lib/services/external_holding_notification_handler.dart` - Notification processing
 - `lib/blocs/organism_record_edit/organism_record_edit_state.dart` - `isCustodian` getter
-- `lib/widgets/common/ownership_indicator.dart` - Custody/External chips
-- `lib/widgets/common/custody_info_banner.dart` - Info banners
 
 ### Identity Change Events
 Events emitted in `OrganismRecordEditCubit._emitIdentityChangeEvents()`:

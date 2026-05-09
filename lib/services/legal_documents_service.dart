@@ -89,8 +89,8 @@ class LegalDocumentsService {
     );
   }
 
-  /// Get the current Service Level Agreement (Pro tier only)
-  /// 
+  /// Get the current Service Level Agreement
+  ///
   /// By default, shows inline content. Set LEGAL_USE_EXTERNAL_URLS=true
   /// at build time to use external URLs instead (requires URLs to be live).
   static LegalDocument getServiceLevelAgreement() {
@@ -99,7 +99,7 @@ class LegalDocumentsService {
       type: LegalDocumentType.serviceLevelAgreement,
       version: currentVersion,
       effectiveDate: DateTime(2025, 1, 1),
-      summary: 'Uptime and support commitments for Pro/Scale tiers',
+      summary: 'Uptime and support commitments for SeaFoundry customers',
       // Only use external URL if explicitly enabled and URL is configured
       url: _useExternalUrls ? _slaUrl : null,
       content: _slaContent, // Primary content for inline display
@@ -265,13 +265,12 @@ For privacy questions or concerns, contact us at:
 
 **Effective Date:** January 1, 2025
 **Version:** 1.0
-**Applicable To:** Pro and Scale tier customers
+**Applicable To:** SeaFoundry customers
 
 ## 1. Service Availability
 
 ### Uptime Commitment
-- **Pro Tier:** 99.5% monthly uptime
-- **Scale Tier:** 99.9% monthly uptime
+- **Target:** 99.5% monthly uptime
 
 ### Scheduled Maintenance
 - Scheduled maintenance windows: Sundays 02:00-06:00 UTC
@@ -288,16 +287,9 @@ Excluded from downtime calculations:
 
 ## 2. Support Response Times
 
-### Pro Tier Support
 - **Email Support:** Business hours (Mon-Fri, 9 AM - 5 PM local time)
 - **Response Time:** Within 24 business hours
 - **Channels:** Email, support portal
-
-### Scale Tier Support
-- **Priority Support:** Extended hours (Mon-Fri, 7 AM - 9 PM local time)
-- **Response Time:** Within 4 business hours
-- **Channels:** Email, support portal, phone (for P0/P1 issues)
-- **Dedicated Support Rep:** Yes
 
 ### Issue Priority Levels
 - **P0 (Critical):** Service completely unavailable
@@ -309,16 +301,13 @@ Excluded from downtime calculations:
 
 ### Backup Frequency
 - **Automated backups:** Every 24 hours
-- **Backup retention:** 30 days for Pro, 90 days for Scale
-- **Point-in-time recovery:** Available for Scale tier
+- **Backup retention:** 30 days
 
 ### Recovery Time Objective (RTO)
-- **Pro Tier:** 24 hours
-- **Scale Tier:** 4 hours
+- **Target:** 24 hours
 
 ### Recovery Point Objective (RPO)
-- **Pro Tier:** 24 hours (data loss up to last backup)
-- **Scale Tier:** 1 hour (continuous incremental backups)
+- **Target:** 24 hours (data loss up to last backup)
 
 ## 4. Performance Standards
 
@@ -335,15 +324,9 @@ Excluded from downtime calculations:
 
 If we fail to meet the uptime commitment, you may be eligible for service credits:
 
-**Pro Tier:**
 - 99.0% - 99.49% uptime: 10% monthly fee credit
 - 98.0% - 98.99% uptime: 25% monthly fee credit
 - < 98.0% uptime: 50% monthly fee credit
-
-**Scale Tier:**
-- 99.5% - 99.89% uptime: 10% monthly fee credit
-- 99.0% - 99.49% uptime: 25% monthly fee credit
-- < 99.0% uptime: 50% monthly fee credit
 
 ### Credit Request Process
 1. Submit claim within 30 days of incident
@@ -354,7 +337,6 @@ If we fail to meet the uptime commitment, you may be eligible for service credit
 ## 6. Exclusions
 
 This SLA does not apply to:
-- Community (free) tier users
 - Beta or experimental features
 - Issues caused by user error or misuse
 - Third-party service failures beyond our control
@@ -364,7 +346,7 @@ This SLA does not apply to:
 
 - Public status page: [status.seafoundry.com](https://status.seafoundry.com)
 - Real-time incident notifications
-- Monthly uptime reports available on request (Scale tier)
+- Monthly uptime reports available on request
 
 ## 8. SLA Review and Updates
 

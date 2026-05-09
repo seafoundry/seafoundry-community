@@ -1,19 +1,15 @@
 // @tier: community
-import 'package:flutter/services.dart';
-import 'package:yaml/yaml.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Service for validating physical form compatibility with provenance types and life stages.
 ///
-/// This service loads constraints from `config/physical_form_constraints.yaml` and provides
-/// validation methods to ensure data integrity across the 5-axis model.
+/// Constraint data is hardcoded as Dart constants (no YAML loading required).
 ///
 /// Usage:
 /// ```dart
 /// final service = PhysicalFormConstraintService.instance;
-/// await service.initialize();
 ///
 /// final error = service.validatePhysicalForm(
 ///   ProvenanceType.sexualCohort,
@@ -35,45 +31,162 @@ class PhysicalFormConstraintService {
   PhysicalFormConstraintService._internal();
 
   bool _initialized = false;
-  Map<String, dynamic>? _config;
 
-  /// Initialize the service by loading the YAML configuration.
-  /// Should be called during app startup.
+  // ---------------------------------------------------------------------------
+  // Hardcoded constraint data (previously loaded from physical_form_constraints.yaml)
+  // ---------------------------------------------------------------------------
+
+  static const _provenanceConstraints = <String, Map<String, dynamic>>{
+    'sexualCohort': {
+      'allowed_form_patterns': [
+        '.*substrate.*',
+        '.*bag.*',
+        '.*container.*',
+        '.*vial.*',
+        '.*suspension.*',
+        '.*tank.*',
+        '.*tray.*',
+        '.*cage.*',
+        '.*rack.*',
+        '.*line.*',
+        '.*panel.*',
+      ],
+      'disallowed_form_patterns': [
+        '.*fragment.*',
+        '.*colony.*',
+        '.*individual.*',
+        r'^microfragment$',
+        '.*plug.*',
+      ],
+      'error_message':
+          'Sexual cohorts can only be associated with container or shared substrate physical forms. Individual physical forms (fragments, colonies, plugs) are not compatible with cohorts.',
+    },
+    'gameteEgg': {
+      'allowed_form_patterns': [
+        '.*vial.*',
+        '.*aliquot.*',
+        '.*liquid.*',
+        '.*suspension.*',
+        '.*container.*',
+      ],
+      'disallowed_form_patterns': [
+        '.*substrate.*',
+        '.*fragment.*',
+        '.*colony.*',
+        '.*individual.*',
+        '.*bag.*',
+      ],
+      'error_message':
+          'Gamete eggs can only be stored in liquid/volumetric containers (vials, aliquots). Solid substrates and individual forms are not compatible.',
+    },
+    'gameteSperm': {
+      'allowed_form_patterns': [
+        '.*vial.*',
+        '.*aliquot.*',
+        '.*liquid.*',
+        '.*suspension.*',
+        '.*container.*',
+      ],
+      'disallowed_form_patterns': [
+        '.*substrate.*',
+        '.*fragment.*',
+        '.*colony.*',
+        '.*individual.*',
+        '.*bag.*',
+      ],
+      'error_message':
+          'Gamete sperm can only be stored in liquid/volumetric containers (vials, aliquots). Solid substrates and individual forms are not compatible.',
+    },
+    // wild, transfer, graduatedIndividual: no constraints (empty maps)
+    'wild': <String, dynamic>{},
+    'transfer': <String, dynamic>{},
+    'graduatedIndividual': <String, dynamic>{},
+  };
+
+  static const _lifeStageConstraints = <String, Map<String, dynamic>>{
+    'gamete': {
+      'allowed_form_patterns': [
+        '.*vial.*',
+        '.*aliquot.*',
+        '.*liquid.*',
+        '.*suspension.*',
+        '.*container.*',
+      ],
+      'disallowed_form_patterns': [
+        '.*substrate.*',
+        '.*fragment.*',
+        '.*colony.*',
+        '.*individual.*',
+        '.*bag.*',
+        '.*tank.*',
+      ],
+      'error_message':
+          'Gametes can only be stored in liquid/volumetric containers (vials, aliquots). Solid substrates and individual forms are not compatible with gamete life stage.',
+    },
+    'embryo': {
+      'allowed_form_patterns': [
+        '.*vial.*',
+        '.*aliquot.*',
+        '.*suspension.*',
+        '.*container.*',
+        '.*substrate.*',
+        '.*tank.*',
+      ],
+      'disallowed_form_patterns': [
+        '.*fragment.*',
+        '.*colony.*',
+      ],
+      'error_message':
+          'Embryos can be stored in liquid containers or settlement substrates, but not as fragments or colonies.',
+    },
+    'larva': {
+      'allowed_form_patterns': [
+        '.*tank.*',
+        '.*suspension.*',
+        '.*container.*',
+        '.*vial.*',
+        '.*substrate.*',
+        '.*bag.*',
+        '.*tray.*',
+      ],
+      'disallowed_form_patterns': [
+        '.*fragment.*',
+        '.*colony.*',
+      ],
+      'error_message':
+          'Larvae can be reared in tanks, containers, or settlement substrates, but not as fragments or colonies.',
+    },
+    'broodstock': {
+      'disallowed_form_patterns': [
+        '.*container.*',
+        '.*vial.*',
+        '.*aliquot.*',
+        '.*liquid.*',
+        '.*suspension.*',
+        '.*bag.*',
+        '.*tank.*',
+        '.*tray.*',
+        r'^mounted_individual$',
+      ],
+      'error_message':
+          'Container physical forms and mounted individuals (plugs) cannot be applied to broodstock life stage per 5-axis specification. Broodstock must be tracked as free-standing individuals, colonies, or shared substrates.',
+    },
+    // Other life stages: no constraints (empty maps)
+    'juvenile': <String, dynamic>{},
+    'adult': <String, dynamic>{},
+    'spat': <String, dynamic>{},
+    'settler': <String, dynamic>{},
+    'recruit': <String, dynamic>{},
+    'fragment': <String, dynamic>{},
+    'colony': <String, dynamic>{},
+    'sporophyte': <String, dynamic>{},
+    'gametophyte': <String, dynamic>{},
+  };
+
+  /// Initialize the service. No-op since constraints are now hardcoded.
+  /// Retained for API compatibility with callers that await initialization.
   Future<void> initialize() async {
-    if (_initialized) return;
-
-    try {
-      final yamlString = await rootBundle
-          .loadString('config/physical_form_constraints.yaml');
-      final yaml = loadYaml(yamlString);
-      _config = _yamlToMap(yaml);
-      _initialized = true;
-    } catch (e) {
-      // If config fails to load, log but don't crash
-      // Fallback to hardcoded validation in OrganismRecord
-      LoggingService.instance.warning(
-        'Failed to load physical form constraints config. Using fallback validation.',
-        e,
-      );
-      _config = null;
-      _initialized = true; // Mark as initialized to avoid retry loops
-    }
-  }
-
-  /// Convert YamlMap to regular Map for easier access
-  dynamic _yamlToMap(dynamic yaml) {
-    if (yaml is YamlMap) {
-      return Map<String, dynamic>.fromEntries(
-        yaml.entries.map((entry) => MapEntry(
-              entry.key.toString(),
-              _yamlToMap(entry.value),
-            )),
-      );
-    } else if (yaml is YamlList) {
-      return yaml.map((item) => _yamlToMap(item)).toList();
-    } else {
-      return yaml;
-    }
+    _initialized = true;
   }
 
   /// Validate physical form compatibility with provenance type and life stage.
@@ -93,7 +206,7 @@ class PhysicalFormConstraintService {
     LifeStage lifeStage,
     String physicalFormId,
   ) {
-    if (!_initialized || _config == null) {
+    if (!_initialized) {
       return null; // Fallback to hardcoded validation
     }
 
@@ -120,11 +233,8 @@ class PhysicalFormConstraintService {
     ProvenanceType provenanceType,
     String physicalFormId,
   ) {
-    final constraints = _config?['provenance_constraints'];
-    if (constraints == null) return null;
-
     final provenanceKey = provenanceType.name;
-    final provenanceConstraint = constraints[provenanceKey];
+    final provenanceConstraint = _provenanceConstraints[provenanceKey];
     if (provenanceConstraint == null || provenanceConstraint.isEmpty) {
       return null; // No constraints for this provenance type
     }
@@ -141,11 +251,8 @@ class PhysicalFormConstraintService {
     LifeStage lifeStage,
     String physicalFormId,
   ) {
-    final constraints = _config?['life_stage_constraints'];
-    if (constraints == null) return null;
-
     final lifeStageKey = lifeStage.name;
-    final lifeStageConstraint = constraints[lifeStageKey];
+    final lifeStageConstraint = _lifeStageConstraints[lifeStageKey];
     if (lifeStageConstraint == null || lifeStageConstraint.isEmpty) {
       return null; // No constraints for this life stage
     }
@@ -197,7 +304,7 @@ class PhysicalFormConstraintService {
     return null; // Valid
   }
 
-  /// Extract pattern list from YAML structure
+  /// Extract pattern list from structure
   List<String> _extractPatternList(dynamic patterns) {
     if (patterns is List) {
       return patterns.map((p) => p.toString()).toList();
@@ -221,16 +328,14 @@ class PhysicalFormConstraintService {
 
   /// Get all constraints for a specific provenance type (for debugging/UI)
   Map<String, dynamic>? getProvenanceConstraints(ProvenanceType provenanceType) {
-    if (!_initialized || _config == null) return null;
-    final constraints = _config?['provenance_constraints'];
-    return constraints?[provenanceType.name];
+    if (!_initialized) return null;
+    return _provenanceConstraints[provenanceType.name];
   }
 
   /// Get all constraints for a specific life stage (for debugging/UI)
   Map<String, dynamic>? getLifeStageConstraints(LifeStage lifeStage) {
-    if (!_initialized || _config == null) return null;
-    final constraints = _config?['life_stage_constraints'];
-    return constraints?[lifeStage.name];
+    if (!_initialized) return null;
+    return _lifeStageConstraints[lifeStage.name];
   }
 
   /// Check if service is initialized
@@ -239,6 +344,5 @@ class PhysicalFormConstraintService {
   /// Reset service (primarily for testing)
   void reset() {
     _initialized = false;
-    _config = null;
   }
 }

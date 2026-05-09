@@ -36,9 +36,9 @@ enum HealthStatus {
     HealthStatus.healthy,
     HealthStatus.stressed,
     HealthStatus.diseased,
-    HealthStatus.recovering,
     HealthStatus.bleached,
     HealthStatus.damaged,
+    HealthStatus.recovering,
   ];
 
   static HealthStatus? maybeFromId(String? id) {

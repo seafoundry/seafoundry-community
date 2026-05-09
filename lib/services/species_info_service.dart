@@ -228,16 +228,6 @@ class SpeciesInfoService {
     }
   }
 
-  /// Pre-fetches facts for multiple species in parallel.
-  ///
-  /// Useful for warming the cache when loading a list of organisms.
-  Future<void> prefetchFacts(List<String> speciesNames) async {
-    final uniqueNames = speciesNames.toSet().toList();
-    await Future.wait(
-      uniqueNames.take(10).map((name) => getFactForSpecies(name)),
-    );
-  }
-
   /// Clears all cached facts.
   void clearCache() {
     _memoryCache.clear();

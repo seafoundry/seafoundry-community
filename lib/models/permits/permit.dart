@@ -9,7 +9,6 @@ enum PermitType {
   research('research', 'Research'),
   collection('collection', 'Collection'),
   outplanting('outplanting', 'Outplanting'),
-  monitoring('monitoring', 'Monitoring'),
   other('other', 'Other');
 
   final String id;

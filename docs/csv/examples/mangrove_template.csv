@@ -1,6 +1,0 @@
-# SeaFoundry CSV v2 mangrove plot holdings
-# `lifeStage` distinguishes propagules vs. saplings; use values that match the taxonomy service (`sapling`, `adult`, etc.).
-# Supply `averageHeightCm` and `survivalPercent` so blue-carbon teams can audit transect performance directly from the CSV import/export pipeline.
-# Use LINESTRING geometries for transects or POLYGONs for plots—anything the importer can round-trip into `OutplantGeometry`.
-holdingKind,provenanceId,organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,eventType,eventDate,measurementUnit,quantityValue,structureType,groupId,averageHeightCm,survivalPercent,permitId,permitType,issuingAuthority,validFrom,validTo,habitatType,siteJurisdiction,protectedAreaFlag,siteName,geometryFormat,geometryWkt,observer,sourceSystem,notes
-mangrovePlotHolding,PID-MANGROVE-00001,mangrove,Rhizophora mangle,RhMa,RHMA-001,mossy-rhma-001,sapling,inventory_create,2025-11-08T08:30:00Z,count,120,plotTransect,/orgs/demo/sites/everglades/groups/transect-05,145,92,USFWS-EMR-2025-02,restoration,USFWS,2025-01-01,2026-01-01,mangrove_forest,Florida,true,Everglades Transect 5,WKT,"LINESTRING (-80.78 25.27,-80.779 25.269)",S.Ramirez,BlueCarbonCrew,"Saplings planted across two transect belts; 92% survival"

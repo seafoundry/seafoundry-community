@@ -3,7 +3,6 @@ import 'package:seafoundry_app/models/records/graph_node_record.dart';
 import 'package:seafoundry_app/models/records/inventory_record.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
-import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
 import 'package:seafoundry_app/services/site_limits_service.dart';
 import 'package:seafoundry_app/services/tier.dart';
@@ -25,14 +24,11 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     List<String>? activities,
     this.speciesIds = const [],
     this.tier = Tier.community,
-    List<OrganismKind>? supportedOrganismKinds,
     super.metadata,
   })  : activities = _normalizeActivitiesInput(
           primary: activities,
           fallback: siteTypeIds,
-        ),
-        supportedOrganismKinds =
-            supportedOrganismKinds ?? const [OrganismKind.coral];
+        );
 
   Organization.fromJson(super.json)
     : name = json['name'] ?? json['createdEvent']?['name'],
@@ -46,10 +42,6 @@ class Organization extends InventoryRecord with GraphNodeRecord {
       ),
       tier = Tier.fromString(
         json['tier'] ?? json['createdEvent']?['tier'],
-      ),
-      supportedOrganismKinds = _parseOrganismKinds(
-        json['supportedOrganismKinds'] ??
-            json['createdEvent']?['supportedOrganismKinds'],
       ),
       super.fromJson();
 
@@ -70,7 +62,6 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     List<String>? activities,
     List<String>? speciesIds,
     Tier? tier,
-    List<OrganismKind>? supportedOrganismKinds,
   }) : name = name ?? json?['name'] ?? Missing.string,
       domain = domain ?? json?['domain'] ?? Missing.string,
        activities = _normalizeActivitiesInput(
@@ -80,11 +71,6 @@ class Organization extends InventoryRecord with GraphNodeRecord {
        ),
        speciesIds = speciesIds ?? List<String>.from(json?['speciesIds'] ?? []),
        tier = tier ?? Tier.fromString(json?['tier']),
-       supportedOrganismKinds =
-           _normalizeOrganismKinds(
-             supportedOrganismKinds,
-             fallbackSource: json?['supportedOrganismKinds'],
-           ),
        super.partial();
 
   @override
@@ -96,7 +82,6 @@ class Organization extends InventoryRecord with GraphNodeRecord {
   final List<String> activities;
   final List<String> speciesIds;
   final Tier tier;
-  final List<OrganismKind> supportedOrganismKinds;
 
   @override
   String get slug => domain;
@@ -114,12 +99,11 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     if (resolved.isNotEmpty) return resolved;
 
     final defaults = SiteLimitsService.getAvailableSiteTypes(
-      tier: tier,
       existingSites: const [],
     );
     return defaults.isNotEmpty
         ? defaults
-        : const [SiteType.outplanting];
+        : const [SiteType.nursery];
   }
 
   @override
@@ -132,8 +116,6 @@ class Organization extends InventoryRecord with GraphNodeRecord {
       'activities': activities,
       'speciesIds': speciesIds,
       'tier': tier.name,
-      'supportedOrganismKinds':
-          supportedOrganismKinds.map((kind) => kind.name).toList(),
     };
   }
 
@@ -154,7 +136,6 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     String? slug,
     List<String>? speciesIds,
     Tier? tier,
-    List<OrganismKind>? supportedOrganismKinds,
     Map<String, dynamic>? metadata,
   }) => Organization(
     id: id ?? this.id,
@@ -172,69 +153,12 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     activities: activities ?? siteTypeIds ?? this.activities,
     speciesIds: speciesIds ?? this.speciesIds,
     tier: tier ?? this.tier,
-    supportedOrganismKinds:
-        supportedOrganismKinds ?? this.supportedOrganismKinds,
     metadata: metadata ?? this.metadata,
   );
 
   @override
   List<Object?> get props => super.props +
-      [name, domain, activities, speciesIds, tier, supportedOrganismKinds];
-
-  OrganismKind get primaryOrganismKind => supportedOrganismKinds.first;
-
-  static List<OrganismKind> _normalizeOrganismKinds(
-    List<OrganismKind>? kinds, {
-    dynamic fallbackSource,
-  }) {
-    if (kinds != null && kinds.isNotEmpty) {
-      return List<OrganismKind>.unmodifiable(
-        _dedupeKinds(kinds),
-      );
-    }
-    if (fallbackSource != null) {
-      return _parseOrganismKinds(fallbackSource);
-    }
-    return const [OrganismKind.coral];
-  }
-
-  static List<OrganismKind> _parseOrganismKinds(dynamic source) {
-    if (source is List && source.isNotEmpty) {
-      final parsed = <OrganismKind>[];
-      for (final value in source) {
-        final kind = _kindFromValue(value);
-        if (kind != null && !parsed.contains(kind)) {
-          parsed.add(kind);
-        }
-      }
-      if (parsed.isNotEmpty) {
-        return List<OrganismKind>.unmodifiable(parsed);
-      }
-    }
-    return const [OrganismKind.coral];
-  }
-
-  static List<OrganismKind> _dedupeKinds(List<OrganismKind> kinds) {
-    final deduped = <OrganismKind>[];
-    for (final kind in kinds) {
-      if (!deduped.contains(kind)) {
-        deduped.add(kind);
-      }
-    }
-    return deduped;
-  }
-
-  static OrganismKind? _kindFromValue(dynamic value) {
-    if (value == null) return null;
-    final normalized = value.toString().trim().toLowerCase();
-    if (normalized.isEmpty) return null;
-    for (final kind in OrganismKind.values) {
-      if (kind.name.toLowerCase() == normalized) {
-        return kind;
-      }
-    }
-    return null;
-  }
+      [name, domain, activities, speciesIds, tier];
 
   static List<String> _normalizeActivitiesInput({
     List<String>? primary,

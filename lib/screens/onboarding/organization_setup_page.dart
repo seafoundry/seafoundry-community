@@ -105,32 +105,16 @@ class OrganizationSetupPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ...OrganismKind.values.map((organism) {
-                  final isCoral = organism == OrganismKind.coral;
                   final isSelected =
-                      isCoral && state.selectedOrganisms.contains(organism);
-                  final defaultSites = organism.metadata.defaultSiteTypes;
-                  final defaultSitesLabel = defaultSites.isEmpty
-                      ? null
-                      : 'Default sites: ${defaultSites.join(", ")}';
-                  final subtitleText = isCoral
-                      ? defaultSitesLabel
-                      : 'Coming Soon';
+                      state.selectedOrganisms.contains(organism);
 
                   return CheckboxListTile(
                     title: Text(organism.metadata.displayName),
-                    subtitle: subtitleText == null
-                        ? null
-                        : Text(
-                            subtitleText,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
                     value: isSelected,
-                    onChanged: isCoral
-                        ? (selected) => cubit.setOrganismSelection(
-                            organism,
-                            selected ?? false,
-                          )
-                        : null,
+                    onChanged: (selected) => cubit.setOrganismSelection(
+                        organism,
+                        selected ?? false,
+                      ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                   );
                 }),
@@ -157,28 +141,11 @@ class OrganizationSetupPage extends StatelessWidget {
                 const SizedBox(height: 16),
                 Builder(
                   builder: (context) {
-                    // Filter site types based on selected organisms
-                    final availableSiteTypes = <SiteType>{};
-                    for (final organism in state.selectedOrganisms) {
-                      // Rule 1: Include sites listed in defaults
-                      for (final defaultTypeId
-                          in organism.metadata.defaultSiteTypes) {
-                        final st = SiteType.maybeFromId(defaultTypeId);
-                        if (st != null) availableSiteTypes.add(st);
-                      }
-
-                      // Rule 2: Include sites that primarily belong to this organism
-                      for (final st in SiteType.builtins.values) {
-                        if (st.organismKind == organism) {
-                          availableSiteTypes.add(st);
-                        }
-                      }
-                    }
-
-                    // Ensure field collection is available for coral orgs.
-                    if (state.selectedOrganisms.contains(OrganismKind.coral)) {
-                      availableSiteTypes.add(SiteType.fieldCollection);
-                    }
+                    // Available site types for coral-only
+                    final availableSiteTypes = <SiteType>{
+                      SiteType.nursery,
+                      SiteType.outplanting,
+                    };
                     final sortedSiteTypes = availableSiteTypes.toList()
                       ..sort((a, b) => a.name.compareTo(b.name));
 

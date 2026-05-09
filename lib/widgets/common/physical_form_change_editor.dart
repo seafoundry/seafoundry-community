@@ -69,23 +69,21 @@ class _PhysicalFormChangeEditorState extends State<PhysicalFormChangeEditor> {
     }
   }
 
-  Future<void> _loadPhysicalForms() async {
+  void _loadPhysicalForms() {
     setState(() {
       _isLoading = true;
       _loadError = null;
     });
     try {
-      final forms = await PhysicalFormRegistry.instance.getAvailableForms(
+      final forms = PhysicalFormRegistry.instance.getAvailableForms(
         widget.organismKind,
         widget.lifeStage,
       );
-      if (!mounted) return;
       setState(() {
         _availableForms = forms;
         _isLoading = false;
       });
     } catch (e) {
-      if (!mounted) return;
       setState(() {
         _isLoading = false;
         _loadError = e.toString();

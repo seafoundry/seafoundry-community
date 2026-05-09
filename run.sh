@@ -56,9 +56,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Build the flutter run command with dart-define-from-file
-# Default tier for this (community) branch; can be overridden by env SF_TIER
-DEFAULT_TIER=${SF_TIER:-community}
-FLUTTER_CMD="flutter run --dart-define-from-file=dart_defines.json --dart-define=SF_TIER=$DEFAULT_TIER"
+FLUTTER_CMD="flutter run --dart-define-from-file=dart_defines.json --dart-define=SF_TIER=community"
 
 # Add device, build mode, and extra arguments
 FLUTTER_CMD="$FLUTTER_CMD $DEVICE $BUILD_MODE $EXTRA_ARGS"

@@ -7,8 +7,8 @@ import 'package:seafoundry_app/models/provenance_suggestion.dart';
 import 'package:seafoundry_app/services/provenance_lookup_service.dart';
 
 /// Mixin providing provenance alias search, debounce, conflict detection,
-/// and selection handling. Used by both GenetCreationBloc and
-/// OrganismCreationCubit to avoid duplicating ~180 lines of search logic.
+/// and selection handling. Used by OrganismCreationCubit to avoid
+/// duplicating ~180 lines of search logic.
 ///
 /// Implementors must provide:
 /// - [provenanceLookupService]: the service to search

@@ -5,20 +5,11 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:seafoundry_app/constants/csv_schema.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
-import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/gamete_batch_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/larval_batch_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/seeded_line_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/oyster_bag_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/finfish_pen_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/crab_pond_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/seagrass_module_repository.dart';
-import 'package:seafoundry_app/repositories/inventory/mangrove_plot_repository.dart';
 import 'package:seafoundry_app/services/csv/csv_metadata_builder.dart';
 import 'package:seafoundry_app/services/csv/csv_template_registry.dart';
 import 'package:seafoundry_app/services/csv/csv_translation_pipeline.dart';
@@ -29,7 +20,6 @@ import 'package:seafoundry_app/services/csv/import/csv_import_parser.dart';
 import 'package:seafoundry_app/services/csv/import/csv_import_version_utils.dart';
 import 'package:seafoundry_app/services/csv/import/importers/genetics_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/inventory_csv_importer.dart';
-import 'package:seafoundry_app/services/csv/import/importers/monitoring_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/outplant_allocations_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/outplant_consolidated_csv_importer.dart';
 import 'package:seafoundry_app/services/csv/import/importers/outplanting_csv_importer.dart';
@@ -52,20 +42,11 @@ class CSVImportService {
   final CsvTranslationPipeline _translationPipeline;
   final ErrorReporter _errorReporter;
   final SpeciesRegistry _speciesRegistry;
-  final Map<OrganismKind, SeededLineRepository> _seededLineRepositories;
-  final Map<OrganismKind, GameteBatchRepository> _gameteBatchRepositories;
-  final Map<OrganismKind, LarvalBatchRepository> _larvalBatchRepositories;
-  final Map<OrganismKind, OysterBagRepository> _oysterBagRepositories;
-  final Map<OrganismKind, FinfishPenRepository> _finfishPenRepositories;
-  final Map<OrganismKind, CrabPondRepository> _crabPondRepositories;
-  final Map<OrganismKind, SeagrassModuleRepository> _seagrassModuleRepositories;
-  final Map<OrganismKind, MangrovePlotRepository> _mangrovePlotRepositories;
   late final GeneticsCsvImporter _geneticsImporter;
   late final InventoryCsvImporter _inventoryImporter;
   late final OutplantingCsvImporter _outplantingImporter;
   late final OutplantAllocationsCsvImporter _outplantAllocationsImporter;
   late final OutplantConsolidatedCsvImporter _outplantConsolidatedImporter;
-  late final MonitoringCsvImporter _monitoringImporter;
   late final CsvImportCoordinator _coordinator;
 
   static final Set<String> _metadataKeys = {
@@ -88,14 +69,6 @@ class CSVImportService {
     CsvTranslationPipeline? translationPipeline,
     ErrorReporter? errorReporter,
     SpeciesRegistry? speciesRegistry,
-    Map<OrganismKind, SeededLineRepository>? seededLineRepositories,
-    Map<OrganismKind, GameteBatchRepository>? gameteBatchRepositories,
-    Map<OrganismKind, LarvalBatchRepository>? larvalBatchRepositories,
-    Map<OrganismKind, OysterBagRepository>? oysterBagRepositories,
-    Map<OrganismKind, FinfishPenRepository>? finfishPenRepositories,
-    Map<OrganismKind, CrabPondRepository>? crabPondRepositories,
-    Map<OrganismKind, SeagrassModuleRepository>? seagrassModuleRepositories,
-    Map<OrganismKind, MangrovePlotRepository>? mangrovePlotRepositories,
   }) : _genetRepository = genetRepository,
        _organismRecordRepository = organismRecordRepository,
        _groupRepository = groupRepository,
@@ -109,15 +82,7 @@ class CSVImportService {
        _speciesRegistry =
            speciesRegistry ??
            SpeciesRegistry.globalInstance ??
-           SpeciesRegistry(),
-       _seededLineRepositories = seededLineRepositories ?? const {},
-       _gameteBatchRepositories = gameteBatchRepositories ?? const {},
-       _larvalBatchRepositories = larvalBatchRepositories ?? const {},
-       _oysterBagRepositories = oysterBagRepositories ?? const {},
-       _finfishPenRepositories = finfishPenRepositories ?? const {},
-       _crabPondRepositories = crabPondRepositories ?? const {},
-       _seagrassModuleRepositories = seagrassModuleRepositories ?? const {},
-       _mangrovePlotRepositories = mangrovePlotRepositories ?? const {} {
+           SpeciesRegistry() {
     _geneticsImporter = GeneticsCsvImporter(
       genetRepository: _genetRepository,
       organismRecordRepository: _organismRecordRepository,
@@ -128,14 +93,6 @@ class CSVImportService {
       organismRecordRepository: _organismRecordRepository,
       groupRepository: _groupRepository,
       genetRepository: _genetRepository,
-      seededLineRepositories: _seededLineRepositories,
-      gameteBatchRepositories: _gameteBatchRepositories,
-      larvalBatchRepositories: _larvalBatchRepositories,
-      oysterBagRepositories: _oysterBagRepositories,
-      finfishPenRepositories: _finfishPenRepositories,
-      crabPondRepositories: _crabPondRepositories,
-      seagrassModuleRepositories: _seagrassModuleRepositories,
-      mangrovePlotRepositories: _mangrovePlotRepositories,
     );
     _outplantingImporter = OutplantingCsvImporter(
       eventRepository: _eventRepository,
@@ -151,10 +108,6 @@ class CSVImportService {
       groupRepository: _groupRepository,
       organismRecordRepository: _organismRecordRepository,
     );
-    _monitoringImporter = MonitoringCsvImporter(
-      eventRepository: _eventRepository,
-      siteRepository: _siteRepository,
-    );
     _coordinator = CsvImportCoordinator(
       eventRepository: _eventRepository,
       versioningService: _versioningService,
@@ -164,7 +117,6 @@ class CSVImportService {
       outplantingImporter: _outplantingImporter,
       outplantAllocationsImporter: _outplantAllocationsImporter,
       outplantConsolidatedImporter: _outplantConsolidatedImporter,
-      monitoringImporter: _monitoringImporter,
       speciesRegistry: _speciesRegistry,
     );
   }

@@ -7,7 +7,6 @@ import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/user.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
 import 'package:seafoundry_app/services/firebase_service.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/utils/user_identity.dart';
 
@@ -15,7 +14,6 @@ import 'package:seafoundry_app/utils/user_identity.dart';
 class AuthRepository {
   final fbAuth.FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
-  final _resolver = FirestoreCollectionResolver.instance;
 
   AuthRepository({
     FirebaseService? firebaseService,
@@ -88,8 +86,8 @@ class AuthRepository {
     try {
       final docId = _resolveUserDocId(userId);
       if (docId.isEmpty) return null;
-      final doc = await _resolver
-          .collection(_firestore, 'users')
+      final doc = await _firestore
+          .collection('users')
           .doc(docId)
           .get();
       if (!doc.exists) return null;
@@ -115,8 +113,8 @@ class AuthRepository {
     try {
       final docId = _resolveUserDocId(userId);
       if (docId.isEmpty) return null;
-      final userDoc = await _resolver
-          .collection(_firestore, 'users')
+      final userDoc = await _firestore
+          .collection('users')
           .doc(docId)
           .get();
       if (!userDoc.exists) return null;
@@ -125,8 +123,8 @@ class AuthRepository {
       final organizationId = userData['organizationId'] as String?;
       if (organizationId == null) return null;
 
-      final orgDoc = await _resolver
-          .collection(_firestore, 'organizations')
+      final orgDoc = await _firestore
+          .collection('organizations')
           .doc(organizationId)
           .get();
 
@@ -151,7 +149,7 @@ class AuthRepository {
   /// Stream of user changes
   Stream<User?> userStream(String userId) {
     final docId = _resolveUserDocId(userId);
-    return _resolver.collection(_firestore, 'users').doc(docId).snapshots().map((snapshot) {
+    return _firestore.collection('users').doc(docId).snapshots().map((snapshot) {
       if (!snapshot.exists) return null;
 
       final data = snapshot.data();

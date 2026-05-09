@@ -62,10 +62,6 @@ These collections are stored under `organizations/{orgId}/` for better data isol
 | `organism_records` | `organizations/{orgId}/organism_records` |
 | `slugCounts` | `organizations/{orgId}/slugCounts` |
 | `reports` | `organizations/{orgId}/reports` |
-| `custom_task_types` | `organizations/{orgId}/custom_task_types` |
-| `custom_observation_types` | `organizations/{orgId}/custom_observation_types` |
-| `custom_group_types` | `organizations/{orgId}/custom_group_types` |
-| `custom_attachment_methods` | `organizations/{orgId}/custom_attachment_methods` |
 
 #### Membership Subcollection
 
@@ -97,80 +93,7 @@ This subcollection is the foundation for the **UID-based identity migration** (P
 - **Update**: Admins can change roles; users can update their own profile fields
 - **Delete**: Only admins can remove members
 
-**Migration Notes**:
-- Phase R0-B adds rules and app code to write membership docs
-- Phase R2-C backfills membership docs for all existing users
-- Phase R3-B switches from implicit `user.organizationId` to explicit `isMember()` checks
-- See `docs/migration/RULES_MIGRATION_RUNBOOK.md` for full migration plan
-
-#### Custom Type Subcollections (Pro Tier)
-
-**Document Paths**:
-- `/organizations/{orgId}/custom_task_types/{typeId}`
-- `/organizations/{orgId}/custom_observation_types/{typeId}`
-- `/organizations/{orgId}/custom_group_types/{typeId}`
-- `/organizations/{orgId}/custom_attachment_methods/{typeId}`
-
-These subcollections allow Pro tier organizations to create custom enum types beyond the builtin options. Each type follows a similar schema pattern:
-
-**Schema** (example for `custom_attachment_methods`):
-```javascript
-{
-  id: "custom_attach_wire_tie",        // Must match ID prefix pattern
-  name: "Wire Tie",                     // Display name
-  description: "Metal wire tie attachment",  // Optional
-  icon: "link",                         // Optional Material icon name
-  color: "#4CAF50",                     // Optional hex color
-  isActive: true,                       // Whether visible in dropdowns
-  sortOrder: 0,                         // Order in lists (builtins first)
-  organizationId: "org_xyz",            // Must match parent org
-  createdAt: Timestamp,
-  createdById: "user_abc",
-  updatedAt: Timestamp,
-  updatedById: "user_abc"
-}
-```
-
-**ID Prefix Patterns**:
-| Collection | Required Prefix | Example |
-|------------|-----------------|---------|
-| `custom_task_types` | `custom_task_` | `custom_task_photo_doc` |
-| `custom_observation_types` | `custom_obs_` | `custom_obs_spawning` |
-| `custom_group_types` | `custom_group_` | `custom_group_broodstock` |
-| `custom_attachment_methods` | `custom_attach_` | `custom_attach_wire_tie` |
-
-**Access Control**:
-- **Read**: Org members can read custom types
-- **Create/Update/Delete**: Admin role + Pro tier required
-- **Validation**: ID must match prefix pattern, name required, organizationId must match
-
-**Related Documentation**:
-- `docs/CUSTOM_ENUM_TYPES_IMPLEMENTATION.md` - Task, observation, group types
-- `docs/OUTPLANT_DIALOG_ENHANCEMENT_IMPLEMENTATION.md` - Attachment methods
-
-## Repository Implementation Patterns
-
-### Using FirestoreCollectionResolver
-
-All repositories MUST use `FirestoreCollectionResolver` for collection access:
-
-```dart
-// For root collections
-final collection = FirestoreCollectionResolver.instance.collection(
-  firestore,
-  'sites',
-);
-
-// For nested collections
-final collection = FirestoreCollectionResolver.instance.subcollection(
-  firestore,
-  'organizations',
-  organizationId,
-  'groups',
-);
-```
-
-### BaseInventoryRecordRepository Pattern
+### InventoryRecordRepository Pattern
 
 The base class automatically handles nested vs. root collections based on `ModelType`:
 
@@ -241,7 +164,7 @@ Both manage genets but have different implementations:
 When adding a new collection type:
 
 1. **Decide root vs. nested**: Prefer nested if data is organization-specific
-2. **Update `_usesNestedCollection()`** in `BaseInventoryRecordRepository` if nested
+2. **Update `_usesNestedCollection()`** in `InventoryRecordRepository` if nested
 3. **Update `_getCollectionRef()`** in `RecordRepository` if it will be queried there
 4. **Document here** with the collection path
 5. **Update seeding scripts** to use correct paths
@@ -276,16 +199,13 @@ final snapshot = await firestore
 
 | Environment | Rule Location | Behavior | Status |
 |-------------|---------------|----------|--------|
-| Production | `firestore.rules` | Authenticated read, admin-only write | ✅ Implemented |
-
-**Community rules:** `firestore.community.rules` currently keeps `taxonomy_overrides` server-only (no client writes). Align with admin-only writes if community builds need client-side taxonomy admin.
+| Community | `firestore.rules` | Authenticated read, server-only write | ✅ Implemented |
 
 **Future Consideration**: If per-org overrides are needed later, create a separate `organizations/{orgId}/taxonomy_overrides` subcollection.
 
 ## Related Files
 
-- `lib/services/firestore_collection_resolver.dart` - Collection path resolution
-- `lib/repositories/inventory/base_inventory_record_repository.dart` - Nested collection logic
+- `lib/repositories/inventory/inventory_record_repository.dart` - Nested collection logic
 - `lib/repositories/record_repository.dart` - Organization-aware record queries
 - `lib/repositories/inventory/provenance_repository.dart` - Genet/provenance data
 - `firestore.rules` - Security rules

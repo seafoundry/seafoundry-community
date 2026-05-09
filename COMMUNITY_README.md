@@ -1,37 +1,22 @@
 # SeaFoundry Community Edition
 
-**Open-source marine restoration inventory tracking for the web.**
+**Open-source coral restoration inventory tracking for the web.**
 
-*Last Updated: 2026-01-13*
+*Last Updated: 2026-02-23*
 
 ## What is SeaFoundry Community?
 
-SeaFoundry Community is a free, open-source web application for marine restoration practitioners to track nursery inventory, genetics, and outplanting activities. It provides a streamlined subset of the full SeaFoundry platform focused on core inventory management.
+SeaFoundry Community is a free, open-source web application for coral restoration practitioners to track nursery inventory, genetics, and outplanting activities.
 
 ### What It Does
 
-- **Track Organism Inventory**: Manage organisms across nursery sites, structures (racks, trees, tables, longlines), and groups
-- **Record Genetics**: Track genets, cohorts, and provenance chains across generations
-- **Log Fragmentation Events**: Record when organisms are fragmented and track lineages
-- **Document Outplanting**: Record where and when organisms are outplanted to restoration sites
-- **Transfer Tracking**: Log external transfers (sending/receiving organisms to/from other organizations)
-- **Export Data**: Download inventory data in standardized CSV format (five-axis format: Taxonomy, Provenance, Location, Life Stage, Measurement)
-- **Multi-Species Support**: Works with corals, seagrass, oysters, kelp, mangroves, crustaceans, finfish, and echinoderms
-
-### What It Does NOT Do (Pro Features)
-
-The Community Edition intentionally excludes advanced features to keep the codebase simple and focused:
-
-- **No Mobile Apps**: Web-only (no iOS/Android apps)
-- **No Offline Mode**: Requires internet connection
-- **No Monitoring/Field Work Kit**: No field monitoring workflows, imagery collection, or growth tracking
-- **No Public Holdings Map**: No public-facing map of restoration sites
-- **No Demo Mode**: Must create an account to use
-- **No Husbandry Workflows**: No health observations, disease tracking, or mortality logging
-- **No AI Assistant (Sebastian)**: No AI-powered data assistance
-- **No Training/SOPs**: No standard operating procedure management
-- **No Push Notifications**: No mobile or web push notifications
-- **No Permit Tracking**: No regulatory compliance features
+- **Track Coral Inventory**: Manage corals across nursery sites, structures (racks, trees, tables), and groups
+- **Record Genetics**: Track genets and provenance chains
+- **Log Fragmentation Events**: Record when corals are fragmented and track lineages
+- **Document Outplanting**: Record where and when corals are outplanted to restoration sites
+- **Transfer Tracking**: Log external transfers (sending/receiving corals to/from other organizations)
+- **Public Holdings Map**: Visualize restoration sites on an interactive map
+- **Export Data**: Download inventory data in standardized CSV format
 
 ## Quick Start (5 Minutes)
 
@@ -99,27 +84,25 @@ See [docs/COMMUNITY_BUILD.md](docs/COMMUNITY_BUILD.md) for detailed setup and de
 
 ### Data Model
 
-SeaFoundry uses a **five-axis canonical inventory model** for tracking organisms:
+SeaFoundry uses a **five-axis canonical inventory model** for tracking corals:
 
 | Axis | Description | Example |
 |------|-------------|---------|
-| **Taxonomy** | Species identification via `OrganismKind` + `speciesId` | *Acropora cervicornis*, *Crassostrea virginica* |
-| **Provenance** | Genetic lineage/origin via `ProvenanceType` | Wild, Sexual Cohort, Graduated Individual, Transfer |
-| **Location** | Physical location with permit metadata | Site → Structure → Position |
-| **Life Stage** | Neutral lifecycle stage with optional subtype | Larva, Juvenile, Adult, Fragment |
-| **Measurement** | Population quantity + size specification | Count, SizeSpec (XS-XL), measured values |
-
-This model supports all organism types (coral, oyster, kelp, seagrass, mangrove, crustacean, finfish, echinoderm) with organism-specific presets and validation.
+| **Taxonomy** | Species identification | *Acropora cervicornis* |
+| **Provenance** | Genetic lineage/origin via `ProvenanceType` | Wild, Fragment, Transfer |
+| **Location** | Physical location with permit metadata | Site -> Structure -> Position |
+| **Life Stage** | Lifecycle stage | Larva, Juvenile, Adult, Fragment |
+| **Measurement** | Population quantity + size specification | Count, SizeSpec (XS-XL) |
 
 ### User Flow
 
-1. **Create Account** → Email/password or Google Sign-In
-2. **Create/Join Organization** → Set up your restoration org or accept an invitation
-3. **Add Sites** → Define your nursery and outplant locations
-4. **Add Structures** → Create racks, trees, tables within sites
-5. **Add Organisms** → Log individual corals or groups with genetic info
-6. **Track Events** → Record fragmentation, moves, outplanting, transfers
-7. **Export Data** → Download CSV reports for analysis
+1. **Create Account** -> Email/password or Google Sign-In
+2. **Create/Join Organization** -> Set up your restoration org or accept an invitation
+3. **Add Sites** -> Define your nursery and outplant locations
+4. **Add Structures** -> Create racks, trees, tables within sites
+5. **Add Organisms** -> Log individual corals or groups with genetic info
+6. **Track Events** -> Record fragmentation, moves, outplanting, transfers
+7. **Export Data** -> Download CSV reports for analysis
 
 ### Technology Stack
 
@@ -159,8 +142,8 @@ See [docs/COMMUNITY_BUILD.md](docs/COMMUNITY_BUILD.md) for detailed deployment i
 
 ```
 lib/
-├── community_main.dart          # App entry point
-├── community_app.dart           # App widget and providers
+├── main.dart                    # App entry point
+├── app.dart                     # App widget and providers
 ├── models/                      # Data models (Organism, Site, Event, etc.)
 ├── repositories/                # Data access layer (Firestore)
 ├── cubits/                      # State management (BLoC)
@@ -182,19 +165,6 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - Testing requirements
 - Pull request process
 
-## Upgrade Path to Pro
-
-Need advanced features? **SeaFoundry Pro** adds:
-- Native iOS/Android apps with offline sync
-- Monitoring workflows and field data collection
-- Public holdings map for stakeholder visibility
-- Husbandry tracking and health observations
-- AI-powered data assistant
-- Multi-team workspace management
-- Priority support
-
-Contact: [contact@seafoundry.com](mailto:contact@seafoundry.com)
-
 ## Community & Support
 
 - **Issues**: [Report bugs](https://github.com/seafoundry/seafoundry-community/issues)
@@ -209,6 +179,4 @@ You can use, modify, and distribute this software freely. The only requirement i
 
 ## About
 
-SeaFoundry is built to support coral restoration practitioners worldwide. The Community Edition makes professional inventory tracking accessible to organizations of all sizes.
-
-For the full-featured Pro version, visit [seafoundry.com](https://seafoundry.com).
+SeaFoundry Community Edition makes professional coral inventory tracking accessible to restoration organizations of all sizes.

@@ -10,13 +10,9 @@ import 'package:seafoundry_app/widgets/graph_node/site_summary_blueprint.dart';
 import 'package:seafoundry_app/widgets/graph_node/site_summary_models.dart';
 import 'package:seafoundry_app/widgets/navigation/summary_statistics.dart';
 
-/// Community-tier wrapper around site-specific summary metrics.
+/// Site-specific summary metrics displayed as metric cards.
 ///
-/// This simplified version:
-/// - Shows only inventory metrics (no Tasks & Maintenance tab)
-/// - Uses SummaryStatistics instead of Pro SummaryStatistics
-/// - Does NOT integrate with SiteGeometryDialog or GeneBankMetricsService
-/// - Displays basic metric cards based on site blueprint
+/// Displays inventory metrics based on the site blueprint.
 class SiteSummaryCards extends StatefulWidget {
   const SiteSummaryCards({super.key, required this.siteNode});
 
@@ -44,6 +40,7 @@ class _SiteSummaryCardsState
   Widget build(BuildContext context) {
     return StreamBuilder<GraphNodeState<Site>>(
       stream: _siteStream, // CACHED STREAM - no infinite loop!
+      initialData: widget.siteNode.state,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());

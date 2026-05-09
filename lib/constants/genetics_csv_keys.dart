@@ -60,6 +60,13 @@ class GeneticsCsvKeys {
     'Clonal ID',
   ];
 
+  static const List<String> accessionNumberKeys = [
+    'accessionNumber',
+    'Accession Number',
+    'accessionId',
+    'Accession #',
+  ];
+
   /// Donor genotype keys. Note: `site_id` is intentionally excluded.
   /// Legacy CSVs using site_id for donor genotype should use a partner-specific adapter.
   static const List<String> donorGenotypeKeys = [

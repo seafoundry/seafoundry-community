@@ -15,7 +15,6 @@ import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
-import 'package:seafoundry_app/utils/record_name_derived.dart';
 
 /// Neutral representation of a holding (discrete individual or batch) that
 /// captures population, life stage, provenance references, and graph-node
@@ -286,8 +285,8 @@ class HoldingRecord extends InventoryRecord
         readText(json['recordName']) ??
         readText(json['record_name']) ??
         parsedOrganismRecord?.recordName ??
-        RecordNameDerived.fromLocalId(localId) ??
-        RecordNameDerived.fromLocalId(json['id']?.toString());
+        localId ??
+        json['id']?.toString();
 
     return HoldingRecord(
       id: json['id']?.toString() ?? Record.inferId(json) ?? Missing.string,

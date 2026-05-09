@@ -1,6 +1,6 @@
 // @tier: community
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/constants/schema.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/cubits/organism_creation/organism_creation_state.dart';
 import 'package:seafoundry_app/mixins/provenance_search_mixin.dart';
 import 'package:seafoundry_app/models/alias.dart';
@@ -23,8 +23,7 @@ import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/measurement_metrics_service.dart';
 import 'package:seafoundry_app/services/physical_form_registry.dart';
 import 'package:seafoundry_app/services/provenance_lookup_service.dart';
-import 'package:seafoundry_app/utils/record_name_derived.dart';
-
+import 'package:seafoundry_app/utils/string_formatters.dart';
 class OrganismCreationCubit extends Cubit<OrganismCreationState>
     with ProvenanceSearchMixin<OrganismCreationState> {
   // Request ID counter to track async form loading requests and prevent stale data
@@ -35,14 +34,12 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
   int _localIdSuggestionRequestId = 0;
 
   final PhysicalFormRegistry _physicalFormRegistry;
-  final MeasurementMetricsService _measurementMetricsService;
   final GenetRepository? _genetRepository;
   @override
   final ProvenanceLookupService? provenanceLookupService;
 
   OrganismCreationCubit({
     PhysicalFormRegistry? physicalFormRegistry,
-    MeasurementMetricsService? measurementMetricsService,
     GenetRepository? genetRepository,
     this.provenanceLookupService,
     OrganismKind? initialOrganismKind,
@@ -53,28 +50,15 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     String? initialSourceCohortId,
   }) : _physicalFormRegistry =
            physicalFormRegistry ?? PhysicalFormRegistry.instance,
-       _measurementMetricsService =
-           measurementMetricsService ?? MeasurementMetricsService.instance,
        _genetRepository = genetRepository,
        super(
          OrganismCreationState(
            organismKind: initialOrganismKind ?? OrganismKind.coral,
            lifeStage: initialLifeStage ?? LifeStage.juvenile,
            provenanceType: initialProvenanceType ?? ProvenanceType.wild,
-           damProvenanceId:
-               initialDamProvenanceId ??
-               (initialProvenanceType == ProvenanceType.sexualCohort
-                   ? ProvenanceConstants.unknownParentId
-                   : null),
-           sireProvenanceId:
-               initialSireProvenanceId ??
-               (initialProvenanceType == ProvenanceType.sexualCohort
-                   ? ProvenanceConstants.unknownParentId
-                   : null),
-           sourceCohortId:
-               initialProvenanceType == ProvenanceType.graduatedIndividual
-               ? _resolveInitialSourceCohortId(initialSourceCohortId)
-               : null,
+           damProvenanceId: initialDamProvenanceId,
+           sireProvenanceId: initialSireProvenanceId,
+           sourceCohortId: initialSourceCohortId,
          ),
        ) {
     _loadAvailablePhysicalForms(
@@ -83,13 +67,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     );
   }
 
-  static String _resolveInitialSourceCohortId(String? initialSourceCohortId) {
-    final normalized = initialSourceCohortId?.trim();
-    if (normalized != null && normalized.isNotEmpty) {
-      return normalized;
-    }
-    return ProvenanceConstants.unknownParentId;
-  }
+  // _resolveInitialSourceCohortId removed in coral-only simplification
 
   void selectProvenanceSuggestion(
     ProvenanceSuggestion suggestion,
@@ -102,23 +80,23 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
 
     // Resolve clonalId: prefer resolved from crosswalk, then masterClonalId, then
     // the searched alias value if searching by clonalId, finally fallback to display service
-    String? resolvedClonalId = _nonEmpty(suggestion.resolvedClonalId) ??
-        _nonEmpty(suggestion.masterClonalId);
+    String? resolvedClonalId = nonEmpty(suggestion.resolvedClonalId) ??
+        nonEmpty(suggestion.masterClonalId);
     if (resolvedClonalId == null && field == ProvenanceMatchField.clonalId) {
-      resolvedClonalId = _nonEmpty(suggestion.aliasValue);
+      resolvedClonalId = nonEmpty(suggestion.aliasValue);
     }
     resolvedClonalId ??= ClonalIdDisplayService.resolveForSuggestion(suggestion);
 
     // Resolve accession: prefer resolved, fallback to searched value if searching by accession
-    final resolvedAccession = _nonEmpty(suggestion.resolvedAccessionNumber) ??
+    final resolvedAccession = nonEmpty(suggestion.resolvedAccessionNumber) ??
         (field == ProvenanceMatchField.accessionNumber
-            ? _nonEmpty(suggestion.aliasValue)
+            ? nonEmpty(suggestion.aliasValue)
             : null);
 
     // Resolve alias: prefer resolved, fallback to searched value if searching by alias
-    final resolvedAlias = _nonEmpty(suggestion.resolvedAlias) ??
+    final resolvedAlias = nonEmpty(suggestion.resolvedAlias) ??
         (field == ProvenanceMatchField.alias
-            ? _nonEmpty(suggestion.aliasValue)
+            ? nonEmpty(suggestion.aliasValue)
             : null);
 
     emit(
@@ -137,10 +115,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
 
     _triggerLocalIdSuggestion();
   }
-
-  /// Returns null if value is null or empty after trimming.
-  static String? _nonEmpty(String? value) =>
-      (value == null || value.trim().isEmpty) ? null : value.trim();
 
   Future<void> _triggerLocalIdSuggestion() async {
     // Only suggest if we have a repo and no manual overwrite yet
@@ -276,7 +250,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     emit(
       state.copyWith(
         lifeStage: lifeStage,
-        gameteRole: lifeStage == LifeStage.gamete ? state.gameteRole : null,
         error: null,
       ),
     );
@@ -293,7 +266,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     final requestId = ++_formLoadRequestId;
 
     try {
-      final forms = await _physicalFormRegistry.getAvailableForms(
+      final forms = _physicalFormRegistry.getAvailableForms(
         organismKind,
         lifeStage,
       );
@@ -329,7 +302,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
 
       // Load field config if we have a physical form
       if (newSelection != null) {
-        fieldConfig = await _measurementMetricsService.getFieldConfig(
+        fieldConfig = MeasurementMetricsService.getFieldConfig(
           organismKind: organismKind,
           lifeStage: lifeStage,
           physicalFormId: newSelection.formId,
@@ -365,7 +338,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     if (physicalForm != null &&
         state.organismKind != null &&
         state.lifeStage != null) {
-      final fieldConfig = await _measurementMetricsService.getFieldConfig(
+      final fieldConfig = MeasurementMetricsService.getFieldConfig(
         organismKind: state.organismKind!,
         lifeStage: state.lifeStage!,
         physicalFormId: physicalForm.formId,
@@ -385,14 +358,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
               (oldConfig?.enableCount == true && !fieldConfig.enableCount)
               ? null
               : state.editingCount,
-          // Reset volume if disabled; keep user overrides so fields remain blank by default.
-          editingVolumeCm3: !fieldConfig.enableVolume
-              ? null
-              : state.editingVolumeCm3,
-          // Reset tissue area if disabled; keep user overrides so fields remain blank by default.
-          editingTissueAreaCm2: (!fieldConfig.enableTissueArea)
-              ? null
-              : state.editingTissueAreaCm2,
         ),
       );
     }
@@ -414,48 +379,10 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     emit(state.copyWith(editingCount: count, error: null));
   }
 
-  void editingVolumeCm3Changed(double? volume) {
-    emit(state.copyWith(editingVolumeCm3: volume, error: null));
-  }
-
-  void editingTissueAreaCm2Changed(double? area) {
-    emit(state.copyWith(editingTissueAreaCm2: area, error: null));
-  }
 
   void provenanceTypeChanged(ProvenanceType? provenanceType) {
     final nextType = provenanceType;
     final nextState = state.copyWith(provenanceType: nextType, error: null);
-
-    if (nextType == ProvenanceType.sexualCohort) {
-      final sire = (state.sireProvenanceId ?? '').trim().isEmpty
-          ? ProvenanceConstants.unknownParentId
-          : state.sireProvenanceId;
-      final dam = (state.damProvenanceId ?? '').trim().isEmpty
-          ? ProvenanceConstants.unknownParentId
-          : state.damProvenanceId;
-      emit(
-        nextState.copyWith(
-          sireProvenanceId: sire,
-          damProvenanceId: dam,
-          sourceCohortId: null,
-        ),
-      );
-      return;
-    }
-
-    if (nextType == ProvenanceType.graduatedIndividual) {
-      final source = (state.sourceCohortId ?? '').trim().isEmpty
-          ? ProvenanceConstants.unknownParentId
-          : state.sourceCohortId;
-      emit(
-        nextState.copyWith(
-          sourceCohortId: source,
-          sireProvenanceId: null,
-          damProvenanceId: null,
-        ),
-      );
-      return;
-    }
 
     emit(
       nextState.copyWith(
@@ -464,10 +391,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
         sourceCohortId: null,
       ),
     );
-  }
-
-  void gameteRoleChanged(ProvenanceGameteRole? role) {
-    emit(state.copyWith(gameteRole: role, error: null));
   }
 
   void isNewGenetChanged(bool value) {
@@ -709,26 +632,14 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
       final inheritedProvenance = parsedType;
       final provenance = genet.provenance ?? const <String, dynamic>{};
       final wildMethod = provenance['collectionMethod']?.toString().trim();
-      final sourceCohortId = genet.parentCohortId?.trim();
-      final sireId = (genet.sireGameteIds?.isNotEmpty ?? false)
-          ? genet.sireGameteIds!.first.trim()
-          : null;
-      final damId = (genet.damGameteIds?.isNotEmpty ?? false)
-          ? genet.damGameteIds!.first.trim()
-          : null;
       emit(
         state.copyWith(
           selectedGenet: genet,
           // Sync provenance from genet so submit() uses correct value
           provenanceType: inheritedProvenance,
-          sourceCohortId: sourceCohortId?.isNotEmpty == true
-              ? sourceCohortId
-              : null,
           wildCollectionMethod: (wildMethod?.isNotEmpty == true)
               ? wildMethod
               : null,
-          sireProvenanceId: sireId?.isNotEmpty == true ? sireId : null,
-          damProvenanceId: damId?.isNotEmpty == true ? damId : null,
           error: null,
         ),
       );
@@ -1082,11 +993,9 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
 
     // Validate measurement metrics against field config
     if (state.measurementFieldConfig != null) {
-      final metricsError = _measurementMetricsService.validateMetrics(
+      final metricsError = MeasurementMetricsService.validateMetrics(
         config: state.measurementFieldConfig!,
         count: state.editingCount,
-        volumeCm3: state.editingVolumeCm3,
-        tissueAreaCm2: state.editingTissueAreaCm2,
       );
       if (metricsError != null) {
         setError(metricsError);
@@ -1099,11 +1008,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
 
       // Build provenance attributes
       final provenanceAttributes = ProvenanceAttributes(
-        gameteRole: state.gameteRole,
-        sourceCohortId: state.sourceCohortId,
         wildCollectionMethod: state.wildCollectionMethod,
-        sireProvenanceId: state.sireProvenanceId,
-        damProvenanceId: state.damProvenanceId,
       );
 
       // Build metadata with permit information and creation/gain reason
@@ -1167,7 +1072,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
 
       final recordName = (state.recordName?.trim().isNotEmpty ?? false)
           ? state.recordName!.trim()
-          : (RecordNameDerived.fromLocalId(genetLocalId) ?? 'Unknown');
+          : (genetLocalId ?? 'Unknown');
 
       final resolvedLifeStage = state.lifeStage ?? LifeStage.unknown;
 
@@ -1197,8 +1102,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
         physicalForm: physicalForm,
         sizeSpec: state.sizeSpec.copyWith(
           countOverride: state.editingCount,
-          volumeCm3Override: state.editingVolumeCm3,
-          tissueAreaCm2Override: state.editingTissueAreaCm2,
         ),
         aliases: state.aliases,
         ownerOrganizationId: ownerOrganizationId ?? state.ownerOrganizationId,

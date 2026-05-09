@@ -13,9 +13,6 @@ enum StreamType {
 
   /// Events stream - multiple listeners (UI + analytics)
   events,
-
-  /// Navigation stream - shared across UI components
-  navigation,
 }
 
 /// Factory for creating stream controllers with appropriate configuration
@@ -25,7 +22,7 @@ enum StreamType {
 /// "Stream already listened to" errors while maintaining memory efficiency.
 ///
 /// **Design Decisions**:
-/// - **Children/Events/Navigation**: Use broadcast to support multiple listeners
+/// - **Children/Events**: Use broadcast to support multiple listeners
 ///   during node initialization and UI updates
 /// - **Record**: Keep single-subscription for 1:1 relationships (one node per record)
 /// - **Sync vs Async**: Default to sync for immediate event processing, but allow
@@ -52,7 +49,6 @@ class GraphStreamControllerFactory {
     switch (type) {
       case StreamType.children:
       case StreamType.events:
-      case StreamType.navigation:
         // Broadcast for multi-listener scenarios
         return StreamController<T>.broadcast(sync: sync);
 
@@ -91,10 +87,6 @@ extension StreamBroadcastExtension<T> on Stream<T> {
         //
         // shareReplay(maxSize: 1) keeps the connection alive and replays the latest value.
         return shareReplay(maxSize: 1);
-
-      case StreamType.navigation:
-        // Convert to broadcast for multi-listener scenarios
-        return asBroadcastStream();
 
       case StreamType.record:
         // Keep single-subscription for 1:1 relationships

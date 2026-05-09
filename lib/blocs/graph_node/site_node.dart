@@ -25,7 +25,7 @@ class SiteNode extends GraphNode<Site> {
   Site get site => currentRecord;
 
   /// Returns true if this site is an outplanting site.
-  bool get isOutplantingSite => site.siteTypeId == SiteType.outplanting.id;
+  bool get isOutplantingSite => SiteType.fromId(site.siteTypeId).isOutplanting;
 
   /// Override to include outplant events for outplanting sites.
   ///

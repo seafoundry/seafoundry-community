@@ -1,10 +1,11 @@
-// @tier: pro
-// NOTE: This file is a template for community builds - copied and patched during sync
+// @tier: community
 import 'package:seafoundry_app/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/auth/auth.dart';
-import 'package:seafoundry_app/cubits/current_user/current_user.dart';
+import 'package:seafoundry_app/blocs/auth/auth_bloc.dart';
+import 'package:seafoundry_app/blocs/auth/auth_state.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
 import 'package:seafoundry_app/cubits/onboarding/onboarding_cubit.dart';
 import 'package:seafoundry_app/models/user.dart';
 import 'package:seafoundry_app/repositories/brand_profile_repository.dart';
@@ -19,16 +20,9 @@ import 'package:seafoundry_app/navigation/simple_navigation_widget.dart';
 import 'package:seafoundry_app/services/provenance_crosswalk_service.dart';
 import 'package:seafoundry_app/services/provenance_lookup_service.dart';
 
-/// Community version of simple router
+/// Top-level router that handles auth state and navigation.
 ///
-/// Removed Pro/Scale features:
-/// - Public holdings map screens (PublicHoldingsMapScreen, PublicNodeScreen, PublicOrganizationScreen)
-/// - Public route detection and handling
-/// - Demo mode service and demo user cleanup
-/// - Tour wrapper functionality
-/// - All monitoring, training, and sebastian screen imports
-///
-/// Community version shows AuthScreen for unauthenticated users (no public map landing page)
+/// Shows AuthScreen for unauthenticated users.
 class SimpleRouter extends StatelessWidget {
   const SimpleRouter({super.key});
 
@@ -163,7 +157,6 @@ class SimpleRouter extends StatelessWidget {
         RepositoryProvider<InvitationRepository>(
           create: (_) => InvitationRepository(
             firestore: firestore,
-            recordRepository: recordRepository,
           ),
         ),
         // Provide OrganizationRepository for activities management

@@ -103,7 +103,6 @@ const String _addPermitValue = '__add_permit__';
 ///     bloc.add(PermitChanged(permit));
 ///   },
 ///   enabled: !isSubmitting,
-///   isPro: true, // Enable permit creation
 /// )
 /// ```
 class PermitSelectorWidget extends StatefulWidget {
@@ -116,7 +115,6 @@ class PermitSelectorWidget extends StatefulWidget {
     this.enabled = true,
     this.displayOptions = PermitSelectorDisplayOptions.standard,
     this.preloadedPermits,
-    this.isPro = false,
     this.showAddPermitOption = true,
     this.onPermitCreated,
     this.onAddPermitRequested,
@@ -147,10 +145,6 @@ class PermitSelectorWidget extends StatefulWidget {
   /// when the parent already has permits loaded (e.g., from bloc state).
   final List<Permit>? preloadedPermits;
 
-  /// Whether the user has Pro tier access. Permits are a Pro feature.
-  /// When false, the "Add Permit..." option is disabled with a hint.
-  final bool isPro;
-
   /// Whether to show the "Add Permit..." option in the dropdown.
   final bool showAddPermitOption;
 
@@ -160,13 +154,13 @@ class PermitSelectorWidget extends StatefulWidget {
 
   /// Callback to handle permit creation. Required for "Add Permit" functionality.
   ///
-  /// When provided (along with [isPro] = true), the "Add Permit" option
+  /// When provided, the "Add Permit" option
   /// becomes functional. When tapped, this callback is invoked to show the
   /// permit creation dialog. The callback should return the created permit,
   /// or null if cancelled.
   ///
-  /// This callback pattern allows the community-tier widget to support
-  /// permit creation without importing pro-tier dialog code directly.
+  /// This callback pattern allows the widget to support permit creation
+  /// without importing dialog code directly.
   final PermitCreationCallback? onAddPermitRequested;
 
   @override
@@ -189,10 +183,8 @@ class _PermitSelectorWidgetState extends State<PermitSelectorWidget> {
   List<Permit>? get _effectivePermits => widget.preloadedPermits ?? _permits;
 
   /// Whether the "Add Permit" functionality is available.
-  /// Requires: showAddPermitOption, isPro, and onAddPermitRequested callback.
   bool get _canAddPermit =>
       widget.showAddPermitOption &&
-      widget.isPro &&
       widget.onAddPermitRequested != null;
 
   @override
@@ -420,7 +412,7 @@ class _PermitSelectorWidgetState extends State<PermitSelectorWidget> {
                   semanticLabel: 'Add permit',
                 ),
                 label: Text(
-                  canAddPermit ? 'Add Permit...' : 'Add Permit (Pro)',
+                  'Add Permit...',
                   style: TextStyle(
                     color: canAddPermit
                         ? Theme.of(context).colorScheme.primary
@@ -431,17 +423,6 @@ class _PermitSelectorWidgetState extends State<PermitSelectorWidget> {
                   ),
                 ),
               ),
-              if (!widget.isPro) ...[
-                const SizedBox(height: 4),
-                Text(
-                  'Permits require a Pro subscription.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ],
             ],
           ],
         ),
@@ -625,7 +606,7 @@ class _PermitSelectorWidgetState extends State<PermitSelectorWidget> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _canAddPermit ? 'Add Permit...' : 'Add Permit (Pro)',
+                  'Add Permit...',
                   style: TextStyle(
                     color: _canAddPermit
                         ? theme.colorScheme.primary
@@ -682,15 +663,6 @@ class _PermitSelectorWidgetState extends State<PermitSelectorWidget> {
   }
 
   Future<void> _showAddPermitDialog() async {
-    if (!widget.isPro) {
-      if (mounted) {
-        ToastOverlay.showSnackBar(context,
-          const SnackBar(content: Text('Permits require a Pro subscription')),
-        );
-      }
-      return;
-    }
-
     // Check if callback is provided
     final onAddPermitRequested = widget.onAddPermitRequested;
     if (onAddPermitRequested == null) {

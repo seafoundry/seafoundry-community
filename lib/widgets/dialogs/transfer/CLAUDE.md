@@ -7,8 +7,8 @@ Genetic material transfers between organizations.
 ### Single Transfer
 - `transfer_shared.dart` - `OrganizationSearchDialog`, shared mixins
 - `transfer_initiate_dialog.dart` - Send transfer to another org
-- `transfer_receive_dialog.dart` - Receive via QR
-- `transfer_manual_register_dialog.dart` - Manual registration without QR
+- `transfer_receive_dialog.dart` - Receive via manifest payload
+- `transfer_manual_register_dialog.dart` - Manual registration without manifest
 
 ### Batch Transfer
 - `batch_transfer_dialog.dart` - Multi-step wizard orchestrator (SafeDialogMixin)
@@ -35,7 +35,7 @@ Genetic material transfers between organizations.
 
 - `OrganizationSearchDialog` takes `excludeOrganizationId` to prevent self-transfers
 - Recipient modes: organization search OR direct email
-- Non-coral transfers show "coming soon"
+- Coral-only: only coral transfers are supported
 
 ### Batch Transfer
 - Two modes: `multiGenetToOneOrg` (Mode A) and `oneGenetToMultiOrg` (Mode B)

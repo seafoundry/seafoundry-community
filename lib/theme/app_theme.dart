@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:seafoundry_app/theme/app_colors.dart';
-import 'package:seafoundry_app/theme/event_theme.dart';
 import 'package:seafoundry_app/theme/node_theme.dart';
 
 /// Main theme configuration for the app
@@ -185,7 +184,7 @@ class AppTheme {
       ),
 
       // Extensions
-      extensions: [NodeTheme.light(), EventTheme.light()],
+      extensions: [NodeTheme.light()],
     );
   }
 }

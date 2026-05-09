@@ -1,179 +1,128 @@
 // @tier: community
-import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
+import 'package:seafoundry_app/models/types/provenance_kind.dart';
 
-import 'provenance_kind.dart';
-
-/// Canonical provenance taxonomy used by the five-axis OrganismRecord DTO.
+/// Canonical provenance taxonomy used by the OrganismRecord DTO.
 ///
-/// * `wild` – stocks collected in the wild (permits required, keeps method).
-///   Also used for fragments/clones derived from wild-collected organisms.
-/// * `sexualCohort` – fertilised/settled cohorts that create new lineages.
-/// * `graduatedIndividual` – individuals promoted out of a cohort (ties back
-///   to the source cohort for traceability).
-/// * `transfer` – organisms received from another facility or external source.
-/// * `unknown` – provenance information is not available.
+/// * `wild` -- stocks collected in the wild (permits required, keeps method).
+/// * `cohort` -- organisms from a nursery-reared cohort (asexual propagation batch).
+/// * `graduatedIndividual` -- individual promoted from a cohort to its own genet identity.
+/// * `transfer` -- organisms received from another facility or external source.
+/// * `unknown` -- provenance information is not available.
 enum ProvenanceType {
   wild,
-  sexualCohort,
+  cohort,
   graduatedIndividual,
   transfer,
   unknown,
 }
 
-class ProvenanceTypeMetadata {
-  const ProvenanceTypeMetadata({
-    required this.id,
-    required this.displayName,
-    required this.defaultLifeStage,
-    required this.defaultProvenanceKind,
-    this.description,
-    this.requiresParentIds = false,
-    this.requiresSourceCohort = false,
-    this.supportsWildMethod = false,
-    this.isGamete = false,
-    this.aliases = const <String>[],
-    this.allowedLifeStages = const <LifeStage>[],
-  });
-
-  final String id;
-  final String displayName;
-  final LifeStage defaultLifeStage;
-  final ProvenanceKind defaultProvenanceKind;
-  final String? description;
-  final bool requiresParentIds;
-  final bool requiresSourceCohort;
-  final bool supportsWildMethod;
-  final bool isGamete;
-  final List<String> aliases;
-  final List<LifeStage> allowedLifeStages;
-}
-
 extension ProvenanceTypeX on ProvenanceType {
-  static const Map<ProvenanceType, ProvenanceTypeMetadata> _metadata = {
-    ProvenanceType.wild: ProvenanceTypeMetadata(
-      id: 'provenance_type_wild',
-      displayName: 'Wild Collection',
-      defaultLifeStage: LifeStage.broodstock,
-      defaultProvenanceKind: ProvenanceKind.broodstock,
-      description:
-          'Founder stock or corals-of-opportunity collected from the wild.',
-      supportsWildMethod: true,
-      aliases: [
-        'wild',
-        'founder',
-        'founder_genotype', // legacy GenetType
-        'founder genotype', // legacy GenetType
-        'donormeadow',
-        'donor meadow',
-        'donor_meadow',
-        'broodstock',
-      ],
-      allowedLifeStages: [
-        LifeStage.gamete,
-        LifeStage.juvenile,
-        LifeStage.adult,
-        LifeStage.broodstock,
-        LifeStage.unknown,
-      ],
-    ),
-    ProvenanceType.sexualCohort: ProvenanceTypeMetadata(
-      id: 'provenance_type_sexual_cohort',
-      displayName: 'Sexual Cohort',
-      defaultLifeStage: LifeStage.juvenile,
-      defaultProvenanceKind: ProvenanceKind.cohort,
-      description: 'Larval/settled cohort created via sexual reproduction.',
-      requiresParentIds: true,
-      aliases: [
-        'sexualcohort',
-        'sexual_cohort',
-        'hatcherylot',
-        'hatchery_lot',
-        'cohort',
-      ],
-      allowedLifeStages: [
-        // Note: gamete removed - sexual cohorts are the RESULT of fertilization
-        // Gametes themselves inherit their parent's provenance type
-        LifeStage.embryo,
-        LifeStage.larva,
-        LifeStage.juvenile,
-        LifeStage.unknown,
-      ],
-    ),
-    ProvenanceType.graduatedIndividual: ProvenanceTypeMetadata(
-      id: 'provenance_type_graduated_individual',
-      displayName: 'Graduated Individual',
-      defaultLifeStage: LifeStage.adult,
-      defaultProvenanceKind: ProvenanceKind.cohort,
-      description: 'Individual promoted from a cohort with its own lineage.',
-      requiresSourceCohort: true,
-      aliases: [
-        'graduatedindividual',
-        'graduated_individual',
-        'promoted_individual',
-        'promoted',
-        'individual',
-      ],
-    ),
-    ProvenanceType.transfer: ProvenanceTypeMetadata(
-      id: 'provenance_type_transfer',
-      displayName: 'Transfer / Import',
-      defaultLifeStage: LifeStage.adult,
-      defaultProvenanceKind: ProvenanceKind.genet,
-      description:
-          'Organism received from another facility or external source.',
-      aliases: ['transfer', 'import', 'received'],
-      allowedLifeStages: [
-        LifeStage.gamete,
-        LifeStage.juvenile,
-        LifeStage.adult,
-        LifeStage.broodstock,
-        LifeStage.unknown,
-      ],
-    ),
-    ProvenanceType.unknown: ProvenanceTypeMetadata(
-      id: 'provenance_type_unknown',
-      displayName: 'Unknown',
-      defaultLifeStage: LifeStage.adult,
-      defaultProvenanceKind: ProvenanceKind.genet,
-      description: 'Provenance information is not available.',
-      aliases: ['unknown', 'missing', 'n/a'],
-      allowedLifeStages: [
-        LifeStage.gamete,
-        LifeStage.juvenile,
-        LifeStage.adult,
-        LifeStage.broodstock,
-        LifeStage.unknown,
-      ],
-    ),
+  /// Legacy compatibility shim -- returns `this` so that existing
+  /// `.metadata.displayName`, `.metadata.id`, etc. calls continue to work
+  /// without a separate metadata class.
+  ProvenanceType get metadata => this;
+
+  /// Stable Firestore identifier for this provenance type.
+  String get id => switch (this) {
+    ProvenanceType.wild => 'provenance_type_wild',
+    ProvenanceType.cohort => 'provenance_type_cohort',
+    ProvenanceType.graduatedIndividual => 'provenance_type_graduated_individual',
+    ProvenanceType.transfer => 'provenance_type_transfer',
+    ProvenanceType.unknown => 'provenance_type_unknown',
   };
 
-  ProvenanceTypeMetadata get metadata => _metadata[this]!;
+  String get displayName => switch (this) {
+    ProvenanceType.wild => 'Wild Collection',
+    ProvenanceType.cohort => 'Nursery Cohort',
+    ProvenanceType.graduatedIndividual => 'Graduated Individual',
+    ProvenanceType.transfer => 'Transfer / Import',
+    ProvenanceType.unknown => 'Unknown',
+  };
 
-  String get id => metadata.id;
+  /// Default provenance kind for this provenance type.
+  /// All simplified provenance types map to genet.
+  ProvenanceKind get defaultProvenanceKind => ProvenanceKind.genet;
 
-  String get displayName => metadata.displayName;
+  /// Allowed life stages for this provenance type.
+  /// All provenance types now allow all life stages.
+  List<LifeStage> get allowedLifeStages => LifeStage.values;
 
-  LifeStage get defaultLifeStage => metadata.defaultLifeStage;
+  /// Default life stage for this provenance type.
+  LifeStage get defaultLifeStage => switch (this) {
+    ProvenanceType.wild => LifeStage.broodstock,
+    ProvenanceType.cohort => LifeStage.juvenile,
+    ProvenanceType.graduatedIndividual => LifeStage.adult,
+    ProvenanceType.transfer => LifeStage.adult,
+    ProvenanceType.unknown => LifeStage.adult,
+  };
 
-  ProvenanceKind get defaultProvenanceKind => metadata.defaultProvenanceKind;
-
-  List<LifeStage> get allowedLifeStages => metadata.allowedLifeStages;
-
+  /// Parses a provenance type from a string value.
+  ///
+  /// Returns [ProvenanceType.unknown] for deleted values (sexualCohort,
+  /// graduatedIndividual) to avoid crashes on existing Firestore data.
   static ProvenanceType? tryParse(String? value) {
     if (value == null) return null;
     final normalized = value.trim().toLowerCase();
-    return ProvenanceType.values.firstWhereOrNull((type) {
-      final metadata = type.metadata;
-      if (type.name.toLowerCase() == normalized ||
-          metadata.id.toLowerCase() == normalized) {
-        return true;
-      }
-      return metadata.aliases.any(
-        (alias) => alias.trim().toLowerCase() == normalized,
-      );
-    });
+    if (normalized.isEmpty) return null;
+
+    // Direct enum name matches
+    for (final type in ProvenanceType.values) {
+      if (type.name.toLowerCase() == normalized) return type;
+    }
+
+    // Legacy alias matching
+    const aliases = <String, ProvenanceType>{
+      'wild': ProvenanceType.wild,
+      'founder': ProvenanceType.wild,
+      'founder_genotype': ProvenanceType.wild,
+      'founder genotype': ProvenanceType.wild,
+      'donormeadow': ProvenanceType.wild,
+      'donor meadow': ProvenanceType.wild,
+      'donor_meadow': ProvenanceType.wild,
+      'broodstock': ProvenanceType.wild,
+      'provenance_type_wild': ProvenanceType.wild,
+      'transfer': ProvenanceType.transfer,
+      'import': ProvenanceType.transfer,
+      'received': ProvenanceType.transfer,
+      'provenance_type_transfer': ProvenanceType.transfer,
+      'unknown': ProvenanceType.unknown,
+      'missing': ProvenanceType.unknown,
+      'n/a': ProvenanceType.unknown,
+      'provenance_type_unknown': ProvenanceType.unknown,
+      // Cohort aliases (nursery-reared batch)
+      'cohort': ProvenanceType.cohort,
+      'provenance_type_cohort': ProvenanceType.cohort,
+      'sexualcohort': ProvenanceType.cohort,
+      'sexual_cohort': ProvenanceType.cohort,
+      'sexualCohort': ProvenanceType.cohort,
+      'provenance_type_sexual_cohort': ProvenanceType.cohort,
+      'hatcherylot': ProvenanceType.cohort,
+      'hatchery_lot': ProvenanceType.cohort,
+      // Graduated individual aliases
+      'graduatedindividual': ProvenanceType.graduatedIndividual,
+      'graduated_individual': ProvenanceType.graduatedIndividual,
+      'provenance_type_graduated_individual': ProvenanceType.graduatedIndividual,
+      'promoted_individual': ProvenanceType.graduatedIndividual,
+      'promoted': ProvenanceType.graduatedIndividual,
+      'individual': ProvenanceType.graduatedIndividual,
+    };
+
+    return aliases[normalized];
+  }
+
+  /// Maps a legacy [ProvenanceKind] to a [ProvenanceType].
+  /// All kinds map to wild (founder-like) or unknown.
+  static ProvenanceType? fromLegacyKind(ProvenanceKind? kind) {
+    if (kind == null) return null;
+    return switch (kind) {
+      ProvenanceKind.genet => ProvenanceType.wild,
+      ProvenanceKind.broodstock => ProvenanceType.wild,
+      ProvenanceKind.donorMeadow => ProvenanceType.wild,
+      ProvenanceKind.hatcheryLot => ProvenanceType.cohort,
+      ProvenanceKind.cohort => ProvenanceType.cohort,
+    };
   }
 
   static ProvenanceType fromName(String value) {
@@ -188,71 +137,34 @@ extension ProvenanceTypeX on ProvenanceType {
     }
     return parsed;
   }
-
-  static ProvenanceType? fromLegacyKind(ProvenanceKind? kind) {
-    if (kind == null) return null;
-    switch (kind) {
-      case ProvenanceKind.genet:
-        return ProvenanceType.wild;
-      case ProvenanceKind.broodstock:
-        return ProvenanceType.wild;
-      case ProvenanceKind.donorMeadow:
-        return ProvenanceType.wild;
-      case ProvenanceKind.hatcheryLot:
-      case ProvenanceKind.cohort:
-        return ProvenanceType.sexualCohort;
-    }
-  }
 }
 
 /// Additional metadata that travels with a provenance type inside the
-/// OrganismRecord payload. This stores sire/dam references for sexual crosses,
-/// source cohorts for promoted individuals, and collection metadata for wild
-/// stocks.
+/// OrganismRecord payload. Stores collection metadata for wild stocks
+/// and source organization for transfers.
+///
+/// The `gameteRole` field has been removed as part of the sexual propagation
+/// workflow removal. Existing Firestore data with gameteRole is silently
+/// ignored during parsing.
 class ProvenanceAttributes extends Equatable {
   const ProvenanceAttributes({
-    this.gameteRole,
-    this.sireProvenanceId,
-    this.damProvenanceId,
-    this.sourceCohortId,
     this.wildCollectionMethod,
-    this.isAliquoted = false,
   });
 
-  final ProvenanceGameteRole? gameteRole;
-  final String? sireProvenanceId;
-  final String? damProvenanceId;
-  final String? sourceCohortId;
   final String? wildCollectionMethod;
-  final bool isAliquoted;
 
   ProvenanceAttributes copyWith({
-    ProvenanceGameteRole? gameteRole,
-    String? sireProvenanceId,
-    String? damProvenanceId,
-    String? sourceCohortId,
     String? wildCollectionMethod,
-    bool? isAliquoted,
   }) {
     return ProvenanceAttributes(
-      gameteRole: gameteRole ?? this.gameteRole,
-      sireProvenanceId: sireProvenanceId ?? this.sireProvenanceId,
-      damProvenanceId: damProvenanceId ?? this.damProvenanceId,
-      sourceCohortId: sourceCohortId ?? this.sourceCohortId,
       wildCollectionMethod: wildCollectionMethod ?? this.wildCollectionMethod,
-      isAliquoted: isAliquoted ?? this.isAliquoted,
     );
   }
 
   Map<String, dynamic> toJson() {
     return <String, dynamic>{
-      if (gameteRole != null) 'gameteRole': gameteRole!.name,
-      if (sireProvenanceId != null) 'sireProvenanceId': sireProvenanceId,
-      if (damProvenanceId != null) 'damProvenanceId': damProvenanceId,
-      if (sourceCohortId != null) 'sourceCohortId': sourceCohortId,
       if (wildCollectionMethod != null)
         'wildCollectionMethod': wildCollectionMethod,
-      if (isAliquoted) 'isAliquoted': true,
     };
   }
 
@@ -260,14 +172,9 @@ class ProvenanceAttributes extends Equatable {
     if (json == null || json.isEmpty) {
       return const ProvenanceAttributes();
     }
-    final roleValue = json['gameteRole']?.toString();
+    // gameteRole is silently ignored for backward compat with existing data.
     return ProvenanceAttributes(
-      gameteRole: ProvenanceGameteRoleX.tryParse(roleValue),
-      sireProvenanceId: _asString(json['sireProvenanceId']),
-      damProvenanceId: _asString(json['damProvenanceId']),
-      sourceCohortId: _asString(json['sourceCohortId']),
       wildCollectionMethod: _asString(json['wildCollectionMethod']),
-      isAliquoted: json['isAliquoted'] == true,
     );
   }
 
@@ -279,42 +186,6 @@ class ProvenanceAttributes extends Equatable {
 
   @override
   List<Object?> get props => [
-    gameteRole,
-    sireProvenanceId,
-    damProvenanceId,
-    sourceCohortId,
     wildCollectionMethod,
-    isAliquoted,
   ];
-}
-
-/// Constants for provenance field values.
-///
-/// The provenance system uses two representations for missing data:
-/// - `null` = field not applicable (e.g., wild provenance has no parents)
-/// - `unknownParentId` = field applicable but value unknown (e.g., cohort with unknown parents)
-///
-/// Use [unknownParentId] when the field is semantically required but the actual
-/// value is not known. This allows the UI to track incomplete provenance via
-/// the genet's completenessScore.
-abstract class ProvenanceConstants {
-  /// Placeholder value for unknown parent/cohort IDs.
-  /// Used when provenance type requires parent linkage but IDs are not known.
-  static const String unknownParentId = 'unknown';
-
-  /// Check if a value represents an unknown parent ID.
-  static bool isUnknown(String? value) =>
-      value == null || value.trim().isEmpty || value == unknownParentId;
-}
-
-enum ProvenanceGameteRole { egg, sperm }
-
-extension ProvenanceGameteRoleX on ProvenanceGameteRole {
-  static ProvenanceGameteRole? tryParse(String? value) {
-    if (value == null) return null;
-    final normalized = value.trim().toLowerCase();
-    return ProvenanceGameteRole.values.firstWhereOrNull(
-      (role) => role.name.toLowerCase() == normalized,
-    );
-  }
 }

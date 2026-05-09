@@ -3,11 +3,8 @@ import 'dart:convert';
 
 import 'package:seafoundry_app/models/provenance_life_stage_selection.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
-import 'package:seafoundry_app/models/types/provenance_kind.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/services/csv/v2/csv_v2_spec_extensions.dart';
-import 'package:seafoundry_app/services/tier.dart';
-import 'package:seafoundry_app/services/tiered_field_registry.dart';
 
 /// Normalizes inventory rows before they flow through the CSV translation
 /// pipeline so organism-aware metadata (permits, geometry, site IDs) survives.
@@ -15,20 +12,18 @@ class InventoryExportRowFormatter {
   const InventoryExportRowFormatter._();
 
   static Map<String, dynamic> canonicalize(
-    Map<String, dynamic> row, {
-    Tier tier = Tier.scale,
-  }) {
+    Map<String, dynamic> row,
+  ) {
     final holdingKind = _string(row['holdingKind']);
     if (holdingKind != null && holdingKind.isNotEmpty) {
-      return _canonicalizeHoldingRow(row, holdingKind, tier);
+      return _canonicalizeHoldingRow(row, holdingKind);
     }
 
-    return _canonicalizeCoralRow(row, tier);
+    return _canonicalizeCoralRow(row);
   }
 
   static Map<String, dynamic> _canonicalizeCoralRow(
     Map<String, dynamic> row,
-    Tier tier,
   ) {
     final populationUnit = _string(row['measurementUnit']) ?? 'count';
     final populationValue = _string(row['quantityValue']) ?? '0';
@@ -113,7 +108,6 @@ class InventoryExportRowFormatter {
         ...CsvV2SpecExtensions.permitColumns,
         ...CsvV2SpecExtensions.geometryColumns,
         'outplantPointsCsv',
-        'outplantKmlUrl',
       ],
     );
 
@@ -127,17 +121,12 @@ class InventoryExportRowFormatter {
     _writeCanonicalProvenanceOutputs(canonical, coralSelection);
     _applyAliasColumns(row, canonical);
 
-    return TieredFieldRegistry.instance.filterFields(
-      model: 'inventory_export_row',
-      payload: canonical,
-      tier: tier,
-    );
+    return canonical;
   }
 
   static Map<String, dynamic> _canonicalizeHoldingRow(
     Map<String, dynamic> row,
     String holdingKind,
-    Tier tier,
   ) {
     final siteName = _string(row['siteName']) ?? '';
     final siteId = _string(row['siteId']) ?? '';
@@ -286,11 +275,7 @@ class InventoryExportRowFormatter {
       fallbackLifeStage: holdingLifeStage,
     );
     _writeCanonicalProvenanceOutputs(canonical, holdingSelection);
-    return TieredFieldRegistry.instance.filterFields(
-      model: 'inventory_export_row',
-      payload: canonical,
-      tier: tier,
-    );
+    return canonical;
   }
 
   static void _copyPassthrough({
@@ -477,13 +462,6 @@ class InventoryExportRowFormatter {
     final explicitParsed = ProvenanceTypeX.tryParse(explicit);
     if (explicitParsed != null) {
       return explicitParsed.id;
-    }
-    final legacy = _provenanceKind(row);
-    final legacyParsed =
-        ProvenanceTypeX.tryParse(legacy) ??
-        ProvenanceTypeX.fromLegacyKind(ProvenanceKindX.tryParse(legacy));
-    if (legacyParsed != null) {
-      return legacyParsed.id;
     }
     return defaultValue ?? '';
   }

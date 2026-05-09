@@ -80,10 +80,7 @@ class OrganismSelectionCubit extends Cubit<OrganismSelectionState> {
     );
   }
 
-  /// Set quantity for a specific organism
-  ///
-  /// Quantity must be between 1 and the organism's current measurement value.
-  /// Invalid quantities are clamped to valid range.
+  /// Quantity is clamped between 1 and the organism's current measurement value.
   void setQuantity(String organismId, int quantity) {
     final organism = state.availableOrganismsById[organismId];
     if (organism == null) return;
@@ -97,8 +94,6 @@ class OrganismSelectionCubit extends Cubit<OrganismSelectionState> {
     emit(state.copyWith(quantityByOrganism: updated));
   }
 
-  /// Set tag/label for a specific organism
-  ///
   /// Empty tags are removed from the state.
   void setTag(String organismId, String tag) {
     final updated = Map<String, String>.from(state.tagByOrganism);
@@ -110,8 +105,6 @@ class OrganismSelectionCubit extends Cubit<OrganismSelectionState> {
     emit(state.copyWith(tagByOrganism: updated));
   }
 
-  /// Set target group (plot/patch) for a specific organism
-  ///
   /// Null or empty groupId removes the group assignment.
   void setGroup(String organismId, String? groupId) {
     final updated = Map<String, String>.from(state.groupByOrganism);
@@ -161,11 +154,6 @@ class OrganismSelectionCubit extends Cubit<OrganismSelectionState> {
 
   /// Get list of selected organisms with their metadata
   ///
-  /// Returns a list of [SelectedOrganism] objects containing:
-  /// - The organism record
-  /// - Selected quantity
-  /// - Optional tag
-  /// - Optional group assignment
   List<SelectedOrganism> getSelectedOrganisms() {
     final items = <SelectedOrganism>[];
     for (final id in state.selectedOrganismIds) {

@@ -3,8 +3,7 @@ import 'package:seafoundry_app/models/types/record_type.dart';
 
 /// Builtin attachment methods that define how organisms are attached during outplanting.
 ///
-/// These methods serve as the base set that can be extended with custom methods
-/// by Pro tier organizations.
+/// These methods serve as the base set of attachment options.
 class AttachmentMethod extends BuiltinRecordType {
   final String? description;
 

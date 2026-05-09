@@ -6,7 +6,6 @@ import 'package:seafoundry_app/models/provenance_base.dart';
 import 'package:seafoundry_app/models/records/graph_node_record.dart';
 import 'package:seafoundry_app/models/records/inventory_record.dart';
 import 'package:seafoundry_app/models/records/record.dart';
-import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/provenance_kind.dart';
@@ -39,12 +38,6 @@ class Genet extends InventoryRecord
     this.provenance,
     List<Map<String, dynamic>>? aliases,
     ProvenanceKind? overrideProvenanceKind,
-    this.parentGameteIds,
-    this.parentCohortId,
-    this.donorGenotypeId,
-    this.damGameteIds,
-    this.sireGameteIds,
-    this.crossDate,
     this.readyForOutplant = false,
     this.archived = false,
     this.archivedAt,
@@ -105,30 +98,6 @@ class Genet extends InventoryRecord
                 ?.toString() ??
             Missing.string,
       ),
-      parentGameteIds =
-          (json['parentGameteIds'] as List?)?.whereType<String>().toList() ??
-          (json['createdEvent']?['parentGameteIds'] as List?)
-              ?.whereType<String>()
-              .toList(),
-      parentCohortId =
-          json['parentCohortId'] as String? ??
-          json['createdEvent']?['parentCohortId'] as String?,
-      donorGenotypeId =
-          json['donorGenotypeId'] as String? ??
-          json['createdEvent']?['donorGenotypeId'] as String?,
-      damGameteIds =
-          (json['damGameteIds'] as List?)?.whereType<String>().toList() ??
-          (json['createdEvent']?['damGameteIds'] as List?)
-              ?.whereType<String>()
-              .toList(),
-      sireGameteIds =
-          (json['sireGameteIds'] as List?)?.whereType<String>().toList() ??
-          (json['createdEvent']?['sireGameteIds'] as List?)
-              ?.whereType<String>()
-              .toList(),
-      crossDate =
-          _parseDateTime(json['crossDate']) ??
-          _parseDateTime(json['createdEvent']?['crossDate']),
       readyForOutplant =
           (json['readyForOutplant'] ??
               json['createdEvent']?['readyForOutplant']) ==
@@ -168,12 +137,6 @@ class Genet extends InventoryRecord
     String? notes,
     Map<String, dynamic>? provenance,
     List<Map<String, dynamic>>? aliases,
-    List<String>? parentGameteIds,
-    String? parentCohortId,
-    String? donorGenotypeId,
-    List<String>? damGameteIds,
-    List<String>? sireGameteIds,
-    DateTime? crossDate,
     bool? readyForOutplant,
     bool? archived,
     DateTime? archivedAt,
@@ -202,12 +165,6 @@ class Genet extends InventoryRecord
       provenance: provenance,
       aliases: aliases,
       overrideProvenanceKind: overrideProvenanceKind,
-      parentGameteIds: parentGameteIds,
-      parentCohortId: parentCohortId,
-      donorGenotypeId: donorGenotypeId,
-      damGameteIds: damGameteIds,
-      sireGameteIds: sireGameteIds,
-      crossDate: crossDate,
       readyForOutplant: readyForOutplant,
       organizationId: organizationId,
       createdById: createdById,
@@ -241,12 +198,6 @@ class Genet extends InventoryRecord
     Map<String, dynamic>? provenance,
     List<Map<String, dynamic>>? aliases,
     ProvenanceKind? overrideProvenanceKind,
-    List<String>? parentGameteIds,
-    String? parentCohortId,
-    String? donorGenotypeId,
-    List<String>? damGameteIds,
-    List<String>? sireGameteIds,
-    DateTime? crossDate,
     bool? readyForOutplant,
     bool? archived,
     DateTime? archivedAt,
@@ -287,18 +238,6 @@ class Genet extends InventoryRecord
              (provenanceTypeId ?? json?['provenanceTypeId'])?.toString() ??
              Missing.string,
        ),
-       parentGameteIds =
-           parentGameteIds ??
-           (json?['parentGameteIds'] as List?)?.whereType<String>().toList(),
-       parentCohortId = parentCohortId ?? json?['parentCohortId'],
-       donorGenotypeId = donorGenotypeId ?? json?['donorGenotypeId'],
-       damGameteIds =
-           damGameteIds ??
-           (json?['damGameteIds'] as List?)?.whereType<String>().toList(),
-       sireGameteIds =
-           sireGameteIds ??
-           (json?['sireGameteIds'] as List?)?.whereType<String>().toList(),
-       crossDate = crossDate ?? _parseDateTime(json?['crossDate']),
        readyForOutplant = readyForOutplant ?? json?['readyForOutplant'] == true,
        archived = archived ?? json?['archived'] == true,
        archivedAt = archivedAt ?? _parseDateTime(json?['archivedAt']),
@@ -316,18 +255,7 @@ class Genet extends InventoryRecord
   String get displayName => name;
 
   @override
-  String? get parentProvenanceId {
-    if (donorGenotypeId != null && donorGenotypeId!.isNotEmpty) {
-      return donorGenotypeId;
-    }
-    if (parentCohortId != null && parentCohortId!.isNotEmpty) {
-      return parentCohortId;
-    }
-    if (parentGameteIds != null && parentGameteIds!.isNotEmpty) {
-      return parentGameteIds!.first;
-    }
-    return null;
-  }
+  String? get parentProvenanceId => null;
 
   @override
   String? get siteId => null;
@@ -347,12 +275,6 @@ class Genet extends InventoryRecord
       if (clonalId != null) 'clonalId': clonalId,
       if (accessionNumber != null) 'accessionNumber': accessionNumber,
       if (provenance != null) 'provenance': provenance,
-      if (parentGameteIds != null && parentGameteIds!.isNotEmpty)
-        'parentGameteIds': parentGameteIds,
-      if (damGameteIds != null && damGameteIds!.isNotEmpty)
-        'damGameteIds': damGameteIds,
-      if (sireGameteIds != null && sireGameteIds!.isNotEmpty)
-        'sireGameteIds': sireGameteIds,
     });
   }
 
@@ -382,12 +304,6 @@ class Genet extends InventoryRecord
   final String? notes;
   final Map<String, dynamic>? provenance;
   final List<Map<String, dynamic>>? aliases;
-  final List<String>? parentGameteIds;
-  final String? parentCohortId;
-  final String? donorGenotypeId;
-  final List<String>? damGameteIds;
-  final List<String>? sireGameteIds;
-  final DateTime? crossDate;
   final bool readyForOutplant;
   final bool archived;
   final DateTime? archivedAt;
@@ -400,7 +316,7 @@ class Genet extends InventoryRecord
     try {
       // Defensive copy to ensure we have a clean Dart map, preventing DDC interop issues
       final json = Map<String, dynamic>.from(source);
-      
+
       if (json['urlPath'] is String &&
           json['internalPath'] is String &&
           json['slug'] is String) {
@@ -473,20 +389,11 @@ class Genet extends InventoryRecord
     'speciesId': speciesId,
     'provenanceTypeId': provenanceTypeId,
     'provenanceId': provenanceId,
-    'clonalId': clonalId,
-    'accessionNumber': accessionNumber,
+    if (clonalId != null) 'clonalId': clonalId,
+    if (accessionNumber != null) 'accessionNumber': accessionNumber,
     'notes': notes,
     if (provenance != null) 'provenance': provenance,
     if (aliases != null && aliases!.isNotEmpty) 'aliases': aliases,
-    if (parentGameteIds != null && parentGameteIds!.isNotEmpty)
-      'parentGameteIds': parentGameteIds,
-    if (parentCohortId != null) 'parentCohortId': parentCohortId,
-    if (donorGenotypeId != null) 'donorGenotypeId': donorGenotypeId,
-    if (damGameteIds != null && damGameteIds!.isNotEmpty)
-      'damGameteIds': damGameteIds,
-    if (sireGameteIds != null && sireGameteIds!.isNotEmpty)
-      'sireGameteIds': sireGameteIds,
-    if (crossDate != null) 'crossDate': crossDate!.toIso8601String(),
     'readyForOutplant': readyForOutplant,
     'archived': archived,
     if (archivedAt != null) 'archivedAt': archivedAt!.toIso8601String(),
@@ -519,12 +426,6 @@ class Genet extends InventoryRecord
     String? notes,
     Map<String, dynamic>? provenance,
     List<Map<String, dynamic>>? aliases,
-    List<String>? parentGameteIds,
-    String? parentCohortId,
-    String? donorGenotypeId,
-    List<String>? damGameteIds,
-    List<String>? sireGameteIds,
-    DateTime? crossDate,
     bool? readyForOutplant,
     bool? archived,
     DateTime? archivedAt,
@@ -557,12 +458,6 @@ class Genet extends InventoryRecord
     notes: notes ?? this.notes,
     provenance: provenance ?? this.provenance,
     aliases: aliases != null ? _canonicalizeAliases(aliases) : this.aliases,
-    parentGameteIds: parentGameteIds ?? this.parentGameteIds,
-    parentCohortId: parentCohortId ?? this.parentCohortId,
-    donorGenotypeId: donorGenotypeId ?? this.donorGenotypeId,
-    damGameteIds: damGameteIds ?? this.damGameteIds,
-    sireGameteIds: sireGameteIds ?? this.sireGameteIds,
-    crossDate: crossDate ?? this.crossDate,
     readyForOutplant: readyForOutplant ?? this.readyForOutplant,
     archived: archived ?? this.archived,
     archivedAt: archivedAt ?? this.archivedAt,
@@ -597,12 +492,6 @@ class Genet extends InventoryRecord
     notes,
     provenance,
     aliases,
-    parentGameteIds,
-    parentCohortId,
-    donorGenotypeId,
-    damGameteIds,
-    sireGameteIds,
-    crossDate,
     readyForOutplant,
     archived,
     archivedAt,
@@ -658,10 +547,14 @@ class Genet extends InventoryRecord
 
   static ProvenanceKind _mapProvenanceKindFromProvenanceType(String provenanceTypeId) {
     final provenanceType = ProvenanceTypeX.tryParse(provenanceTypeId);
-    if (provenanceType != null) {
-      return provenanceType.defaultProvenanceKind;
-    }
-    return ProvenanceKind.genet;
+    if (provenanceType == null) return ProvenanceKind.genet;
+    return switch (provenanceType) {
+      ProvenanceType.wild => ProvenanceKind.genet,
+      ProvenanceType.cohort => ProvenanceKind.cohort,
+      ProvenanceType.graduatedIndividual => ProvenanceKind.genet,
+      ProvenanceType.transfer => ProvenanceKind.genet,
+      ProvenanceType.unknown => ProvenanceKind.genet,
+    };
   }
 
   static List<Map<String, dynamic>>? _canonicalizeAliases(dynamic raw) {
@@ -689,223 +582,4 @@ class Genet extends InventoryRecord
     }
     return canonical.isEmpty ? null : canonical;
   }
-
-  // ============================================================================
-  // PROVENANCE COMPLETENESS
-  // ============================================================================
-
-  /// Completeness score from 0.0 to 1.0 for provenance/gamete metadata.
-  double get completenessScore => _computeProvenanceCompleteness().score;
-
-  /// Returns list of incomplete provenance/gamete field names for display.
-  List<String> get incompleteFields =>
-      _computeProvenanceCompleteness().missingFields;
-
-  /// Whether provenance metadata is complete for this genet's provenance type.
-  bool get isProvenanceComplete => incompleteFields.isEmpty;
-
-  /// List of missing provenance fields for this genet.
-  List<String> get missingProvenanceFields => incompleteFields;
-
-  /// Provenance completeness status.
-  ProvenanceCompletenessStatus get provenanceCompletenessStatus {
-    final provenanceType = _resolvedProvenanceType;
-    if (provenanceType == ProvenanceType.unknown) {
-      return ProvenanceCompletenessStatus.unknown;
-    }
-    return isProvenanceComplete
-        ? ProvenanceCompletenessStatus.complete
-        : ProvenanceCompletenessStatus.incomplete;
-  }
-
-  _ProvenanceCompleteness _computeProvenanceCompleteness() {
-    final missing = <String>[];
-    var total = 0;
-
-    void requireField(String label, bool isComplete) {
-      total += 1;
-      if (!isComplete) {
-        missing.add(label);
-      }
-    }
-
-    final provenanceType = _resolvedProvenanceType;
-    final lifeStage = _resolvedLifeStage(provenanceType);
-
-    if (lifeStage == LifeStage.gamete) {
-      requireField('Donor genotype', _hasMeaningfulValue(donorGenotypeId));
-      requireField(
-        'Gamete sex',
-        _hasProvenanceValue(const ['gamete_sex', 'gameteSex']),
-      );
-      requireField(
-        'Spawn date',
-        _hasProvenanceValue(const ['spawn_date', 'spawnDate']),
-      );
-      return _ProvenanceCompleteness(_score(total, missing.length), missing);
-    }
-
-    switch (provenanceType) {
-      case ProvenanceType.wild:
-        requireField(
-          'Collection method',
-          _hasProvenanceValue(
-            const [
-              'collection_method',
-              'collectionMethod',
-              'wild_method',
-              'wildMethod',
-            ],
-          ),
-        );
-        requireField(
-          'Collection date',
-          _hasProvenanceValue(const ['collection_date', 'collectionDate']),
-        );
-        break;
-      case ProvenanceType.sexualCohort:
-        final parentCount =
-            (parentGameteIds ?? const <String>[])
-                .where(_hasMeaningfulValue)
-                .length;
-        final hasParentPair = parentCount >= 2;
-        final hasDam =
-            _hasMeaningfulList(damGameteIds) || hasParentPair;
-        final hasSire =
-            _hasMeaningfulList(sireGameteIds) || hasParentPair;
-        requireField('Dam gamete linkage', hasDam);
-        requireField('Sire gamete linkage', hasSire);
-        requireField('Cross/spawn date', crossDate != null);
-        break;
-      case ProvenanceType.graduatedIndividual:
-        requireField(
-          'Parent cohort linkage',
-          _hasMeaningfulValue(parentCohortId),
-        );
-        break;
-      case ProvenanceType.transfer:
-        // Check for source organization - can be stored in various fields
-        // depending on how the transfer was created (manual, inter-org, etc.)
-        requireField(
-          'Source organization',
-          _hasMetadataValue(
-                const [
-                  'sourceOrganizationId',
-                  'sourceOrganization',
-                  'fromOrganizationId',
-                ],
-              ) ||
-              _hasProvenanceValue(
-                const [
-                  'sending_organization',
-                  'sendingOrganization',
-                  'sourceOrganization',
-                  'sourceOrganizationId',
-                  'fromOrganizationId',
-                ],
-              ),
-        );
-        requireField(
-          'Source provenance ID',
-          _hasMeaningfulValue(provenanceId) ||
-              _hasMetadataValue(const ['sourceProvenanceId']) ||
-              _hasProvenanceValue(const ['sourceProvenanceId']) ||
-              _hasMeaningfulValue(donorGenotypeId),
-        );
-        break;
-      case ProvenanceType.unknown:
-        requireField('Provenance type', false);
-        break;
-    }
-
-    return _ProvenanceCompleteness(_score(total, missing.length), missing);
-  }
-
-  ProvenanceType get _resolvedProvenanceType =>
-      ProvenanceTypeX.tryParse(provenanceTypeId) ?? ProvenanceType.unknown;
-
-  LifeStage _resolvedLifeStage(ProvenanceType provenanceType) {
-    final meta = super.metadata ?? const <String, dynamic>{};
-    final rawStage =
-        meta['lifeStageId']?.toString() ?? meta['lifeStage']?.toString();
-    final parsed = LifeStageX.tryParse(rawStage);
-    return parsed ?? provenanceType.defaultLifeStage;
-  }
-
-  bool _hasProvenanceValue(List<String> keys) {
-    final prov = provenance;
-    if (prov == null || prov.isEmpty) return false;
-    for (final key in keys) {
-      if (_hasMeaningfulValue(prov[key])) return true;
-    }
-    return false;
-  }
-
-  bool _hasMetadataValue(List<String> keys) {
-    final meta = super.metadata;
-    if (meta == null || meta.isEmpty) return false;
-    for (final key in keys) {
-      if (_hasMeaningfulValue(meta[key])) return true;
-    }
-    return false;
-  }
-
-  static bool _hasMeaningfulList(List<String>? values) {
-    if (values == null || values.isEmpty) return false;
-    return values.any(_hasMeaningfulValue);
-  }
-
-  static bool _hasMeaningfulValue(dynamic value) {
-    if (value == null) return false;
-    if (value is String) {
-      final trimmed = value.trim();
-      if (trimmed.isEmpty) return false;
-      final normalized = trimmed.toLowerCase();
-      if (normalized == 'unknown' ||
-          normalized == 'n/a' ||
-          normalized == 'na') {
-        return false;
-      }
-      return true;
-    }
-    if (value is Iterable) {
-      for (final entry in value) {
-        if (_hasMeaningfulValue(entry)) return true;
-      }
-      return false;
-    }
-    return true;
-  }
-
-  static double _score(int total, int missingCount) {
-    if (total <= 0) return 0.0;
-    final completeCount = total - missingCount;
-    return completeCount / total;
-  }
-}
-
-/// Status of provenance metadata completeness for a genet.
-enum ProvenanceCompletenessStatus {
-  complete,
-  incomplete,
-  unknown;
-
-  String get displayName => switch (this) {
-        complete => 'Complete',
-        incomplete => 'Incomplete',
-        unknown => 'Unknown',
-      };
-
-  String get description => switch (this) {
-        complete => 'All provenance metadata is documented',
-        incomplete => 'Some provenance metadata is missing',
-        unknown => 'Provenance information is not available',
-      };
-}
-
-class _ProvenanceCompleteness {
-  const _ProvenanceCompleteness(this.score, this.missingFields);
-
-  final double score;
-  final List<String> missingFields;
 }

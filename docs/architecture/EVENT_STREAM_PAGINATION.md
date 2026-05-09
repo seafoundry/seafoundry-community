@@ -97,7 +97,7 @@ All event streams use Firestore server-side filtering where possible:
 Some filtering happens after the Firestore query:
 - `recordId` filter (when fetching events for multiple records)
 - `shallow` filter (excluding deeply nested children)
-- Task completion date sorting (overrides createdAt for completed tasks)
+- Event type filtering (post-query)
 
 ### Index Requirements
 Event queries require these Firestore indexes:
@@ -114,5 +114,4 @@ See `firestore.indexes.json` for complete index configuration.
 |------|---------|
 | `lib/repositories/inventory/event_repository.dart` | Core event streaming and pagination |
 | `lib/repositories/graph_repository.dart` | Organization-level event aggregation |
-| `lib/screens/graph/graph_node_events_list.dart` | Activity feed UI with load-more |
 | `firestore.indexes.json` | Required Firestore indexes |

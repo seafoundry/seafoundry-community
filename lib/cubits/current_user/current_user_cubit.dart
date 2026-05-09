@@ -13,18 +13,14 @@ import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Cubit for managing the current user's profile and organization data.
 ///
-/// **Scale-tier SOT pattern**: For Scale-tier organizations, this cubit is
-/// the single source of truth (SOT) for user profile data. Other components
-/// (including [AuthBloc]) should not cache or duplicate user profile data
-/// but should instead access it through this cubit's state.
+/// This cubit is the single source of truth (SOT) for user profile data.
+/// Other components (including [AuthBloc]) should not cache or duplicate
+/// user profile data but should instead access it through this cubit's state.
 ///
 /// This ensures that:
 /// - User profile changes (name, role, etc.) are immediately reflected
 /// - There's no divergence between what different components see
 /// - Role-based authorization always uses the current role
-///
-/// For Community tier, the same principles apply but are less critical
-/// since Community tier has simpler role structures.
 class CurrentUser extends Cubit<CurrentUserState>
     with CubitStreamSubscriptionMixin {
   final CurrentUserRepository _repository;

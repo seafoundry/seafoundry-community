@@ -5,6 +5,7 @@ import 'package:seafoundry_app/models/alias.dart';
 import 'package:seafoundry_app/models/genet.dart';
 import 'package:seafoundry_app/models/species.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
+import 'package:seafoundry_app/models/types/provenance_kind.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 
 enum GenetNameError {
@@ -694,29 +695,15 @@ class GenetFormState with FormzMixin {
     // Validate based on provenance type
     switch (provType) {
       case ProvenanceType.wild:
+      case ProvenanceType.cohort:
+      case ProvenanceType.graduatedIndividual:
       case ProvenanceType.transfer:
       case ProvenanceType.unknown:
-        // Founder-like types
+        // All types use founder-like validation
         if (sendTransfer) {
           return hasTransferOrg && hasTransferDate;
         }
         return true;
-      case ProvenanceType.sexualCohort:
-        // Cohort type - parent gametes and cross date are optional
-        // Missing data will affect profile completion on organism cards
-        if (sendTransfer) {
-          return hasTransferOrg && hasTransferDate;
-        }
-        // No strict requirements - cohorts can be created without parent linkage
-        return true;
-      case ProvenanceType.graduatedIndividual:
-        // Sexual recruit type - allow creation without parent cohort.
-        // Incomplete provenance is tracked via completenessScore on the genet.
-        if (sendTransfer) {
-          return hasTransferOrg && hasTransferDate;
-        }
-        // Allow empty parentCohortId - can be filled in later via genet profile
-        return parentCohortId.isValid;
     }
   }
 
@@ -863,21 +850,13 @@ class GenetFormState with FormzMixin {
       throw Exception('Provenance type and life stage are required');
     }
 
-    final provenanceKind = provenanceTypeValue.defaultProvenanceKind;
+    final provenanceKind = ProvenanceKind.genet;
 
     Map<String, dynamic>? provenanceData;
-    List<String>? parentGametes;
-    String? recruitParentCohort;
-    String? gameteDonorId;
-    List<String>? dams;
-    List<String>? sires;
-    DateTime? crossDateValue;
 
     // Build provenance data based on provenance type and life stage
     if (lifeStageValue == LifeStage.gamete) {
       // Gamete provenance
-      final donorId = donorGenotypeId.value.trim();
-      if (donorId.isNotEmpty) gameteDonorId = donorId;
       final fields = <String, dynamic>{};
       if (gameteSex.value != null) {
         fields['gamete_sex'] = gameteSex.value == GameteSex.eggs
@@ -891,18 +870,6 @@ class GenetFormState with FormzMixin {
         fields['spawn_date'] = '${spawn.year}-$m-$d';
       }
       if (fields.isNotEmpty) provenanceData = fields;
-    } else if (provenanceTypeValue == ProvenanceType.sexualCohort) {
-      // Cohort provenance
-      final damIds = normalizedDamIds;
-      final sireIds = normalizedSireIds;
-      parentGametes = normalizedParentGameteIds;
-      dams = damIds.isEmpty ? null : damIds;
-      sires = sireIds.isEmpty ? null : sireIds;
-      crossDateValue = crossDate.value;
-    } else if (provenanceTypeValue == ProvenanceType.graduatedIndividual) {
-      // Sexual recruit provenance
-      final parentId = parentCohortId.value.trim();
-      if (parentId.isNotEmpty) recruitParentCohort = parentId;
     } else {
       // Founder-like provenance (wild, transfer, unknown)
       final fields = <String, dynamic>{};
@@ -974,12 +941,6 @@ class GenetFormState with FormzMixin {
           : null,
       notes: notesValue.isEmpty ? null : notesValue,
       provenance: provenanceData,
-      parentGameteIds: parentGametes,
-      parentCohortId: recruitParentCohort,
-      donorGenotypeId: gameteDonorId,
-      damGameteIds: dams,
-      sireGameteIds: sires,
-      crossDate: crossDateValue,
       readyForOutplant:
           false, // Ready for outplant applies to coral clusters, not genets
       aliases: normalizedAliases.isEmpty
@@ -1011,12 +972,6 @@ class GenetFormState with FormzMixin {
       notes: payload.notes,
       provenance: payload.provenance,
       aliases: payload.aliases,
-      parentGameteIds: payload.parentGameteIds,
-      parentCohortId: payload.parentCohortId,
-      donorGenotypeId: payload.donorGenotypeId,
-      damGameteIds: payload.damGameteIds,
-      sireGameteIds: payload.sireGameteIds,
-      crossDate: payload.crossDate,
       heatTested: payload.heatTested,
       diseaseTested: payload.diseaseTested,
       heatTestingComment: payload.heatTestingComment,
@@ -1027,13 +982,9 @@ class GenetFormState with FormzMixin {
 }
 
 List<ProvenanceType> deriveAllowedProvenanceTypes() {
-  // Per 5-axis canonical model (see "5 Axis Overview.pdf" page 6):
-  // Only THREE provenance types exist: founder, cohort, sexual recruit
-  // - Gametes are LIFE STAGES, not provenance types
-  // - Asexual clones inherit parent provenance (no new Provenance ID)
   return const [
-    ProvenanceType.wild, // Maps to canonical "founder"
-    ProvenanceType.sexualCohort, // Maps to canonical "cohort"
-    ProvenanceType.graduatedIndividual, // Maps to canonical "sexual recruit"
+    ProvenanceType.wild,
+    ProvenanceType.transfer,
+    ProvenanceType.unknown,
   ];
 }

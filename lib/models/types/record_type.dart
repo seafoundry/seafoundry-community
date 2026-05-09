@@ -2,10 +2,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/model_interfaces.dart';
 import 'package:seafoundry_app/models/types/attachment_method.dart';
-import 'package:seafoundry_app/models/types/disease_type.dart';
 import 'package:seafoundry_app/models/types/event_type.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';
-import 'package:seafoundry_app/models/types/planned_action_type.dart';
 import 'package:seafoundry_app/models/types/population_loss_reason.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
 
@@ -32,8 +30,6 @@ class BuiltinRecordType implements RecordType {
     ...EventType.builtins,
     ...SiteType.builtins,
     ...PopulationLossReason.builtins,
-    ...DiseaseType.builtins,
     ...AttachmentMethod.builtins,
-    ...PlannedActionType.builtins,
   };
 }

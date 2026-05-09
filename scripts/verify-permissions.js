@@ -23,7 +23,6 @@
  * Categories:
  *   - onboarding: New user creation, org setup, site creation
  *   - taxonomy: Taxonomy collections access (species, provenances, overrides)
- *   - training: Training progress UID-based access
  *   - storage: Storage upload with UID-based user lookup
  *   - demo: Demo mode prefixing and isolation
  *   - all: Run all categories (default)
@@ -39,17 +38,12 @@ const path = require('path');
 const CATEGORIES = {
   onboarding: 'Onboarding Tests (User/Org/Site Creation)',
   taxonomy: 'Taxonomy Admin Tests (Global Collections)',
-  training: 'Training Progress Tests (UID-based)',
   storage: 'Storage Upload Tests (UID-based)',
   demo: 'Demo Mode Tests (Prefixing/Isolation)',
   all: 'All Test Categories'
 };
 
 const DEMO_USERS = {
-  pro: {
-    email: 'pro@provenance.app',
-    orgId: 'demo_org_pro'
-  },
   community: {
     email: 'community@provenance.app',
     orgId: 'demo_org_community'
@@ -353,60 +347,7 @@ async function testTaxonomy(db, results) {
 }
 
 // ============================================================================
-// Category 3: Training Progress Tests
-// ============================================================================
-
-async function testTrainingProgress(db, results, identity) {
-  console.log('\n🎓 TRAINING PROGRESS TESTS');
-  console.log('─'.repeat(80));
-
-  const userId = identity.uid;
-  const email = identity.email;
-
-  if (!userId) {
-    results.skip('Training progress check', 'UID not provided or resolved');
-    return;
-  }
-
-  // Test 3.1: Verify training_progress uses UID-based access
-  try {
-    const progressSnapshot = await db.collection('training_progress')
-      .where('userId', '==', userId)
-      .limit(1)
-      .get();
-
-    if (progressSnapshot.size > 0) {
-      results.pass('Training progress uses UID', `Found docs with userId=${userId}`);
-    } else {
-      results.warn('Training progress not found for UID', `No docs with userId=${userId}`);
-    }
-  } catch (error) {
-    results.warn('Training progress UID check failed', error.message);
-  }
-
-  // Test 3.2: Verify training progress does NOT use email as userId
-  if (email) {
-    try {
-      const emailSnapshot = await db.collection('training_progress')
-        .where('userId', '==', email.toLowerCase())
-        .limit(1)
-        .get();
-      if (emailSnapshot.size > 0) {
-        results.fail(
-          'Training progress incorrectly uses email',
-          new Error('Found docs with userId=email, should use UID'),
-        );
-      } else {
-        results.pass('No training progress docs keyed by email', 'UID-only userId confirmed');
-      }
-    } catch (error) {
-      results.warn('Training progress email check failed', error.message);
-    }
-  }
-}
-
-// ============================================================================
-// Category 4: Storage Tests
+// Category 3: Storage Tests
 // ============================================================================
 
 async function testStorage(db, results, identity) {
@@ -455,11 +396,11 @@ async function testDemoMode(db, results, demoTier) {
   console.log('\n🎭 DEMO MODE TESTS');
   console.log('─'.repeat(80));
 
-  const tier = demoTier || 'pro';
+  const tier = demoTier || 'community';
   const demoUser = DEMO_USERS[tier];
 
   if (!demoUser) {
-    results.warn('Invalid demo tier', `Use --demo-tier=pro or --demo-tier=community`);
+    results.warn('Invalid demo tier', 'Use --demo-tier=community');
     return;
   }
 
@@ -531,18 +472,6 @@ async function testDemoMode(db, results, demoTier) {
     results.fail('Taxonomy species access failed', error);
   }
 
-  // Test 5.5: Training progress IS prefixed in demo mode
-  try {
-    const demoProgressSnapshot = await db.collection('demo_training_progress').limit(1).get();
-    results.pass('Demo training progress uses prefixed collection', '/demo_training_progress exists');
-  } catch (error) {
-    // Permission denied is okay - just checking collection routing
-    if (error.code === 'permission-denied') {
-      results.pass('Demo training progress collection exists', 'Rules prevent unauthorized access (expected)');
-    } else {
-      results.warn('Demo training progress check failed', error.message);
-    }
-  }
 }
 
 // ============================================================================
@@ -580,16 +509,12 @@ async function runTests() {
       await testTaxonomy(db, results);
     }
 
-    if (args.category === 'training' || args.category === 'all') {
-      await testTrainingProgress(db, results, identity);
-    }
-
     if (args.category === 'storage' || args.category === 'all') {
       await testStorage(db, results, identity);
     }
 
     if (args.category === 'demo' || args.category === 'all') {
-      await testDemoMode(db, results, args.demoTier || 'pro');
+      await testDemoMode(db, results, args.demoTier || 'community');
     }
 
     // Print summary

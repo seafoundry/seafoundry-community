@@ -4,8 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:seafoundry_app/constants/transfer_constants.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/cubits/transfer/transfer_receive_cubit.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/models/transfer_manifest.dart';
@@ -17,11 +16,9 @@ import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/organism_holding_loader.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/services/unique_name_validation_service.dart';
-import 'package:seafoundry_app/utils/record_name_suggester.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/provenance_life_stage_selector.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/transfer_manifest_summary.dart';
-import 'package:seafoundry_app/widgets/dialogs/components/transfer_qr_scanner.dart';
 import 'package:seafoundry_app/widgets/inputs/organization_selector_field.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
 
@@ -68,9 +65,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
   final TextEditingController _ownerOrgController = TextEditingController();
   final TextEditingController _managingOrgController = TextEditingController();
 
-  /// Camera scanner used when scanning QR codes directly.
-  final MobileScannerController _scannerController = MobileScannerController();
-
   late ProvenanceLifeStageSelection _provenanceSelection;
   String? _suggestedLocalId;
   String? _suggestedRecordName;
@@ -88,9 +82,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
   Group? _selectedGroup;
   bool _destinationLoading = false;
   String? _destinationError;
-
-  /// Prevents repeated barcode callbacks while one is processing.
-  bool _scannerPaused = false;
 
   bool get _hasDestinationSupport =>
       context.maybeRead<SiteRepository>() != null;
@@ -115,10 +106,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
   }
 
   static final Set<String> _nurserySiteTypeIds = {
-    SiteType.nurseryExSitu.id,
-    SiteType.nurseryInSitu.id,
-    'nes',
-    'nis',
+    SiteType.nursery.id,
   };
 
   @override
@@ -150,7 +138,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
 
   @override
   void dispose() {
-    _scannerController.dispose();
     _payloadController.dispose();
     _genetNameController.dispose();
     _localIdController.dispose();
@@ -170,7 +157,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
         return AlertDialog(
           title: Row(
             children: [
-              const Icon(Icons.qr_code_scanner, color: Colors.blue),
+              const Icon(Icons.swap_horiz, color: Colors.blue),
               const SizedBox(width: 8),
               Text(hasResult ? 'Transfer Received' : 'Receive Transfer'),
             ],
@@ -282,12 +269,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
             ),
           ],
           if (canScan) ...[
-            const SizedBox(height: 16),
-            TransferQrScanner(
-              controller: _scannerController,
-              enabled: !state.validating && !state.accepting,
-              onCapture: _onBarcodeCapture,
-            ),
             const SizedBox(height: 16),
             TextField(
               controller: _payloadController,
@@ -646,25 +627,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
 
     setState(() => _checkingUnique = true);
 
-    String? recordNameError;
     String? localIdError;
-    try {
-      final unique = await service.isOrganismRecordNameUnique(
-        name: recordName,
-        organizationId: organization.id,
-      );
-      if (!unique) {
-        recordNameError = 'Record name "$recordName" is already in use.';
-      }
-    } catch (e, stackTrace) {
-      LoggingService.instance.error(
-        'Failed to validate record name uniqueness',
-        e,
-        stackTrace,
-      );
-      recordNameError =
-          'Unable to validate record name uniqueness. Please try again.';
-    }
 
     final resolvedLocalId = localId.isEmpty ? recordName : localId;
     try {
@@ -689,36 +652,10 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
     if (!mounted) return false;
     setState(() {
       _checkingUnique = false;
-      _recordNameError = recordNameError;
+      _recordNameError = null;
       _localIdError = localIdError;
     });
-    return recordNameError == null && localIdError == null;
-  }
-
-  /// Handles QR scanner callbacks, throttling repeated scans while validation
-  /// or acceptance is in progress so we do not spam the backend with requests.
-  void _onBarcodeCapture(BarcodeCapture capture) {
-    final state = context.read<TransferReceiveCubit>().state;
-    if (!_canEnterScanningFlow ||
-        state.validating ||
-        state.accepting ||
-        _scannerPaused) {
-      return;
-    }
-    final barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
-
-    final value = barcodes.first.rawValue;
-    if (value == null || value.isEmpty) return;
-
-    _scannerPaused = true;
-    _scannerController.stop();
-
-    _handlePayload(value).whenComplete(() {
-      if (!mounted) return;
-      _scannerPaused = false;
-      _scannerController.start();
-    });
+    return localIdError == null;
   }
 
   Future<String?> _suggestNextLocalId(TransferManifest manifest) async {
@@ -758,29 +695,15 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
   }
 
   Future<void> _suggestRecordName({String? localId}) async {
-    final service = _validationService;
-    final organization = context.maybeRead<Organization>();
-    if (service == null || organization == null) return;
     final requestId = ++_recordNameRequestId;
-    String? suggestion;
-    try {
-      suggestion = await RecordNameSuggester.suggestUnique(
-        organizationId: organization.id,
-        validationService: service,
-      );
-    } catch (e) {
-      LoggingService.instance.debug('Failed to suggest record name: $e');
-    }
-    suggestion ??= RecordNameSuggester.suggestFallback(
-      localId?.trim().isNotEmpty == true
-          ? localId
-          : _localIdController.text.trim(),
-    );
+    // Use localId as the simple fallback for record name suggestion
+    final resolved = localId?.trim().isNotEmpty == true
+        ? localId!.trim()
+        : _localIdController.text.trim();
     if (!mounted || requestId != _recordNameRequestId) {
       return;
     }
-    final resolved = suggestion;
-    if (resolved == null || resolved.isEmpty) {
+    if (resolved.isEmpty) {
       return;
     }
     final currentName = _genetNameController.text.trim();

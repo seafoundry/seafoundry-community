@@ -64,10 +64,6 @@ class GraphRepositoryStreamDiagnostics {
 abstract class GraphRepositoryStreamToken<T> {
   Stream<T> get stream;
 
-  void pause();
-
-  void resume();
-
   Future<void> flush();
 
   void inject(T value);
@@ -124,20 +120,6 @@ class GraphRepositoryStreamController<T>
 
   @override
   Stream<T> get stream => _controller.stream;
-
-  @override
-  void pause() {
-    if (_isDisposed) return;
-    _isPaused = true;
-    _cancelDeferredTimer();
-  }
-
-  @override
-  void resume() {
-    if (_isDisposed) return;
-    _isPaused = false;
-    unawaited(flush());
-  }
 
   @override
   Future<void> flush() async {
@@ -274,12 +256,6 @@ class GraphRepositoryStreamControllerScope {
   List<GraphRepositoryStreamController<dynamic>> get controllers =>
       List.unmodifiable(_controllers);
 
-  Future<void> disposeAll() async {
-    for (final controller in _controllers) {
-      await controller.dispose();
-    }
-    _controllers.clear();
-  }
 }
 
 /// Convenience helper for tests wanting manual flush semantics by default.

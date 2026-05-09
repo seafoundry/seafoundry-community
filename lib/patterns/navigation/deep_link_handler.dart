@@ -500,7 +500,7 @@ class DeepLinkHandler {
     return '$domain/$trimmed';
   }
 
-  /// Check if URI is a demo mode trigger URL (e.g., #demo-pro, #demo-community)
+  /// Check if URI is a demo mode trigger URL (e.g., #demo, #demo-community)
   /// These are handled by SimpleRouter and should not be processed as navigation links
   static bool _isDemoModeTrigger(Uri uri) {
     final fragment = uri.fragment.toLowerCase();
@@ -508,9 +508,7 @@ class DeepLinkHandler {
     
     // Match demo mode trigger patterns
     return fragment == 'demo' ||
-           fragment == 'demo-pro' ||
            fragment == 'demo-community' ||
-           fragment.startsWith('demo-pro') ||
            fragment.startsWith('demo-community');
   }
 }

@@ -48,25 +48,6 @@
     }
   </style>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  
-  <!-- Google Maps JavaScript API for google_maps_flutter_web -->
-  <!-- Using the web Firebase API key - ensure Maps JavaScript API is enabled in Google Cloud Console -->
-  <!-- Note: google_maps_flutter package uses legacy google.maps.Marker (deprecated Feb 2024) -->
-  <!-- AdvancedMarkerElement requires package update - see https://github.com/flutter/flutter/issues/140,023 -->
-  <!-- Using v=weekly for latest stable features; quarterly (v=quarterly) available for stability -->
-  <script>
-    // Suppress known legacy marker deprecation warning until plugin migrates.
-    const _consoleWarn = console.warn.bind(console);
-    console.warn = (...args) => {
-      const first = args.length > 0 ? args[0] : '';
-      if (typeof first === 'string' &&
-          first.includes('google.maps.Marker is deprecated')) {
-        return;
-      }
-      _consoleWarn(...args);
-    };
-  </script>
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAzcPvdR9Ig-swE86i8FQcuG7dZ5SDKN_0&v=weekly&libraries=marker&loading=async"></script>
 </head>
 
 <body>

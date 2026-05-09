@@ -3,6 +3,7 @@
 //   dart run scripts/seed_modular.dart --org=ORG_ID --user=ADMIN_ID \
 //       --delete=true --seed_land=true --seed_outplant=true
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -200,7 +201,7 @@ Future<void> main(List<String> args) async {
     );
 
     if (seedLandNurseries) {
-      final site = await ensureSite('Nursery Land', SiteType.nurseryExSitu);
+      final site = await ensureSite('Nursery Land', SiteType.nursery);
       await _populateExSituSite(
         groupRepo,
         organismRepo,
@@ -215,7 +216,7 @@ Future<void> main(List<String> args) async {
     }
 
     if (seedFieldNurseries) {
-      final site = await ensureSite('Nursery Field', SiteType.nurseryInSitu);
+      final site = await ensureSite('Nursery Field', SiteType.nursery);
       await _populateInSituSite(
         groupRepo,
         organismRepo,
@@ -329,14 +330,64 @@ Future<void> main(List<String> args) async {
   }
 }
 
+/// Loads the CRC/HOG crosswalk data from crc_db/pid_crosswalk.json.
+/// Returns a map of speciesCode -> list of crosswalk entries.
+Map<String, List<Map<String, dynamic>>> _loadCrosswalkData() {
+  final crosswalkBySpecies = <String, List<Map<String, dynamic>>>{};
+  try {
+    final file = File('crc_db/pid_crosswalk.json');
+    if (!file.existsSync()) return crosswalkBySpecies;
+    final jsonStr = file.readAsStringSync();
+    final entries = json.decode(jsonStr) as List<dynamic>;
+    for (final entry in entries) {
+      if (entry is! Map<String, dynamic>) continue;
+      final code = entry['speciesCode']?.toString() ?? '';
+      if (code.isEmpty) continue;
+      crosswalkBySpecies.putIfAbsent(code, () => []).add(entry);
+    }
+  } catch (e) {
+    stdout.writeln('Warning: Could not load crosswalk data: $e');
+  }
+  return crosswalkBySpecies;
+}
+
+/// Converts crosswalk alias entries to Genet-compatible alias maps.
+List<Map<String, dynamic>> _crosswalkToAliases(
+  Map<String, dynamic> crosswalkEntry,
+) {
+  final aliases = <Map<String, dynamic>>[];
+  final rawAliases = crosswalkEntry['aliases'];
+  if (rawAliases is List) {
+    for (final alias in rawAliases) {
+      if (alias is! Map) continue;
+      final id = alias['id']?.toString() ?? '';
+      final org = alias['org']?.toString() ?? 'unknown';
+      if (id.isEmpty) continue;
+      // Use value only (no separate label) to avoid duplication
+      // in ProvenanceRecord._parseAliasLabels which reads both label+value
+      aliases.add({
+        'sourceSystem': org,
+        'value': id,
+      });
+    }
+  }
+  return aliases;
+}
+
 Future<List<Genet>> _seedGenetPool({
   required GenetRepository genetRepo,
   required Random rand,
   required List<Species> speciesSeed,
 }) async {
+  final crosswalkBySpecies = _loadCrosswalkData();
+  final usedCrosswalkIndices = <String, int>{};
+
   final genetPool = <Genet>[];
   for (final sp in speciesSeed) {
     final n = 10 + rand.nextInt(8);
+    final crosswalkEntries = crosswalkBySpecies[sp.code] ?? const [];
+    usedCrosswalkIndices[sp.code] = 0;
+
     for (var i = 0; i < n; i++) {
       final typeRoll = rand.nextInt(100);
       final typeId = typeRoll < 50
@@ -350,13 +401,13 @@ Future<List<Genet>> _seedGenetPool({
         Duration(days: rand.nextInt(365 * 6)),
       );
       final provenance = <String, String>{
-        'reef_of_origin': '${sp.name} Reef ${i + 1}',
-        'collection_date': _formatDate(
+        'reefOfOrigin': '${sp.name} Reef ${i + 1}',
+        'collectionDate': _formatDate(
           crossDate.subtract(const Duration(days: 60)),
         ),
         'depth': (6 + rand.nextInt(15)).toString(),
-        'habitat_type': rand.nextBool() ? 'patch_reef' : 'reef_crest',
-        'collecting_institution': 'SeaFoundry Research',
+        'habitatType': rand.nextBool() ? 'patch_reef' : 'reef_crest',
+        'collectingInstitution': 'SeaFoundry Research',
         'latitude': (24.0 + rand.nextDouble()).toStringAsFixed(5),
         'longitude': (-80.0 - rand.nextDouble()).toStringAsFixed(5),
         'description': 'Seeded inventory specimen',
@@ -372,18 +423,52 @@ Future<List<Genet>> _seedGenetPool({
       final provenanceTypeId = typeRoll < 50
           ? ProvenanceType.wild.id
           : (typeRoll < 75
-              ? ProvenanceType.sexualCohort.id
+              ? ProvenanceType.cohort.id
               : ProvenanceType.graduatedIndividual.id);
+
+      // For ACER and APAL, assign crosswalk data to 50% of genets
+      // (even-indexed genets get crosswalk associations)
+      final useCrosswalk = crosswalkEntries.isNotEmpty &&
+          (sp.code == 'ACER' || sp.code == 'APAL') &&
+          i % 2 == 0;
+
+      String provenanceId;
+      String clonalId;
+      String accessionNumber;
+      List<Map<String, dynamic>>? aliases;
+
+      if (useCrosswalk) {
+        final cwIndex = usedCrosswalkIndices[sp.code]!;
+        final entry = crosswalkEntries[cwIndex % crosswalkEntries.length];
+        usedCrosswalkIndices[sp.code] = cwIndex + 1;
+
+        provenanceId = entry['provenanceId']?.toString() ?? 'PID-${sp.code}-${(i + 1).toString().padLeft(4, '0')}';
+        clonalId = entry['masterClonalId']?.toString() ?? 'CLN-${sp.code}-${i + 1}';
+        accessionNumber = entry['accessionNumber']?.toString() ?? 'ACC-${sp.code}-${2000 + i}';
+        aliases = _crosswalkToAliases(entry);
+        stdout.writeln(
+          '  [crosswalk] ${sp.code} genet ${i + 1}: PID=$provenanceId, clonalId=$clonalId, aliases=${aliases.length}',
+        );
+      } else {
+        provenanceId = 'seed-${sp.code}-${i + 1}';
+        clonalId = 'CLN-${sp.code}-${i + 1}';
+        accessionNumber = 'ACC-${sp.code}-${2000 + i}';
+        aliases = null;
+      }
+
       final genet = await genetRepo.createGenet(
         Genet.partial(
           name: '${sp.code}-$typeName-${i + 1}'.toUpperCase(),
           speciesId: sp.id,
           provenanceTypeId: provenanceTypeId,
           slug: slug,
-          provenanceId: 'seed-${sp.code}-${i + 1}',
-          clonalId: 'CLN-${sp.code}-${i + 1}',
-          accessionNumber: 'ACC-${sp.code}-${2000 + i}',
-          notes: 'Seeded genet ${i + 1} for demo reset.',
+          provenanceId: provenanceId,
+          clonalId: clonalId,
+          accessionNumber: accessionNumber,
+          aliases: aliases,
+          notes: useCrosswalk
+              ? 'CRC/HOG crosswalk genet (PID: $provenanceId)'
+              : 'Seeded genet ${i + 1} for demo reset.',
           provenance: provenance,
           parentGameteIds: <String>{...damGametes, ...sireGametes}.toList(),
           parentCohortId: typeId == 'genet_type_cohort'

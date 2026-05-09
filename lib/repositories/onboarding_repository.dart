@@ -2,23 +2,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/services/tier.dart';
-import 'package:seafoundry_app/models/types/user_role.dart';
 import 'package:seafoundry_app/repositories/brand_profile_repository.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/physical_form_registry.dart';
 import 'package:seafoundry_app/services/snapshot_service.dart';
 import 'package:seafoundry_app/services/unique_name_validation_service.dart';
-import 'package:seafoundry_app/utils/record_name_suggester.dart';
 import 'package:seafoundry_app/utils/user_identity.dart';
-
-import '../utils/record_name_derived.dart';
 
 class OnboardingRepository {
   OnboardingRepository(
@@ -30,7 +24,6 @@ class OnboardingRepository {
   final RecordRepository _recordRepository;
   final FirebaseFirestore db;
   final BrandProfileRepository _brandProfileRepository;
-  final _resolver = FirestoreCollectionResolver.instance;
   late final _nameValidationService = UniqueNameValidationService(
     firestore: db,
   );
@@ -40,8 +33,8 @@ class OnboardingRepository {
 
   /// Get an organization by ID
   Future<Organization?> getOrganization(String organizationId) async {
-    final doc = await _resolver
-        .collection(db, ModelType.organization.collectionPath)
+    final doc = await db
+        .collection(ModelType.organization.collectionPath)
         .doc(organizationId)
         .get();
     final data = doc.data();
@@ -91,11 +84,9 @@ class OnboardingRepository {
       slug: organizationSlug,
       name: name,
       domain: domain,
-      siteTypeIds:
-          activityIds, // Deprecated, keeping for backward compatibility
+      siteTypeIds: activityIds,
       activities: activityIds,
       speciesIds: speciesIds,
-      supportedOrganismKinds: supportedOrganismKinds,
     );
 
     final eventData = CreateEvent(
@@ -168,8 +159,8 @@ class OnboardingRepository {
 
     // Create membership document for UID-keyed access control.
     final normalizedEmail = UserIdentity.normalizeEmail(owner.email);
-    final membershipRef = _resolver
-        .collection(db, 'organizations')
+    final membershipRef = db
+        .collection('organizations')
         .doc(organizationId)
         .collection('members')
         .doc(owner.id);
@@ -189,8 +180,8 @@ class OnboardingRepository {
     // Initialize slugCounts atomically within the same batch so the org
     // is never left in a half-initialized state. (~10 ops total, well
     // within Firestore's 500-operation batch limit.)
-    final slugCountsRef = _resolver
-        .collection(db, ModelType.organization.collectionPath)
+    final slugCountsRef = db
+        .collection(ModelType.organization.collectionPath)
         .doc(organizationId)
         .collection('slugCounts');
     for (final modelTypeName in [
@@ -244,57 +235,12 @@ class OnboardingRepository {
   Future<void> saveUserIntro(String userId, UserIntro intro) async {
     final firestore = _recordRepository.db;
     final resolvedId = UserIdentity.normalizeUserDocId(userId);
-    await _resolver
-        .collection(firestore, 'users')
+    await firestore
+        .collection('users')
         .doc(resolvedId)
         .collection('intro')
         .doc('profile')
         .set(intro.toMap(), SetOptions(merge: true));
-  }
-
-  /// Create membership document for invited users joining an existing organization.
-  /// This enables isMemberByUid() checks in Firestore security rules.
-  Future<void> createMembershipForInvitedUser({
-    required String organizationId,
-    required String userId,
-    required String email,
-    required String role,
-    String? invitedById,
-  }) async {
-    final normalizedEmail = UserIdentity.normalizeEmail(email);
-    if (userId.isEmpty) {
-      LoggingService.instance.debug(
-        'OnboardingRepository: Cannot create membership - empty userId',
-      );
-      return;
-    }
-
-    final membershipRef = _resolver
-        .collection(db, 'organizations')
-        .doc(organizationId)
-        .collection('members')
-        .doc(userId);
-
-    LoggingService.instance.debug(
-      'OnboardingRepository: Creating membership for invited user at ${membershipRef.path}',
-    );
-
-    final normalizedRole =
-        UserRole.fromId(role)?.id ?? UserRole.practitioner.id;
-    await membershipRef.set({
-      'uid': userId,
-      if (normalizedEmail != null && normalizedEmail.isNotEmpty)
-        'email': normalizedEmail,
-      'role': normalizedRole,
-      'joinedAt': DateTime.now().toIso8601String(),
-      'createdById': userId,
-      'organizationId': organizationId,
-      if (invitedById != null) 'invitedById': invitedById,
-    });
-
-    LoggingService.instance.debug(
-      'Membership document created for invited user: $normalizedEmail',
-    );
   }
 
   Future<Site> createSite(
@@ -363,7 +309,7 @@ class OnboardingRepository {
         updatedById: user.id,
         organizationId: organizationId,
         name: name,
-        siteTypeId: siteTypeId ?? SiteType.nurseryExSitu.id,
+        siteTypeId: siteTypeId ?? SiteType.nursery.id,
         groupIdHierarchy: SiteType.fromId(
           siteTypeId,
         ).groupTypes.map((t) => t.id).toList(),
@@ -525,8 +471,8 @@ class OnboardingRepository {
       final WriteBatch batch = _recordRepository.db.batch();
 
       // Use nested collection for Group to match GroupRepository
-      final groupRef = _resolver
-          .collection(db, ModelType.organization.collectionPath)
+      final groupRef = db
+          .collection(ModelType.organization.collectionPath)
           .doc(organizationId)
           .collection(ModelType.group.collectionPath)
           .doc(groupId);
@@ -594,8 +540,8 @@ class OnboardingRepository {
     final String now = DateTime.now().toIso8601String();
 
     // Fetch group to get urlPath for hierarchy
-    final groupDoc = await _resolver
-        .collection(db, ModelType.organization.collectionPath)
+    final groupDoc = await db
+        .collection(ModelType.organization.collectionPath)
         .doc(user.organizationId)
         .collection(ModelType.group.collectionPath)
         .doc(groupId)
@@ -638,13 +584,6 @@ class OnboardingRepository {
       if (collectionDate != null) {
         provenanceData['collectionDate'] = collectionDate.toIso8601String();
       }
-    } else if (provenanceType == ProvenanceType.sexualCohort) {
-      if (cohortName != null) {
-        provenanceData['cohortName'] = cohortName;
-      }
-      if (cohortDate != null) {
-        provenanceData['cohortDate'] = cohortDate.toIso8601String();
-      }
     }
 
     final organization = await getOrganization(user.organizationId);
@@ -656,19 +595,13 @@ class OnboardingRepository {
       );
     }
 
-    final tier = switch (organization.tier) {
-      Tier.pro => Tier.pro,
-      Tier.scale => Tier.scale,
-      _ => Tier.community,
-    };
-
     final eventRepository = EventRepository(
       organization: organization,
       user: user,
       firestore: db,
       organismContext: OrganismContext.forKind(organismKind),
     );
-    final snapshotService = SnapshotService(firestore: db, tier: tier);
+    final snapshotService = SnapshotService(firestore: db);
     final genetRepository = GenetRepository(
       organization: organization,
       user: user,
@@ -712,26 +645,13 @@ class OnboardingRepository {
       slug: genetSlug,
     );
 
-    // Resolve record name and validate uniqueness (safety measure for invite flows)
+    // Resolve record name: use provided name, fall back to localId
     final resolvedRecordName = (recordName?.trim().isNotEmpty == true)
         ? recordName!.trim()
-        : (RecordNameDerived.fromLocalId(localId) ?? 'Unknown');
-
-    final isRecordNameUnique = await _nameValidationService
-        .isOrganismRecordNameUnique(
-          name: resolvedRecordName,
-          organizationId: user.organizationId,
-        );
-    if (!isRecordNameUnique) {
-      throw domainErrors.RepositoryError(
-        message:
-            'Record name "$resolvedRecordName" is already in use. '
-            'Please choose a different name.',
-      );
-    }
+        : (localId.isNotEmpty ? localId : 'Unknown');
 
     // Resolve physical form from registry, fall back to hardcoded defaults
-    final physicalForm = await _getDefaultPhysicalForm(organismKind, lifeStage);
+    final physicalForm = _getDefaultPhysicalForm(organismKind, lifeStage);
 
     // Create OrganismRecord with five-axis data
     final organismUrlPath = '$groupUrlPath/$organismSlug';
@@ -788,8 +708,8 @@ class OnboardingRepository {
     final WriteBatch batch = db.batch();
 
     // Write organism to organization's organismRecords subcollection
-    final organismRef = _resolver
-        .collection(db, ModelType.organization.collectionPath)
+    final organismRef = db
+        .collection(ModelType.organization.collectionPath)
         .doc(user.organizationId)
         .collection(ModelType.organismRecord.collectionPath)
         .doc(organismId);
@@ -812,15 +732,14 @@ class OnboardingRepository {
 
   /// Get a sensible default physical form based on organism type and life stage.
   ///
-  /// Queries [PhysicalFormRegistry] first for YAML-driven defaults, falling
-  /// back to hardcoded values if the registry returns no results (e.g. during
-  /// tests where assets are unavailable).
-  Future<PhysicalFormInstance> _getDefaultPhysicalForm(
+  /// Queries [PhysicalFormRegistry] first for defaults, falling back to
+  /// hardcoded values if the registry returns no results.
+  PhysicalFormInstance _getDefaultPhysicalForm(
     OrganismKind kind,
     LifeStage lifeStage,
-  ) async {
+  ) {
     try {
-      final forms = await PhysicalFormRegistry.instance.getAvailableForms(
+      final forms = PhysicalFormRegistry.instance.getAvailableForms(
         kind,
         lifeStage,
       );
@@ -847,43 +766,6 @@ class OnboardingRepository {
           formId: 'fragment',
           sizeBandId: 'small',
         );
-      case OrganismKind.oyster:
-        return const PhysicalFormInstance(
-          formId: 'spat_bag',
-          sizeBandId: 'medium',
-        );
-      case OrganismKind.kelp:
-        return const PhysicalFormInstance(
-          formId: 'seeded_twine',
-          sizeBandId: 'medium',
-        );
-      case OrganismKind.seagrass:
-        return const PhysicalFormInstance(formId: 'shoot', sizeBandId: 'small');
-      case OrganismKind.mangrove:
-        return const PhysicalFormInstance(
-          formId: 'seedling',
-          sizeBandId: 'small',
-        );
-      case OrganismKind.echinoid:
-        return const PhysicalFormInstance(
-          formId: 'individual',
-          sizeBandId: 'small',
-        );
-      case OrganismKind.crab:
-        return const PhysicalFormInstance(
-          formId: 'individual',
-          sizeBandId: 'small',
-        );
-      case OrganismKind.finfish:
-        return const PhysicalFormInstance(
-          formId: 'individual',
-          sizeBandId: 'small',
-        );
-      case OrganismKind.seaCucumber:
-        return const PhysicalFormInstance(
-          formId: 'individual',
-          sizeBandId: 'small',
-        );
     }
   }
 
@@ -902,30 +784,19 @@ class OnboardingRepository {
     );
   }
 
-  /// Suggest a unique record name for onboarding.
-  /// Falls back to deterministic derivation when uniqueness lookup fails.
+  /// Suggest a record name for onboarding.
+  /// Simply returns the localId as the default record name.
   Future<String?> suggestRecordName({
     required String organizationId,
     String? localId,
   }) async {
-    try {
-      final suggestion = await RecordNameSuggester.suggestUnique(
-        organizationId: organizationId,
-        validationService: _nameValidationService,
-      );
-      return suggestion ?? RecordNameSuggester.suggestFallback(localId);
-    } catch (e, stackTrace) {
-      LoggingService.instance.debug(
-        'Failed to suggest record name during onboarding: $e',
-        {'stackTrace': stackTrace.toString()},
-      );
-      return RecordNameSuggester.suggestFallback(localId);
-    }
+    final trimmed = localId?.trim();
+    return (trimmed != null && trimmed.isNotEmpty) ? trimmed : null;
   }
 
   /// Generates a unique slug for a record during onboarding.
   ///
-  /// Uses the same format as [BaseInventoryRecordRepository.nextSlugForBase]:
+  /// Uses the same format as [InventoryRecordRepository.nextSlugForBase]:
   /// `{base}{counter}` (e.g., site1, site2, group1, group2).
   ///
   /// Unlike the counter-based approach in repositories, this queries for
@@ -966,22 +837,14 @@ class OnboardingRepository {
     final urlPath = parentPath.isEmpty ? slug : '$parentPath/$slug';
 
     // Check org-scoped collection (primary location)
-    final orgScoped = await _resolver
-        .collection(db, ModelType.organization.collectionPath)
+    final orgScoped = await db
+        .collection(ModelType.organization.collectionPath)
         .doc(organizationId)
         .collection(modelType.collectionPath)
         .where('urlPath', isEqualTo: urlPath)
         .limit(1)
         .get();
-    if (orgScoped.docs.isNotEmpty) return true;
-
-    // Also check top-level collection for sites (legacy compatibility)
-    // Sites may exist in /sites collection from before org-scoped migration
-    //
-    // UPDATE: Disabling this check for Onboarding flow because:
-    // Onboarding creates NEW organizations, so no legacy sites can exist.
-    // We skip top-level site collection checks to avoid composite index issues.
-    return false;
+    return orgScoped.docs.isNotEmpty;
   }
 
   /// Update the slug counter after creating a record during onboarding.
@@ -1002,8 +865,8 @@ class OnboardingRepository {
     final counterStr = slug.replaceFirst(baseName, '');
     final counter = int.tryParse(counterStr) ?? 1;
 
-    final slugCountRef = _resolver
-        .collection(db, ModelType.organization.collectionPath)
+    final slugCountRef = db
+        .collection(ModelType.organization.collectionPath)
         .doc(organizationId)
         .collection('slugCounts')
         .doc(modelType.name);

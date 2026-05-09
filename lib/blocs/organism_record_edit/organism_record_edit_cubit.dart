@@ -17,7 +17,6 @@ import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/population_loss_reason.dart';
-import 'package:seafoundry_app/repositories/contracts/i_event_repository.dart';
 import 'package:seafoundry_app/repositories/repositories.dart';
 import 'package:seafoundry_app/services/clonal_id_display_service.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
@@ -29,6 +28,7 @@ import 'package:seafoundry_app/services/organism_record_change_service.dart';
 import 'package:seafoundry_app/services/provenance_id_service.dart';
 import 'package:seafoundry_app/services/provenance_lookup_service.dart';
 import 'package:seafoundry_app/services/validation/organism_constraints_service.dart';
+import 'package:seafoundry_app/utils/string_formatters.dart';
 import 'package:seafoundry_app/widgets/common/life_stage_transition_editor.dart';
 import 'package:seafoundry_app/widgets/common/physical_form_change_editor.dart';
 import 'package:seafoundry_app/widgets/common/quantity_change_editor.dart';
@@ -48,7 +48,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     OrganismRecordRepository? organismRecordRepository,
     this.provenanceLookupService,
     ProvenanceIdService? provenanceIdService,
-    IEventRepository? eventRepository,
+    EventRepository? eventRepository,
     Organization? organization,
     List<MeasurementUnit>? quantityUnits,
   }) : _changeService = changeService,
@@ -95,7 +95,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
   final GenetRepository? _genetRepository;
   final OrganismRecordRepository? _organismRecordRepository;
   final ProvenanceIdService? _provenanceIdService;
-  final IEventRepository? _eventRepository;
+  final EventRepository? _eventRepository;
   final Organization? _organization;
   @override
   final ProvenanceLookupService? provenanceLookupService;
@@ -245,23 +245,23 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
     // Resolve clonalId: prefer resolved from crosswalk, then masterClonalId, then
     // the searched alias value if searching by clonalId, finally fallback to display service
-    String? resolvedClonalId = _nonEmpty(suggestion.resolvedClonalId) ??
-        _nonEmpty(suggestion.masterClonalId);
+    String? resolvedClonalId = nonEmpty(suggestion.resolvedClonalId) ??
+        nonEmpty(suggestion.masterClonalId);
     if (resolvedClonalId == null && field == ProvenanceMatchField.clonalId) {
-      resolvedClonalId = _nonEmpty(suggestion.aliasValue);
+      resolvedClonalId = nonEmpty(suggestion.aliasValue);
     }
     resolvedClonalId ??= ClonalIdDisplayService.resolveForSuggestion(suggestion);
 
     // Resolve accession: prefer resolved, fallback to searched value if searching by accession
-    final resolvedAccession = _nonEmpty(suggestion.resolvedAccessionNumber) ??
+    final resolvedAccession = nonEmpty(suggestion.resolvedAccessionNumber) ??
         (field == ProvenanceMatchField.accessionNumber
-            ? _nonEmpty(suggestion.aliasValue)
+            ? nonEmpty(suggestion.aliasValue)
             : null);
 
     // Resolve alias: prefer resolved, fallback to searched value if searching by alias
-    final resolvedAlias = _nonEmpty(suggestion.resolvedAlias) ??
+    final resolvedAlias = nonEmpty(suggestion.resolvedAlias) ??
         (field == ProvenanceMatchField.alias
-            ? _nonEmpty(suggestion.aliasValue)
+            ? nonEmpty(suggestion.aliasValue)
             : null);
 
     emit(
@@ -283,10 +283,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     _triggerLocalIdSuggestion();
   }
 
-  /// Returns null if value is null or empty after trimming.
-  static String? _nonEmpty(String? value) =>
-      (value == null || value.trim().isEmpty) ? null : value.trim();
-
   void clearProvenanceSelection() {
     onProvenanceSearchReset();
     final genet = state.selectedGenetOverride ?? state.underlyingGenet;
@@ -302,15 +298,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
   void setActiveProvenanceField(ProvenanceMatchField field) {
     emitProvenanceSearch(currentProvenanceSearch.copyWith(activeField: field));
-  }
-
-  void handleProvenanceIdBlur() {
-    _pendingProvenanceIdBlurReset = true;
-    _maybeResetProvenanceIdAfterBlur();
-  }
-
-  void cancelProvenanceIdBlurReset() {
-    _pendingProvenanceIdBlurReset = false;
   }
 
   @override
@@ -403,8 +390,8 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     }
   }
 
-  Future<void> _initializeAllowedFormIds() async {
-    final formIds = await _recomputeAllowedFormIds();
+  void _initializeAllowedFormIds() {
+    final formIds = _recomputeAllowedFormIds();
     if (isClosed) return;
     emit(state.copyWith(allowedFormIds: formIds));
   }
@@ -413,7 +400,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     final record = state.originalRecord;
     if (record.physicalForm == null) return;
 
-    final fieldConfig = await MeasurementMetricsService.instance.getFieldConfig(
+    final fieldConfig = MeasurementMetricsService.getFieldConfig(
       organismKind: record.organismKind,
       lifeStage: record.lifeStage.stage,
       physicalFormId: record.physicalForm!.formId,
@@ -451,35 +438,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
   /// @deprecated Use setLocalId instead
   void setName(String value) => setLocalId(value);
-
-  /// Sets the localId with a specific scope for applying the change.
-  ///
-  /// When [scope] is [LocalIdEditScope.genetWide], the localID change will
-  /// be applied to all organism records sharing the same genet on submission.
-  void setLocalIdWithScope(String value, {required LocalIdEditScope scope}) {
-    final trimmed = value.trim();
-    final current = state.originalRecord.localId;
-    final override = trimmed == current ? null : trimmed;
-    emit(
-      state.copyWith(
-        localIdOverride: override,
-        localIdConflictError: null,
-        pendingLocalIdScope: scope,
-      ),
-    );
-    _rebuildPendingRecord();
-    // Trigger async conflict check
-    if (override != null && override.isNotEmpty) {
-      _checkLocalIdConflict(override);
-    }
-    // Trigger PID preview when localId changes
-    _loadPidPreview();
-  }
-
-  /// @deprecated Use setLocalIdWithScope instead
-  void setNameWithScope(String value, {required LocalIdEditScope scope}) =>
-      setLocalIdWithScope(value, scope: scope);
-
 
   /// Counter for localID conflict check requests
   int _localIdConflictRequestId = 0;
@@ -649,7 +607,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     final record = state.originalRecord;
     final lifeStage = state.lifeStageOverride ?? record.lifeStage.stage;
 
-    final fieldConfig = await MeasurementMetricsService.instance.getFieldConfig(
+    final fieldConfig = MeasurementMetricsService.getFieldConfig(
       organismKind: record.organismKind,
       lifeStage: lifeStage,
       physicalFormId: formId,
@@ -671,17 +629,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
             (oldConfig?.enableCount == true && !fieldConfig.enableCount)
             ? null
             : state.countOverride,
-        // Reset volume if it was enabled but is now disabled
-        volumeCm3Override:
-            (oldConfig?.enableVolume == true && !fieldConfig.enableVolume)
-            ? null
-            : state.volumeCm3Override,
-        // Reset tissue area if it was enabled but is now disabled
-        tissueAreaCm2Override:
-            (oldConfig?.enableTissueArea == true &&
-                !fieldConfig.enableTissueArea)
-            ? null
-            : state.tissueAreaCm2Override,
       ),
     );
     _rebuildPendingRecord();
@@ -697,49 +644,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
         physicalFormValidationMessage: validation,
       ),
     );
-  }
-
-  void setSizeClass(String? code) {
-    final override = code == state.originalRecord.sizeSpec.sizeClass
-        ? null
-        : code;
-    emit(state.copyWith(sizeClassOverride: override));
-    _rebuildPendingRecord();
-  }
-
-  void setMeasuredDimension(double? value) {
-    final current = state.originalRecord.sizeSpec.measuredDimension;
-    final override = (value == null || value == current) ? null : value;
-    emit(state.copyWith(measuredDimensionOverride: override));
-    _rebuildPendingRecord();
-  }
-
-  void setDimensionUnit(MeasurementUnit? unit) {
-    final current = state.originalRecord.sizeSpec.dimensionUnit;
-    final override = (unit == null || unit == current) ? null : unit;
-    emit(state.copyWith(dimensionUnitOverride: override));
-    _rebuildPendingRecord();
-  }
-
-  void setCount(int? count) {
-    final current = state.originalRecord.sizeSpec.countOverride;
-    final override = (count == null || count == current) ? null : count;
-    emit(state.copyWith(countOverride: override));
-    _rebuildPendingRecord();
-  }
-
-  void setVolumeCm3(double? volume) {
-    final current = state.originalRecord.sizeSpec.volumeCm3Override;
-    final override = (volume == null || volume == current) ? null : volume;
-    emit(state.copyWith(volumeCm3Override: override));
-    _rebuildPendingRecord();
-  }
-
-  void setTissueAreaCm2(double? area) {
-    final current = state.originalRecord.sizeSpec.tissueAreaCm2Override;
-    final override = (area == null || area == current) ? null : area;
-    emit(state.copyWith(tissueAreaCm2Override: override));
-    _rebuildPendingRecord();
   }
 
   void setQuantityKind(QuantityChangeKind kind) {
@@ -761,14 +665,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     validateQuantity();
   }
 
-  void setQuantityUnit(MeasurementUnit unit) {
-    final current = state.originalRecord.measurement.unit;
-    final override = unit == current ? null : unit;
-    emit(state.copyWith(quantityUnit: unit, quantityUnitOverride: override));
-    _rebuildPendingRecord();
-    validateQuantity();
-  }
-
   void setQuantityReason(QuantityChangeReason? reason) {
     emit(
       state.copyWith(
@@ -781,7 +677,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     validateQuantity();
   }
 
-  void setMortalityReason(MortalityReason? reason) {
+  void setMortalityReason(PopulationLossReason? reason) {
     emit(state.copyWith(mortalityReason: reason));
     validateQuantity();
   }
@@ -831,16 +727,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     _rebuildPendingRecord();
   }
 
-  void setOwnerOrganizationId(String value) {
-    emit(state.copyWith(ownerOrganizationIdInput: value));
-    _rebuildPendingRecord();
-  }
-
-  void setManagingOrganizationId(String value) {
-    emit(state.copyWith(managingOrganizationIdInput: value));
-    _rebuildPendingRecord();
-  }
-
   Future<void> submit() async {
     if (!state.canSubmit) {
       emit(
@@ -862,11 +748,9 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
     // Validate measurement metrics against field config using pendingRecord (the actual values to be saved)
     if (state.measurementFieldConfig != null) {
-      final metricsError = MeasurementMetricsService.instance.validateMetrics(
+      final metricsError = MeasurementMetricsService.validateMetrics(
         config: state.measurementFieldConfig!,
         count: state.pendingRecord.sizeSpec.countOverride,
-        volumeCm3: state.pendingRecord.sizeSpec.volumeCm3Override,
-        tissueAreaCm2: state.pendingRecord.sizeSpec.tissueAreaCm2Override,
       );
       if (metricsError != null) {
         emit(state.copyWith(submissionError: metricsError));
@@ -1172,10 +1056,10 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     }
   }
 
-  Future<List<String>> _recomputeAllowedFormIds() async {
+  List<String> _recomputeAllowedFormIds() {
     final lifeStage =
         state.lifeStageOverride ?? state.originalRecord.lifeStage.stage;
-    final formIds = await _constraintsService.allowedFormIds(
+    final formIds = _constraintsService.allowedFormIds(
       organismKind: state.originalRecord.organismKind,
       lifeStage: lifeStage,
     );
@@ -1183,10 +1067,9 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
   }
 
   void _recomputeAllowedFormIdsAsync() {
-    _recomputeAllowedFormIds().then((formIds) {
-      if (isClosed) return;
-      emit(state.copyWith(allowedFormIds: formIds));
-    });
+    final formIds = _recomputeAllowedFormIds();
+    if (isClosed) return;
+    emit(state.copyWith(allowedFormIds: formIds));
   }
 
   void _rebuildPendingRecord() {
@@ -1214,12 +1097,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
             state.originalRecord.sizeSpec.dimensionUnit,
         countOverride:
             state.countOverride ?? state.originalRecord.sizeSpec.countOverride,
-        volumeCm3Override:
-            state.volumeCm3Override ??
-            state.originalRecord.sizeSpec.volumeCm3Override,
-        tissueAreaCm2Override:
-            state.tissueAreaCm2Override ??
-            state.originalRecord.sizeSpec.tissueAreaCm2Override,
       ),
       aliases: aliasPayload,
       ownerOrganizationId: ownerResolved,

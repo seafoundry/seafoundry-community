@@ -78,11 +78,6 @@ class SpeciesRegistry extends ChangeNotifier {
     }
   }
 
-  /// Allows tests or seeds to replace the registry with known values.
-  void replaceWithRecords(Iterable<SpeciesRecord> records) {
-    _replaceWithRecords(records);
-  }
-
   /// Installs [registry] as the global lookup source for code paths that cannot
   /// easily receive DI (legacy cubits, background services, etc.).
   static void installGlobal(SpeciesRegistry registry) {

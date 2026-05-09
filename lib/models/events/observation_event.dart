@@ -12,7 +12,6 @@ class ObservationEvent extends Event with ImageEvent {
   final String? oldHealthStatus;
   final String? newHealthStatus;
   final String? healthIssueTypeId;
-  final bool createTask;
 
   ObservationEvent({
     required super.id,
@@ -21,7 +20,6 @@ class ObservationEvent extends Event with ImageEvent {
     this.oldHealthStatus,
     this.newHealthStatus,
     this.healthIssueTypeId,
-    this.createTask = false,
     required super.createdById,
     required super.createdAt,
     required super.recordId,
@@ -31,7 +29,6 @@ class ObservationEvent extends Event with ImageEvent {
     required super.urlPath,
     required super.internalPath,
     required super.slug,
-    super.missionId,
     super.metadata,
     super.base,
     required super.recordModelType,
@@ -44,7 +41,6 @@ class ObservationEvent extends Event with ImageEvent {
       oldHealthStatus = json['oldHealthStatus'],
       newHealthStatus = json['newHealthStatus'],
       healthIssueTypeId = json['healthIssueTypeId'],
-      createTask = json['createTask'] ?? false,
       super.fromJson();
 
   ObservationEvent.partial({
@@ -70,13 +66,11 @@ class ObservationEvent extends Event with ImageEvent {
     String? oldHealthStatus,
     String? newHealthStatus,
     String? healthIssueTypeId,
-    bool? createTask,
   }) : imageUrl = imageUrl ?? json?['imageUrl'],
        comment = comment ?? json?['comment'],
        oldHealthStatus = oldHealthStatus ?? json?['oldHealthStatus'],
        newHealthStatus = newHealthStatus ?? json?['newHealthStatus'],
        healthIssueTypeId = healthIssueTypeId ?? json?['healthIssueTypeId'],
-       createTask = createTask ?? json?['createTask'] ?? false,
        super.partial();
 
   @override
@@ -88,7 +82,6 @@ class ObservationEvent extends Event with ImageEvent {
       'oldHealthStatus': oldHealthStatus,
       'newHealthStatus': newHealthStatus,
       'healthIssueTypeId': healthIssueTypeId,
-      'createTask': createTask,
     };
   }
 
@@ -120,7 +113,6 @@ class ObservationEvent extends Event with ImageEvent {
     String? oldHealthStatus,
     String? newHealthStatus,
     String? healthIssueTypeId,
-    bool? createTask,
     String? eventTypeId,
     String? createdById,
     String? createdAt,
@@ -129,8 +121,6 @@ class ObservationEvent extends Event with ImageEvent {
     String? organizationId,
     String? recordId,
     ModelType? recordModelType,
-    String? missionId,
-    bool clearMissionId = false,
     String? urlPath,
     String? internalPath,
     String? slug,
@@ -145,7 +135,6 @@ class ObservationEvent extends Event with ImageEvent {
       oldHealthStatus: oldHealthStatus ?? this.oldHealthStatus,
       newHealthStatus: newHealthStatus ?? this.newHealthStatus,
       healthIssueTypeId: healthIssueTypeId ?? this.healthIssueTypeId,
-      createTask: createTask ?? this.createTask,
       createdById: createdById ?? this.createdById,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -156,7 +145,6 @@ class ObservationEvent extends Event with ImageEvent {
       urlPath: urlPath ?? this.urlPath,
       internalPath: internalPath ?? this.internalPath,
       slug: slug ?? this.slug,
-      missionId: clearMissionId ? null : (missionId ?? this.missionId),
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
         permitMetadata: permitMetadata,
@@ -167,5 +155,5 @@ class ObservationEvent extends Event with ImageEvent {
   }
 
   @override
-  List<Object?> get props => super.props + [comment, imageUrl, oldHealthStatus, newHealthStatus, healthIssueTypeId, createTask];
+  List<Object?> get props => super.props + [comment, imageUrl, oldHealthStatus, newHealthStatus, healthIssueTypeId];
 }

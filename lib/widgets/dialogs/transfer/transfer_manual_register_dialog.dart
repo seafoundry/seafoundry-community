@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../cubits/current_user/current_user.dart';
+import '../../../cubits/current_user/current_user_cubit.dart';
+import '../../../cubits/current_user/current_user_state.dart';
 import '../../../cubits/transfer/transfer_manual_register_cubit.dart';
 import '../../../cubits/transfer/transfer_manual_register_state.dart';
 import '../../../forms/inputs/genet_form_inputs.dart';
@@ -382,8 +383,7 @@ class _TransferManualRegisterDialogState
                       initialSizeSpec: _sizeSpec,
                       allowedProvenanceTypes: const [
                         ProvenanceType.wild,
-                        ProvenanceType.sexualCohort,
-                        ProvenanceType.graduatedIndividual,
+                        ProvenanceType.transfer,
                         ProvenanceType.unknown,
                       ],
                       sizeClassOptions: const [

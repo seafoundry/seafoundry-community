@@ -1,20 +1,17 @@
 // @tier: community
 import 'dart:async';
 
-import 'package:collection/collection.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_factory.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
-import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/utils/stream_factory.dart';
 
 /// GraphNode for OrganismRecord - universal five-axis inventory model
 ///
-/// Supports all organism types (coral, kelp, oyster, seagrass, finfish, crab)
-/// with capability-based action system.
+/// Uses a capability-based action system.
 class OrganismNode extends GraphNode<OrganismRecord>
     with MovableNode<OrganismRecord> {
   OrganismNode({
@@ -104,26 +101,12 @@ class OrganismLoadedState extends GraphLoadedState<OrganismRecord> {
     EventType.moveOut,
     InventoryEventType.populationLoss,
     EventType.observation,
-    EventType.task,
     // Size tracking events (all organisms)
     InventoryEventType.sizeChange, // Modern size change event type
     if (organism.sizeSpec.hasSize) CoralSizeEventType.growth,
     if (organism.sizeSpec.hasSize) CoralSizeEventType.tissueLoss,
     if (!organism.sizeSpec.hasSize) CoralSizeEventType.sizeAdded,
-    // Capability-based status events
-    if (organism.canPropagateAsexually && propagationReadyStatus != null)
-      StatusEventType.propagationReady,
-    if (organism.canPropagateAsexually && recentPropagationStatus != null)
-      StatusEventType.recentPropagation,
   ];
-
-  PropagationReadyStatus? get propagationReadyStatus =>
-      statusEvents.firstWhereOrNull((event) => event is PropagationReadyStatus)
-          as PropagationReadyStatus?;
-
-  RecentPropagationStatus? get recentPropagationStatus =>
-      statusEvents.firstWhereOrNull((event) => event is RecentPropagationStatus)
-          as RecentPropagationStatus?;
 
   @override
   OrganismLoadedState copyWith({

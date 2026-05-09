@@ -7,8 +7,7 @@ import 'package:seafoundry_app/widgets/ui.dart';
 /// Provides a consistent "Data Center" aesthetic across all filter bars
 /// with minimal visual noise - no shadows, subtle background, and dense layout.
 ///
-/// Used by: GeneticsFilterBar, InventoryFilterBar, MonitoringFilterBar,
-/// HoldingsFilterBar, HusbandryLoggedFilterBar, HusbandryTasksFilterBar
+/// Used by: GeneticsFilterBar, InventoryFilterBar, HoldingsFilterBar
 class ToolbarDropdown extends StatelessWidget {
   const ToolbarDropdown({
     super.key,

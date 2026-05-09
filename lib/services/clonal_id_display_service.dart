@@ -1,7 +1,6 @@
 // @tier: community
 import 'package:seafoundry_app/models/alias.dart';
 import 'package:seafoundry_app/models/genet.dart';
-import 'package:seafoundry_app/models/historical/provenance_id.dart';
 import 'package:seafoundry_app/models/provenance_suggestion.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/taxonomy/provenance_record.dart';
@@ -52,18 +51,6 @@ class ClonalIdDisplayService {
         record.provenanceId,
       ],
     );
-  }
-
-  /// Resolve a display-ready clonal ID from historical provenance data.
-  static String? resolveForProvenanceId(ProvenanceId record) {
-    final raw = record.clonalId?.trim();
-    if (isHumanReadable(raw)) return raw;
-    if (raw == null || raw.isEmpty || raw == Missing.string) return null;
-
-    return _firstHuman([
-      ...record.aliases.values,
-      ...record.rawAliases,
-    ]);
   }
 
   /// Choose the best display value for a provenance suggestion.

@@ -1,12 +1,10 @@
 // @tier: community
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/cubits/error_details_cubit.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
 import 'package:seafoundry_app/theme/theme.dart';
 
 /// A reusable widget for displaying detailed error information
-class ErrorDetailsWidget extends StatelessWidget {
+class ErrorDetailsWidget extends StatefulWidget {
   const ErrorDetailsWidget({super.key, required this.error, this.onRetry, this.compactMode = false});
 
   final Object error;
@@ -14,11 +12,14 @@ class ErrorDetailsWidget extends StatelessWidget {
   final bool compactMode;
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(create: (context) => ErrorDetailsCubit(), child: _buildContent(context));
-  }
+  State<ErrorDetailsWidget> createState() => _ErrorDetailsWidgetState();
+}
 
-  Widget _buildContent(BuildContext context) {
+class _ErrorDetailsWidgetState extends State<ErrorDetailsWidget> {
+  bool _showDetails = false;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     // Extract error information based on type
@@ -27,18 +28,18 @@ class ErrorDetailsWidget extends StatelessWidget {
     String? technicalDetails;
     bool isRecoverable = false;
 
-    if (error is DomainError) {
-      final domainError = error as DomainError;
+    if (widget.error is DomainError) {
+      final domainError = widget.error as DomainError;
       message = domainError.message;
       recoverySuggestion = domainError.recoverySuggestion;
       technicalDetails = domainError.technicalDetails;
       isRecoverable = domainError.isRecoverable;
     } else {
       message = 'An unexpected error occurred';
-      technicalDetails = error.toString();
+      technicalDetails = widget.error.toString();
     }
 
-    if (compactMode) {
+    if (widget.compactMode) {
       return _buildCompactError(
         context,
         message: message,
@@ -75,60 +76,58 @@ class ErrorDetailsWidget extends StatelessWidget {
               ),
             ],
             if (technicalDetails != null)
-              BlocBuilder<ErrorDetailsCubit, ErrorDetailsState>(
-                builder: (context, state) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: Spacing.sm * 1.5),
-                      InkWell(
-                        onTap: () {
-                          context.read<ErrorDetailsCubit>().toggleDetails();
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              state.showDetails ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                              size: 20,
-                              color: theme.colorScheme.onErrorContainer,
-                            ),
-                            const SizedBox(width: Spacing.xs),
-                            Text(
-                              state.showDetails ? 'Hide details' : 'Show details',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onErrorContainer,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: Spacing.sm * 1.5),
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _showDetails = !_showDetails;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          _showDetails ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          size: 20,
+                          color: theme.colorScheme.onErrorContainer,
                         ),
-                      ),
-                      if (state.showDetails) ...[
-                        const SizedBox(height: Spacing.sm),
-                        Container(
-                          padding: const EdgeInsets.all(Spacing.sm),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: theme.colorScheme.outline),
-                          ),
-                          child: SelectableText(
-                            technicalDetails!,
-                            style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+                        const SizedBox(width: Spacing.xs),
+                        Text(
+                          _showDetails ? 'Hide details' : 'Show details',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onErrorContainer,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ],
-                    ],
-                  );
-                },
+                    ),
+                  ),
+                  if (_showDetails) ...[
+                    const SizedBox(height: Spacing.sm),
+                    Container(
+                      padding: const EdgeInsets.all(Spacing.sm),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: theme.colorScheme.outline),
+                      ),
+                      child: SelectableText(
+                        technicalDetails,
+                        style: theme.textTheme.bodySmall?.copyWith(fontFamily: 'monospace'),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            if (onRetry != null || isRecoverable) ...[
+            if (widget.onRetry != null || isRecoverable) ...[
               const SizedBox(height: Spacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  if (onRetry != null)
-                    FilledButton.icon(onPressed: onRetry, icon: const Icon(Icons.refresh), label: const Text('Retry')),
+                  if (widget.onRetry != null)
+                    FilledButton.icon(onPressed: widget.onRetry, icon: const Icon(Icons.refresh), label: const Text('Retry')),
                 ],
               ),
             ],
@@ -161,14 +160,14 @@ class ErrorDetailsWidget extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          if (onRetry != null && isRecoverable) ...[
+          if (widget.onRetry != null && isRecoverable) ...[
             const SizedBox(width: Spacing.sm),
             IconButton(
               icon: const Icon(Icons.refresh, size: 16),
               color: theme.colorScheme.onErrorContainer,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
-              onPressed: onRetry,
+              onPressed: widget.onRetry,
             ),
           ],
         ],

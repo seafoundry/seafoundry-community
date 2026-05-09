@@ -3,16 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart';
 import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/repositories/contracts/i_organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/inventory/inventory_record_repository.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/organism_record_change_service.dart';
 import 'package:seafoundry_app/services/structure_capacity_service.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/validation_service.dart';
-import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 import 'package:seafoundry_app/services/custody_history_service.dart';
 
 part 'organism_record_repository_helpers.dart';
@@ -23,8 +20,7 @@ part 'organism_record_repository_status.dart';
 /// Base class for OrganismRecordRepository containing shared state and
 /// abstract methods required by mixins.
 abstract class _OrganismRecordRepositoryBase
-    extends InventoryRecordRepository<OrganismRecord>
-    implements IOrganismRecordRepository {
+    extends InventoryRecordRepository<OrganismRecord> {
   _OrganismRecordRepositoryBase({
     required super.organization,
     required super.user,
@@ -47,15 +43,15 @@ abstract class _OrganismRecordRepositoryBase
 
   /// Service for validating structure capacity constraints.
   final StructureCapacityService structureCapacityService;
-  late final _nameValidationService = UniqueNameValidationService(firestore: db);
 
   CollectionReference<Map<String, dynamic>> get archivedCollectionRef =>
-      FirestoreCollectionResolver.instance.subcollection(
-        db,
-        ModelType.organization.collectionPath,
-        organization.id,
-        'archived_organism_records',
-      );
+      db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection('archived_organism_records');
+
+  /// Count organisms in a specific group (abstract for cross-mixin access).
+  Future<int> countByGroup(String groupId);
 }
 
 /// Repository for managing organism records in Firestore.

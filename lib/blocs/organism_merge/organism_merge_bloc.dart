@@ -15,7 +15,6 @@ import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 
 class OrganismMergeBloc
     extends AsyncRecordFormBloc<OrganismRecord, OrganismMergeState> {
@@ -23,12 +22,10 @@ class OrganismMergeBloc
     required List<OrganismRecord> availableOrganisms,
     required OrganismRecordRepository organismRepository,
     required GraphRepository graphRepository,
-    required UniqueNameValidationService validationService,
     Set<String>? initialSelectedIds,
   })  : _availableOrganisms = availableOrganisms,
         _organismRepository = organismRepository,
         _graphRepository = graphRepository,
-        _validationService = validationService,
         _initialSelectedIds = initialSelectedIds,
         _logger = LoggingService.instance,
         super(
@@ -66,7 +63,6 @@ class OrganismMergeBloc
   final List<OrganismRecord> _availableOrganisms;
   final OrganismRecordRepository _organismRepository;
   final GraphRepository _graphRepository;
-  final UniqueNameValidationService _validationService;
   final Set<String>? _initialSelectedIds;
   final LoggingService _logger;
 
@@ -75,11 +71,6 @@ class OrganismMergeBloc
 
   @override
   Future<OrganismMergeState> loadInitialData() async {
-    // Get existing record names for validation
-    final usage = await _validationService.getRecordNameUsage(
-      organizationId: _availableOrganisms.first.organizationId,
-    );
-
     // Compute eligibility for each organism
     final eligibilityErrors = <String, String>{};
     for (final organism in _availableOrganisms) {
@@ -115,16 +106,6 @@ class OrganismMergeBloc
           )
         : null;
 
-    // Exclude target's current name from uniqueness check
-    final namesForValidation = Set<String>.from(usage.activeRecordNames);
-    if (targetOrganism != null) {
-      namesForValidation.remove(
-        UniqueNameValidationService.normalizeRecordName(
-          targetOrganism.recordName,
-        ),
-      );
-    }
-
     return state.copyWith(
       availableOrganisms: _availableOrganisms,
       eligibilityErrors: eligibilityErrors,
@@ -150,7 +131,6 @@ class OrganismMergeBloc
             inputs: [
               MergeRecordNameInput.dirty(
                 value: targetOrganism?.recordName,
-                existingNames: namesForValidation,
               ),
               const MergeReasonInput.pure(),
               const MergeNotesInput.pure(),

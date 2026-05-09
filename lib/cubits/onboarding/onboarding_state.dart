@@ -236,7 +236,7 @@ final class OnboardingSiteSetup extends OnboardingUserState {
   final String? selectedStructureTypeId;
 
   /// Selected substructure type ID (e.g., 'group_type_tray', 'group_type_tree_branch')
-  /// Pro feature - allows subdividing structures
+  /// Allows subdividing structures
   final String? selectedSubstructureTypeId;
 
   final String? errorMessage;

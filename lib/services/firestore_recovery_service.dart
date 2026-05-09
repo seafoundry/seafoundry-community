@@ -3,9 +3,6 @@ import 'dart:async';
 import 'dart:ui' show VoidCallback;
 
 import 'package:rxdart/rxdart.dart';
-import 'package:seafoundry_app/services/disposable_singleton.dart';
-import 'package:seafoundry_app/services/firestore_recovery_stub.dart'
-    if (dart.library.html) 'package:seafoundry_app/services/firestore_recovery_web.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Represents a Firestore stream recovery event
@@ -81,16 +78,11 @@ enum FirestoreRecoveryState {
 ///   }
 /// });
 /// ```
-class FirestoreRecoveryService implements DisposableSingleton {
+class FirestoreRecoveryService {
   FirestoreRecoveryService._();
   static FirestoreRecoveryService? _instance;
   static FirestoreRecoveryService get instance =>
       _instance ??= FirestoreRecoveryService._();
-
-  /// For testing: allows injecting a mock instance
-  static void setInstance(FirestoreRecoveryService instance) {
-    _instance = instance;
-  }
 
   /// For testing: resets the singleton
   static void resetInstance() {
@@ -98,7 +90,6 @@ class FirestoreRecoveryService implements DisposableSingleton {
     _instance = null;
   }
 
-  @override
   String get singletonId => 'FirestoreRecoveryService';
 
   final _logger = LoggingService.instance;
@@ -278,71 +269,6 @@ class FirestoreRecoveryService implements DisposableSingleton {
     }
   }
 
-  /// Clears the Firestore persistence cache.
-  ///
-  /// On web, this deletes the IndexedDB database used by Firestore.
-  /// On other platforms, this is a no-op.
-  ///
-  /// Returns true if cache was cleared (web), false otherwise (other platforms).
-  Future<bool> clearFirestoreCache() async {
-    _logger.info('FirestoreRecoveryService: Clearing Firestore cache');
-
-    _emitEvent(FirestoreRecoveryState.clearingCache);
-
-    try {
-      final result = await clearFirestorePersistenceCache();
-
-      if (result) {
-        _logger.info('FirestoreRecoveryService: Cache cleared successfully');
-      } else {
-        _logger.debug(
-          'FirestoreRecoveryService: Cache clearing not supported on this platform',
-        );
-      }
-
-      return result;
-    } catch (e, stackTrace) {
-      _logger.error(
-        'FirestoreRecoveryService: Failed to clear cache',
-        e,
-        stackTrace,
-      );
-      _emitEvent(
-        FirestoreRecoveryState.failed,
-        errorMessage: 'Failed to clear cache: $e',
-      );
-      return false;
-    }
-  }
-
-  /// Manually triggers recovery for all registered repositories.
-  ///
-  /// Useful when user wants to force a reconnection attempt.
-  Future<void> forceRecoveryAll() async {
-    _logger.info(
-      'FirestoreRecoveryService: Force recovery for ${_reconnectCallbacks.length} repositories',
-    );
-
-    // Reset retry counts
-    _retryAttempts.clear();
-    _lastRecoveryTime.clear();
-
-    // Trigger recovery for each registered repository
-    for (final entry in _reconnectCallbacks.entries) {
-      await _attemptRecovery(entry.key);
-    }
-  }
-
-  /// Resets the service to healthy state.
-  ///
-  /// Call this after manual intervention or successful recovery.
-  void resetToHealthy() {
-    _retryAttempts.clear();
-    _reconnectCallbacks.clear();
-    _emitEvent(FirestoreRecoveryState.healthy);
-    _logger.debug('FirestoreRecoveryService: Reset to healthy state');
-  }
-
   void _emitEvent(
     FirestoreRecoveryState state, {
     String? repositoryType,
@@ -360,7 +286,6 @@ class FirestoreRecoveryService implements DisposableSingleton {
     _recoverySubject.add(event);
   }
 
-  @override
   void dispose() {
     _recoverySubject.close();
     _reconnectCallbacks.clear();

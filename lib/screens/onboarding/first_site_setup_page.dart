@@ -12,8 +12,6 @@ class NurseryPreset {
     required this.icon,
     required this.structureType,
     this.substructureType,
-    required this.isExSitu,
-    this.isProOnly = false,
   });
 
   final String id;
@@ -22,66 +20,29 @@ class NurseryPreset {
   final IconData icon;
   final GroupType structureType;
   final GroupType? substructureType;
-  final bool isExSitu;
-  final bool isProOnly;
 
-  /// Common presets for ex-situ (land-based) nurseries
-  static const List<NurseryPreset> exSituPresets = [
+  /// All available nursery structure presets.
+  static const List<NurseryPreset> allPresets = [
     NurseryPreset(
-      id: 'gene_bank_tanks',
-      name: 'Gene Bank with Tanks',
+      id: 'tanks',
+      name: 'Tanks',
       description: 'Tanks for holding coral fragments or broodstock',
       icon: Icons.science,
       structureType: GroupType.tank,
-      isExSitu: true,
     ),
     NurseryPreset(
-      id: 'tanks_with_trays',
-      name: 'Tanks with Trays',
-      description: 'Tanks subdivided by trays for organization',
-      icon: Icons.grid_view,
-      structureType: GroupType.tank,
-      substructureType: GroupType.tray,
-      isExSitu: true,
-      isProOnly: true,
-    ),
-    NurseryPreset(
-      id: 'raceway_system',
-      name: 'Raceway System',
+      id: 'raceways',
+      name: 'Raceways',
       description: 'Flow-through raceways for grow-out',
       icon: Icons.water,
       structureType: GroupType.raceway,
-      isExSitu: true,
     ),
-    NurseryPreset(
-      id: 'pond_system',
-      name: 'Pond System',
-      description: 'Ponds for larger-scale culture',
-      icon: Icons.waves,
-      structureType: GroupType.pond,
-      isExSitu: true,
-    ),
-  ];
-
-  /// Common presets for in-situ (ocean-based) nurseries
-  static const List<NurseryPreset> inSituPresets = [
     NurseryPreset(
       id: 'coral_trees',
       name: 'Coral Trees',
       description: 'Vertical trees for hanging coral fragments',
       icon: Icons.park,
       structureType: GroupType.tree,
-      isExSitu: false,
-    ),
-    NurseryPreset(
-      id: 'trees_with_branches',
-      name: 'Trees with Branches',
-      description: 'Track individual branches on each tree',
-      icon: Icons.account_tree,
-      structureType: GroupType.tree,
-      substructureType: GroupType.treeBranch,
-      isExSitu: false,
-      isProOnly: true,
     ),
     NurseryPreset(
       id: 'domes',
@@ -89,7 +50,6 @@ class NurseryPreset {
       description: 'Dome structures for coral propagation',
       icon: Icons.wb_twilight,
       structureType: GroupType.dome,
-      isExSitu: false,
     ),
     NurseryPreset(
       id: 'rebar_tables',
@@ -97,7 +57,6 @@ class NurseryPreset {
       description: 'Table structures for coral fragments',
       icon: Icons.table_bar,
       structureType: GroupType.reebarTable,
-      isExSitu: false,
     ),
     NurseryPreset(
       id: 'aframes',
@@ -105,11 +64,29 @@ class NurseryPreset {
       description: 'A-frame structures for coral culture',
       icon: Icons.change_history,
       structureType: GroupType.aframe,
-      isExSitu: false,
+    ),
+    NurseryPreset(
+      id: 'cradles',
+      name: 'Cradles',
+      description: 'Cradle structures for coral nursery',
+      icon: Icons.baby_changing_station,
+      structureType: GroupType.cradle,
+    ),
+    NurseryPreset(
+      id: 'groups',
+      name: 'Groups',
+      description: 'Generic grouping for flexible organization',
+      icon: Icons.folder,
+      structureType: GroupType.group,
+    ),
+    NurseryPreset(
+      id: 'patches',
+      name: 'Patches',
+      description: 'Reef patches or areas for coral placement',
+      icon: Icons.grid_on,
+      structureType: GroupType.patch,
     ),
   ];
-
-  static List<NurseryPreset> get allPresets => [...exSituPresets, ...inSituPresets];
 }
 
 class FirstSiteSetupPage extends StatefulWidget {
@@ -161,8 +138,8 @@ class _FirstSiteSetupPageState extends State<FirstSiteSetupPage> {
     _siteNameController = widget.siteNameController ?? TextEditingController(text: 'Main Nursery');
     _groupNameController = widget.structureNameController ?? TextEditingController(text: 'Tank 1');
     
-    // Initialize with first ex-situ preset (most common)
-    _selectedPreset = NurseryPreset.exSituPresets.first;
+    // Initialize with first preset (tanks is most common)
+    _selectedPreset = NurseryPreset.allPresets.first;
     
     // Update structure name placeholder based on preset
     _updateStructureNameForPreset(_selectedPreset!);
@@ -283,42 +260,15 @@ class _FirstSiteSetupPageState extends State<FirstSiteSetupPage> {
                 color: Colors.grey.shade600,
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.star,
-                  size: 16,
-                  color: Colors.purple.shade400,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Starred presets require Pro and add an extra hierarchy level.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 12),
 
-            // Ex-Situ Presets
-            _buildPresetSection(
-              context,
-              'Land-Based (Ex-Situ)',
-              NurseryPreset.exSituPresets,
-              Icons.home_work,
-            ),
-            const SizedBox(height: 16),
-
-            // In-Situ Presets
-            _buildPresetSection(
-              context,
-              'Ocean-Based (In-Situ)',
-              NurseryPreset.inSituPresets,
-              Icons.waves,
+            // Structure Type Presets
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: NurseryPreset.allPresets
+                  .map((preset) => _buildPresetChip(context, preset))
+                  .toList(),
             ),
             const SizedBox(height: 24),
 
@@ -481,9 +431,8 @@ class _FirstSiteSetupPageState extends State<FirstSiteSetupPage> {
     BuildContext context,
     String title,
     String description,
-    int indentLevel, {
-    bool isProFeature = false,
-  }) {
+    int indentLevel,
+  ) {
     return Padding(
       padding: EdgeInsets.only(left: indentLevel * 16.0, bottom: 8),
       child: Row(
@@ -502,33 +451,11 @@ class _FirstSiteSetupPageState extends State<FirstSiteSetupPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (isProFeature) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.purple.shade100,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'PRO',
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Colors.purple.shade700,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 Text(
                   description,
@@ -541,38 +468,6 @@ class _FirstSiteSetupPageState extends State<FirstSiteSetupPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPresetSection(
-    BuildContext context,
-    String title,
-    List<NurseryPreset> presets,
-    IconData sectionIcon,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(sectionIcon, size: 18, color: Colors.grey.shade600),
-            const SizedBox(width: 6),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: Colors.grey.shade700,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: presets.map((preset) => _buildPresetChip(context, preset)).toList(),
-        ),
-      ],
     );
   }
 
@@ -622,23 +517,11 @@ class _FirstSiteSetupPageState extends State<FirstSiteSetupPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        preset.name,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        ),
-                      ),
-                      if (preset.isProOnly) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.star,
-                          size: 14,
-                          color: Colors.purple.shade400,
-                        ),
-                      ],
-                    ],
+                  Text(
+                    preset.name,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    ),
                   ),
                   Text(
                     preset.description,

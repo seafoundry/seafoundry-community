@@ -10,7 +10,6 @@
  * 4. Updates the organization's createdById to that member
  *
  * Usage:
- *   node scripts/fix-demo-org-creator.js --org=demo_org_pro
  *   node scripts/fix-demo-org-creator.js --org=demo_org_community
  */
 
@@ -30,7 +29,7 @@ async function main() {
 
   if (!orgId) {
     console.error('Usage: node scripts/fix-demo-org-creator.js --org=ORG_ID');
-    console.error('Example: node scripts/fix-demo-org-creator.js --org=demo_org_pro');
+    console.error('Example: node scripts/fix-demo-org-creator.js --org=demo_org_community');
     process.exit(1);
   }
 

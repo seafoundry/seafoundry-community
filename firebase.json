@@ -3,36 +3,36 @@
     "platforms": {
       "android": {
         "default": {
-          "projectId": "seafoundryapp",
-          "appId": "1:599860030371:android:3448844faa75594e2bc816",
+          "projectId": "seafoundry-community",
+          "appId": "placeholder",
           "fileOutput": "android/app/google-services.json"
         }
       },
       "ios": {
         "default": {
-          "projectId": "seafoundryapp",
-          "appId": "1:599860030371:ios:a2c114086e4f00bd2bc816",
+          "projectId": "seafoundry-community",
+          "appId": "placeholder",
           "uploadDebugSymbols": false,
           "fileOutput": "ios/Runner/GoogleService-Info.plist"
         }
       },
       "macos": {
         "default": {
-          "projectId": "seafoundryapp",
-          "appId": "1:599860030371:ios:a2c114086e4f00bd2bc816",
+          "projectId": "seafoundry-community",
+          "appId": "placeholder",
           "uploadDebugSymbols": false,
           "fileOutput": "macos/Runner/GoogleService-Info.plist"
         }
       },
       "dart": {
         "lib/firebase_options.dart": {
-          "projectId": "seafoundryapp",
+          "projectId": "seafoundry-community",
           "configurations": {
-            "android": "1:599860030371:android:3448844faa75594e2bc816",
-            "ios": "1:599860030371:ios:a2c114086e4f00bd2bc816",
-            "macos": "1:599860030371:ios:a2c114086e4f00bd2bc816",
-            "web": "1:599860030371:web:0137b5ec02a3ac3e2bc816",
-            "windows": "1:599860030371:web:3cc07443b32135312bc816"
+            "android": "placeholder",
+            "ios": "placeholder",
+            "macos": "placeholder",
+            "web": "1:100349672583:web:b4c8b535eee2fcaeaa8c22",
+            "windows": "placeholder"
           }
         }
       }
@@ -62,7 +62,7 @@
   ],
   "hosting": [
     {
-      "site": "seafoundryapp",
+      "site": "seafoundry-community",
       "public": "build/web",
       "ignore": [
         "firebase.json",

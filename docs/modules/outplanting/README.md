@@ -3,10 +3,8 @@
 Plan and record outplant events, track holdings by site, and visualize map data.
 
 ## Entry Points
-- `lib/screens/outplanting_screen.dart` (drawer: Outplanting)
-- Views: `lib/widgets/workspaces/outplanting_events_view.dart`,
-  `lib/widgets/workspaces/outplanting_holdings_view.dart`,
-  `lib/widgets/workspaces/outplanting_analytics.dart`.
+- Module spreadsheet screen: `lib/screens/spreadsheet/module_spreadsheet_screen.dart`
+- Holdings view: `lib/widgets/spreadsheet/outplanting/outplanting_holdings_view.dart`
 
 ## Key UI and State
 - Map tab uses `PublicHoldingsMapScreen` in preview mode.
@@ -33,7 +31,6 @@ Plan and record outplant events, track holdings by site, and visualize map data.
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Verify non-coral outplant batch workflows and tag persistence (`lib/services/outplanting_service.dart`).
 - Keep outplant geometry and event linkage consistent for monitoring integrations.
 
 ## Related Docs

@@ -360,29 +360,13 @@ class OrganismKindSelector extends StatelessWidget {
 
   IconData _getIconForKind(OrganismKind kind) {
     switch (kind) {
-      case OrganismKind.coral: return Icons.water; // or Icons.coral if available
-      case OrganismKind.kelp: return Icons.grass;
-      case OrganismKind.oyster: return Icons.circle;
-      case OrganismKind.seagrass: return Icons.eco;
-      case OrganismKind.mangrove: return Icons.forest;
-      case OrganismKind.echinoid: return Icons.stars; // Spiky/star-like
-      case OrganismKind.crab: return Icons.bug_report; // Closest to crab logic
-      case OrganismKind.finfish: return Icons.set_meal;
-      case OrganismKind.seaCucumber: return Icons.horizontal_rule; // Elongated shape
+      case OrganismKind.coral: return Icons.water;
     }
   }
 
   Color _getColorForKind(OrganismKind kind) {
     switch (kind) {
       case OrganismKind.coral: return const Color(0xFFFF6F61);
-      case OrganismKind.kelp: return const Color(0xFF689F38);
-      case OrganismKind.oyster: return const Color(0xFF78909C);
-      case OrganismKind.seagrass: return const Color(0xFF66BB6A);
-      case OrganismKind.mangrove: return const Color(0xFF2E7D32);
-      case OrganismKind.echinoid: return const Color(0xFF9C27B0);
-      case OrganismKind.crab: return const Color(0xFFE53935);
-      case OrganismKind.finfish: return const Color(0xFF42A5F5);
-      case OrganismKind.seaCucumber: return const Color(0xFF5D4037);
     }
   }
 }
@@ -407,7 +391,6 @@ class ProvenanceTypeSelector extends StatelessWidget {
       options: types.map((type) => VisualOption(
         value: type,
         label: type.displayName,
-        description: type.metadata.description,
         icon: _getIconForType(type),
         color: _getColorForType(context, type),
       )).toList(),
@@ -420,19 +403,18 @@ class ProvenanceTypeSelector extends StatelessWidget {
   IconData _getIconForType(ProvenanceType type) {
     switch (type) {
       case ProvenanceType.wild: return Icons.nature;
-      case ProvenanceType.sexualCohort: return Icons.group_work;
-      case ProvenanceType.graduatedIndividual: return Icons.school;
+      case ProvenanceType.cohort: return Icons.groups;
+      case ProvenanceType.graduatedIndividual: return Icons.star_outline;
       case ProvenanceType.transfer: return Icons.local_shipping;
       case ProvenanceType.unknown: return Icons.help_outline;
     }
   }
 
   Color _getColorForType(BuildContext context, ProvenanceType type) {
-    // Using theme-aware colors or fixed semantic colors
     switch (type) {
       case ProvenanceType.wild: return Colors.green;
-      case ProvenanceType.sexualCohort: return Colors.pinkAccent;
-      case ProvenanceType.graduatedIndividual: return Colors.orange;
+      case ProvenanceType.cohort: return Colors.teal;
+      case ProvenanceType.graduatedIndividual: return Colors.amber;
       case ProvenanceType.transfer: return Colors.blue;
       case ProvenanceType.unknown: return Colors.grey;
     }
@@ -579,22 +561,17 @@ class SizeBandVisualSelector extends StatelessWidget {
     required this.sizeBands,
     required this.selectedBandId,
     required this.onChanged,
-    this.metricsByBandId,
   });
 
   final List<SizeBandConfig> sizeBands;
   final String? selectedBandId;
   final ValueChanged<String?>? onChanged;
-  final Map<String, SizeMetrics>? metricsByBandId;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isEnabled = onChanged != null;
     final primaryColor = theme.colorScheme.primary;
-    final showNote =
-        sizeBands.any((band) => band.enableVolume || band.enableTissueArea);
-
     if (sizeBands.isEmpty) {
       return Text(
         'No size bands configured',
@@ -618,9 +595,6 @@ class SizeBandVisualSelector extends StatelessWidget {
                   builder: (context) {
                     final band = sizeBands[i];
                     final isSelected = selectedBandId == band.id;
-                    final metrics = _resolveMetrics(band);
-                    final showVolume = band.enableVolume;
-                    final showTissue = band.enableTissueArea;
                     return Material(
                       color: isSelected
                           ? primaryColor.withValues(alpha: 0.12)
@@ -681,29 +655,6 @@ class SizeBandVisualSelector extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ],
-                              if (showVolume || showTissue) ...[
-                                const SizedBox(height: 4),
-                                if (showVolume)
-                                  Text(
-                                    'Physical Volume ${_formatMetric(metrics.volumeCm3)} cm³',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                  ),
-                                if (showTissue)
-                                  Text(
-                                    'Tissue Area ${_formatMetric(metrics.tissueAreaCm2)} cm²',
-                                    style: theme.textTheme.labelSmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
-                                  ),
-                              ],
                             ],
                           ),
                         ),
@@ -715,165 +666,10 @@ class SizeBandVisualSelector extends StatelessWidget {
             ],
           ),
         ),
-        if (showNote) ...[
-          const SizedBox(height: 6),
-          Text(
-            '* Size band metrics use a standardized hemisphere model. '
-            'Customize in Organization > Biology.',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
       ],
     );
   }
 
-  SizeMetrics _resolveMetrics(SizeBandConfig band) {
-    final provided = metricsByBandId?[band.id];
-    final volume = provided?.volumeCm3 ??
-        band.defaultVolumeCm3 ??
-        (band.volumeMm3 / 1000.0);
-    final tissue = provided?.tissueAreaCm2 ?? band.defaultTissueAreaCm2;
-    return SizeMetrics(volumeCm3: volume, tissueAreaCm2: tissue);
-  }
-
-  String _formatMetric(double? value) {
-    if (value == null) return '--';
-    return value.round().toString();
-  }
-}
-
-/// Selector for DeliverableType
-class DeliverableTypeSelector extends StatelessWidget {
-  const DeliverableTypeSelector({
-    super.key,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  final DeliverableType selected;
-  final ValueChanged<DeliverableType> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return VisualSelector<DeliverableType>(
-      options: DeliverableType.values.map((type) => VisualOption(
-        value: type,
-        label: type.displayName,
-        icon: _getIconForType(type),
-        color: _getColorForType(context, type),
-      )).toList(),
-      selected: selected,
-      onChanged: onChanged,
-      columns: 2,
-    );
-  }
-
-  IconData _getIconForType(DeliverableType type) {
-    switch (type) {
-      case DeliverableType.report: return Icons.description;
-      case DeliverableType.survey: return Icons.poll;
-      case DeliverableType.documentation: return Icons.article;
-      case DeliverableType.permitRenewal: return Icons.autorenew;
-      case DeliverableType.compliance: return Icons.verified_user;
-    }
-  }
-
-  Color _getColorForType(BuildContext context, DeliverableType type) {
-    switch (type) {
-      case DeliverableType.report: return Colors.blue;
-      case DeliverableType.survey: return Colors.teal;
-      case DeliverableType.documentation: return Colors.orange;
-      case DeliverableType.permitRenewal: return Colors.purple;
-      case DeliverableType.compliance: return Colors.green;
-    }
-  }
-}
-
-/// Selector for DeliverableStatus
-class DeliverableStatusSelector extends StatelessWidget {
-  const DeliverableStatusSelector({
-    super.key,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  final DeliverableStatus selected;
-  final ValueChanged<DeliverableStatus> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return VisualSelector<DeliverableStatus>(
-      options: DeliverableStatus.values.map((status) => VisualOption(
-        value: status,
-        label: status.displayName,
-        icon: _getIconForStatus(status),
-        color: _getColorForStatus(context, status),
-      )).toList(),
-      selected: selected,
-      onChanged: onChanged,
-      columns: 3,
-    );
-  }
-
-  IconData _getIconForStatus(DeliverableStatus status) {
-    switch (status) {
-      case DeliverableStatus.notStarted: return Icons.radio_button_unchecked;
-      case DeliverableStatus.inProgress: return Icons.trending_up;
-      case DeliverableStatus.atRisk: return Icons.warning;
-      case DeliverableStatus.pendingReview: return Icons.hourglass_full;
-      case DeliverableStatus.completed: return Icons.check_circle;
-      case DeliverableStatus.overdue: return Icons.error;
-    }
-  }
-
-  Color _getColorForStatus(BuildContext context, DeliverableStatus status) {
-    switch (status) {
-      case DeliverableStatus.notStarted: return Colors.grey;
-      case DeliverableStatus.inProgress: return Colors.blue;
-      case DeliverableStatus.atRisk: return Colors.orange;
-      case DeliverableStatus.pendingReview: return Colors.purple;
-      case DeliverableStatus.completed: return Colors.green;
-      case DeliverableStatus.overdue: return Colors.red;
-    }
-  }
-}
-
-/// Selector for DeliverableFrequency
-class DeliverableFrequencySelector extends StatelessWidget {
-  const DeliverableFrequencySelector({
-    super.key,
-    required this.selected,
-    required this.onChanged,
-  });
-
-  final DeliverableFrequency selected;
-  final ValueChanged<DeliverableFrequency> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return VisualSelector<DeliverableFrequency>(
-      options: DeliverableFrequency.values.map((freq) => VisualOption(
-        value: freq,
-        label: freq.displayName,
-        icon: _getIconForFrequency(freq),
-      )).toList(),
-      selected: selected,
-      onChanged: onChanged,
-      columns: 3,
-    );
-  }
-
-  IconData _getIconForFrequency(DeliverableFrequency freq) {
-    switch (freq) {
-      case DeliverableFrequency.oneTime: return Icons.filter_1;
-      case DeliverableFrequency.monthly: return Icons.calendar_month;
-      case DeliverableFrequency.quarterly: return Icons.pie_chart;
-      case DeliverableFrequency.semiAnnual: return Icons.donut_large;
-      case DeliverableFrequency.annual: return Icons.calendar_today;
-    }
-  }
 }
 
 /// Selector for HealthStatus

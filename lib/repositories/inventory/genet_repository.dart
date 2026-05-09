@@ -3,19 +3,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/repositories/contracts/i_genet_repository.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/inventory/inventory_record_repository.dart';
 import 'package:seafoundry_app/repositories/organization_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
 import 'package:seafoundry_app/services/alias_uniqueness_service.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/provenance_id_service.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 import 'package:seafoundry_app/services/validation_service.dart';
-class GenetRepository extends InventoryRecordRepository<Genet>
-    implements IGenetRepository {
+class GenetRepository extends InventoryRecordRepository<Genet> {
 
   late final AliasUniquenessService _aliasService;
   late final ProvenanceIdService _provenanceIdService;
@@ -45,12 +42,10 @@ class GenetRepository extends InventoryRecordRepository<Genet>
 
     // Override collectionRef to use organization subcollection
     // Genets are stored at organizations/{orgId}/genets, not root genets collection
-    collectionRef = FirestoreCollectionResolver.instance.subcollection(
-      db,
-      ModelType.organization.collectionPath,
-      organization.id,
-      ModelType.genet.collectionPath,
-    );
+    collectionRef = db
+        .collection(ModelType.organization.collectionPath)
+        .doc(organization.id)
+        .collection(ModelType.genet.collectionPath);
     // Debug: Log the overridden collection path for demo mode troubleshooting
     LoggingService.instance.debug('GenetRepository: collectionRef.path=${collectionRef.path}');
     LoggingService.instance.debug('   - organization.id="${organization.id}"');
@@ -58,12 +53,10 @@ class GenetRepository extends InventoryRecordRepository<Genet>
   }
 
   CollectionReference<Map<String, dynamic>> get _archivedCollection =>
-      FirestoreCollectionResolver.instance.subcollection(
-        db,
-        ModelType.organization.collectionPath,
-        organization.id,
-        'archived_genets',
-      );
+      db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection('archived_genets');
 
   /// Exposes the provenance ID service for external preview operations.
   ProvenanceIdService get provenanceIdService => _provenanceIdService;
@@ -105,41 +98,6 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     return record;
   }
 
-  /// Searches for genets whose name starts with the given prefix.
-  /// Returns up to [limit] matching genets sorted by name (case-insensitive).
-  /// Excludes archived records by default.
-  @override
-  Future<List<Genet>> searchGenetsByNamePrefix(
-    String prefix, {
-    int limit = 10,
-    bool includeArchived = false,
-  }) async {
-    final trimmed = prefix.trim().toLowerCase();
-    if (trimmed.isEmpty) return const [];
-
-    // Firestore prefix query pattern: >= prefix AND < prefix + high Unicode char
-    final endPrefix = '$trimmed\uf8ff';
-
-    final snapshot = await collectionRef
-        .where('nameLowercase', isGreaterThanOrEqualTo: trimmed)
-        .where('nameLowercase', isLessThan: endPrefix)
-        .orderBy('nameLowercase')
-        .limit(limit)
-        .get();
-
-    final results = <Genet>[];
-    for (final doc in snapshot.docs) {
-      final data = doc.data();
-      data['id'] = doc.id;
-      final record = RecordFactory.recordFromJson<Genet>(data);
-      if (!includeArchived && record.archived) {
-        continue;
-      }
-      results.add(record);
-    }
-    return results;
-  }
-
   /// Returns the first genet matching the provided provenance ID.
   /// Optionally include archived records.
   Future<Genet?> getRecordByProvenanceId(
@@ -163,7 +121,6 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     return record;
   }
 
-  @override
   Future<Genet> createGenet(
     Genet genet, {
     String? inheritedProvenanceId,
@@ -359,7 +316,6 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     }
   }
 
-  @override
   Future<Genet> updateGenet({
     required Genet original,
     required Genet updated,
@@ -552,55 +508,11 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     }
   }
 
-  @override
-  Future<Genet> backfillProvenanceId({
-    required String genetId,
-    required String provenanceId,
-    bool force = false,
-  }) async {
-    final genet = await getRecordForId(genetId);
-    if (genet == null) {
-      throw domainErrors.RepositoryError(
-        message: 'Genet $genetId not found for provenance ID backfill.',
-      );
-    }
-
-    final trimmed = provenanceId.trim();
-    if (trimmed.isEmpty || trimmed == Missing.string) {
-      return genet;
-    }
-
-    if (genet.provenanceId.trim() == trimmed) {
-      return genet;
-    }
-
-    if (!ProvenanceIdService.isAutoGenerated(genet.provenanceId) && !force) {
-      return genet;
-    }
-
-    await _assertProvenanceIdUnique(
-      provenanceId: trimmed,
-      excludeRecordId: genet.id,
-    );
-
-    return updateGenet(
-      original: genet,
-      updated: genet.copyWith(provenanceId: trimmed),
-      changes: {
-        'provenanceId': {
-          'from': genet.provenanceId,
-          'to': trimmed,
-        },
-      },
-    );
-  }
-
   /// Intentionally links [aliases] to an existing record (identified by
   /// [existingRecordId]) so two organizations can reference the same Provenance ID.
   /// The caller must pass aliases that already belong to the existing record;
   /// this method simply adds the current organization as another reference and
   /// persists the aliases on [target].
-  @override
   Future<Genet> shareAliasesWithExistingRecord({
     required Genet target,
     required String existingRecordId,
@@ -650,7 +562,6 @@ class GenetRepository extends InventoryRecordRepository<Genet>
 
 
 
-  @override
   Future<void> archiveGenet(
     String genetId, {
     PopulationLossReason? lossReason,
@@ -745,7 +656,6 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     );
   }
 
-  @override
   Future<void> restoreGenet(String genetId) async {
     final archivedSnapshot = await _archivedCollection.doc(genetId).get();
     Genet? genet;
@@ -802,13 +712,9 @@ class GenetRepository extends InventoryRecordRepository<Genet>
 
   bool _isMortalityReason(PopulationLossReason? reason) {
     if (reason == null) return false;
-    if (reason is MortalityReason || reason is OutplantLossReason) {
-      return true;
-    }
-    return reason.id == PopulationLossReason.mortality.id;
+    return reason.isMortality;
   }
 
-  @override
   Future<String> suggestNextLocalId(String speciesId) async {
     return _nameValidationService.suggestNextOrganismLocalId(
       speciesId: speciesId,
@@ -816,7 +722,6 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     );
   }
 
-  @override
   Future<bool> isGenetNameUnique({
     required String name,
     String? excludeRecordId,
@@ -829,7 +734,6 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     );
   }
 
-  @override
   Future<String> suggestNextGenerationLocalId(String baseLocalId) async {
     return _nameValidationService.suggestNextGenerationLocalId(
       baseLocalId: baseLocalId,
@@ -837,18 +741,14 @@ class GenetRepository extends InventoryRecordRepository<Genet>
     );
   }
 
-  @override
   Future<int> countOrganismRecordsForGenet(String genetId) async {
     if (genetId.trim().isEmpty) return 0;
 
     try {
-      final organismRecordCollection =
-          FirestoreCollectionResolver.instance.subcollection(
-            db,
-            ModelType.organization.collectionPath,
-            organization.id,
-            ModelType.organismRecord.collectionPath,
-          );
+      final organismRecordCollection = db
+          .collection(ModelType.organization.collectionPath)
+          .doc(organization.id)
+          .collection(ModelType.organismRecord.collectionPath);
 
       final snapshot = await organismRecordCollection
           .where('genetId', isEqualTo: genetId)

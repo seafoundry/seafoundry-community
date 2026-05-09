@@ -14,15 +14,6 @@ class GeoUtils {
 
   static bool isValidLongitude(double value) => value >= -180 && value <= 180;
 
-  static bool isWithinDeltaDegrees({
-    required GeoCoordinate coordinate,
-    required GeoCoordinate center,
-    double deltaDegrees = 0.5,
-  }) {
-    return (coordinate.latitude - center.latitude).abs() <= deltaDegrees &&
-        (coordinate.longitude - center.longitude).abs() <= deltaDegrees;
-  }
-
   /// Approximate great-circle distance in meters between two coordinates.
   static double distanceMeters(GeoCoordinate a, GeoCoordinate b) {
     const earthRadius = 6371000.0;

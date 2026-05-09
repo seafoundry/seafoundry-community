@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/components/core/loading_indicator.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/cubits/current_user/current_user.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
+import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
 import 'package:seafoundry_app/forms/inputs/genet_form_inputs.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/species.dart';
@@ -244,16 +245,21 @@ class _SpeciesSelectionModalState extends State<_SpeciesSelectionModal> {
     try {
       // Filter by organism kind when provided
       final records = await service.listSpecies(organismKind: widget.organismKind);
+      if (records.isEmpty) {
+        // Firestore taxonomy collection is empty (e.g. emulator without seed data).
+        // Fall back to the builtin species registry.
+        if (kDebugMode) {
+          LoggingService.instance.debug(
+            'SpeciesSelector: TaxonomyService returned 0 species, falling back to registry',
+          );
+        }
+        if (mounted) _buildFromRegistry();
+        return;
+      }
       if (kDebugMode) {
         LoggingService.instance.debug(
           'SpeciesSelector: Loaded ${records.length} species from TaxonomyService (filter: ${widget.organismKind?.name ?? "none"})',
         );
-        // Debug: check first few records for metadata
-        for (final record in records.take(3)) {
-          LoggingService.instance.debug(
-            '   Species ${record.code}: metadata=${record.metadata}',
-          );
-        }
       }
       if (mounted) {
         setState(() {

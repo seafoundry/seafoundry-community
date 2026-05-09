@@ -2,18 +2,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:seafoundry_app/models/public_read_models/brand_profile.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 
 /// Repository for creating and updating brand profiles.
 class BrandProfileRepository {
   BrandProfileRepository({FirebaseFirestore? firestore, FirebaseAuth? auth})
     : _firestore = firestore ?? FirebaseFirestore.instance,
-      _auth = auth ?? FirebaseAuth.instance,
-      _resolver = FirestoreCollectionResolver.instance;
+      _auth = auth ?? FirebaseAuth.instance;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
-  final FirestoreCollectionResolver _resolver;
 
   /// Creates or updates a brand profile for an organization.
   Future<void> upsertBrandProfile({
@@ -32,7 +29,7 @@ class BrandProfileRepository {
       throw Exception('User must be logged in to create/update brand profiles');
     }
 
-    final collectionRef = _resolver.collection(_firestore, 'brand_profiles');
+    final collectionRef = _firestore.collection('brand_profiles');
 
     // Check if profile exists
     final existing = await collectionRef
@@ -90,7 +87,7 @@ class BrandProfileRepository {
 
   /// Deletes a brand profile for an organization.
   Future<void> deleteBrandProfile(String organizationId) async {
-    final collectionRef = _resolver.collection(_firestore, 'brand_profiles');
+    final collectionRef = _firestore.collection('brand_profiles');
 
     final existing = await collectionRef
         .where('organizationId', isEqualTo: organizationId)

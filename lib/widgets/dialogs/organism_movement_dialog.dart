@@ -1,7 +1,6 @@
 // @tier: community
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 import 'package:seafoundry_app/blocs/organism_movement/organism_movement_bloc.dart';
 import 'package:seafoundry_app/blocs/organism_movement/organism_movement_state.dart';
 import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
@@ -15,7 +14,6 @@ import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
-import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
 import 'package:seafoundry_app/widgets/dialogs/structure_dialog_shell.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
@@ -55,9 +53,6 @@ class OrganismMovementDialog extends StatelessWidget {
       return null;
     }
     final (groupRepository, organismRepository, graphRepository) = repositories;
-    final validationService = UniqueNameValidationService(
-      firestore: organismRepository.db,
-    );
 
     final result = await showDialog<OrganismRecord?>(
       context: context,
@@ -69,20 +64,16 @@ class OrganismMovementDialog extends StatelessWidget {
           RepositoryProvider.value(value: organismRepository),
           RepositoryProvider.value(value: graphRepository),
         ],
-        child: Provider<UniqueNameValidationService>.value(
-          value: validationService,
-          child: BlocProvider(
-            create: (_) => OrganismMovementBloc(
-              sourceGroup: nodeState.record,
-              organismRepository: organismRepository,
-              groupRepository: groupRepository,
-              graphRepository: graphRepository,
-              validationService: validationService,
-              allowedOrganismIds: allowedOrganismIds,
-              initialSelectedOrganismIds: initialSelectedOrganismIds,
-            ),
-            child: OrganismMovementDialog(sourceGroup: nodeState.record),
+        child: BlocProvider(
+          create: (_) => OrganismMovementBloc(
+            sourceGroup: nodeState.record,
+            organismRepository: organismRepository,
+            groupRepository: groupRepository,
+            graphRepository: graphRepository,
+            allowedOrganismIds: allowedOrganismIds,
+            initialSelectedOrganismIds: initialSelectedOrganismIds,
           ),
+          child: OrganismMovementDialog(sourceGroup: nodeState.record),
         ),
       ),
     );

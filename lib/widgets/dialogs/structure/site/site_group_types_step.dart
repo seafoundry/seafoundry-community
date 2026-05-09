@@ -184,15 +184,14 @@ class _CategorySection extends StatelessWidget {
   String? _getGroupTypeDescription(GroupType groupType) {
     // Provide helpful descriptions for common group types
     final descriptions = <String, String>{
-      GroupType.lifeSupportSystem.id: 'Groups tanks/raceways in a shared system',
-      GroupType.zone.id: 'Defines an area within the site',
       GroupType.tank.id: 'Water containment for organisms',
       GroupType.raceway.id: 'Flow-through grow-out system',
       GroupType.tree.id: 'Nursery structure with branches',
-      GroupType.grid.id: 'Coordinate-based layout',
-      GroupType.tray.id: 'Subdivision within tank',
-      GroupType.gridCell.id: 'Individual cell in a grid',
-      GroupType.treeBranch.id: 'Branch on a nursery tree',
+      GroupType.dome.id: 'Dome structure for in-situ nursery',
+      GroupType.reebarTable.id: 'Table structure for in-situ nursery',
+      GroupType.cradle.id: 'Cradle structure for in-situ nursery',
+      GroupType.aframe.id: 'A-frame structure for in-situ nursery',
+      GroupType.group.id: 'General grouping container',
     };
 
     return descriptions[groupType.id];

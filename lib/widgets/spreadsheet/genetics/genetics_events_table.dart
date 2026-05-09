@@ -27,7 +27,6 @@ import 'package:seafoundry_app/repositories/inventory/genet_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/record_repository.dart';
 import 'package:seafoundry_app/repositories/utils/firestore_document_helpers.dart';
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
 import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/pagination_service.dart';
@@ -194,10 +193,9 @@ class _GeneticsEventsTableState extends State<GeneticsEventsTable>
       // IMPORTANT: Filter by organizationId to satisfy Firestore security rules.
       // Without this filter, Firestore will deny access because the rules require
       // resource.data.organizationId to match the user's organizationId.
-      // Use FirestoreCollectionResolver to handle demo mode collection prefix.
       if (!mounted) return;
-      final query = FirestoreCollectionResolver.instance
-          .collection(recordRepository.db, ModelType.event.collectionPath)
+      final query = recordRepository.db
+          .collection(ModelType.event.collectionPath)
           .where('organizationId', isEqualTo: organizationId)
           .orderBy('createdAt', descending: true)
           .limit(_eventFetchLimit);

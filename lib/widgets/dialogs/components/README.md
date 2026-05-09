@@ -61,43 +61,6 @@ class _MyDialogState extends State<MyDialog>
 | `showSafeSnackBar(msg)` | Snackbar using context (requires mounted) |
 | `showSafeDialog(builder)` | Show nested dialog safely |
 
-### SafeDialog PopScope Wrapper
-
-For dialogs needing back button interception:
-
-```dart
-import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog.dart';
-
-// Basic usage
-showDialog(
-  context: context,
-  builder: (_) => SafeDialog(
-    child: AlertDialog(...),
-  ),
-);
-
-// With back button confirmation
-SafeDialog(
-  canPop: false,
-  onPopInvokedWithResult: (didPop, result) {
-    if (didPop) return;
-    _showExitConfirmation();
-  },
-  child: AlertDialog(...),
-)
-
-// With async confirmation check
-SafeDialog.withAsyncCheck(
-  canPopAsync: () async => await _confirmDiscard(),
-  child: AlertDialog(...),
-)
-
-// Using extension method
-context.showSafeDialog(
-  builder: (_) => AlertDialog(...),
-);
-```
-
 ### Global Helper Functions (for StatelessWidget Dialogs)
 
 ```dart
@@ -114,39 +77,21 @@ final navigator = safeDialogNavigatorOf(context);
 final messenger = safeDialogMessengerOf(context);
 ```
 
-### ObservationTargetMixin (For Dialogs with Controllers)
-
-For dialogs that manage `ObservationTargetController` instances:
-
-```dart
-import 'package:seafoundry_app/widgets/dialogs/components/observation_target_mixin.dart';
-
-class _MyDialogState extends State<MyDialog>
-    with SafeDialogMixin<MyDialog>, ObservationTargetMixin<MyDialog> {
-
-  late final _controller = registerTargetController(
-    ObservationTargetController(),
-  );
-
-  // Controller is automatically cleaned up on dispose
-}
-```
-
 ## Component Reference
 
 | File | Description |
 |------|-------------|
 | `safe_dialog_mixin.dart` | Unified mixin for dialog lifecycle safety |
-| `safe_dialog.dart` | PopScope wrapper for back button protection |
-| `observation_target_mixin.dart` | Controller lifecycle management |
-| `observation_target_selector.dart` | UI for selecting observation targets |
-| `review_commit_ribbon.dart` | Standard save/cancel action ribbon |
-| `dialog_message_box.dart` | Styled message box for dialogs |
-| `csv_export_preview.dart` | CSV export preview component |
 | `csv_import_preview.dart` | CSV import preview component |
 | `csv_import_results_panel.dart` | CSV import results display |
-| `permit_metadata_section.dart` | Permit metadata form section |
-| `geometry_capture_section.dart` | Geometry/location capture UI |
+| `csv_translation_issues_panel.dart` | CSV translation issues display |
+| `dialog_barrier.dart` | Dialog barrier overlay |
+| `dialog_scroll_view.dart` | Scrollable dialog content wrapper |
+| `five_axis_dialog_section.dart` | Five-axis constraint section |
+| `permit_selector_widget.dart` | Permit selection widget |
+| `provenance_life_stage_selector.dart` | Provenance and life stage selection |
+| `transfer_initiate_form.dart` | Transfer initiation form |
+| `transfer_manifest_summary.dart` | Transfer manifest summary display |
 
 ## Related Documentation
 

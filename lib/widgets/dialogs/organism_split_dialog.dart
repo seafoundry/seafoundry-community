@@ -14,12 +14,10 @@ import 'package:seafoundry_app/repositories/graph_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
-import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 import 'package:seafoundry_app/widgets/common/inherited_species_display.dart';
 import 'package:seafoundry_app/widgets/common/locked_text_field.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
 import 'package:seafoundry_app/widgets/dialogs/structure_dialog_shell.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
 import 'package:seafoundry_app/widgets/ui.dart';
 import 'package:seafoundry_app/widgets/ui_text.dart';
 
@@ -75,8 +73,6 @@ class OrganismSplitDialog extends StatelessWidget {
 
     final organismRepository = context.read<OrganismRecordRepository>();
     final graphRepository = context.read<GraphRepository>();
-    final validationService = context.maybeRead<UniqueNameValidationService>() ??
-        UniqueNameValidationService(firestore: organismRepository.db);
 
     return showDialog<OrganismRecord?>(
       context: context,
@@ -87,7 +83,6 @@ class OrganismSplitDialog extends StatelessWidget {
           sourceOrganism: organism,
           organismRepository: organismRepository,
           graphRepository: graphRepository,
-          validationService: validationService,
         ),
         child: OrganismSplitDialog(sourceOrganism: organism),
       ),

@@ -93,7 +93,13 @@ class OrganizationLoadedState extends GraphLoadedState<Organization> {
     super.creator,
   });
   Organization get organization => record;
-  List<SiteNode> get siteNodes => children.whereType<SiteNode>().toList();
+  List<SiteNode> get siteNodes {
+    final seen = <String>{};
+    return children
+        .whereType<SiteNode>()
+        .where((node) => seen.add(node.id))
+        .toList();
+  }
 
   List<Species> get species => organization.speciesIds
       .map((id) => SpeciesRegistry.globalById(id))

@@ -73,7 +73,7 @@ Seeding requires a staging service account JSON:
 ```bash
 export FIREBASE_SERVICE_ACCOUNT=/path/to/staging-service-account.json
 npm run seed:taxonomy
-node scripts/seed-demo.js --seed-all-tiers --reset
+node scripts/seed-demo.js --reset
 ```
 
 ## 5) Verify

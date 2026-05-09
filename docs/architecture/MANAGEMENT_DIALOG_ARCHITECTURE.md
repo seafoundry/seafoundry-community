@@ -2,7 +2,7 @@
 
 ## Overview
 
-The management dialog system provides a unified pattern for inventory management operations (edit properties, edit identity, edit physical form, remove/archive) across all organism types.
+The management dialog system provides a unified pattern for inventory management operations (edit properties, edit identity, edit physical form, remove/archive) for coral organism records.
 
 ## Current Architecture
 

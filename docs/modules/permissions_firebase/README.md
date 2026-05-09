@@ -11,7 +11,7 @@ Auth, security rules, and Firebase infrastructure.
 ## Identity and Permissions
 - UID-based identity, org membership subcollection, role-based access.
 - Authorization enforced in Firestore rules with `isMemberByUid`.
-- UI gating via `FeatureAccessService` and `TierGate`.
+- UI and data constraints are community-only (`Tier` normalization + scoped guards).
 
 ## Operations and Tooling
 - Emulator scripts: `dev-emulator.sh`, `seed_emulator.sh`
@@ -28,7 +28,7 @@ Auth, security rules, and Firebase infrastructure.
 ## Release Readiness
 - Audit tracker: `.github/issues/release/pre-release-audit.md`.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
-- Tier/feature gating should be consistent (FeatureAccessService + tier flags).
+- Tier constraints should remain community-only and explicit in services/rules.
 - Firestore rules must align with new feature access paths.
 
 ## Related Docs

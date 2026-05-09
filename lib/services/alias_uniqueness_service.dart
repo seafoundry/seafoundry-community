@@ -4,8 +4,6 @@ import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/models/alias.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 
-import 'package:seafoundry_app/services/firestore_collection_resolver.dart';
-
 /// Ensures tagged aliases (Tracks, ZIMS, CSR, etc.) remain unique across the
 /// deployment. Each alias is indexed under `alias_index/{source::value}` so any
 /// duplicate attempts can be blocked before the record is written.
@@ -13,7 +11,6 @@ class AliasUniquenessService {
   AliasUniquenessService({
     FirebaseFirestore? firestore,
     Map<String, String>? knownSystems,
-    FirestoreCollectionResolver? resolver,
   }) : _firestore = firestore,
        _knownSystems = Map.unmodifiable(
          knownSystems == null || knownSystems.isEmpty
@@ -24,8 +21,7 @@ class AliasUniquenessService {
                    (key, value) => MapEntry(key.toLowerCase(), value),
                  ),
                },
-       ),
-       _resolver = resolver ?? FirestoreCollectionResolver.instance;
+       );
 
   static const String _collectionPath = 'alias_index';
   static const Map<String, String> _defaultSystems = {
@@ -43,37 +39,8 @@ class AliasUniquenessService {
 
   final FirebaseFirestore? _firestore;
   final Map<String, String> _knownSystems;
-  final FirestoreCollectionResolver _resolver;
 
   Map<String, String> get knownSystems => _knownSystems;
-
-  /// Friendly label for [sourceSystem] (falls back to the raw name when
-  /// unknown).
-  String labelFor(String sourceSystem) =>
-      _knownSystems[sourceSystem.toLowerCase()] ?? sourceSystem;
-
-  /// Fetches the alias index entry (if present) so callers can inspect who
-  /// currently owns the alias before attempting to share it.
-  Future<AliasIndexEntry?> fetchAlias(OrganismAlias alias) async {
-    final firestore = _requireFirestore();
-    final doc = await _docRef(alias, firestore).get();
-    if (!doc.exists) return null;
-    final data = doc.data();
-    if (data == null) return null;
-    return AliasIndexEntry.fromSnapshot(alias: alias, data: data);
-  }
-
-  /// Ensures the in-memory alias list is unique before hitting Firestore. This
-  /// is primarily used by UI forms to provide instant validation feedback.
-  bool hasLocalConflict(Iterable<OrganismAlias> aliases, OrganismAlias alias) {
-    final normalizedSource = alias.sourceSystem.trim().toLowerCase();
-    final normalizedValue = alias.value.trim().toLowerCase();
-    return aliases.any(
-      (existing) =>
-          existing.sourceSystem.trim().toLowerCase() == normalizedSource &&
-          existing.value.trim().toLowerCase() == normalizedValue,
-    );
-  }
 
   /// Deduplicates aliases locally (most recent entries win). This mirrors the
   /// Firestore-level `_uniqueAliases` guard so editors can merge payloads before
@@ -288,7 +255,7 @@ class AliasUniquenessService {
     final sanitizedSource = alias.sourceSystem.trim().toLowerCase();
     final sanitizedValue = alias.value.trim().toLowerCase();
     final docId = '$sanitizedSource::$sanitizedValue';
-    return _resolver.collection(firestore, _collectionPath).doc(docId);
+    return firestore.collection(_collectionPath).doc(docId);
   }
 
   static Iterable<OrganismAlias> _uniqueAliases(

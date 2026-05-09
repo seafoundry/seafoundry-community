@@ -1,13 +1,11 @@
 // @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:seafoundry_app/constants/in_situ_grid_constants.dart';
+import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/models/models.dart';
-import 'package:seafoundry_app/repositories/contracts/i_site_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/inventory_record_repository.dart';
 
-class SiteRepository extends InventoryRecordRepository<Site>
-    implements ISiteRepository {
+class SiteRepository extends InventoryRecordRepository<Site> {
   SiteRepository({
     required super.organization,
     required super.user,
@@ -24,7 +22,6 @@ class SiteRepository extends InventoryRecordRepository<Site>
 
   /// Persist updated geometry for a site while keeping legacy latitude/longitude
   /// fields in sync for downstream consumers that still rely on them.
-  @override
   Future<Site> updateGeometry({
     required Site site,
     OutplantGeometry? geometry,
@@ -68,7 +65,6 @@ class SiteRepository extends InventoryRecordRepository<Site>
     return updatedSite;
   }
 
-  @override
   Future<Site> clearGeometry({required Site site, WriteBatch? batch}) {
     return updateGeometry(
       site: site,
@@ -78,7 +74,6 @@ class SiteRepository extends InventoryRecordRepository<Site>
     );
   }
 
-  @override
   Future<Site> updateGridDimensions({
     required Site site,
     required int rowCount,
@@ -106,7 +101,6 @@ class SiteRepository extends InventoryRecordRepository<Site>
   ///
   /// Computes field-level diffs between original and updated records,
   /// persists the update, and creates a CorrectionEvent with EventType.inventoryRecordCorrection.
-  @override
   Future<Site> updateSiteWithCorrection({
     required Site originalSite,
     required Site updatedSite,
@@ -201,7 +195,6 @@ class SiteRepository extends InventoryRecordRepository<Site>
   ///
   /// Returns the first matching site or null if not found.
   /// Uses an in-memory filter on the current snapshot for efficiency.
-  @override
   Future<Site?> findByName(String name) async {
     if (name.trim().isEmpty) return null;
 
