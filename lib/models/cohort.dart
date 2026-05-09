@@ -212,6 +212,41 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     );
   }
 
+  /// Builds a Cohort whose denormalized display fields are derived from
+  /// [organism]. Mirrors [HoldingRecord.fromOrganismRecord].
+  factory Cohort.fromOrganismRecord(
+    OrganismRecord organism, {
+    required String id,
+    required String name,
+    String? provenanceId,
+    String? siteId,
+    String? groupId,
+    String? structureId,
+    DateTime? startedAt,
+    DateTime? completedAt,
+    Map<String, dynamic> metadata = const <String, dynamic>{},
+    HoldingAttributes? attributes,
+    String? organismRecordId,
+  }) {
+    return Cohort(
+      id: id,
+      name: name,
+      organismKind: organism.organismKind,
+      lifeStage: organism.lifeStage.stage,
+      population: organism.measurement,
+      provenanceId: provenanceId,
+      siteId: siteId,
+      groupId: groupId,
+      structureId: structureId,
+      startedAt: startedAt,
+      completedAt: completedAt,
+      metadata: metadata,
+      attributes: attributes,
+      organismRecord: organism,
+      organismRecordId: organismRecordId ?? organism.id,
+    );
+  }
+
   factory Cohort.fromHolding(
     HoldingRecord holding, {
     DateTime? startedAt,
