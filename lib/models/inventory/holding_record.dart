@@ -20,13 +20,10 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// placement without depending on coral-only models.
 ///
 /// Identity / life-stage / measurement / ownership are persisted as
-/// **denormalized display fields** on the holding (kept in sync with the
-/// canonical [OrganismRecord] doc identified by [organismRecordId]). Callers
-/// needing deep axes (aliases, physicalForm, lifeStageHistory, sizeSpec) must
-/// resolve the canonical record via
-/// [resolveOrganismRecord], which performs an async repository lookup. The
-/// embedded [organismRecord] field is currently retained for the in-flight
-/// migration; new code should treat it as private to this file.
+/// **denormalized display fields** on the holding. Callers needing deep
+/// axes (aliases, physicalForm, lifeStageHistory, sizeSpec, etc.) must
+/// resolve the canonical OrganismRecord via [resolveOrganismRecord], which
+/// performs an async repository lookup keyed by [organismRecordId].
 class HoldingRecord extends InventoryRecord
     with LifeStageProgressionMixin, MeasurableMixin {
   HoldingRecord({
@@ -45,7 +42,6 @@ class HoldingRecord extends InventoryRecord
     Map<String, ForeignKeyReference>? foreignKeys,
     HoldingAttributes? attributes,
     Map<String, dynamic> metadata = const <String, dynamic>{},
-    OrganismRecord? organismRecord,
     String? organismRecordId,
     String? createdAt,
     String? createdById,
@@ -59,30 +55,17 @@ class HoldingRecord extends InventoryRecord
         attributes = _normalizeAttributes(attributes),
         organismRecordId = _resolveOrganismRecordId(
           explicit: organismRecordId,
-          base: organismRecord,
           fallbackId: id,
         ),
-        organismRecord = _buildOrganismRecord(
-          base: organismRecord,
-          tagId: tagId,
-          organismKind: organismKind,
-          lifeStage: lifeStage,
-          measurement: measurement,
-          attributes: _normalizeAttributes(attributes),
-          metadata: _normalizeMetadata(metadata),
-          ownerOrganizationId: ownerOrganizationId,
-          managingOrganizationId: managingOrganizationId,
-          foreignKeys: _normalizeForeignKeys(foreignKeys),
-        ),
         super(
-          createdAt: createdAt ?? organismRecord?.createdAt ?? Missing.dateTimeString,
-          createdById: createdById ?? organismRecord?.createdById ?? Missing.string,
-          updatedAt: updatedAt ?? organismRecord?.updatedAt ?? Missing.dateTimeString,
-          updatedById: updatedById ?? organismRecord?.updatedById ?? Missing.string,
-          organizationId: organizationId ?? organismRecord?.organizationId ?? Missing.string,
-          urlPath: urlPath ?? organismRecord?.urlPath ?? Missing.string,
-          internalPath: internalPath ?? organismRecord?.internalPath ?? Missing.string,
-          slug: slug ?? organismRecord?.slug ?? Missing.string,
+          createdAt: createdAt ?? Missing.dateTimeString,
+          createdById: createdById ?? Missing.string,
+          updatedAt: updatedAt ?? Missing.dateTimeString,
+          updatedById: updatedById ?? Missing.string,
+          organizationId: organizationId ?? Missing.string,
+          urlPath: urlPath ?? Missing.string,
+          internalPath: internalPath ?? Missing.string,
+          slug: slug ?? Missing.string,
           metadata: UnmodifiableMapView(_normalizeMetadata(metadata)),
         );
 
@@ -99,13 +82,6 @@ class HoldingRecord extends InventoryRecord
   /// shares `holding.id == organismRecord.id`, so this defaults to [id] when
   /// not explicitly provided. Always set by [fromJson] when present.
   final String organismRecordId;
-
-  /// **Migration-only**. Embedded snapshot of the canonical
-  /// [OrganismRecord]. Will be removed in the final step of the deembedding
-  /// refactor; new readers should call [resolveOrganismRecord] for deep axes
-  /// or rely on the denormalized display fields ([tagId], [organismKind],
-  /// [lifeStage], [measurement], [ownerOrganizationId], [managingOrganizationId]).
-  final OrganismRecord organismRecord;
 
   // Denormalized display fields. Authoritative for synchronous reads on the
   // holding; deep axes (aliases, physicalForm, sizeSpec, lifeStageHistory,
@@ -124,27 +100,31 @@ class HoldingRecord extends InventoryRecord
   String get lifeStageId => lifeStage.id;
 
   @override
-  LifeStageSpec get lifecycleStageSpec => organismRecord.lifeStage;
+  LifeStageSpec get lifecycleStageSpec => LifeStageSpec(stage: lifeStage);
 
   @override
   OrganismKind get lifecycleOrganismKind => organismKind;
 
   /// The current physical form ID for lifecycle tracking.
-  String? get lifecycleFormId => organismRecord.physicalForm?.formId;
+  ///
+  /// HoldingRecord does not denormalize physical form; callers needing this
+  /// must resolve the canonical OrganismRecord via [resolveOrganismRecord].
+  /// Returns null on the holding itself.
+  String? get lifecycleFormId => null;
 
   @override
   List<LifeStageTransition> get lifeStageHistory =>
-      organismRecord.lifeStageHistory;
+      const <LifeStageTransition>[];
 
   @override
   PopulationMeasurement get canonicalMeasurement => measurement;
 
   @override
-  SizeSpec get measurementSizeSpec => organismRecord.sizeSpec;
+  SizeSpec get measurementSizeSpec => const SizeSpec();
 
   @override
   List<MeasurementSnapshot> get measurementHistory =>
-      organismRecord.measurementHistory;
+      const <MeasurementSnapshot>[];
 
   @override
   Duration? get customMinimumStageInterval {
@@ -172,7 +152,6 @@ class HoldingRecord extends InventoryRecord
     Map<String, ForeignKeyReference>? foreignKeys,
     Map<String, dynamic>? metadata,
     HoldingAttributes? attributes,
-    OrganismRecord? organismRecord,
     String? organismRecordId,
     String? createdById,
     String? createdAt,
@@ -200,7 +179,6 @@ class HoldingRecord extends InventoryRecord
       foreignKeys: foreignKeys ?? this.foreignKeys,
       attributes: attributes ?? this.attributes,
       metadata: metadata ?? this.metadata ?? const <String, dynamic>{},
-      organismRecord: organismRecord ?? this.organismRecord,
       organismRecordId: organismRecordId ?? this.organismRecordId,
       createdAt: createdAt ?? this.createdAt,
       createdById: createdById ?? this.createdById,
@@ -239,7 +217,6 @@ class HoldingRecord extends InventoryRecord
               ref.toJson(),
             )),
       'organismRecordId': organismRecordId,
-      'organismRecord': organismRecord.toJson(),
       if (!attributes.isEmpty) 'attributes': attributes.toJson(),
     });
     return payload;
@@ -288,7 +265,6 @@ class HoldingRecord extends InventoryRecord
       foreignKeys: foreignKeys,
       attributes: attributes,
       metadata: metadata,
-      organismRecord: organism,
       organismRecordId: organismRecordId ?? organism.id,
       createdAt: createdAt ?? organism.createdAt,
       createdById: createdById ?? organism.createdById,
@@ -333,21 +309,12 @@ class HoldingRecord extends InventoryRecord
         : const HoldingAttributes();
     final metadataAttributes = HoldingAttributes.fromMetadata(metadata);
     final mergedAttributes = parsedAttributes.merge(metadataAttributes);
-    final organismRecordJson = json['organismRecord'];
-    final parsedOrganismRecord =
-        organismRecordJson is Map
-            ? OrganismRecord.fromJson(
-                deepNormalizeMap(organismRecordJson),
-              )
-            : null;
     // Top-level localGenetId is canonical; no metadata fallbacks
     final localGenetId =
         readText(json['localGenetId']) ??
-        parsedOrganismRecord?.localGenetId ??
         readText(json['id']);  // Last resort: use document ID as localGenetId
     final resolvedRecordName =
         readText(json['tagId']) ??
-        parsedOrganismRecord?.tagId ??
         localGenetId ??
         json['id']?.toString();
 
@@ -367,7 +334,6 @@ class HoldingRecord extends InventoryRecord
       foreignKeys: _parseForeignKeys(json['foreignKeys']),
       attributes: mergedAttributes,
       metadata: metadata,
-      organismRecord: parsedOrganismRecord,
       organismRecordId: readText(json['organismRecordId']),
     );
   }
@@ -375,13 +341,18 @@ class HoldingRecord extends InventoryRecord
   @override
   List<Object?> get props => [
     ...super.props,
+    tagId,
+    organismKind,
+    lifeStage,
+    measurement,
     provenanceId,
     cohortId,
     siteId,
     groupId,
     structureId,
+    ownerOrganizationId,
+    managingOrganizationId,
     attributes,
-    organismRecord,
     organismRecordId,
     foreignKeys,
   ];
@@ -400,27 +371,37 @@ class HoldingRecord extends InventoryRecord
 
   static String _resolveOrganismRecordId({
     required String? explicit,
-    required OrganismRecord? base,
     required String fallbackId,
   }) {
-    final candidate = explicit?.trim().isNotEmpty == true
-        ? explicit!.trim()
-        : (base?.id.trim().isNotEmpty == true
-            ? base!.id.trim()
-            : fallbackId);
-    return candidate;
+    if (explicit != null && explicit.trim().isNotEmpty) {
+      return explicit.trim();
+    }
+    return fallbackId;
   }
 
   static HoldingAttributes _normalizeAttributes(HoldingAttributes? value) =>
       value ?? const HoldingAttributes();
 
   /// Validates that required fields are present for a NEW holding record.
-  /// Call this during creation flows, NOT during deserialization.
-  /// Returns null if valid, or an error message if invalid.
-  static String? validateForCreation(HoldingRecord record) {
-    final localGenetId = record.organismRecord.localGenetId?.trim();
-    if (localGenetId == null || localGenetId.isEmpty || localGenetId == Missing.string) {
-      return 'localGenetId is required for new holdings';
+  /// Call this during creation flows, NOT during deserialization. Returns
+  /// null if valid, or an error message if invalid.
+  ///
+  /// `localGenetId` lives on the canonical [OrganismRecord]; supply
+  /// [organismRecord] when known so the check can run, otherwise the FK
+  /// presence on the holding alone is required.
+  static String? validateForCreation(
+    HoldingRecord record, {
+    OrganismRecord? organismRecord,
+  }) {
+    if (organismRecord != null) {
+      final localGenetId = organismRecord.localGenetId?.trim();
+      if (localGenetId == null ||
+          localGenetId.isEmpty ||
+          localGenetId == Missing.string) {
+        return 'localGenetId is required for new holdings';
+      }
+    } else if (record.organismRecordId.isEmpty) {
+      return 'organismRecordId is required for new holdings';
     }
     final tagId = record.tagId.trim();
     if (tagId.isEmpty || tagId == Missing.string) {
@@ -465,7 +446,7 @@ class HoldingRecord extends InventoryRecord
           record.managingOrganizationId ?? managingOrganizationId,
       foreignKeys: mergedForeignKeys,
       metadata: mergedMetadata,
-      organismRecord: record,
+      organismRecordId: record.id.isNotEmpty ? record.id : organismRecordId,
     );
   }
 
@@ -474,49 +455,6 @@ class HoldingRecord extends InventoryRecord
   ) {
     if (metadata.isEmpty) return <String, dynamic>{};
     return Map<String, dynamic>.from(metadata);
-  }
-
-  /// Build the embedded [OrganismRecord] from constructor inputs. Named params
-  /// (`tagId`, `organismKind`, etc.) override matching fields on a supplied
-  /// [base] record — this preserves the semantics of the former
-  /// `_syncOrganismRecord` reconciler that funneled holding-level overrides
-  /// into the embedded record at construction time.
-  static OrganismRecord _buildOrganismRecord({
-    required OrganismRecord? base,
-    required String tagId,
-    required OrganismKind organismKind,
-    required LifeStage lifeStage,
-    required PopulationMeasurement measurement,
-    required HoldingAttributes attributes,
-    required Map<String, dynamic> metadata,
-    required String? ownerOrganizationId,
-    required String? managingOrganizationId,
-    required Map<String, ForeignKeyReference> foreignKeys,
-  }) {
-    final source = base ??
-        OrganismRecord.inferFromMetadata(
-          organismKind: organismKind,
-          lifeStage: lifeStage,
-          measurement: measurement,
-          metadata: metadata,
-          speciesId: attributes.speciesId,
-          ownerOrganizationId: ownerOrganizationId,
-          managingOrganizationId: managingOrganizationId,
-          foreignKeys: foreignKeys,
-        );
-    final lifeStageSpec = source.lifeStage.stage == lifeStage
-        ? source.lifeStage
-        : source.lifeStage.copyWith(stage: lifeStage);
-    return source.copyWith(
-      organismKind: organismKind,
-      lifeStage: lifeStageSpec,
-      measurement: measurement,
-      tagId: tagId,
-      ownerOrganizationId: ownerOrganizationId ?? source.ownerOrganizationId,
-      managingOrganizationId:
-          managingOrganizationId ?? source.managingOrganizationId,
-      foreignKeys: foreignKeys,
-    );
   }
 
   static Map<String, ForeignKeyReference> _normalizeForeignKeys(

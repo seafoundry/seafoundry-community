@@ -21,8 +21,7 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// **denormalized display fields** on the cohort. Callers needing deep axes
 /// (aliases, physicalForm, lifeStageHistory, sizeSpec) must look up the
 /// canonical organism record via [resolveOrganismRecord] using
-/// [organismRecordId]. The embedded [organismRecord] field is retained for
-/// the in-flight migration; new code should prefer the FK + lookup pattern.
+/// [organismRecordId].
 class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   Cohort({
     required this.id,
@@ -38,22 +37,12 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     this.completedAt,
     Map<String, dynamic> metadata = const <String, dynamic>{},
     HoldingAttributes? attributes,
-    OrganismRecord? organismRecord,
     String? organismRecordId,
   }) : metadata = UnmodifiableMapView(_normalizeMetadata(metadata)),
        attributes = _normalizeAttributes(attributes),
        organismRecordId = _resolveOrganismRecordId(
          explicit: organismRecordId,
-         base: organismRecord,
          fallbackId: id,
-       ),
-       organismRecord = _buildOrganismRecord(
-         base: organismRecord,
-         organismKind: organismKind,
-         lifeStage: lifeStage,
-         population: population,
-         attributes: _normalizeAttributes(attributes),
-         metadata: _normalizeMetadata(metadata),
        );
 
   final String id;
@@ -71,12 +60,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   /// the cohort's own [id] for legacy data where the documents share an id.
   final String organismRecordId;
 
-  /// **Migration-only**. Embedded snapshot of the canonical
-  /// [OrganismRecord]. Will be removed in the final step of the deembedding
-  /// refactor; new readers should call [resolveOrganismRecord] for deep
-  /// axes or rely on the denormalized display fields.
-  final OrganismRecord organismRecord;
-
   // Denormalized display fields. Authoritative for synchronous reads;
   // deep axes (aliases, physicalForm, sizeSpec, lifeStageHistory, etc.)
   // live on the canonical OrganismRecord and must be fetched via
@@ -88,27 +71,29 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   String get lifeStageId => lifeStage.id;
 
   @override
-  LifeStageSpec get lifecycleStageSpec => organismRecord.lifeStage;
+  LifeStageSpec get lifecycleStageSpec => LifeStageSpec(stage: lifeStage);
 
   @override
   OrganismKind get lifecycleOrganismKind => organismKind;
 
-  /// The current physical form ID for lifecycle tracking.
-  String? get lifecycleFormId => organismRecord.physicalForm?.formId;
+  /// The current physical form ID for lifecycle tracking. Cohort does not
+  /// denormalize physical form; resolve the canonical OrganismRecord via
+  /// [resolveOrganismRecord] when this is needed.
+  String? get lifecycleFormId => null;
 
   @override
   List<LifeStageTransition> get lifeStageHistory =>
-      organismRecord.lifeStageHistory;
+      const <LifeStageTransition>[];
 
   @override
   PopulationMeasurement get canonicalMeasurement => population;
 
   @override
-  SizeSpec get measurementSizeSpec => organismRecord.sizeSpec;
+  SizeSpec get measurementSizeSpec => const SizeSpec();
 
   @override
   List<MeasurementSnapshot> get measurementHistory =>
-      organismRecord.measurementHistory;
+      const <MeasurementSnapshot>[];
 
   @override
   Duration? get customMinimumStageInterval {
@@ -133,7 +118,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     DateTime? completedAt,
     Map<String, dynamic>? metadata,
     HoldingAttributes? attributes,
-    OrganismRecord? organismRecord,
     String? organismRecordId,
   }) {
     return Cohort(
@@ -150,7 +134,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       completedAt: completedAt ?? this.completedAt,
       metadata: metadata ?? this.metadata,
       attributes: attributes ?? this.attributes,
-      organismRecord: organismRecord ?? this.organismRecord,
       organismRecordId: organismRecordId ?? this.organismRecordId,
     );
   }
@@ -172,7 +155,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       'metadata': metadata,
       if (!attributes.isEmpty) 'attributes': attributes.toJson(),
       'organismRecordId': organismRecordId,
-      'organismRecord': organismRecord.toJson(),
     };
   }
 
@@ -203,11 +185,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
         _normalizeMetadata(json['metadata']),
       ),
       attributes: _parseAttributes(json),
-      organismRecord: json['organismRecord'] is Map
-          ? OrganismRecord.fromJson(
-              deepNormalizeMap(json['organismRecord']),
-            )
-          : null,
       organismRecordId: json['organismRecordId']?.toString(),
     );
   }
@@ -242,7 +219,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       completedAt: completedAt,
       metadata: metadata,
       attributes: attributes,
-      organismRecord: organism,
       organismRecordId: organismRecordId ?? organism.id,
     );
   }
@@ -266,7 +242,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       completedAt: completedAt,
       metadata: holding.metadata ?? const <String, dynamic>{},
       attributes: holding.attributes,
-      organismRecord: holding.organismRecord,
       organismRecordId: holding.organismRecordId,
     );
   }
@@ -356,7 +331,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       lifeStage: record.lifeStage.stage,
       population: record.measurement,
       metadata: mergedMetadata,
-      organismRecord: record,
+      organismRecordId: record.id.isNotEmpty ? record.id : organismRecordId,
     );
   }
 
@@ -375,35 +350,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     return <String, dynamic>{};
   }
 
-  /// Build the embedded [OrganismRecord] from constructor inputs. Named axes
-  /// override matching fields on a supplied [base] record, preserving the
-  /// semantics of the former `_syncOrganismRecord` reconciler.
-  static OrganismRecord _buildOrganismRecord({
-    required OrganismRecord? base,
-    required OrganismKind organismKind,
-    required LifeStage lifeStage,
-    required PopulationMeasurement population,
-    required HoldingAttributes attributes,
-    required Map<String, dynamic> metadata,
-  }) {
-    final source = base ??
-        OrganismRecord.inferFromMetadata(
-          organismKind: organismKind,
-          lifeStage: lifeStage,
-          measurement: population,
-          metadata: metadata,
-          speciesId: attributes.speciesId,
-        );
-    final lifeStageSpec = source.lifeStage.stage == lifeStage
-        ? source.lifeStage
-        : source.lifeStage.copyWith(stage: lifeStage);
-    return source.copyWith(
-      organismKind: organismKind,
-      lifeStage: lifeStageSpec,
-      measurement: population,
-    );
-  }
-
   static DateTime? _parseDate(dynamic value) {
     if (value is DateTime) return value;
     if (value is String && value.isNotEmpty) {
@@ -416,6 +362,9 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   List<Object?> get props => [
     id,
     name,
+    organismKind,
+    lifeStage,
+    population,
     provenanceId,
     siteId,
     groupId,
@@ -424,7 +373,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     completedAt,
     metadata,
     attributes,
-    organismRecord,
     organismRecordId,
   ];
 
@@ -440,14 +388,11 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
 
   static String _resolveOrganismRecordId({
     required String? explicit,
-    required OrganismRecord? base,
     required String fallbackId,
   }) {
-    final candidate = explicit?.trim().isNotEmpty == true
-        ? explicit!.trim()
-        : (base?.id.trim().isNotEmpty == true
-            ? base!.id.trim()
-            : fallbackId);
-    return candidate;
+    if (explicit != null && explicit.trim().isNotEmpty) {
+      return explicit.trim();
+    }
+    return fallbackId;
   }
 }
