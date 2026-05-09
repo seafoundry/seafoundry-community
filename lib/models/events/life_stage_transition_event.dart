@@ -1,6 +1,5 @@
 import 'package:seafoundry_app/models/events/event.dart';
-import 'package:seafoundry_app/models/events/event_snapshot_parser.dart';
-import 'package:seafoundry_app/models/inventory/organism_record.dart';
+import 'package:seafoundry_app/models/events/life_stage_snapshot.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/inventory_event_type.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
@@ -64,7 +63,9 @@ class LifeStageTransitionEvent extends Event {
       recordModelType: ModelType.values.byName(
         json['recordModelType'] ?? ModelType.organismRecord.name,
       ),
-      organismRecordSnapshot: parseOrganismSnapshot(json),
+      organismRecordSnapshot: LifeStageSnapshot.fromJson(
+        deepNormalizeMap(json['organismRecordSnapshot']),
+      ),
       oldLifeStage: LifeStageX.tryParse(json['oldLifeStage']?.toString()) ??
           LifeStage.unknown,
       newLifeStage: LifeStageX.tryParse(json['newLifeStage']?.toString()) ??
@@ -82,7 +83,7 @@ class LifeStageTransitionEvent extends Event {
     );
   }
 
-  final OrganismRecord organismRecordSnapshot;
+  final LifeStageSnapshot organismRecordSnapshot;
   final LifeStage oldLifeStage;
   final LifeStage newLifeStage;
   final String? oldSubtype;
@@ -103,7 +104,7 @@ class LifeStageTransitionEvent extends Event {
     String? slug,
     String? recordId,
     ModelType? recordModelType,
-    OrganismRecord? organismRecordSnapshot,
+    LifeStageSnapshot? organismRecordSnapshot,
     LifeStage? oldLifeStage,
     LifeStage? newLifeStage,
     String? oldSubtype,

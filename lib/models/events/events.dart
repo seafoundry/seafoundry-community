@@ -6,6 +6,7 @@ export 'event.dart';
 export 'event_mixins.dart';
 export 'genet_modification_event.dart';
 export 'inventory_event.dart';
+export 'life_stage_snapshot.dart';
 export 'life_stage_transition_event.dart';
 export 'merge_event.dart';
 export 'mortality_event.dart';
