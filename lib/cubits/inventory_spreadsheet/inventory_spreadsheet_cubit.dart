@@ -247,7 +247,7 @@ class InventorySpreadsheetCubit extends Cubit<InventorySpreadsheetState>
     final site = organism.siteId != null ? siteById[organism.siteId] : null;
     return {
       'id': organism.id,
-      'localId': organism.localId,
+      'localGenetId': organism.localGenetId,
       'tagId': organism.tagId,
       'speciesId': organism.speciesId,
       'speciesName':

@@ -62,7 +62,7 @@ class OrganismSelectionState extends Equatable {
     return availableOrganisms
         .where(
           (organism) =>
-              (organism.localId?.toLowerCase().contains(query) ?? false) ||
+              (organism.localGenetId?.toLowerCase().contains(query) ?? false) ||
               organism.id.toLowerCase().contains(query),
         )
         .toList(growable: false);

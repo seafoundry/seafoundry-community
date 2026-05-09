@@ -45,7 +45,7 @@ class OrganismRecord extends InventoryRecord
     required this.lifeStage,
     required this.measurement,
     this.speciesId,
-    this.localId,
+    this.localGenetId,
     this.siteId,
     this.groupId,
     this.zoneId,
@@ -98,7 +98,7 @@ class OrganismRecord extends InventoryRecord
     LifeStageSpec? lifeStage,
     PopulationMeasurement? measurement,
     String? speciesId,
-    String? localId,
+    String? localGenetId,
     String? siteId,
     String? groupId,
     String? zoneId,
@@ -124,7 +124,7 @@ class OrganismRecord extends InventoryRecord
        lifeStage = lifeStage ?? _parseLifeStage(json ?? {}),
        measurement = measurement ?? _parseMeasurement(json?['measurement']),
        speciesId = speciesId ?? json?['speciesId'],
-       localId = localId ?? _readLocalId(json),
+       localGenetId = localGenetId ?? _readLocalId(json),
        siteId = siteId ?? json?['siteId'],
        groupId = groupId ?? json?['groupId'],
        zoneId = zoneId ?? json?['zoneId'],
@@ -181,7 +181,7 @@ class OrganismRecord extends InventoryRecord
       lifeStage = _parseLifeStage(json),
       measurement = _parseMeasurement(json['measurement']),
       speciesId = _asString(json['speciesId']),
-      localId = _readLocalId(json),
+      localGenetId = _readLocalId(json),
       siteId = _asString(json['siteId']) ?? Missing.string,
       groupId = _asString(json['groupId']) ?? Missing.string,
       zoneId = _asString(json['zoneId']),
@@ -220,7 +220,7 @@ class OrganismRecord extends InventoryRecord
     required String tagId,
     String? id,
     String? speciesId,
-    String? localId,
+    String? localGenetId,
     String? siteId,
     String? groupId,
     String? zoneId,
@@ -251,7 +251,7 @@ class OrganismRecord extends InventoryRecord
       measurement: measurement,
       tagId: tagId,
       speciesId: speciesId,
-      localId: localId,
+      localGenetId: localGenetId,
       siteId: siteId,
       groupId: groupId,
       zoneId: zoneId,
@@ -274,14 +274,14 @@ class OrganismRecord extends InventoryRecord
   @override
   ModelType get modelType => ModelType.organismRecord;
 
-  /// Name derived from tagId/localId for GraphNodeRecord compatibility.
+  /// Name derived from tagId/localGenetId for GraphNodeRecord compatibility.
   @override
   String get name {
     final recordNameValue = tagId.trim();
     if (recordNameValue.isNotEmpty && recordNameValue != Missing.string) {
       return recordNameValue;
     }
-    final localIdValue = localId?.trim();
+    final localIdValue = localGenetId?.trim();
     if (localIdValue != null &&
         localIdValue.isNotEmpty &&
         localIdValue != Missing.string) {
@@ -294,14 +294,14 @@ class OrganismRecord extends InventoryRecord
   /// Required display name for this individual record.
   ///
   /// **Format Transition:**
-  /// - Old format: `{adjective}-{localId}` (e.g., "fluffy-coral-001")
+  /// - Old format: `{adjective}-{localGenetId}` (e.g., "fluffy-coral-001")
   /// - New format: `{Adjective}` or `{Adjective}{N}` (e.g., "Crimson", "Crimson2")
   ///
   /// Both formats coexist in the system. Old records may still use the hyphenated
-  /// format with embedded localId, while new records use just the adjective with
+  /// format with embedded localGenetId, while new records use just the adjective with
   /// an optional numeric suffix for uniqueness.
   ///
-  /// For the numeric identifier, reference [localId] directly rather than parsing
+  /// For the numeric identifier, reference [localGenetId] directly rather than parsing
   /// it from tagId. Users can override tagId with any unique value
   /// within their organization.
   final String tagId;
@@ -314,7 +314,7 @@ class OrganismRecord extends InventoryRecord
   /// Required local ID for the organism's genet/lineage.
   /// This is the primary identifier used in UI and CSV exports.
   /// Pair with tagId for human-friendly record labels.
-  final String? localId;
+  final String? localGenetId;
 
   /// Site ID (for location tracking)
   final String? siteId;
@@ -451,7 +451,7 @@ class OrganismRecord extends InventoryRecord
     String? tagId,
     OrganismKind? organismKind,
     String? speciesId,
-    String? localId,
+    String? localGenetId,
     String? siteId,
     String? groupId,
     String? zoneId,
@@ -486,7 +486,7 @@ class OrganismRecord extends InventoryRecord
       tagId: tagId ?? this.tagId,
       organismKind: organismKind ?? this.organismKind,
       speciesId: speciesId ?? this.speciesId,
-      localId: localId ?? this.localId,
+      localGenetId: localGenetId ?? this.localGenetId,
       siteId: siteId ?? this.siteId,
       groupId: groupId ?? this.groupId,
       zoneId: zoneId ?? this.zoneId,
@@ -526,7 +526,7 @@ class OrganismRecord extends InventoryRecord
     }
 
     put('speciesId', speciesId);
-    put('localId', localId);
+    put('localGenetId', localGenetId);
     put('siteId', siteId);
     put('groupId', groupId);
     put('zoneId', zoneId);
@@ -649,7 +649,7 @@ class OrganismRecord extends InventoryRecord
 
     final resolvedAliases =
         aliases ?? _parseAliases(normalizedMetadata['aliases']);
-    final resolvedLocalId = read(['localId', 'local_id']);
+    final resolvedLocalId = read(['localGenetId']);
     final resolvedRecordName = read(['tagId']);
     final resolvedForeignKeys =
         foreignKeys ?? _parseForeignKeys(normalizedMetadata['foreignKeys']);
@@ -672,7 +672,7 @@ class OrganismRecord extends InventoryRecord
       organismKind: organismKind,
       tagId: resolvedRecordName ?? Missing.string,
       speciesId: resolvedSpeciesId,
-      localId: resolvedLocalId,
+      localGenetId: resolvedLocalId,
       provenanceType: resolvedProvenanceType,
       provenanceAttributes: resolvedProvenanceAttributes,
       lifeStage: resolvedLifeStageSpec,
@@ -717,8 +717,8 @@ class OrganismRecord extends InventoryRecord
       return text.isEmpty ? null : text;
     }
 
-    // Top-level localId is canonical; no metadata fallbacks
-    return read(json['localId']) ?? read(json['local_id']);
+    // Top-level localGenetId is canonical; no metadata fallbacks
+    return read(json['localGenetId']);
   }
 
   static String? _readRecordName(Map<String, dynamic>? json) {
@@ -1048,7 +1048,7 @@ class OrganismRecord extends InventoryRecord
         tagId,
         organismKind,
         speciesId,
-        localId,
+        localGenetId,
         siteId,
         groupId,
         zoneId,

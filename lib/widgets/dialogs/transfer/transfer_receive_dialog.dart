@@ -505,7 +505,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
       _genetNameController.text = baseName;
     }
     final suggestedLocalId = await _suggestNextLocalId(manifest);
-    await _suggestRecordName(localId: suggestedLocalId);
+    await _suggestRecordName(localGenetId: suggestedLocalId);
   }
 
   /// Validates a QR/manifest payload via the cubit and hydrates the controllers.
@@ -576,19 +576,19 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
       return;
     }
 
-    final localId = _localIdController.text.trim();
+    final localGenetId = _localIdController.text.trim();
     final ownerOrgId = _ownerOrgController.text.trim();
     final managingOrgId = _managingOrgController.text.trim();
     final uniqueOk = await _validateUniqueFields(
       tagId: name,
-      localId: localId,
+      localGenetId: localGenetId,
     );
     if (!uniqueOk || !mounted) return;
 
     FocusScope.of(context).unfocus();
     await context.read<TransferReceiveCubit>().acceptTransfer(
       genetName: name,
-      localId: localId.isEmpty ? name : localId,
+      localGenetId: localGenetId.isEmpty ? name : localGenetId,
       provenanceType: _provenanceSelection.provenanceType,
       lifeStage: _provenanceSelection.lifeStage,
       targetUrlPath: _selectedGroup?.urlPath ?? _selectedSite?.urlPath,
@@ -611,7 +611,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
 
   Future<bool> _validateUniqueFields({
     required String tagId,
-    required String localId,
+    required String localGenetId,
   }) async {
     final service = _validationService;
     final organization = context.maybeRead<Organization>();
@@ -629,10 +629,10 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
 
     String? localIdError;
 
-    final resolvedLocalId = localId.isEmpty ? tagId : localId;
+    final resolvedLocalId = localGenetId.isEmpty ? tagId : localGenetId;
     try {
       final unique = await service.isGenetLocalIdUnique(
-        localId: resolvedLocalId,
+        localGenetId: resolvedLocalId,
         organizationId: organization.id,
       );
       if (!unique) {
@@ -694,11 +694,11 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
     return null;
   }
 
-  Future<void> _suggestRecordName({String? localId}) async {
+  Future<void> _suggestRecordName({String? localGenetId}) async {
     final requestId = ++_recordNameRequestId;
-    // Use localId as the simple fallback for record name suggestion
-    final resolved = localId?.trim().isNotEmpty == true
-        ? localId!.trim()
+    // Use localGenetId as the simple fallback for record name suggestion
+    final resolved = localGenetId?.trim().isNotEmpty == true
+        ? localGenetId!.trim()
         : _localIdController.text.trim();
     if (!mounted || requestId != _recordNameRequestId) {
       return;

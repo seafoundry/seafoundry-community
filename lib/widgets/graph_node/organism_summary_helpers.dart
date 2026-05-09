@@ -79,7 +79,7 @@ List<LocalIdSummaryEntry> buildLocalIdBreakdown(
 
   final counts = <String, _LocalIdAccumulator>{};
   for (final organism in organisms) {
-    final raw = (organism.localId ?? '').trim();
+    final raw = (organism.localGenetId ?? '').trim();
     final label = raw.isEmpty ? unknownLocalIdLabel : raw;
     counts.putIfAbsent(label, _LocalIdAccumulator.new).add(organism);
   }

@@ -126,11 +126,11 @@ class GeneticsCsvImporter {
               lookup.valueFor(GeneticsCsvKeys.accessionNumberKeys) ?? '';
           final rawLocalId = lookup.valueFor(GeneticsCsvKeys.localIdKeys) ?? '';
           final rawProvenanceId = lookup.valueFor(GeneticsCsvKeys.provenanceIdKeys) ?? '';
-          String? localId = rawLocalId.trim().isEmpty ? null : rawLocalId.trim();
+          String? localGenetId = rawLocalId.trim().isEmpty ? null : rawLocalId.trim();
           String? provenanceId =
               rawProvenanceId.trim().isEmpty ? null : rawProvenanceId.trim();
           // Phase 2, Team Delta (2D.4): Removed fallback that promoted
-          // localId / genetId to provenanceId. genetId is always a Firestore
+          // localGenetId / genetId to provenanceId. genetId is always a Firestore
           // doc ID; provenanceId is always a lineage ID (PID- format).
           // Users must supply an explicit provenanceId column.
           final archivedRaw = lookup.valueFor(GeneticsCsvKeys.archivedKeys) ?? '';
@@ -170,7 +170,7 @@ class GeneticsCsvImporter {
                 final genetResult = await _genetCreator.ensureGenet(
                   rowNumber: rowNum,
                   genetName: genetName,
-                  localId: localId,
+                  localGenetId: localGenetId,
                   provenanceId: provenanceId,
                   clonalId: clonalId,
                   accessionNumber: accessionNumber,
@@ -204,15 +204,15 @@ class GeneticsCsvImporter {
 
                 var tagId = (row['Record Name'] ?? '').trim();
                 final organismLocalId =
-                    (localId != null && localId.trim().isNotEmpty)
-                        ? localId.trim()
-                        : (genet.localId?.trim().isNotEmpty == true
-                              ? genet.localId!.trim()
+                    (localGenetId != null && localGenetId.trim().isNotEmpty)
+                        ? localGenetId.trim()
+                        : (genet.localGenetId?.trim().isNotEmpty == true
+                              ? genet.localGenetId!.trim()
                               : null);
                 if (organismLocalId == null) {
                   validation.addError(
                     field: 'Local ID',
-                    value: localId ?? '',
+                    value: localGenetId ?? '',
                     message:
                         'Local ID is required for coral organism rows.',
                   );
@@ -349,7 +349,7 @@ class GeneticsCsvImporter {
 
                 // Create OrganismRecord with metadata for coral fields
                 final foreignKeyMetadata = <String, dynamic>{
-                  if (genet.localId != null) 'localId': genet.localId,
+                  if (genet.localGenetId != null) 'localGenetId': genet.localGenetId,
                   'provenanceId': genet.provenanceId,
                   'displayName': genet.displayName,
                 };
@@ -371,7 +371,7 @@ class GeneticsCsvImporter {
                   organismKind: organismKind,
                   speciesId: species.id,
                   tagId: tagId,
-                  localId: organismLocalId,
+                  localGenetId: organismLocalId,
                   measurement: PopulationMeasurement(
                     value: quantity.toDouble(),
                     unit: MeasurementUnit.count,

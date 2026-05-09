@@ -294,7 +294,7 @@ class _InventoryEventsTableState extends State<InventoryEventsTable>
     }
 
     final recordDisplay = organism?.tagId ?? event.recordId;
-    final genetLocalId = organism?.localId;
+    final genetLocalId = organism?.localGenetId;
     final siteName = organism?.siteId ?? '';
 
     // Build details string from event metadata

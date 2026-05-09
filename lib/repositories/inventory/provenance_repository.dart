@@ -138,11 +138,11 @@ class ProvenanceRepository {
 
   Future<ProvenanceRecord> _ensureIdentifiers(ProvenanceRecord record) async {
     var updated = record;
-    final localId = record.localId?.trim().isNotEmpty == true
-        ? record.localId!.trim()
+    final localGenetId = record.localGenetId?.trim().isNotEmpty == true
+        ? record.localGenetId!.trim()
         : record.displayName.trim();
-    if (localId.isNotEmpty && localId != record.localId) {
-      updated = updated.copyWith(localId: localId);
+    if (localGenetId.isNotEmpty && localGenetId != record.localGenetId) {
+      updated = updated.copyWith(localGenetId: localGenetId);
     }
 
     final hasProvenanceId = record.provenanceId?.trim().isNotEmpty == true;
@@ -311,7 +311,7 @@ class ProvenanceRepository {
     metadata.remove('parentProvenanceId');
     metadata.remove('siteId');
     metadata.remove('aliasLabels');
-    metadata.remove('localId');
+    metadata.remove('localGenetId');
     metadata.remove('provenanceId');
 
     if (data['provenanceTypeId'] != null) {
@@ -325,7 +325,7 @@ class ProvenanceRepository {
       return text.isEmpty ? null : text;
     }
 
-    final localId = readNullableString(data['localId']);
+    final localGenetId = readNullableString(data['localGenetId']);
     final provenanceId = readNullableString(data['provenanceId']);
 
     final createdAt = readIsoTimestamp(data['createdAt']);
@@ -347,7 +347,7 @@ class ProvenanceRepository {
       organismKind: organismKind,
       provenanceKind: provenanceKind,
       displayName: resolvedDisplayName,
-      localId: localId,
+      localGenetId: localGenetId,
       provenanceId: provenanceId,
       speciesId: data['speciesId']?.toString().trim() ?? '',
       parentProvenanceId: parentValue?.isEmpty == true ? null : parentValue,
@@ -365,7 +365,7 @@ class ProvenanceRepository {
     data['organismKind'] = record.organismKind.name;
     data['provenanceKind'] = record.provenanceKind.name;
     data['displayName'] = record.displayName;
-    if (record.localId != null) data['localId'] = record.localId;
+    if (record.localGenetId != null) data['localGenetId'] = record.localGenetId;
     if (record.provenanceId != null) data['provenanceId'] = record.provenanceId;
     data['speciesId'] = record.speciesId;
     if (record.siteId != null) data['siteId'] = record.siteId;

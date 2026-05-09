@@ -158,7 +158,7 @@ class _OrganismEditDialogState extends State<OrganismEditDialog>
       text: widget.organism.tagId,
     );
     _localIdController = TextEditingController(
-      text: widget.organism.localId ?? '',
+      text: widget.organism.localGenetId ?? '',
     );
     _clonalIdController = TextEditingController();
     _accessionController = TextEditingController();

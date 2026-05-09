@@ -99,8 +99,8 @@ class LocalIdMatcher {
   }
 
   /// Validates that a local ID is non-empty after normalization.
-  static bool isValid(String? localId) {
-    if (localId == null) return false;
-    return normalize(localId).isNotEmpty;
+  static bool isValid(String? localGenetId) {
+    if (localGenetId == null) return false;
+    return normalize(localGenetId).isNotEmpty;
   }
 }

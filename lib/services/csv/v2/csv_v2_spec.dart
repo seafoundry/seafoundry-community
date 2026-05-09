@@ -105,7 +105,7 @@ class CsvV2Spec {
     'provenanceKind',
     'cohortId',
     'lifeStage',
-    'localId',
+    'localGenetId',
     'tagId',
     'accessionId',
     'measurementUnit',

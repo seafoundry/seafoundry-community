@@ -148,7 +148,7 @@ class GenetSnapshot extends Equatable {
     this.name,
     this.speciesId,
     this.speciesCode,
-    this.localId,
+    this.localGenetId,
     this.provenanceTypeId,
     this.provenanceId,
     this.clonalId,
@@ -173,7 +173,7 @@ class GenetSnapshot extends Equatable {
   final String? name;
   final String? speciesId;
   final String? speciesCode;
-  final String? localId;
+  final String? localGenetId;
   final String? provenanceTypeId;
   final String? provenanceId;
   final String? clonalId;
@@ -200,7 +200,7 @@ class GenetSnapshot extends Equatable {
       name: json['name'] as String?,
       speciesId: json['speciesId'] as String?,
       speciesCode: json['speciesCode'] as String?,
-      localId: json['localId'] as String?,
+      localGenetId: json['localGenetId'] as String?,
       provenanceTypeId: json['provenanceTypeId'] as String?,
       provenanceId: json['provenanceId'] as String?,
       clonalId: json['clonalId'] as String?,
@@ -234,7 +234,7 @@ class GenetSnapshot extends Equatable {
       if (name != null) 'name': name,
       if (speciesId != null) 'speciesId': speciesId,
       if (speciesCode != null) 'speciesCode': speciesCode,
-      if (localId != null) 'localId': localId,
+      if (localGenetId != null) 'localGenetId': localGenetId,
       if (provenanceTypeId != null) 'provenanceTypeId': provenanceTypeId,
       if (provenanceId != null && provenanceId!.isNotEmpty)
         'provenanceId': provenanceId,
@@ -261,7 +261,7 @@ class GenetSnapshot extends Equatable {
   }
 
   /// Display name for UI.
-  String get displayName => name ?? localId ?? id;
+  String get displayName => name ?? localGenetId ?? id;
 
   /// Provides backward compatibility with Map<String, dynamic> access patterns.
   /// @Deprecated('Use typed property accessors instead')
@@ -275,8 +275,8 @@ class GenetSnapshot extends Equatable {
         return speciesId;
       case 'speciesCode':
         return speciesCode;
-      case 'localId':
-        return localId;
+      case 'localGenetId':
+        return localGenetId;
       case 'provenanceTypeId':
         return provenanceTypeId;
       case 'provenanceId':
@@ -324,7 +324,7 @@ class GenetSnapshot extends Equatable {
         name,
         speciesId,
         speciesCode,
-        localId,
+        localGenetId,
         provenanceTypeId,
         provenanceId,
         clonalId,

@@ -32,7 +32,7 @@ class ClonalIdDisplayService {
     return _resolve(
       raw: genet.clonalId,
       aliases: genet.aliasEntries,
-      fallbacks: <String?>[genet.localId, genet.name, genet.provenanceId],
+      fallbacks: <String?>[genet.localGenetId, genet.name, genet.provenanceId],
     );
   }
 
@@ -46,7 +46,7 @@ class ClonalIdDisplayService {
       aliases: const <OrganismAlias>[], // ProvenanceRecord uses aliasLabels, not aliasEntries
       fallbacks: <String?>[
         ...record.aliasLabels, // Use aliasLabels as fallbacks
-        record.localId,
+        record.localGenetId,
         record.displayName,
         record.provenanceId,
       ],

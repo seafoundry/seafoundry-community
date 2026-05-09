@@ -77,7 +77,7 @@ class OrganismCreationState extends Equatable {
     this.transferOrgId,
     this.transferEmail,
     this.aliases = const <OrganismAlias>[],
-    this.localId,
+    this.localGenetId,
     this.tagId,
     this.ownerOrganizationId,
     this.managingOrganizationId,
@@ -132,10 +132,10 @@ class OrganismCreationState extends Equatable {
   final String? transferOrgId;
   final String? transferEmail;
   final List<OrganismAlias> aliases;
-  final String? localId;
+  final String? localGenetId;
 
   /// Required name for the individual record instance.
-  /// This is separate from localId which is the genet's identifier.
+  /// This is separate from localGenetId which is the genet's identifier.
   final String? tagId;
 
   /// Optional owner organization ID.
@@ -213,7 +213,7 @@ class OrganismCreationState extends Equatable {
     if (genetName != null && genetName.isNotEmpty) {
       return genetName;
     }
-    final explicit = localId?.trim();
+    final explicit = localGenetId?.trim();
     if (explicit != null && explicit.isNotEmpty) {
       return explicit;
     }
@@ -304,7 +304,7 @@ class OrganismCreationState extends Equatable {
   /// Derives from validationIssues to maintain single source of truth.
   String? get firstMissingField {
     if (species == null) return 'species';
-    if (!hasEffectiveLocalId) return 'localId';
+    if (!hasEffectiveLocalId) return 'localGenetId';
     if (measurement.value <= 0) return 'quantity';
 
     if (isFragmentationGain &&
@@ -424,7 +424,7 @@ class OrganismCreationState extends Equatable {
     Object? transferOrgId = _undefined,
     Object? transferEmail = _undefined,
     List<OrganismAlias>? aliases,
-    Object? localId = _undefined,
+    Object? localGenetId = _undefined,
     Object? tagId = _undefined,
     Object? ownerOrganizationId = _undefined,
     Object? managingOrganizationId = _undefined,
@@ -517,7 +517,7 @@ class OrganismCreationState extends Equatable {
           ? this.transferEmail
           : transferEmail as String?,
       aliases: aliases ?? this.aliases,
-      localId: localId == _undefined ? this.localId : localId as String?,
+      localGenetId: localGenetId == _undefined ? this.localGenetId : localGenetId as String?,
       tagId: tagId == _undefined
           ? this.tagId
           : tagId as String?,
@@ -601,7 +601,7 @@ class OrganismCreationState extends Equatable {
     transferOrgId,
     transferEmail,
     aliases,
-    localId,
+    localGenetId,
     tagId,
     ownerOrganizationId,
     managingOrganizationId,

@@ -121,7 +121,7 @@ class CsvSchemas {
 
   static const List<String> _geneticsColumns = <String>[
     'provenanceId',
-    'localId',
+    'localGenetId',
     'name',
     'speciesId',
     'organismKind',
@@ -147,7 +147,7 @@ class CsvSchemas {
   static const List<String> _inventoryMinimalColumns = <String>[
     'organismKind',
     'speciesCode',
-    'localId',
+    'localGenetId',
     'tagId',
     'provenanceId',
     'lifeStage',
@@ -211,7 +211,7 @@ class CsvSchemas {
 
     // Allocation-level (unique per row)
     'structureName', // Optional, substructure
-    'localId', // Required, links to inventory
+    'localGenetId', // Required, links to inventory
     'tagId', // Optional, display name
     'quantity', // Required, positive integer
     'outplantTagId', // Optional

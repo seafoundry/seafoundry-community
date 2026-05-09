@@ -45,7 +45,7 @@ class OutplantConsolidatedCsvImporter {
     'eventId',
     'eventDate',
     'siteName',
-    'localId',
+    'localGenetId',
     'quantity',
   };
 
@@ -68,7 +68,7 @@ class OutplantConsolidatedCsvImporter {
     final createdEvents = <OutplantEvent>[];
     int successCount = 0;
 
-    // Note: No intra-file duplicate detection on localId because the
+    // Note: No intra-file duplicate detection on localGenetId because the
     // consolidated format is row-per-allocation — the same organism can
     // legitimately appear in multiple allocation rows (different events
     // or different structures within the same event).
@@ -258,7 +258,7 @@ class OutplantConsolidatedCsvImporter {
       siteName: read('siteName'),
       structureName:
           read('structureName').isEmpty ? null : read('structureName'),
-      localId: read('localId'),
+      localGenetId: read('localGenetId'),
       tagId: read('tagId').isEmpty ? null : read('tagId'),
       quantity: quantity!,
       eventNotes: read('eventNotes').isEmpty ? null : read('eventNotes'),
@@ -458,19 +458,19 @@ class OutplantConsolidatedCsvImporter {
   }
 
   Future<OrganismRecord?> _resolveOrganismByLocalId(
-    String localId,
+    String localGenetId,
     int rowNum,
     List<CSVImportError> errors,
   ) async {
-    final cacheKey = LocalIdMatcher.normalize(localId);
+    final cacheKey = LocalIdMatcher.normalize(localGenetId);
     if (_localIdCache.containsKey(cacheKey)) {
       final cached = _localIdCache[cacheKey];
       if (cached == null) {
         errors.add(
           CSVImportError(
             row: rowNum,
-            field: 'localId',
-            value: localId,
+            field: 'localGenetId',
+            value: localGenetId,
             message: 'Unknown organism local ID',
           ),
         );
@@ -478,9 +478,9 @@ class OutplantConsolidatedCsvImporter {
       return cached;
     }
 
-    // Query organism by localId - try exact match first
+    // Query organism by localGenetId - try exact match first
     final snapshot = await _organismRecordRepository.collectionRef
-        .where('localId', isEqualTo: localId)
+        .where('localGenetId', isEqualTo: localGenetId)
         .limit(1)
         .get();
 
@@ -496,7 +496,7 @@ class OutplantConsolidatedCsvImporter {
       final allOrganisms = await _organismRecordRepository.collectionRef.get();
       for (final doc in allOrganisms.docs) {
         final data = doc.data();
-        final orgLocalId = (data['localId'] ?? '').toString();
+        final orgLocalId = (data['localGenetId'] ?? '').toString();
         if (LocalIdMatcher.normalize(orgLocalId) == cacheKey) {
           final orgData = Map<String, dynamic>.from(data);
           orgData['id'] = doc.id;
@@ -512,8 +512,8 @@ class OutplantConsolidatedCsvImporter {
       errors.add(
         CSVImportError(
           row: rowNum,
-          field: 'localId',
-          value: localId,
+          field: 'localGenetId',
+          value: localGenetId,
           message: 'Unknown organism local ID',
         ),
       );
@@ -527,9 +527,9 @@ class OutplantConsolidatedCsvImporter {
     Site site,
     List<CSVImportError> errors,
   ) async {
-    // Resolve organism by localId
+    // Resolve organism by localGenetId
     final organism = await _resolveOrganismByLocalId(
-      row.localId,
+      row.localGenetId,
       row.rowNumber,
       errors,
     );
@@ -570,7 +570,7 @@ class _ParsedAllocationRow {
     required this.eventDate,
     required this.siteName,
     this.structureName,
-    required this.localId,
+    required this.localGenetId,
     this.tagId,
     required this.quantity,
     this.eventNotes,
@@ -582,7 +582,7 @@ class _ParsedAllocationRow {
   final DateTime eventDate;
   final String siteName;
   final String? structureName;
-  final String localId;
+  final String localGenetId;
   final String? tagId;
   final int quantity;
   final String? eventNotes;

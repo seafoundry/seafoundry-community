@@ -95,7 +95,7 @@ class IdentityStep extends StatelessWidget {
             decoration: InputDecoration(
               labelText: 'Record Name',
               hintText: state.effectiveLocalId ?? 'e.g., Specimen-A',
-              helperText: 'Optional. Defaults to localId if left blank.',
+              helperText: 'Optional. Defaults to localGenetId if left blank.',
               border: const OutlineInputBorder(),
               prefixIcon: const Icon(Icons.auto_awesome),
             ),
@@ -198,9 +198,9 @@ class _LocalIdSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<OrganismCreationCubit>();
     final theme = Theme.of(context);
-    final localId = state.localId?.trim() ?? '';
-    final hasSelection = state.selectedGenet != null || localId.isNotEmpty;
-    final displayText = state.selectedGenet?.name ?? localId;
+    final localGenetId = state.localGenetId?.trim() ?? '';
+    final hasSelection = state.selectedGenet != null || localGenetId.isNotEmpty;
+    final displayText = state.selectedGenet?.name ?? localGenetId;
     final suggested = state.suggestedLocalId?.trim();
     final hasSuggestion = suggested != null && suggested.isNotEmpty;
 
@@ -217,7 +217,7 @@ class _LocalIdSelector extends StatelessWidget {
       onTap: () async {
         final result = await LocalIdSelectionDialog.show(
           context,
-          currentLocalId: localId.isNotEmpty ? localId : suggested,
+          currentLocalId: localGenetId.isNotEmpty ? localGenetId : suggested,
           speciesId: state.species?.id,
         );
         if (result == null) return;

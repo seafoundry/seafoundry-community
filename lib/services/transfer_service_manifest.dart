@@ -104,7 +104,7 @@ extension _TransferServiceManifest on TransferService {
       'name': genet.displayName,
       'speciesId': resolvedSpeciesId,
       'speciesCode': speciesCode,
-      if (genet.localId != null) 'localId': genet.localId,
+      if (genet.localGenetId != null) 'localGenetId': genet.localGenetId,
       'provenanceTypeId': genet.metadata['provenanceTypeId'],
       if (provenanceId != null && provenanceId.isNotEmpty)
         'provenanceId': provenanceId,
@@ -247,7 +247,7 @@ extension _TransferServiceManifest on TransferService {
   ProvenanceRecord createGenetFromManifest({
     required TransferManifest manifest,
     required String overrideName,
-    String? localId,
+    String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? ownerOrganizationId,
@@ -287,7 +287,7 @@ extension _TransferServiceManifest on TransferService {
       'transferEventId': manifest.transferId,
       'manifestVersion': manifest.version,
       'receivedAt': manifest.receivedAt?.toIso8601String(),
-      if (genet.localId != null) 'senderLocalId': genet.localId,
+      if (genet.localGenetId != null) 'senderLocalId': genet.localGenetId,
       if (genet.name != null) 'senderRecordName': genet.name,
     };
     if (ownerOrganizationId != null && ownerOrganizationId.trim().isNotEmpty) {
@@ -297,8 +297,8 @@ extension _TransferServiceManifest on TransferService {
         managingOrganizationId.trim().isNotEmpty) {
       metadata['managingOrganizationId'] = managingOrganizationId.trim();
     }
-    if (localId != null && localId.isNotEmpty) {
-      provenance['localId'] = localId;
+    if (localGenetId != null && localGenetId.isNotEmpty) {
+      provenance['localGenetId'] = localGenetId;
     }
 
     final crossDateRaw = genet.crossDate;
@@ -406,7 +406,7 @@ extension _TransferServiceManifest on TransferService {
     }
 
     // Add alias for source organization's local ID (if different from PID)
-    final sourceLocalId = genet.localId?.trim();
+    final sourceLocalId = genet.localGenetId?.trim();
     final sourceOrgName = manifest.fromOrganization.name?.trim();
     if (sourceLocalId != null &&
         sourceLocalId.isNotEmpty &&
@@ -456,7 +456,7 @@ extension _TransferServiceManifest on TransferService {
       organismKind: organismKind,
       provenanceKind: selection.provenanceType.defaultProvenanceKind,
       displayName: overrideName,
-      localId: localId,
+      localGenetId: localGenetId,
       provenanceId: provenanceId,
       speciesId: speciesId,
       metadata: metadata,
@@ -637,7 +637,7 @@ extension _TransferServiceManifest on TransferService {
     required ProvenanceRecord createdGenet,
     required int quantity,
     required String tagId,
-    String? localId,
+    String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? ownerOrganizationId,
@@ -801,7 +801,7 @@ extension _TransferServiceManifest on TransferService {
       ),
       tagId: tagId,
       speciesId: speciesId,
-      localId: localId ?? createdGenet.localId,
+      localGenetId: localGenetId ?? createdGenet.localGenetId,
       provenanceType: resolvedProvenanceType,
       physicalForm: physicalFormId != null && sizeBandId != null
           ? PhysicalFormInstance(formId: physicalFormId, sizeBandId: sizeBandId)

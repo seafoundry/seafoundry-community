@@ -50,8 +50,8 @@ class _OrganismArchiveDialogState extends State<OrganismArchiveDialog>
   String get _displayName {
     final name = widget.organism.tagId.trim();
     if (name.isNotEmpty) return name;
-    final localId = widget.organism.localId?.trim();
-    if (localId != null && localId.isNotEmpty) return localId;
+    final localGenetId = widget.organism.localGenetId?.trim();
+    if (localGenetId != null && localGenetId.isNotEmpty) return localGenetId;
     return 'this organism';
   }
 
@@ -118,9 +118,9 @@ class _OrganismArchiveDialogState extends State<OrganismArchiveDialog>
                     'Quantity: $quantity',
                     style: theme.textTheme.bodyMedium,
                   ),
-                  if (widget.organism.localId != null)
+                  if (widget.organism.localGenetId != null)
                     Text(
-                      'Local ID: ${widget.organism.localId}',
+                      'Local ID: ${widget.organism.localGenetId}',
                       style: theme.textTheme.bodyMedium,
                     ),
                 ],

@@ -23,7 +23,7 @@ class Genet extends InventoryRecord
     required super.updatedById,
     required super.organizationId,
     required this.name,
-    String? localId,
+    String? localGenetId,
     required this.speciesId,
     required this.provenanceTypeId,
     required super.urlPath,
@@ -45,7 +45,7 @@ class Genet extends InventoryRecord
     this.diseaseTested = false,
     this.heatTestingComment,
     this.diseaseTestingComment,
-  }) : localId = localId ?? name,
+  }) : localGenetId = localGenetId ?? name,
        aliases = _canonicalizeAliases(aliases),
        provenanceKind =
            overrideProvenanceKind ?? _mapProvenanceKindFromProvenanceType(provenanceTypeId);
@@ -59,11 +59,11 @@ class Genet extends InventoryRecord
     : name =
           json['name'] ??
           (json['createdEvent']?['name'] as String? ?? Missing.string),
-      localId =
-          json['localId'] ??
-          json['createdEvent']?['localId'] ??
-          json['metadata']?['localId'] ??
-          json['createdEvent']?['metadata']?['localId'] ??
+      localGenetId =
+          json['localGenetId'] ??
+          json['createdEvent']?['localGenetId'] ??
+          json['metadata']?['localGenetId'] ??
+          json['createdEvent']?['metadata']?['localGenetId'] ??
           json['name'] ??
           (json['createdEvent']?['name'] as String? ?? Missing.string),
       speciesId =
@@ -124,7 +124,7 @@ class Genet extends InventoryRecord
     String? slug,
     String? urlPath,
     String? name,
-    String? localId,
+    String? localGenetId,
     String? speciesId,
     String? provenanceTypeId,
     OrganismKind? organismKind,
@@ -154,7 +154,7 @@ class Genet extends InventoryRecord
       slug: slug,
       urlPath: urlPath,
       name: name,
-      localId: localId,
+      localGenetId: localGenetId,
       speciesId: speciesId,
       provenanceTypeId: provenanceTypeId,
       organismKindParam: organismKind,
@@ -185,7 +185,7 @@ class Genet extends InventoryRecord
     super.slug,
     super.urlPath,
     String? name,
-    String? localId,
+    String? localGenetId,
     String? speciesId,
     String? provenanceTypeId,
     OrganismKind? organismKindParam,
@@ -207,10 +207,10 @@ class Genet extends InventoryRecord
     String? diseaseTestingComment,
     super.metadata,
   }) : name = name ?? json?['name'] ?? Missing.string,
-       localId =
-           localId ??
-           json?['localId'] ??
-           json?['metadata']?['localId'] ??
+       localGenetId =
+           localGenetId ??
+           json?['localGenetId'] ??
+           json?['metadata']?['localGenetId'] ??
            name ??
            json?['name'] ??
            Missing.string,
@@ -268,7 +268,7 @@ class Genet extends InventoryRecord
     final base = super.metadata ?? const <String, dynamic>{};
     return Map.unmodifiable({
       ...base,
-      if (localId != null) 'localId': localId,
+      if (localGenetId != null) 'localGenetId': localGenetId,
       'provenanceTypeId': provenanceTypeId,
       'provenanceId': provenanceId,
       'provenanceKind': provenanceKind.name,
@@ -283,7 +283,7 @@ class Genet extends InventoryRecord
   final String name;
   /// Optional alias for the genet local ID stored in metadata for compatibility.
   @override
-  final String? localId;
+  final String? localGenetId;
   @override
   final OrganismKind organismKind;
   /// Species identifier for the genet.
@@ -384,7 +384,7 @@ class Genet extends InventoryRecord
     'provenanceKind': provenanceKind.name,
     'lineageKind': provenanceKind.name,
     'name': name,
-    if (localId != null) 'localId': localId,
+    if (localGenetId != null) 'localGenetId': localGenetId,
     'nameLowercase': name.toLowerCase(),
     'speciesId': speciesId,
     'provenanceTypeId': provenanceTypeId,
@@ -411,7 +411,7 @@ class Genet extends InventoryRecord
     String? internalPath,
     String? slug,
     String? name,
-    String? localId,
+    String? localGenetId,
     String? speciesId,
     String? provenanceTypeId,
     OrganismKind? organismKind,
@@ -443,7 +443,7 @@ class Genet extends InventoryRecord
     updatedById: updatedById ?? this.updatedById,
     organizationId: organizationId ?? this.organizationId,
     name: name ?? this.name,
-    localId: localId ?? this.localId,
+    localGenetId: localGenetId ?? this.localGenetId,
     speciesId: speciesId ?? this.speciesId,
     provenanceTypeId: provenanceTypeId ?? this.provenanceTypeId,
     organismKind: organismKind ?? this.organismKind,
@@ -481,7 +481,7 @@ class Genet extends InventoryRecord
   List<Object?> get props => [
     ...super.props,
     name,
-    localId,
+    localGenetId,
     organismKind,
     speciesId,
     provenanceTypeId,

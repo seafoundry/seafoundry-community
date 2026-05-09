@@ -86,7 +86,7 @@ extension _TransferServiceAcceptance on TransferService {
   Future<ProvenanceRecord> performAcceptTransfer({
     required String transferEventId,
     required String newGenetName,
-    String? localId,
+    String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     OutplantGeometryInput? geometryInput,
@@ -193,7 +193,7 @@ extension _TransferServiceAcceptance on TransferService {
       final genetCandidate = createGenetFromManifest(
         manifest: receiptedManifest,
         overrideName: newGenetName,
-        localId: localId,
+        localGenetId: localGenetId,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
         ownerOrganizationId: resolvedOwnerOrgId,
@@ -275,7 +275,7 @@ extension _TransferServiceAcceptance on TransferService {
                 targetUrlPath: resolvedTargetUrlPath,
                 destinationSiteId: resolvedDestinationSiteId,
                 destinationGroupId: destinationGroupId,
-                localId: localId,
+                localGenetId: localGenetId,
                 provenanceTypeOverride: provenanceTypeOverride,
                 lifeStageOverride: lifeStageOverride,
                 ownerOrganizationId: resolvedOwnerOrgId,
@@ -931,7 +931,7 @@ extension _TransferServiceAcceptance on TransferService {
     required String targetUrlPath,
     required String destinationSiteId,
     String? destinationGroupId,
-    String? localId,
+    String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? ownerOrganizationId,
@@ -953,7 +953,7 @@ extension _TransferServiceAcceptance on TransferService {
 
       // Generate unique identifiers for the organism record
       final recordId = _idGenerator();
-      final slugBase = createdGenet.localId ?? 'organism';
+      final slugBase = createdGenet.localGenetId ?? 'organism';
       final recordSlug = await _organismRecordRepository.nextSlugForBase(
         slugBase,
       );
@@ -974,7 +974,7 @@ extension _TransferServiceAcceptance on TransferService {
         createdGenet: createdGenet,
         quantity: quantity,
         tagId: createdGenet.displayName,
-        localId: localId ?? createdGenet.localId,
+        localGenetId: localGenetId ?? createdGenet.localGenetId,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
         ownerOrganizationId: ownerOrganizationId,

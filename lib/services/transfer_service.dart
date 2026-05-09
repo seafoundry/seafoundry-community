@@ -225,7 +225,7 @@ class TransferService implements ManualTransferRegistrationService {
   Future<ProvenanceRecord> acceptTransfer({
     required String transferEventId,
     required String newGenetName,
-    String? localId,
+    String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     OutplantGeometryInput? geometryInput,
@@ -238,7 +238,7 @@ class TransferService implements ManualTransferRegistrationService {
     return performAcceptTransfer(
       transferEventId: transferEventId,
       newGenetName: newGenetName,
-      localId: localId,
+      localGenetId: localGenetId,
       provenanceTypeOverride: provenanceTypeOverride,
       lifeStageOverride: lifeStageOverride,
       geometryInput: geometryInput,
@@ -401,7 +401,7 @@ class TransferService implements ManualTransferRegistrationService {
         'organismKind': OrganismKind.coral.name,
         'provenanceKind': metadata['provenanceKind'] ?? 'genet',
         'displayName': genetMap['name'],
-        'localId': genetMap['localId'],
+        'localGenetId': genetMap['localGenetId'],
         'provenanceId': genetMap['provenanceId'],
         'speciesId': genetMap['speciesId'],
         'metadata': metadata,

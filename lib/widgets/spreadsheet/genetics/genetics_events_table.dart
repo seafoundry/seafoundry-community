@@ -896,7 +896,7 @@ class _GeneticsEventRow {
       if (snapshot is Genet) {
         recordDisplay = _asNonEmptyString(snapshot.name) ?? event.recordId;
         recordLink = GenetIdLink(
-          localId: snapshot.localId ?? snapshot.name,
+          localGenetId: snapshot.localGenetId ?? snapshot.name,
           genetId: snapshot.id,
           showUnderline: true,
         );
@@ -910,7 +910,7 @@ class _GeneticsEventRow {
         recordDisplay = _asNonEmptyString(snapshot.name) ?? event.recordId;
         recordLink = OrganismReferenceLinks(
           tagId: snapshot.tagId,
-          localId: snapshot.localId,
+          localGenetId: snapshot.localGenetId,
           urlPath: snapshot.urlPath,
           genetId: snapshot.genetId,
           showUnderline: true,
@@ -935,7 +935,7 @@ class _GeneticsEventRow {
       recordDisplay = genet?.name ?? event.recordId;
       if (genet != null) {
         recordLink = GenetIdLink(
-          localId: genet.localId ?? genet.name,
+          localGenetId: genet.localGenetId ?? genet.name,
           genetId: genet.id,
           showUnderline: true,
         );
@@ -952,7 +952,7 @@ class _GeneticsEventRow {
         recordDisplay = genet?.name ?? event.recordId;
         if (genet != null) {
           recordLink = GenetIdLink(
-            localId: genet.localId ?? genet.name,
+            localGenetId: genet.localGenetId ?? genet.name,
             genetId: genet.id,
             showUnderline: true,
           );
@@ -968,7 +968,7 @@ class _GeneticsEventRow {
         resolvedOrganism = organism;
         recordDisplay = organism != null
             ? formatOrganismReferenceLabel(
-                localId: organism.localId,
+                localGenetId: organism.localGenetId,
                 tagId: organism.tagId,
                 fallback: organism.name,
               )
@@ -976,7 +976,7 @@ class _GeneticsEventRow {
         if (organism != null) {
           recordLink = OrganismReferenceLinks(
             tagId: organism.tagId,
-            localId: organism.localId,
+            localGenetId: organism.localGenetId,
             urlPath: organism.urlPath,
             genetId: organism.genetId,
             showUnderline: true,
@@ -1002,7 +1002,7 @@ class _GeneticsEventRow {
           event.manifest?['genet'] as Map<String, dynamic>? ?? const {};
       final manifestName =
           _asNonEmptyString(manifestGenet['name']) ??
-          _asNonEmptyString(manifestGenet['localId']);
+          _asNonEmptyString(manifestGenet['localGenetId']);
       recordDisplay = manifestName ?? event.genetId ?? event.recordId;
 
       final manifestSpeciesId = _asNonEmptyString(manifestGenet['speciesId']);

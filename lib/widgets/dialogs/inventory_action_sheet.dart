@@ -319,7 +319,7 @@ class _InventoryActionList extends StatelessWidget {
                 OrganismMergeDialog.show(
                   parentContext,
                   groupNode: parentGroup,
-                  filterLocalId: organism.localId,
+                  filterLocalId: organism.localGenetId,
                 );
               },
             ),

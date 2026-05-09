@@ -50,8 +50,8 @@ class TransferManifestSummary extends StatelessWidget {
             : ((resolvedCode != null && resolvedCode.isNotEmpty)
                 ? resolvedCode
                 : 'Unknown');
-    final localIdRaw = manifest.genet['localId']?.toString().trim();
-    final localId = (localIdRaw != null && localIdRaw.isNotEmpty)
+    final localIdRaw = manifest.genet['localGenetId']?.toString().trim();
+    final localGenetId = (localIdRaw != null && localIdRaw.isNotEmpty)
         ? localIdRaw
         : (genetName != null &&
                 genetName.isNotEmpty &&
@@ -109,8 +109,8 @@ class TransferManifestSummary extends StatelessWidget {
           _SummaryRow(label: 'From', value: fromName),
           _SummaryRow(label: 'To', value: toName),
           _SummaryRow(label: 'Species Code', value: speciesLabel),
-          if ((localId ?? '').isNotEmpty)
-            _SummaryRow(label: 'Source Local ID', value: localId!),
+          if ((localGenetId ?? '').isNotEmpty)
+            _SummaryRow(label: 'Source Local ID', value: localGenetId!),
           if ((provenanceId ?? '').isNotEmpty)
             _SummaryRow(label: 'Provenance ID', value: provenanceId!),
           _SummaryRow(label: 'Quantity', value: manifest.quantity.toString()),

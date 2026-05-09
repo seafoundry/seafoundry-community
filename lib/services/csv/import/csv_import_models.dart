@@ -172,13 +172,13 @@ enum CSVImportType { genetics, inventory, outplanting }
 
 /// Types of conflicts that can occur during CSV import.
 enum ConflictType {
-  /// Same localId, different species (A1).
+  /// Same localGenetId, different species (A1).
   speciesMismatch,
 
-  /// Same localId, different provenance (A2).
+  /// Same localGenetId, different provenance (A2).
   provenanceMismatch,
 
-  /// Same localId, same core data - duplicate row (A3).
+  /// Same localGenetId, same core data - duplicate row (A3).
   duplicate,
 
   /// Duplicate rows within the same import file (B1).
@@ -225,7 +225,7 @@ class ImportConflict {
   const ImportConflict({
     required this.type,
     required this.rowNumber,
-    required this.localId,
+    required this.localGenetId,
     required this.message,
     this.existingValue,
     this.importValue,
@@ -233,7 +233,7 @@ class ImportConflict {
 
   final ConflictType type;
   final int rowNumber;
-  final String localId;
+  final String localGenetId;
   final String message;
   final String? existingValue;
   final String? importValue;
@@ -242,8 +242,8 @@ class ImportConflict {
   CSVImportError toImportError() {
     return CSVImportError(
       row: rowNumber,
-      field: 'localId',
-      value: localId,
+      field: 'localGenetId',
+      value: localGenetId,
       message: message,
       isWarning: !type.isBlocking,
     );

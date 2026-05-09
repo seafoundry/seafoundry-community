@@ -210,7 +210,7 @@ class _InventoryHoldingsViewState extends State<InventoryHoldingsView> {
     return [
       PlutoColumn(
         title: 'Local ID',
-        field: 'localId',
+        field: 'localGenetId',
         type: PlutoColumnType.text(),
         width: 130,
       ),
@@ -269,7 +269,7 @@ class _InventoryHoldingsViewState extends State<InventoryHoldingsView> {
     return rows.map((row) {
       return PlutoRow(
         cells: {
-          'localId': PlutoCell(value: row['localId'] ?? ''),
+          'localGenetId': PlutoCell(value: row['localGenetId'] ?? ''),
           'tagId': PlutoCell(value: row['tagId'] ?? ''),
           'speciesName': PlutoCell(value: row['speciesName'] ?? ''),
           'quantity': PlutoCell(value: row['quantity'] ?? 0),

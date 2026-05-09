@@ -122,7 +122,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     if (repo == null) return;
 
     // Don't overwrite if user has already entered a valid Local ID manually
-    final current = state.localId?.trim();
+    final current = state.localGenetId?.trim();
     if (current != null &&
         current.isNotEmpty &&
         current != state.suggestedLocalId) {
@@ -157,7 +157,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     if (repo == null) return;
     if (species == null) return;
 
-    final current = state.localId?.trim();
+    final current = state.localGenetId?.trim();
     final currentSuggested = state.suggestedLocalId?.trim();
     if (!force &&
         current != null &&
@@ -172,7 +172,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
       if (isClosed || requestId != _localIdSuggestionRequestId) return;
       final normalized = suggestion.trim();
       if (normalized.isEmpty) return;
-      final currentLocal = state.localId?.trim();
+      final currentLocal = state.localGenetId?.trim();
       final currentSuggested = state.suggestedLocalId?.trim();
       if (currentLocal != null &&
           currentLocal.isNotEmpty &&
@@ -182,7 +182,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
       emit(
         state.copyWith(
           suggestedLocalId: normalized,
-          localId: normalized,
+          localGenetId: normalized,
           error: null,
         ),
       );
@@ -221,7 +221,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
           species: species,
           selectedGenet: null,
           provenanceType: ProvenanceType.wild,
-          localId: (isSpeciesChange && state.isNewGenet) ? null : state.localId,
+          localGenetId: (isSpeciesChange && state.isNewGenet) ? null : state.localGenetId,
           suggestedLocalId: isSpeciesChange ? null : state.suggestedLocalId,
           error: null,
         ),
@@ -231,7 +231,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
       emit(
         state.copyWith(
           species: species,
-          localId: (isSpeciesChange && state.isNewGenet) ? null : state.localId,
+          localGenetId: (isSpeciesChange && state.isNewGenet) ? null : state.localGenetId,
           suggestedLocalId: isSpeciesChange ? null : state.suggestedLocalId,
           error: null,
         ),
@@ -416,7 +416,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
           gainReason: null,
           provenanceType: ProvenanceType.wild,
           selectedGenet: null,
-          localId: null,
+          localGenetId: null,
           suggestedLocalId: null,
           currentStep: newStep,
           error: null,
@@ -586,16 +586,16 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     emit(state.copyWith(transferEmail: normalized, error: null));
   }
 
-  void localIdChanged(String? localId) {
+  void localIdChanged(String? localGenetId) {
     // Normalize empty/whitespace strings to null for consistency
-    final normalized = (localId == null || localId.trim().isEmpty)
+    final normalized = (localGenetId == null || localGenetId.trim().isEmpty)
         ? null
-        : localId.trim();
-    emit(state.copyWith(localId: normalized, error: null));
+        : localGenetId.trim();
+    emit(state.copyWith(localGenetId: normalized, error: null));
   }
 
   /// Changes the required record name (individual specimen identifier).
-  /// This is separate from localId which identifies the genet.
+  /// This is separate from localGenetId which identifies the genet.
   void recordNameChanged(String? tagId) {
     final normalized = (tagId == null || tagId.trim().isEmpty)
         ? null
@@ -1094,7 +1094,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
         tagId: tagId,
         speciesId: state.species?.id,
         // Store the genet/local ID as the organism's primary display identifier
-        localId: genetLocalId,
+        localGenetId: genetLocalId,
         siteId: siteId,
         groupId: groupId,
         provenanceType: state.provenanceType ?? ProvenanceType.unknown,

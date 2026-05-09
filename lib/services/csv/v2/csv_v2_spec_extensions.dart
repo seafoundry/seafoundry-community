@@ -45,7 +45,7 @@ class CsvV2SpecExtensions {
   static const List<String> minimalInventoryInputs = [
     'organismKind', // Taxonomy axis
     'speciesCode', // Taxonomy axis
-    'localId', // Required identifier
+    'localGenetId', // Required identifier
     'tagId', // Required record label
     'provenanceId', // Provenance axis
     'lifeStage', // Life Stage axis
@@ -78,7 +78,7 @@ class CsvV2SpecExtensions {
     'organismKind',
     'speciesScientific',
     'speciesCode',
-    'localId',
+    'localGenetId',
     'tagId',
     'lifeStage',
     'eventType',
@@ -115,7 +115,7 @@ class CsvV2SpecExtensions {
     'speciesScientific',
     'speciesCode',
     'speciesId',
-    'localId',
+    'localGenetId',
     'tagId',
     'accessionId',
     'provenanceId',

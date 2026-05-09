@@ -34,7 +34,7 @@ void openRecordLink(BuildContext context, String urlPath) {
 class GenetIdLink extends StatelessWidget {
   const GenetIdLink({
     super.key,
-    required this.localId,
+    required this.localGenetId,
     this.genetId,
     this.style,
     this.showUnderline = true,
@@ -44,7 +44,7 @@ class GenetIdLink extends StatelessWidget {
     this.onTap,
   });
 
-  final String localId;
+  final String localGenetId;
   final String? genetId;
   final TextStyle? style;
   final bool showUnderline;
@@ -55,7 +55,7 @@ class GenetIdLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trimmed = localId.trim();
+    final trimmed = localGenetId.trim();
     if (trimmed.isEmpty) return const SizedBox.shrink();
     final resolvedId = (genetId != null && genetId!.trim().isNotEmpty)
         ? genetId!.trim()
@@ -135,7 +135,7 @@ class OrganismReferenceLinks extends StatelessWidget {
   const OrganismReferenceLinks({
     super.key,
     required this.tagId,
-    required this.localId,
+    required this.localGenetId,
     this.urlPath,
     this.genetId,
     this.separator = ' * ',
@@ -152,7 +152,7 @@ class OrganismReferenceLinks extends StatelessWidget {
   });
 
   final String? tagId;
-  final String? localId;
+  final String? localGenetId;
   final String? urlPath;
   final String? genetId;
   final String separator;
@@ -173,7 +173,7 @@ class OrganismReferenceLinks extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final recordValue = tagId?.trim() ?? '';
-    final localValue = localId?.trim() ?? '';
+    final localValue = localGenetId?.trim() ?? '';
     if (recordValue.isEmpty && localValue.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -217,7 +217,7 @@ class OrganismReferenceLinks extends StatelessWidget {
 
     if (!hasRecord) {
       return GenetIdLink(
-        localId: localValue,
+        localGenetId: localValue,
         genetId: genetId,
         style: resolvedLocalStyle,
         showUnderline: showUnderline,
@@ -254,7 +254,7 @@ class OrganismReferenceLinks extends StatelessWidget {
         Flexible(
           fit: FlexFit.loose,
           child: GenetIdLink(
-            localId: localValue,
+            localGenetId: localValue,
             genetId: genetId,
             style: resolvedLocalStyle,
             showUnderline: showUnderline,
@@ -375,12 +375,12 @@ NavigationCubit? _maybeNavigationCubit(BuildContext context) {
 }
 
 String formatOrganismReferenceLabel({
-  required String? localId,
+  required String? localGenetId,
   required String? tagId,
   String separator = ' * ',
   String fallback = '',
 }) {
-  final localValue = localId?.trim() ?? '';
+  final localValue = localGenetId?.trim() ?? '';
   final recordValue = tagId?.trim() ?? '';
   final hasLocal = localValue.isNotEmpty;
   final hasRecord = recordValue.isNotEmpty;
@@ -396,12 +396,12 @@ String formatOrganismReferenceLabel({
 class RecordDisplayInfo {
   const RecordDisplayInfo({
     required this.tagId,
-    this.localId,
+    this.localGenetId,
     this.isHidden = false,
   });
 
   final String tagId;
-  final String? localId;
+  final String? localGenetId;
   final bool isHidden;
 }
 
@@ -412,11 +412,11 @@ RecordDisplayInfo resolveRecordDisplayInfo({
   required bool showIdentifier,
   required String recordId,
   required String? tagId,
-  required String? localId,
+  required String? localGenetId,
   String hiddenLabel = kHiddenIdentifierLabel,
 }) {
   if (!showIdentifier) {
-    final resolvedLocalId = localId?.trim();
+    final resolvedLocalId = localGenetId?.trim();
     return RecordDisplayInfo(
       tagId: (resolvedLocalId != null && resolvedLocalId.isNotEmpty)
           ? resolvedLocalId
@@ -427,11 +427,11 @@ RecordDisplayInfo resolveRecordDisplayInfo({
 
   final resolvedName = showUuid ? recordId.trim() : (tagId?.trim() ?? '');
   final fallbackName = resolvedName.isNotEmpty ? resolvedName : recordId.trim();
-  final resolvedLocalId = localId?.trim();
+  final resolvedLocalId = localGenetId?.trim();
 
   return RecordDisplayInfo(
     tagId: fallbackName,
-    localId: (resolvedLocalId == null || resolvedLocalId.isEmpty)
+    localGenetId: (resolvedLocalId == null || resolvedLocalId.isEmpty)
         ? null
         : resolvedLocalId,
   );

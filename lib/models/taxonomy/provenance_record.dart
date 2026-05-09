@@ -18,14 +18,14 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
     required this.organismKind,
     required this.provenanceKind,
     required this.displayName,
-    String? localId,
+    String? localGenetId,
     String? provenanceId,
     required this.speciesId,
     this.parentProvenanceId,
     this.siteId,
     List<String> aliasLabels = const <String>[],
     Map<String, dynamic> metadata = const <String, dynamic>{},
-  })  : localId = _readString(localId),
+  })  : localGenetId = _readString(localGenetId),
         provenanceId = _readString(provenanceId),
         aliasLabels = List.unmodifiable(aliasLabels),
         metadata = Map.unmodifiable(metadata),
@@ -38,7 +38,7 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
   @override
   final String displayName;
   @override
-  final String? localId;
+  final String? localGenetId;
   @override
   final String? provenanceId;
   @override
@@ -66,7 +66,7 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
     OrganismKind? organismKind,
     ProvenanceKind? provenanceKind,
     String? displayName,
-    String? localId,
+    String? localGenetId,
     String? provenanceId,
     String? speciesId,
     String? parentProvenanceId,
@@ -84,7 +84,7 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
       organismKind: organismKind ?? this.organismKind,
       provenanceKind: provenanceKind ?? this.provenanceKind,
       displayName: displayName ?? this.displayName,
-      localId: localId ?? this.localId,
+      localGenetId: localGenetId ?? this.localGenetId,
       provenanceId: provenanceId ?? this.provenanceId,
       speciesId: speciesId ?? this.speciesId,
       parentProvenanceId: parentProvenanceId ?? this.parentProvenanceId,
@@ -122,9 +122,9 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
         json['metadata'] is Map<String, dynamic>
             ? Map<String, dynamic>.from(json['metadata'])
             : const <String, dynamic>{};
-    final localId =
-        _readString(json['localId']) ??
-        _readString(metadataValue['localId']) ??
+    final localGenetId =
+        _readString(json['localGenetId']) ??
+        _readString(metadataValue['localGenetId']) ??
         _readString(json['name']) ??
         _readString(metadataValue['displayName']) ??
         _readString(metadataValue['name']);
@@ -141,9 +141,9 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
       provenanceKind: provenanceKind,
       displayName:
           json['displayName']?.toString().trim() ??
-          localId ??
+          localGenetId ??
           recordId,
-      localId: localId,
+      localGenetId: localGenetId,
       provenanceId: provenanceId,
       speciesId: json['speciesId']?.toString().trim() ?? '',
       parentProvenanceId: parentValue == null || parentValue.isEmpty
@@ -163,7 +163,7 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
     payload['organismKind'] = organismKind.name;
     payload['provenanceKind'] = provenanceKind.name;
     payload['displayName'] = displayName;
-    if (localId != null) payload['localId'] = localId;
+    if (localGenetId != null) payload['localGenetId'] = localGenetId;
     if (provenanceId != null) payload['provenanceId'] = provenanceId;
     payload['speciesId'] = speciesId;
     if (siteId != null) payload['siteId'] = siteId;
@@ -189,7 +189,7 @@ class ProvenanceRecord extends Record implements ProvenanceBase {
     organismKind,
     provenanceKind,
     displayName,
-    localId,
+    localGenetId,
     provenanceId,
     speciesId,
     parentProvenanceId,

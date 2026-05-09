@@ -156,7 +156,7 @@ class InventoryExportRowSource {
     return {
       'id': organismRecord.id,
       'provenanceId': provenanceId,
-      'localId': organismRecord.localId ?? '',
+      'localGenetId': organismRecord.localGenetId ?? '',
       'tagId': tagId,
       'organismKind': organismRecord.organismKind.name,
       'speciesId': organismRecord.speciesId,

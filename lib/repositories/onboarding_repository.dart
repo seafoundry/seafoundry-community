@@ -517,7 +517,7 @@ class OnboardingRepository {
   ///
   /// Returns the urlPath of the created organism for tour navigation
   Future<String> createFirstGenetAndOrganism({
-    required String localId,
+    required String localGenetId,
     required Species species,
     required String siteId,
     required String groupId,
@@ -567,7 +567,7 @@ class OnboardingRepository {
     }
 
     // Generate slugs
-    final genetSlug = localId.toLowerCase().replaceAll(
+    final genetSlug = localGenetId.toLowerCase().replaceAll(
       RegExp(r'[^a-z0-9]+'),
       '-',
     );
@@ -616,8 +616,8 @@ class OnboardingRepository {
     final normalizedAccessionNumber = accessionNumber?.trim();
 
     final genetDraft = Genet.partial(
-      name: localId,
-      localId: localId,
+      name: localGenetId,
+      localGenetId: localGenetId,
       speciesId: species.id,
       provenanceTypeId: provenanceType.id,
       organismKind: organismKind,
@@ -645,10 +645,10 @@ class OnboardingRepository {
       slug: genetSlug,
     );
 
-    // Resolve record name: use provided name, fall back to localId
+    // Resolve record name: use provided name, fall back to localGenetId
     final resolvedRecordName = (tagId?.trim().isNotEmpty == true)
         ? tagId!.trim()
-        : (localId.isNotEmpty ? localId : 'Unknown');
+        : (localGenetId.isNotEmpty ? localGenetId : 'Unknown');
 
     // Resolve physical form from registry, fall back to hardcoded defaults
     final physicalForm = _getDefaultPhysicalForm(organismKind, lifeStage);
@@ -673,7 +673,7 @@ class OnboardingRepository {
       ), // Measurement - Axis 5
       tagId: resolvedRecordName,
       speciesId: species.id,
-      localId: localId,
+      localGenetId: localGenetId,
       siteId: siteId, // Location - Axis 3
       groupId: groupId, // Location - Axis 3
       provenanceType: provenanceType, // Provenance - Axis 2
@@ -682,7 +682,7 @@ class OnboardingRepository {
         'genetId': ForeignKeyReference(
           id: genet.id,
           metadata: {
-            'localId': genet.localId,
+            'localGenetId': genet.localGenetId,
             'provenanceId': genet.provenanceId,
             'displayName': genet.displayName,
           },
@@ -785,12 +785,12 @@ class OnboardingRepository {
   }
 
   /// Suggest a record name for onboarding.
-  /// Simply returns the localId as the default record name.
+  /// Simply returns the localGenetId as the default record name.
   Future<String?> suggestRecordName({
     required String organizationId,
-    String? localId,
+    String? localGenetId,
   }) async {
-    final trimmed = localId?.trim();
+    final trimmed = localGenetId?.trim();
     return (trimmed != null && trimmed.isNotEmpty) ? trimmed : null;
   }
 

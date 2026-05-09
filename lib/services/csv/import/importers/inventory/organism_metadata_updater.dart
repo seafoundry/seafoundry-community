@@ -45,8 +45,8 @@ class OrganismMetadataUpdater {
     }
 
     // Apply local ID change
-    if (row.localId.isNotEmpty && row.localId != (organism.localId ?? '')) {
-      updated = updated.copyWith(localId: row.localId);
+    if (row.localGenetId.isNotEmpty && row.localGenetId != (organism.localGenetId ?? '')) {
+      updated = updated.copyWith(localGenetId: row.localGenetId);
       mutated = true;
     }
 
@@ -257,7 +257,7 @@ class OrganismMetadataUpdater {
     final foreignKeys =
         Map<String, ForeignKeyReference>.from(organism.foreignKeys);
     final foreignKeyMetadata = <String, dynamic>{
-      if (genet.localId != null) 'localId': genet.localId,
+      if (genet.localGenetId != null) 'localGenetId': genet.localGenetId,
       'provenanceId': genet.provenanceId,
       'displayName': genet.displayName,
     };

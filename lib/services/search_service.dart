@@ -327,10 +327,10 @@ class SearchService {
           matchedField = 'tagId';
         }
         // Check local ID (genet label)
-        else if ((organism.localId ?? '').toLowerCase().contains(query)) {
-          final localId = organism.localId ?? '';
-          score = localId.toLowerCase().startsWith(query) ? 0.9 : 0.7;
-          matchedField = 'localId';
+        else if ((organism.localGenetId ?? '').toLowerCase().contains(query)) {
+          final localGenetId = organism.localGenetId ?? '';
+          score = localGenetId.toLowerCase().startsWith(query) ? 0.9 : 0.7;
+          matchedField = 'localGenetId';
         }
         // Check tag (stored in metadata)
         else if ((organism.metadata?['tag'] as String?)?.toLowerCase().contains(

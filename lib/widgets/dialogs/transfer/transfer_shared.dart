@@ -5,11 +5,11 @@ import 'package:seafoundry_app/repositories/organization_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/widgets/dialogs/base_search_dialog.dart';
 
-/// Returns the display label for a [Genet]: trimmed localId if present,
+/// Returns the display label for a [Genet]: trimmed localGenetId if present,
 /// otherwise trimmed name.
 String genetDisplayLabel(Genet genet) {
-  final localId = genet.localId?.trim();
-  if (localId != null && localId.isNotEmpty) return localId;
+  final localGenetId = genet.localGenetId?.trim();
+  if (localGenetId != null && localGenetId.isNotEmpty) return localGenetId;
   return genet.name.trim();
 }
 

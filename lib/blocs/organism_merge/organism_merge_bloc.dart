@@ -148,9 +148,9 @@ class OrganismMergeBloc
     OrganismRecord organism,
     List<OrganismRecord> allOrganisms,
   ) {
-    // Find other organisms with same localId for comparison
+    // Find other organisms with same localGenetId for comparison
     final sameLocalIdOrganisms = allOrganisms
-        .where((o) => o.localId == organism.localId && o.id != organism.id)
+        .where((o) => o.localGenetId == organism.localGenetId && o.id != organism.id)
         .toList();
 
     if (sameLocalIdOrganisms.isEmpty) {
@@ -158,7 +158,7 @@ class OrganismMergeBloc
     }
 
     // All merge eligibility criteria:
-    // - Same localId (checked above)
+    // - Same localGenetId (checked above)
     // - Same lifeStage
     // - Same physicalForm
     // - Same speciesId

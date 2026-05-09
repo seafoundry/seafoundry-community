@@ -272,7 +272,7 @@ class OrganismCreationWizard extends StatelessWidget {
       );
 
       if (record.genetId == null) {
-        final genetLocalId = record.localId?.trim();
+        final genetLocalId = record.localGenetId?.trim();
         if (genetLocalId != null && genetLocalId.isNotEmpty) {
           final isGenetUnique = await validationService.isGenetNameUnique(
             name: genetLocalId,
@@ -296,7 +296,7 @@ class OrganismCreationWizard extends StatelessWidget {
           message: 'Genet repository not available for creation.',
         );
       }
-      final genetLocalId = record.localId?.trim();
+      final genetLocalId = record.localGenetId?.trim();
       if (genetLocalId == null || genetLocalId.isEmpty) {
         throw RepositoryError(
           message: 'Local ID is required to create a genet.',
@@ -341,7 +341,7 @@ class OrganismCreationWizard extends StatelessWidget {
 
       final genetDraft = Genet.partial(
         name: genetLocalId,
-        localId: genetLocalId,
+        localGenetId: genetLocalId,
         speciesId: speciesId,
         provenanceTypeId: provenanceType.id,
         organismKind: record.organismKind,
@@ -561,15 +561,15 @@ class _WizardContent extends StatelessWidget {
     final state = cubit.state;
     if (state.tagId?.trim().isNotEmpty == true) return;
 
-    final localId = state.effectiveLocalId?.trim();
-    if (localId == null || localId.isEmpty) return;
+    final localGenetId = state.effectiveLocalId?.trim();
+    if (localGenetId == null || localGenetId.isEmpty) return;
 
-    // Use localId as the default record name
+    // Use localGenetId as the default record name
     final current = cubit.state;
     if (current.tagId?.trim().isNotEmpty == true) return;
-    if (current.effectiveLocalId?.trim() != localId) return;
+    if (current.effectiveLocalId?.trim() != localGenetId) return;
 
-    cubit.recordNameChanged(localId);
+    cubit.recordNameChanged(localGenetId);
   }
 
   Future<void> _submit(BuildContext context) async {
@@ -663,7 +663,7 @@ class _WizardContent extends StatelessWidget {
             prev.completedSteps != curr.completedSteps ||
             prev.organismKind != curr.organismKind ||
             prev.species != curr.species ||
-            prev.localId != curr.localId ||
+            prev.localGenetId != curr.localGenetId ||
             prev.lifeStage != curr.lifeStage ||
             prev.physicalForm != curr.physicalForm ||
             prev.provenanceType != curr.provenanceType ||

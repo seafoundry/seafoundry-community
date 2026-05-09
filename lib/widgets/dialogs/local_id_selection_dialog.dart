@@ -270,7 +270,7 @@ class _LocalIdSelectionDialogState extends State<LocalIdSelectionDialog>
                 genets = genets.where((g) {
                   return g.name.toLowerCase().contains(query) ||
                       g.speciesId.toLowerCase().contains(query) ||
-                      (g.localId ?? '').toLowerCase().contains(query);
+                      (g.localGenetId ?? '').toLowerCase().contains(query);
                 }).toList();
               }
 

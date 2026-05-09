@@ -91,7 +91,7 @@ class EventType extends BuiltinRecordType {
     name: 'Record Name Change',
   );
   static const EventType localIdChange = EventType(
-    id: 'event_local_id_change',
+    id: 'event_local_genet_id_change',
     name: 'Local ID Change',
   );
   static const EventType genetIdentityChange = EventType(

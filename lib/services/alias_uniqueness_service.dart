@@ -95,7 +95,7 @@ class AliasUniquenessService {
     required String recordId,
     required String provenanceId,
     required String organizationId,
-    required String localId,
+    required String localGenetId,
   }) async {
     final firestore = _requireFirestore();
     for (final alias in _uniqueAliases(aliases)) {
@@ -127,7 +127,7 @@ class AliasUniquenessService {
           'updatedAt': FieldValue.serverTimestamp(),
           'organizationRefs.$organizationId': {
             'recordId': recordId,
-            'localId': localId,
+            'localGenetId': localGenetId,
             'updatedAt': FieldValue.serverTimestamp(),
           },
         };
@@ -148,7 +148,7 @@ class AliasUniquenessService {
     required ModelType modelType,
     required String provenanceId,
     required String organizationId,
-    required String localId,
+    required String localGenetId,
   }) async {
     final firestore = _requireFirestore();
     await firestore.runTransaction((txn) async {
@@ -193,7 +193,7 @@ class AliasUniquenessService {
       );
       orgRefs[organizationId] = {
         'recordId': recordId,
-        'localId': localId,
+        'localGenetId': localGenetId,
         'updatedAt': FieldValue.serverTimestamp(),
       };
       txn.update(ref, {
@@ -358,14 +358,14 @@ class AliasIndexEntry extends Equatable {
 class AliasOrganizationRef extends Equatable {
   const AliasOrganizationRef({
     required this.recordId,
-    required this.localId,
+    required this.localGenetId,
     this.updatedAt,
   });
 
   factory AliasOrganizationRef.fromJson(Map<String, dynamic> json) {
     return AliasOrganizationRef(
       recordId: json['recordId']?.toString() ?? '',
-      localId: json['localId']?.toString() ?? '',
+      localGenetId: json['localGenetId']?.toString() ?? '',
       updatedAt: json['updatedAt'] is Timestamp
           ? (json['updatedAt'] as Timestamp).toDate()
           : null,
@@ -373,11 +373,11 @@ class AliasOrganizationRef extends Equatable {
   }
 
   final String recordId;
-  final String localId;
+  final String localGenetId;
   final DateTime? updatedAt;
 
   @override
-  List<Object?> get props => [recordId, localId, updatedAt];
+  List<Object?> get props => [recordId, localGenetId, updatedAt];
 }
 
 class _AliasKey extends Equatable {

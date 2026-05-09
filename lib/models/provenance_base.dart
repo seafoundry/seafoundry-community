@@ -11,7 +11,7 @@ abstract class ProvenanceBase {
   /// Display label for the record (often the local ID).
   String get displayName;
   /// Organization-scoped identifier for the genet/provenance record (localID).
-  String? get localId;
+  String? get localGenetId;
   /// Canonical provenance identifier (PID) for cross-org comparisons.
   String? get provenanceId;
   /// High-level organism category for this provenance record.

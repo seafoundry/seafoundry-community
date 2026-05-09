@@ -20,7 +20,7 @@ class ValidatedOrganismFields {
   const ValidatedOrganismFields({
     required this.organism,
     required this.targetGroup,
-    required this.localId,
+    required this.localGenetId,
     required this.tagId,
     required this.speciesId,
     required this.physicalFormId,
@@ -40,7 +40,7 @@ class ValidatedOrganismFields {
 
   final OrganismRecord organism;
   final Group targetGroup;
-  final String localId;
+  final String localGenetId;
   final String tagId;
   final String speciesId;
   final String physicalFormId;
@@ -119,7 +119,7 @@ class OrganismFieldValidator {
     return ValidatedOrganismFields(
       organism: lookupResult.organism,
       targetGroup: lookupResult.targetGroup,
-      localId: rawFields.localId,
+      localGenetId: rawFields.localGenetId,
       tagId: rawFields.tagId!,
       speciesId: rawFields.speciesIdRaw,
       physicalFormId: parsedFields.canonicalPhysicalFormId!,
@@ -216,11 +216,11 @@ class OrganismFieldValidator {
         message: 'Missing species identifier',
       ));
     }
-    if (fields.localId.isEmpty) {
+    if (fields.localGenetId.isEmpty) {
       rowErrors.add(CSVImportError(
         row: rowNumber,
-        field: 'localId',
-        value: fields.localId,
+        field: 'localGenetId',
+        value: fields.localGenetId,
         message: 'Missing local ID for organism',
       ));
     }

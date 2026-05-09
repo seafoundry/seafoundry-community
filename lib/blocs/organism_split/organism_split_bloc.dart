@@ -62,8 +62,8 @@ class OrganismSplitBloc
 
   @override
   Future<OrganismSplitState> loadInitialData() async {
-    // Default tagId for split: use source's localId or tagId
-    final suggestedName = _sourceOrganism.localId ?? _sourceOrganism.tagId;
+    // Default tagId for split: use source's localGenetId or tagId
+    final suggestedName = _sourceOrganism.localGenetId ?? _sourceOrganism.tagId;
 
     final sourceQuantity = _sourceOrganism.measurement.value;
     final defaultSplitQuantity = (sourceQuantity / 2).floorToDouble().clamp(
@@ -304,7 +304,7 @@ class OrganismSplitBloc
       );
 
       // Create new organism with split quantity
-      // Inherits: localId, provenanceType, provenanceAttributes, genetId,
+      // Inherits: localGenetId, provenanceType, provenanceAttributes, genetId,
       // lifeStageHistory, measurementHistory, speciesId, lifeStage, physicalForm,
       // organismKind, siteId, groupId
       final newOrganism = sourceOrganism.copyWith(

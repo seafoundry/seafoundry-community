@@ -221,7 +221,7 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
 
   Future<void> acceptTransfer({
     required String genetName,
-    String? localId,
+    String? localGenetId,
     required ProvenanceType provenanceType,
     required LifeStage lifeStage,
     String? targetUrlPath,
@@ -247,7 +247,7 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
       final genet = await transferService.acceptTransfer(
         transferEventId: manifest.transferId,
         newGenetName: genetName,
-        localId: localId?.isEmpty == true ? null : localId,
+        localGenetId: localGenetId?.isEmpty == true ? null : localGenetId,
         provenanceTypeOverride: provenanceType,
         lifeStageOverride: lifeStage,
         geometryInput: state.geometryInput,

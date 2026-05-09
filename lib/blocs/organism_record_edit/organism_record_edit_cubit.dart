@@ -412,13 +412,13 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     }
   }
 
-  /// Sets the localId (genet identifier, e.g., "ACER-001").
+  /// Sets the localGenetId (genet identifier, e.g., "ACER-001").
   /// This is the genetic lineage identifier that maps to PID.
   void setLocalId(String value) {
     final trimmed = value.trim();
-    final current = state.originalRecord.localId;
+    final current = state.originalRecord.localGenetId;
     final override = trimmed == current ? null : trimmed;
-    // Clear pendingLocalIdScope since user is making a new localId change
+    // Clear pendingLocalIdScope since user is making a new localGenetId change
     // without explicitly choosing a scope via the scope dialog
     emit(
       state.copyWith(
@@ -432,7 +432,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     if (override != null && override.isNotEmpty) {
       _checkLocalIdConflict(override);
     }
-    // Trigger PID preview when localId changes
+    // Trigger PID preview when localGenetId changes
     _loadPidPreview();
   }
 
@@ -443,11 +443,11 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
   int _localIdConflictRequestId = 0;
 
   /// Check if the given localID conflicts with an existing genet.
-  Future<void> _checkLocalIdConflict(String localId) async {
+  Future<void> _checkLocalIdConflict(String localGenetId) async {
     if (_genetRepository == null) return;
 
     final requestId = ++_localIdConflictRequestId;
-    final normalized = localId.trim();
+    final normalized = localGenetId.trim();
     if (normalized.isEmpty) return;
 
     try {
@@ -485,7 +485,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
     }
 
     // Only show preview when:
-    // 1. There's a localId change AND
+    // 1. There's a localGenetId change AND
     // 2. We have an underlying genet (so there's a current PID to compare against) OR
     // 3. We would be creating a new genet
     final shouldPreview =
@@ -982,10 +982,10 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
       );
     }
 
-    // localId change (record-level only)
+    // localGenetId change (record-level only)
     final localIdChanged =
         state.localIdOverride != null &&
-        state.localIdOverride != originalRecord.localId;
+        state.localIdOverride != originalRecord.localGenetId;
     final isGenetWide = state.pendingLocalIdScope == LocalIdEditScope.genetWide;
 
     if (localIdChanged && !isGenetWide) {
@@ -993,7 +993,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
         eventType: EventType.localIdChange,
         recordId: savedRecord.id,
         metadata: {
-          'previousValue': originalRecord.localId,
+          'previousValue': originalRecord.localGenetId,
           'newValue': state.localIdOverride,
           'scope': 'thisRecordOnly',
         },
@@ -1018,7 +1018,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
         eventType: EventType.genetIdentityChange,
         genetId: resolvedGenetId,
         metadata: {
-          'previousLocalId': originalRecord.localId,
+          'previousLocalId': originalRecord.localGenetId,
           'newLocalId': state.localIdOverride,
           'scope': 'genetWide',
           'affectedRecordCount': genetWideUpdateCount ?? 1,
@@ -1081,7 +1081,7 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
         ? ownerResolved
         : managingInput;
     final pending = state.originalRecord.copyWith(
-      localId: state.localIdOverride ?? state.originalRecord.localId,
+      localGenetId: state.localIdOverride ?? state.originalRecord.localGenetId,
       tagId: state.recordNameOverride ?? state.originalRecord.tagId,
       lifeStage: _resolveLifeStageSpec(),
       physicalForm: _resolvePhysicalForm(),

@@ -30,12 +30,12 @@ mixin _OrganismRecordRepositoryHelpers on _OrganismRecordRepositoryBase {
         recoverySuggestion: 'Provide a record name for the organism.',
       );
     }
-    final localIdValue = record.localId?.trim();
+    final localIdValue = record.localGenetId?.trim();
     if (localIdValue == null ||
         localIdValue.isEmpty ||
         localIdValue == Missing.string) {
       throw RepositoryError(
-        message: 'Invalid organism record: localId is required',
+        message: 'Invalid organism record: localGenetId is required',
         category: AppErrorCategory.validation,
         recoverySuggestion: 'Provide a local ID for the organism.',
       );
@@ -53,17 +53,17 @@ mixin _OrganismRecordRepositoryHelpers on _OrganismRecordRepositoryBase {
   /// Generate a URL-friendly slug base from the organism record.
   ///
   /// Priority:
-  /// 1. localId (e.g., "Apal-002" -> "apal-002")
+  /// 1. localGenetId (e.g., "Apal-002" -> "apal-002")
   /// 2. speciesId (e.g., "apal" -> "apal")
   /// 3. Fallback to "organism"
   ///
   /// Guards against empty sanitization results (e.g., "----", "!!!", emoji-only)
   /// which would cause invalid Firestore document paths.
   String generateSlugBase(OrganismRecord record) {
-    // Try localId first - guard against sanitization yielding empty string
-    final localId = record.localId;
-    if (localId != null && localId.trim().isNotEmpty) {
-      final sanitized = sanitizeForSlug(localId);
+    // Try localGenetId first - guard against sanitization yielding empty string
+    final localGenetId = record.localGenetId;
+    if (localGenetId != null && localGenetId.trim().isNotEmpty) {
+      final sanitized = sanitizeForSlug(localGenetId);
       if (sanitized.isNotEmpty) {
         return sanitized;
       }
