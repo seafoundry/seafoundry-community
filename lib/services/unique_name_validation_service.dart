@@ -134,39 +134,22 @@ class UniqueNameValidationService {
           .doc(organizationId)
           .collection(ModelType.genet.collectionPath);
 
-      final scopedExact = await scopedCollection
-          .where('nameLowercase', isEqualTo: lowerName)
-          .get();
+      // Indexed query against denormalized `nameLowercase` field — set on
+      // every genet write in Genet.toJson(). Bounded read.
+      Query<Map<String, dynamic>> q = scopedCollection
+          .where('nameLowercase', isEqualTo: lowerName);
+      if (excludeRecordId != null) {
+        q = q.limit(2); // need 2 to distinguish "only the excluded one" from "another conflict"
+      } else {
+        q = q.limit(1);
+      }
+      final scopedExact = await q.get();
 
       for (final doc in scopedExact.docs) {
-        final docId = doc.id;
-        if (excludeRecordId == null || docId != excludeRecordId) {
+        if (excludeRecordId == null || doc.id != excludeRecordId) {
           _logger.info(
             'Genet name conflict found via indexed lookup: "$name" '
             'already exists for organization $domainLabel',
-          );
-          return false;
-        }
-      }
-
-      // Query nested collection (the only source of truth)
-      // Root /genets collection is blocked by Firestore rules
-      final docs = (await scopedCollection.get()).docs;
-
-      for (final doc in docs) {
-        final data = doc.data();
-        final docName = (data['displayName'] ?? data['name']) as String?;
-        final docId = data['id'] as String?;
-
-        // Skip if this is the record being edited
-        if (excludeRecordId != null && docId == excludeRecordId) {
-          continue;
-        }
-
-        // Check if name matches (case-insensitive)
-        if (docName?.toLowerCase() == name.toLowerCase()) {
-          _logger.info(
-            'Genet name conflict found: "$name" already exists in $domainLabel',
           );
           return false;
         }
@@ -199,10 +182,12 @@ class UniqueNameValidationService {
           .doc(organizationId)
           .collection(ModelType.genet.collectionPath);
 
-      // Fast path: exact localGenetId matches.
-      final exactSnapshot = await scopedCollection
-          .where('localGenetId', isEqualTo: localGenetId)
-          .get();
+      // Indexed query against denormalized `localGenetIdLower` (set on every
+      // genet write in Genet.toJson()). Bounded read; case-insensitive.
+      Query<Map<String, dynamic>> q = scopedCollection
+          .where('localGenetIdLower', isEqualTo: normalizedTarget);
+      q = excludeRecordId != null ? q.limit(2) : q.limit(1);
+      final exactSnapshot = await q.get();
 
       for (final doc in exactSnapshot.docs) {
         final docId = doc.data()['id'] as String? ?? doc.id;
@@ -210,31 +195,6 @@ class UniqueNameValidationService {
           _logger.info(
             'Genet local ID conflict found via indexed lookup: "$localGenetId" '
             'already exists for organization $organizationId',
-          );
-          return false;
-        }
-      }
-
-      // Fallback: scan for case-insensitive or legacy storage in name/displayName.
-      final docs = (await scopedCollection.get()).docs;
-      for (final doc in docs) {
-        final data = doc.data();
-        final docId = data['id'] as String? ?? doc.id;
-        if (excludeRecordId != null && docId == excludeRecordId) {
-          continue;
-        }
-        final candidate =
-            data['localGenetId']?.toString().trim().isNotEmpty == true
-                ? data['localGenetId']?.toString()
-                : (data['name']?.toString() ?? data['displayName']?.toString());
-        final normalizedCandidate = normalizeLocalId(candidate);
-        if (normalizedCandidate == null) {
-          continue;
-        }
-        if (normalizedCandidate == normalizedTarget) {
-          _logger.info(
-            'Genet local ID conflict found: "$localGenetId" already exists '
-            'for organization $organizationId',
           );
           return false;
         }

@@ -384,6 +384,7 @@ class Genet extends InventoryRecord
     'lineageKind': provenanceKind.name,
     'name': name,
     if (localGenetId != null) 'localGenetId': localGenetId,
+    if (localGenetId != null) 'localGenetIdLower': _normalizeLocalGenetId(localGenetId!),
     'nameLowercase': name.toLowerCase(),
     'speciesId': speciesId,
     'provenanceTypeId': provenanceTypeId,
@@ -581,4 +582,10 @@ class Genet extends InventoryRecord
     }
     return canonical.isEmpty ? null : canonical;
   }
+
+  /// Canonicalizes a `localGenetId` for case-insensitive equality comparison.
+  /// Mirrors the logic in `UniqueNameValidationService.normalizeLocalId` so
+  /// the denormalized `localGenetIdLower` field matches the validator's query.
+  static String _normalizeLocalGenetId(String raw) =>
+      raw.trim().replaceAll(RegExp(r'\s+'), '-').toLowerCase();
 }
