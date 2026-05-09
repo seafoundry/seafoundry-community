@@ -16,6 +16,7 @@ export 'move_out_event.dart';
 export 'observation_event.dart';
 export 'outplant_geometry.dart';
 export 'physical_form_change_event.dart';
+export 'physical_form_snapshot.dart';
 export 'population_gain_event.dart';
 export 'population_loss_event.dart';
 export 'quantity_change_event.dart';

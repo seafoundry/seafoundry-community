@@ -1,6 +1,5 @@
 import 'package:seafoundry_app/models/events/event.dart';
-import 'package:seafoundry_app/models/events/event_snapshot_parser.dart';
-import 'package:seafoundry_app/models/inventory/organism_record.dart';
+import 'package:seafoundry_app/models/events/physical_form_snapshot.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/inventory_event_type.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
@@ -48,7 +47,9 @@ class PhysicalFormChangeEvent extends Event {
       recordModelType: ModelType.values.byName(
         json['recordModelType'] ?? ModelType.organismRecord.name,
       ),
-      organismRecordSnapshot: parseOrganismSnapshot(json),
+      organismRecordSnapshot: PhysicalFormSnapshot.fromJson(
+        deepNormalizeMap(json['organismRecordSnapshot']),
+      ),
       oldFormId: json['oldFormId']?.toString(),
       newFormId: json['newFormId']?.toString(),
       metadata: safeMapCast(json['metadata']),
@@ -61,7 +62,7 @@ class PhysicalFormChangeEvent extends Event {
     );
   }
 
-  final OrganismRecord organismRecordSnapshot;
+  final PhysicalFormSnapshot organismRecordSnapshot;
   final String? oldFormId;
   final String? newFormId;
 
@@ -79,7 +80,7 @@ class PhysicalFormChangeEvent extends Event {
     String? slug,
     String? recordId,
     ModelType? recordModelType,
-    OrganismRecord? organismRecordSnapshot,
+    PhysicalFormSnapshot? organismRecordSnapshot,
     String? oldFormId,
     String? newFormId,
     Map<String, dynamic>? metadata,
