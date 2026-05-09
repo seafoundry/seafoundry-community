@@ -1,7 +1,9 @@
 // @tier: community
+import 'package:seafoundry_app/models/accession_config.dart';
 import 'package:seafoundry_app/models/records/graph_node_record.dart';
 import 'package:seafoundry_app/models/records/inventory_record.dart';
 import 'package:seafoundry_app/models/records/record.dart';
+import 'package:seafoundry_app/models/types/bioregion.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
 import 'package:seafoundry_app/services/site_limits_service.dart';
@@ -24,6 +26,9 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     List<String>? activities,
     this.speciesIds = const [],
     this.tier = Tier.community,
+    this.bioregions = const [],
+    this.accessionConfig,
+    this.orgPrefix,
     super.metadata,
   })  : activities = _normalizeActivitiesInput(
           primary: activities,
@@ -43,6 +48,12 @@ class Organization extends InventoryRecord with GraphNodeRecord {
       tier = Tier.fromString(
         json['tier'] ?? json['createdEvent']?['tier'],
       ),
+      bioregions = _parseBioregions(json['bioregions']),
+      accessionConfig = json['accessionConfig'] != null
+          ? AccessionConfig.fromJson(
+              Map<String, dynamic>.from(json['accessionConfig'] as Map))
+          : null,
+      orgPrefix = json['orgPrefix'] as String?,
       super.fromJson();
 
   Organization.partial({
@@ -62,6 +73,9 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     List<String>? activities,
     List<String>? speciesIds,
     Tier? tier,
+    List<Bioregion>? bioregions,
+    AccessionConfig? accessionConfig,
+    String? orgPrefix,
   }) : name = name ?? json?['name'] ?? Missing.string,
       domain = domain ?? json?['domain'] ?? Missing.string,
        activities = _normalizeActivitiesInput(
@@ -71,6 +85,14 @@ class Organization extends InventoryRecord with GraphNodeRecord {
        ),
        speciesIds = speciesIds ?? List<String>.from(json?['speciesIds'] ?? []),
        tier = tier ?? Tier.fromString(json?['tier']),
+       bioregions = bioregions ?? _parseBioregions(json?['bioregions']),
+       accessionConfig = accessionConfig ??
+           (json?['accessionConfig'] != null
+               ? AccessionConfig.fromJson(
+                   Map<String, dynamic>.from(
+                       json!['accessionConfig'] as Map))
+               : null),
+       orgPrefix = orgPrefix ?? json?['orgPrefix'] as String?,
        super.partial();
 
   @override
@@ -82,6 +104,9 @@ class Organization extends InventoryRecord with GraphNodeRecord {
   final List<String> activities;
   final List<String> speciesIds;
   final Tier tier;
+  final List<Bioregion> bioregions;
+  final AccessionConfig? accessionConfig;
+  final String? orgPrefix;
 
   @override
   String get slug => domain;
@@ -116,6 +141,10 @@ class Organization extends InventoryRecord with GraphNodeRecord {
       'activities': activities,
       'speciesIds': speciesIds,
       'tier': tier.name,
+      if (bioregions.isNotEmpty)
+        'bioregions': bioregions.map((b) => b.id).toList(),
+      if (accessionConfig != null) 'accessionConfig': accessionConfig!.toJson(),
+      if (orgPrefix != null) 'orgPrefix': orgPrefix,
     };
   }
 
@@ -136,6 +165,9 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     String? slug,
     List<String>? speciesIds,
     Tier? tier,
+    List<Bioregion>? bioregions,
+    AccessionConfig? accessionConfig,
+    String? orgPrefix,
     Map<String, dynamic>? metadata,
   }) => Organization(
     id: id ?? this.id,
@@ -153,12 +185,30 @@ class Organization extends InventoryRecord with GraphNodeRecord {
     activities: activities ?? siteTypeIds ?? this.activities,
     speciesIds: speciesIds ?? this.speciesIds,
     tier: tier ?? this.tier,
+    bioregions: bioregions ?? this.bioregions,
+    accessionConfig: accessionConfig ?? this.accessionConfig,
+    orgPrefix: orgPrefix ?? this.orgPrefix,
     metadata: metadata ?? this.metadata,
   );
 
   @override
   List<Object?> get props => super.props +
-      [name, domain, activities, speciesIds, tier];
+      [name, domain, activities, speciesIds, tier,
+       bioregions, accessionConfig, orgPrefix];
+
+  static List<Bioregion> _parseBioregions(dynamic raw) {
+    if (raw is! List) return const <Bioregion>[];
+    final result = <Bioregion>[];
+    for (final entry in raw) {
+      final id = entry?.toString();
+      if (id == null || id.isEmpty) continue;
+      final region = BioregionX.tryParse(id);
+      if (region != null && !result.contains(region)) {
+        result.add(region);
+      }
+    }
+    return List<Bioregion>.unmodifiable(result);
+  }
 
   static List<String> _normalizeActivitiesInput({
     List<String>? primary,
