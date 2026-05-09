@@ -1,9 +1,11 @@
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:seafoundry_app/models/group.dart';
+import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/holding_repository.dart';
+import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/export/inventory_holding_row_builder.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
@@ -13,11 +15,13 @@ class OrganismHoldingLoader {
   factory OrganismHoldingLoader({
     required List<Map<OrganismKind, HoldingRepository>> holdingRepositories,
     required GroupRepository groupRepository,
+    required OrganismRecordRepository organismRecordRepository,
   }) = OrganismHoldingLoader._internal;
 
   OrganismHoldingLoader._internal({
     required List<Map<OrganismKind, HoldingRepository>> holdingRepositories,
     required this.groupRepository,
+    required this.organismRecordRepository,
   }) : _holdingRepositories =
            List<Map<OrganismKind, HoldingRepository>>.unmodifiable(
              holdingRepositories.map(
@@ -42,12 +46,19 @@ class OrganismHoldingLoader {
     // are no longer supported. Add future holding repository types here.
 
     GroupRepository? groupRepository;
+    OrganismRecordRepository? organismRecordRepository;
     try {
       groupRepository = Provider.of<GroupRepository>(context, listen: false);
     } catch (_) {
       groupRepository = null;
     }
-    if (groupRepository == null) {
+    try {
+      organismRecordRepository =
+          Provider.of<OrganismRecordRepository>(context, listen: false);
+    } catch (_) {
+      organismRecordRepository = null;
+    }
+    if (groupRepository == null || organismRecordRepository == null) {
       return null;
     }
     if (repositoryMaps.isEmpty) {
@@ -56,11 +67,13 @@ class OrganismHoldingLoader {
     return OrganismHoldingLoader._internal(
       holdingRepositories: repositoryMaps,
       groupRepository: groupRepository,
+      organismRecordRepository: organismRecordRepository,
     );
   }
 
   final List<Map<OrganismKind, HoldingRepository>> _holdingRepositories;
   final GroupRepository groupRepository;
+  final OrganismRecordRepository organismRecordRepository;
   Map<String, Group>? _groupLookupCache;
 
   bool supports(OrganismKind kind) =>
@@ -101,9 +114,24 @@ class OrganismHoldingLoader {
         final group = holding.groupId != null
             ? groupLookup[holding.groupId]
             : null;
+        // Resolve the canonical OrganismRecord (deep axes) via the FK on
+        // the holding. The row builder needs aliases, physicalForm, sizeSpec,
+        // provenanceType, foreignKeys and localGenetId, all of which live on
+        // OrganismRecord rather than the holding's denormalized fields.
+        final OrganismRecord? organismRecord =
+            await holding.resolveOrganismRecord(
+          (id) => organismRecordRepository.getRecordForId(id),
+        );
+        if (organismRecord == null) {
+          LoggingService.instance.warning(
+            'OrganismHoldingLoader: missing OrganismRecord for holding ${holding.id}',
+          );
+          continue;
+        }
         rows.add(
           InventoryHoldingRowBuilder.build(
             holding: holding,
+            organismRecord: organismRecord,
             holdingKind: repository.holdingKind,
             group: group,
           ),

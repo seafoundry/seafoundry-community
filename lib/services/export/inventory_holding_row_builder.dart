@@ -3,23 +3,29 @@ import 'dart:convert';
 import 'package:seafoundry_app/models/group.dart';
 import 'package:seafoundry_app/models/inventory/holding_record.dart';
 import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
+import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 
 /// Builds spreadsheet/export rows for organism holdings (gamete/larval batches)
 /// so permit/site metadata survives through the CSV pipeline.
+///
+/// Deep axes (aliases, physicalForm, sizeSpec, provenanceType, foreignKeys,
+/// localGenetId) live on the canonical [OrganismRecord], not on the holding
+/// itself. Callers are responsible for resolving the OrganismRecord (e.g.
+/// via [HoldingRecord.resolveOrganismRecord]) before invoking [build].
 class InventoryHoldingRowBuilder {
   const InventoryHoldingRowBuilder._();
 
   static Map<String, dynamic> build({
     required HoldingRecord holding,
+    required OrganismRecord organismRecord,
     required Group? group,
     required String holdingKind,
     Map<String, dynamic>? overrides,
   }) {
     final metadata = holding.metadata;
-    final organismRecord = holding.organismRecord;
     final metadataGroupPath = metadataValue(metadata, 'groupId');
     final attributes = holding.attributes;
     final lifeStageSpec = organismRecord.lifeStage;
@@ -125,7 +131,7 @@ class InventoryHoldingRowBuilder {
         ? ''
         : aliases.map((alias) => alias.label ?? alias.value).join('; ');
 
-    final localGenetId = holding.organismRecord.localGenetId ?? '';
+    final localGenetId = organismRecord.localGenetId ?? '';
     final tagId = holding.tagId;
     final urlPath = holding.urlPath.isNotEmpty
         ? holding.urlPath
