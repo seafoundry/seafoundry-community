@@ -320,7 +320,7 @@ class EventDisplay extends StatelessWidget {
     } else if (event is TransferEvent) {
       if (event.status != null) rows.add(MapEntry('Status', event.status!));
       if (event.quantity > 0) rows.add(MapEntry('Quantity', '${event.quantity}'));
-      if (event.genetId != null) rows.add(MapEntry('Genet ID', event.genetId!));
+      if (event.genetRecordId != null) rows.add(MapEntry('Genet ID', event.genetRecordId!));
       if (event.comment != null && event.comment!.isNotEmpty) {
         rows.add(MapEntry('Comment', event.comment!));
       }

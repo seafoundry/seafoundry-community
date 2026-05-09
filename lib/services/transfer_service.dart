@@ -109,7 +109,7 @@ class TransferService implements ManualTransferRegistrationService {
   /// Throws [TransferWorkflowException] when the source genet or destination
   /// organization cannot be resolved.
   Future<TransferEvent> initiateTransfer({
-    required String genetId,
+    required String genetRecordId,
     required String toOrganizationId,
     required int quantity,
     String? sourceStructureUrlPath,
@@ -127,7 +127,7 @@ class TransferService implements ManualTransferRegistrationService {
     return PerformanceAnalyzer.measure(
       'TransferService.initiateTransfer',
       () => performInitiateTransfer(
-        genetId: genetId,
+        genetRecordId: genetRecordId,
         toOrganizationId: toOrganizationId,
         quantity: quantity,
         sourceStructureUrlPath: sourceStructureUrlPath,
@@ -143,7 +143,7 @@ class TransferService implements ManualTransferRegistrationService {
         originalOwnerOrganizationId: originalOwnerOrganizationId,
       ),
       metadata: {
-        'genetId': genetId,
+        'genetRecordId': genetRecordId,
         'toOrganizationId': toOrganizationId,
         'quantity': quantity,
       },
@@ -160,7 +160,7 @@ class TransferService implements ManualTransferRegistrationService {
   /// Throws [TransferWorkflowException] when the source genet cannot be found
   /// or email validation fails.
   Future<TransferEvent> initiateTransferToEmail({
-    required String genetId,
+    required String genetRecordId,
     required String toOrganizationEmail,
     required int quantity,
     String? sourceStructureUrlPath,
@@ -178,7 +178,7 @@ class TransferService implements ManualTransferRegistrationService {
     return PerformanceAnalyzer.measure(
       'TransferService.initiateTransferToEmail',
       () => performInitiateTransferToEmail(
-        genetId: genetId,
+        genetRecordId: genetRecordId,
         toOrganizationEmail: toOrganizationEmail,
         quantity: quantity,
         sourceStructureUrlPath: sourceStructureUrlPath,
@@ -194,7 +194,7 @@ class TransferService implements ManualTransferRegistrationService {
         originalOwnerOrganizationId: originalOwnerOrganizationId,
       ),
       metadata: {
-        'genetId': genetId,
+        'genetRecordId': genetRecordId,
         'toOrganizationEmail': toOrganizationEmail,
         'quantity': quantity,
       },

@@ -275,7 +275,7 @@ class _SimpleSearchBarState extends State<SimpleSearchBar> {
       tagId: displayInfo.tagId,
       localGenetId: displayInfo.localGenetId,
       urlPath: organism.urlPath,
-      genetId: GenetIdResolver.resolve(organism),
+      genetRecordId: GenetIdResolver.resolve(organism),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
       disableNavigation: displayInfo.isHidden,

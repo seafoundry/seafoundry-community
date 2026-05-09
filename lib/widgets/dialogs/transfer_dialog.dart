@@ -56,7 +56,7 @@ typedef _TransferDialogCoreDependencies = ({
 class TransferDialog extends StatelessWidget {
   final TransferDialogMode mode;
   final String? genetName;
-  final String? genetId;
+  final String? genetRecordId;
   final String? speciesId;
   final List<String>? speciesIds; // For manual register
   final OrganismContext organismContext;
@@ -74,7 +74,7 @@ class TransferDialog extends StatelessWidget {
     super.key,
     required this.mode,
     this.genetName,
-    this.genetId,
+    this.genetRecordId,
     this.speciesId,
     this.speciesIds,
     OrganismContext? organismContext,
@@ -93,7 +93,7 @@ class TransferDialog extends StatelessWidget {
   static Future<bool?> showInitiate(
     BuildContext context, {
     required String genetName,
-    required String genetId,
+    required String genetRecordId,
     required String speciesId,
     String? sourceStructureUrlPath,
     ProvenanceLifeStageSelection? initialSelection,
@@ -140,7 +140,7 @@ class TransferDialog extends StatelessWidget {
         child: TransferDialog(
           mode: TransferDialogMode.initiate,
           genetName: genetName,
-          genetId: genetId,
+          genetRecordId: genetRecordId,
           speciesId: speciesId,
           organismContext: organismContext,
           initialProvenanceSelection: initialSelection,
@@ -325,7 +325,7 @@ class TransferDialog extends StatelessWidget {
     required TransferEvent originalEvent,
   }) {
     // Load genet name from repository if needed
-    final genetId = originalEvent.genetId ?? '';
+    final genetRecordId = originalEvent.genetRecordId ?? '';
     final organismContext = _readOrganismContext(context);
     final dependencies = _readCoreDependencies(context);
     final repositories = context.safeReadAll(
@@ -362,8 +362,8 @@ class TransferDialog extends StatelessWidget {
         ),
         child: TransferDialog(
           mode: TransferDialogMode.initiate,
-          genetName: genetId,
-          genetId: genetId,
+          genetName: genetRecordId,
+          genetRecordId: genetRecordId,
           speciesId: '',
           originalEvent: originalEvent,
           organismContext: organismContext,
@@ -380,19 +380,19 @@ class TransferDialog extends StatelessWidget {
     switch (mode) {
       case TransferDialogMode.initiate:
         final requiredGenetName = genetName;
-        final requiredGenetId = genetId;
+        final requiredGenetId = genetRecordId;
         final requiredSpeciesId = speciesId;
         if (requiredGenetName == null ||
             requiredGenetId == null ||
             requiredSpeciesId == null) {
           LoggingService.instance.warning(
-            'TransferDialog: missing genetName/genetId/speciesId for initiate mode.',
+            'TransferDialog: missing genetName/genetRecordId/speciesId for initiate mode.',
           );
           return const SizedBox.shrink();
         }
         return TransferInitiateDialog(
           genetName: requiredGenetName,
-          genetId: requiredGenetId,
+          genetRecordId: requiredGenetId,
           speciesId: requiredSpeciesId,
           organismContext: organismContext,
           holdingsLoaderOverride: holdingsLoaderOverride,

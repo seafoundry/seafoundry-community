@@ -191,7 +191,7 @@ class GeneticsSpreadsheetHelper {
         ClonalIdDisplayService.resolveForProvenanceRecord(genet);
 
     final row = <String, dynamic>{
-      'genetId': genet.id,
+      'genetRecordId': genet.id,
       'genetName': genet.displayName,
       'genetSlug': genet.id,
       'genetType': provenanceTypeId,
@@ -301,7 +301,7 @@ class GeneticsSpreadsheetHelper {
       }
     }
 
-    put('genetId', 'genet_id');
+    put('genetRecordId', 'genet_id');
     put('genetName', 'genet_name');
     put('genetSlug', 'genet_slug');
     put('genetType', 'genet_type');
@@ -364,7 +364,7 @@ class GeneticsSpreadsheetHelper {
     };
     stats['genets'] = rows
         .map((row) {
-          final dynamic rawId = row['genetId'];
+          final dynamic rawId = row['genetRecordId'];
           return rawId == null ? '' : rawId.toString();
         })
         .where((id) => id.isNotEmpty)

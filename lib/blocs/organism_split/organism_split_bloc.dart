@@ -304,7 +304,7 @@ class OrganismSplitBloc
       );
 
       // Create new organism with split quantity
-      // Inherits: localGenetId, provenanceType, provenanceAttributes, genetId,
+      // Inherits: localGenetId, provenanceType, provenanceAttributes, genetRecordId,
       // lifeStageHistory, measurementHistory, speciesId, lifeStage, physicalForm,
       // organismKind, siteId, groupId
       final newOrganism = sourceOrganism.copyWith(

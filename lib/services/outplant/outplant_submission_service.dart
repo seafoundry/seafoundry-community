@@ -128,7 +128,7 @@ class OutplantSubmissionService {
           organismId: item.organismId,
           tagId: allocationName,
           speciesId: item.speciesId ?? '',
-          genetId: item.genetId,
+          genetRecordId: item.genetRecordId,
           outplantTagId: item.tag,
           groupId: item.groupId,
           groupName: item.groupName,
@@ -387,7 +387,7 @@ class OutplantSelectedOrganism extends Equatable {
     this.currentQuantity,
     this.tagId,
     this.speciesId,
-    this.genetId,
+    this.genetRecordId,
     this.sourcePath,
     this.snapshot,
   });
@@ -409,7 +409,7 @@ class OutplantSelectedOrganism extends Equatable {
   final String? speciesId;
 
   /// Genet provenance ID
-  final String? genetId;
+  final String? genetRecordId;
 
   /// URL path to organism record
   final String? sourcePath;
@@ -428,7 +428,7 @@ class OutplantSelectedOrganism extends Equatable {
     currentQuantity,
     tagId,
     speciesId,
-    genetId,
+    genetRecordId,
     sourcePath,
     snapshot,
   ];

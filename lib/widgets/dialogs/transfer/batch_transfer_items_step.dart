@@ -168,7 +168,7 @@ class _BatchTransferItemsStepState extends State<BatchTransferItemsStep> {
     final qty = int.tryParse(_qtyController.text.trim()) ?? 0;
     if (qty <= 0) return _snack('Quantity must be greater than 0');
     final result = await context.read<BatchTransferCubit>().addItem(
-          genetId: genet.id,
+          genetRecordId: genet.id,
           genetLocalId: _genetLabel(genet),
           quantity: qty);
     if (mounted) _handleResult(result);

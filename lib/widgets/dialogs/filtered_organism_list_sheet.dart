@@ -271,12 +271,12 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
         if (widget.filter == SummaryCardFilter.byGenotype) {
           final seen = <String>{};
           filtered = filtered.where((record) {
-            final genetId = GenetIdResolver.resolve(record);
-            if (genetId == null || genetId.isEmpty) {
+            final genetRecordId = GenetIdResolver.resolve(record);
+            if (genetRecordId == null || genetRecordId.isEmpty) {
               return false;
             }
-            if (seen.contains(genetId)) return false;
-            seen.add(genetId);
+            if (seen.contains(genetRecordId)) return false;
+            seen.add(genetRecordId);
             return true;
           }).toList();
         }
@@ -607,7 +607,7 @@ class _OrganismListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final genetId = GenetIdResolver.resolve(record);
+    final genetRecordId = GenetIdResolver.resolve(record);
     final hasReference =
         displayInfo.tagId.trim().isNotEmpty ||
         (displayInfo.localGenetId ?? '').trim().isNotEmpty;
@@ -622,7 +622,7 @@ class _OrganismListTile extends StatelessWidget {
                     tagId: displayInfo.tagId,
                     localGenetId: displayInfo.localGenetId,
                     urlPath: record.urlPath,
-                    genetId: genetId,
+                    genetRecordId: genetRecordId,
                     showUnderline: false,
                     disableNavigation: true,
                   )

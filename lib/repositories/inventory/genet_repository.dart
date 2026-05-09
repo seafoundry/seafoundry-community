@@ -198,7 +198,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         }
       }
 
-      final genetId = generateId(firestore: db);
+      final genetRecordId = generateId(firestore: db);
       final genetSlug = genet.slug.trim().isEmpty || genet.slug == Missing.string
           ? await nextSlugForModelType(ModelType.genet)
           : genet.slug.trim();
@@ -224,11 +224,11 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
 
       final now = DateTime.now().toIso8601String();
       genet = genet.copyWith(
-        id: genetId,
+        id: genetRecordId,
         provenanceId: provenanceId,
         slug: genetSlug,
         urlPath: '${organization.domain}/$genetSlug',
-        internalPath: '${organization.internalPath}/$genetId',
+        internalPath: '${organization.internalPath}/$genetRecordId',
         organizationId: organization.id,
         createdById: user.id,
         updatedById: user.id,
@@ -237,7 +237,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
       );
 
       currentStep = 'creating before snapshot';
-      await snapshotService.createBeforeSnapshot(record: genet, eventId: genetId);
+      await snapshotService.createBeforeSnapshot(record: genet, eventId: genetRecordId);
 
       currentStep = 'adding create event';
       await eventRepository.addCreateEvent(genet, organization, batch);
@@ -250,7 +250,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
       }
 
       currentStep = 'committing genet to Firestore';
-      final genetRef = collectionRef.doc(genetId);
+      final genetRef = collectionRef.doc(genetRecordId);
       batch.set(genetRef, genet.toJson());
       final normalizedSpeciesId = SpeciesRegistry.normalizeId(genet.speciesId);
       if (normalizedSpeciesId != null && normalizedSpeciesId.isNotEmpty) {
@@ -267,7 +267,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
 
       currentStep = 'committing batch to Firestore';
       LoggingService.instance.info('createGenet: About to commit batch', {
-        'genetId': genetId,
+        'genetRecordId': genetRecordId,
         'genetName': trimmedName,
         'organizationId': organization.id,
         'createdById': user.id,
@@ -276,7 +276,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
       await batch.commit();
 
       currentStep = 'creating after snapshot';
-      await snapshotService.createAfterSnapshot(record: genet, eventId: genetId);
+      await snapshotService.createAfterSnapshot(record: genet, eventId: genetRecordId);
 
       currentStep = 'upserting alias index';
       await _upsertAliasIndex(
@@ -563,29 +563,29 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
 
 
   Future<void> archiveGenet(
-    String genetId, {
+    String genetRecordId, {
     PopulationLossReason? lossReason,
     String? comment,
   }) async {
-    final docRef = collectionRef.doc(genetId);
+    final docRef = collectionRef.doc(genetRecordId);
     final snapshot = await docRef.get();
     if (!snapshot.exists) {
       throw domainErrors.RepositoryError(
-        message: 'Genet $genetId not found for archival.',
+        message: 'Genet $genetRecordId not found for archival.',
       );
     }
 
     final data = snapshot.data();
     if (data == null) {
       throw domainErrors.RepositoryError(
-        message: 'Genet $genetId exists but has null data.',
+        message: 'Genet $genetRecordId exists but has null data.',
       );
     }
 
     final genet = Genet.fromJson(
       {
         ...data,
-        'id': genetId,
+        'id': genetRecordId,
       },
     );
 
@@ -656,8 +656,8 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
     );
   }
 
-  Future<void> restoreGenet(String genetId) async {
-    final archivedSnapshot = await _archivedCollection.doc(genetId).get();
+  Future<void> restoreGenet(String genetRecordId) async {
+    final archivedSnapshot = await _archivedCollection.doc(genetRecordId).get();
     Genet? genet;
     if (archivedSnapshot.exists) {
       final data = archivedSnapshot.data();
@@ -666,12 +666,12 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         genet = RecordFactory.recordFromJson<Genet>(data);
       }
     } else {
-      genet = await getRecordForId(genetId);
+      genet = await getRecordForId(genetRecordId);
     }
 
     if (genet == null) {
       throw domainErrors.RepositoryError(
-        message: 'Genet $genetId not found for restore.',
+        message: 'Genet $genetRecordId not found for restore.',
       );
     }
 
@@ -741,8 +741,8 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
     );
   }
 
-  Future<int> countOrganismRecordsForGenet(String genetId) async {
-    if (genetId.trim().isEmpty) return 0;
+  Future<int> countOrganismRecordsForGenet(String genetRecordId) async {
+    if (genetRecordId.trim().isEmpty) return 0;
 
     try {
       final organismRecordCollection = db
@@ -751,14 +751,14 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
           .collection(ModelType.organismRecord.collectionPath);
 
       final snapshot = await organismRecordCollection
-          .where('genetId', isEqualTo: genetId)
+          .where('genetRecordId', isEqualTo: genetRecordId)
           .count()
           .get();
 
       return snapshot.count ?? 0;
     } catch (e) {
       LoggingService.instance.error(
-        'Error counting organism records for genet: $genetId',
+        'Error counting organism records for genet: $genetRecordId',
         e,
       );
       return 0;

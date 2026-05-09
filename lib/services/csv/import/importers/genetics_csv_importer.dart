@@ -130,7 +130,7 @@ class GeneticsCsvImporter {
           String? provenanceId =
               rawProvenanceId.trim().isEmpty ? null : rawProvenanceId.trim();
           // Phase 2, Team Delta (2D.4): Removed fallback that promoted
-          // localGenetId / genetId to provenanceId. genetId is always a Firestore
+          // localGenetId / genetRecordId to provenanceId. genetRecordId is always a Firestore
           // doc ID; provenanceId is always a lineage ID (PID- format).
           // Users must supply an explicit provenanceId column.
           final archivedRaw = lookup.valueFor(GeneticsCsvKeys.archivedKeys) ?? '';
@@ -354,7 +354,7 @@ class GeneticsCsvImporter {
                   'displayName': genet.displayName,
                 };
                 final foreignKeys = <String, ForeignKeyReference>{
-                  'genetId': ForeignKeyReference(
+                  'genetRecordId': ForeignKeyReference(
                     id: genet.id,
                     metadata: foreignKeyMetadata,
                   ),

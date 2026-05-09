@@ -182,7 +182,7 @@ extension _TransferServiceValidation on TransferService {
 
       if (sourceGenetId == null || sourceOrgId == null) {
         LoggingService.instance.debug(
-          'Source genet validation skipped: missing genetId or fromOrganizationId',
+          'Source genet validation skipped: missing genetRecordId or fromOrganizationId',
         );
         return;
       }
@@ -227,7 +227,7 @@ extension _TransferServiceValidation on TransferService {
       'createdAt': now,
       'updatedAt': now,
       'transferEventId': transferEvent.id,
-      'genetId': genet.id,
+      'genetRecordId': genet.id,
       'genetName': genet.displayName,
       'quantity': transferEvent.quantity,
       'fromOrganizationId': fromOrganization.id,
@@ -300,7 +300,7 @@ extension _TransferServiceValidation on TransferService {
       'createdAt': now,
       'updatedAt': now,
       'transferEventId': transfer.id,
-      'genetId': transfer.genetId,
+      'genetRecordId': transfer.genetRecordId,
       'genetName': genetName,
       'quantity': transfer.quantity,
       'sourceStructureUrlPath': transfer.sourceUrlPath,
@@ -838,7 +838,7 @@ extension _TransferServiceValidation on TransferService {
 
   /// Returns the current inventory count at the source structure for a genet.
   Future<int> getSourceInventoryCount({
-    required String genetId,
+    required String genetRecordId,
     String? sourceStructureUrlPath,
   }) async {
     try {
@@ -853,7 +853,7 @@ extension _TransferServiceValidation on TransferService {
         '🔍 Transfer inventory check: querying ${ModelType.organismRecord.collectionPath}',
         {
           'organizationId': organization.id,
-          'genetId': genetId,
+          'genetRecordId': genetRecordId,
           'sourceStructureUrlPath': sourceStructureUrlPath,
           'collectionPath':
               'organizations/${organization.id}/${ModelType.organismRecord.collectionPath}',
@@ -862,7 +862,7 @@ extension _TransferServiceValidation on TransferService {
 
       final genetDocs = await loadOrganismDocsForGenet(
         collection: collection,
-        genetId: genetId,
+        genetRecordId: genetRecordId,
       );
 
       LoggingService.instance.debug(
@@ -895,7 +895,7 @@ extension _TransferServiceValidation on TransferService {
             '🔍 Transfer inventory: found organism_record with measurement',
             {
               'docId': doc.id,
-              'genetId': genetId,
+              'genetRecordId': genetRecordId,
               'urlPath': data['urlPath'],
               'measurementValue': quantity,
               'runningTotal': totalCount,
@@ -906,7 +906,7 @@ extension _TransferServiceValidation on TransferService {
             '🔍 Transfer inventory: organism_record has no measurement',
             {
               'docId': doc.id,
-              'genetId': genetId,
+              'genetRecordId': genetRecordId,
               'urlPath': data['urlPath'],
               'measurement': measurement,
             },
@@ -915,7 +915,7 @@ extension _TransferServiceValidation on TransferService {
       }
 
       LoggingService.instance.info('🔍 Transfer inventory result', {
-        'genetId': genetId,
+        'genetRecordId': genetRecordId,
         'sourceStructureUrlPath': sourceStructureUrlPath,
         'totalOrganismRecords': genetDocs.length,
         'matchingGenetId': matchingGenetCount,
@@ -937,7 +937,7 @@ extension _TransferServiceValidation on TransferService {
 
   /// Returns the count of organisms in pending outbound transfers for a genet.
   Future<int> getPendingOutboundCount({
-    required String genetId,
+    required String genetRecordId,
     String? sourceStructureUrlPath,
   }) async {
     try {
@@ -947,7 +947,7 @@ extension _TransferServiceValidation on TransferService {
         '🔍 Transfer pending check: querying events for pending/shipped transfers',
         {
           'organizationId': organization.id,
-          'genetId': genetId,
+          'genetRecordId': genetRecordId,
           'sourceStructureUrlPath': sourceStructureUrlPath,
         },
       );
@@ -956,7 +956,7 @@ extension _TransferServiceValidation on TransferService {
       final snapshot = await _db
           .collection('events')
           .where('organizationId', isEqualTo: organization.id)
-          .where('genetId', isEqualTo: genetId)
+          .where('genetRecordId', isEqualTo: genetRecordId)
           .get();
 
       LoggingService.instance.debug(
@@ -1008,7 +1008,7 @@ extension _TransferServiceValidation on TransferService {
       }
 
       LoggingService.instance.info('🔍 Transfer pending result', {
-        'genetId': genetId,
+        'genetRecordId': genetRecordId,
         'sourceStructureUrlPath': sourceStructureUrlPath,
         'totalEvents': snapshot.docs.length,
         'totalPendingQuantity': totalPending,
@@ -1029,7 +1029,7 @@ extension _TransferServiceValidation on TransferService {
   /// Atomically locks organisms for a transfer within a transaction.
   Future<Map<String, int>> lockOrganismsInTransaction({
     required Transaction transaction,
-    required String genetId,
+    required String genetRecordId,
     required String transferId,
     required int quantity,
     required String organizationId,
@@ -1045,12 +1045,12 @@ extension _TransferServiceValidation on TransferService {
 
     final genetDocs = await loadOrganismDocsForGenet(
       collection: collection,
-      genetId: genetId,
+      genetRecordId: genetRecordId,
     );
 
     if (genetDocs.isEmpty) {
       LoggingService.instance.warning(
-        'No organism records found for genet $genetId - skipping organism locking',
+        'No organism records found for genet $genetRecordId - skipping organism locking',
       );
       return {};
     }
@@ -1154,9 +1154,9 @@ extension _TransferServiceValidation on TransferService {
     return GenetIdResolver.resolveFromJson(data);
   }
 
-  bool matchesGenetId(Map<String, dynamic> data, String genetId) {
+  bool matchesGenetId(Map<String, dynamic> data, String genetRecordId) {
     final resolved = resolveOrganismGenetId(data);
-    return resolved != null && resolved == genetId;
+    return resolved != null && resolved == genetRecordId;
   }
 
   int resolveOrganismQuantity(Map<String, dynamic> data, {int fallback = 0}) {
@@ -1186,24 +1186,24 @@ extension _TransferServiceValidation on TransferService {
   Future<List<QueryDocumentSnapshot<Map<String, dynamic>>>>
   loadOrganismDocsForGenet({
     required CollectionReference<Map<String, dynamic>> collection,
-    required String genetId,
+    required String genetRecordId,
   }) async {
     // Reject provenance-formatted IDs in doc-ID fields to prevent cross-type
-    // confusion. Callers should use the top-level genetId (Firestore doc ID).
-    if (RegExp(r'^(PID|SF)-').hasMatch(genetId)) {
+    // confusion. Callers should use the top-level genetRecordId (Firestore doc ID).
+    if (RegExp(r'^(PID|SF)-').hasMatch(genetRecordId)) {
       LoggingService.instance.warning(
         'loadOrganismDocsForGenet called with provenance-formatted ID: '
-        '$genetId — expected a Firestore doc ID',
+        '$genetRecordId — expected a Firestore doc ID',
       );
     }
 
     final docsById = <String, QueryDocumentSnapshot<Map<String, dynamic>>>{};
     var hadQueryFailure = false;
 
-    // Primary query: top-level genetId field (canonical after Team Alpha unification)
+    // Primary query: top-level genetRecordId field (canonical after Team Alpha unification)
     try {
       final snapshot = await collection
-          .where('genetId', isEqualTo: genetId)
+          .where('genetRecordId', isEqualTo: genetRecordId)
           .get();
       for (final doc in snapshot.docs) {
         if (_isArchivedOrganismData(doc.data())) continue;
@@ -1213,7 +1213,7 @@ extension _TransferServiceValidation on TransferService {
       hadQueryFailure = true;
       LoggingService.instance.debug(
         'Transfer inventory primary query failed; will use in-memory filter',
-        {'genetId': genetId, 'code': e.code, 'message': e.message},
+        {'genetRecordId': genetRecordId, 'code': e.code, 'message': e.message},
       );
     }
 
@@ -1225,7 +1225,7 @@ extension _TransferServiceValidation on TransferService {
     if (hadQueryFailure) {
       LoggingService.instance.debug(
         'Transfer inventory query incomplete; scanning for genet matches',
-        {'genetId': genetId, 'seededMatches': docsById.length},
+        {'genetRecordId': genetRecordId, 'seededMatches': docsById.length},
       );
     }
 
@@ -1233,7 +1233,7 @@ extension _TransferServiceValidation on TransferService {
     for (final doc in snapshot.docs) {
       final data = doc.data();
       if (_isArchivedOrganismData(data)) continue;
-      if (matchesGenetId(data, genetId)) {
+      if (matchesGenetId(data, genetRecordId)) {
         docsById[doc.id] = doc;
       }
     }

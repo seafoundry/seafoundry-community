@@ -7,7 +7,7 @@ part of 'transfer_service.dart';
 /// and email recipients.
 extension _TransferServiceInitiation on TransferService {
   Future<TransferEvent> performInitiateTransfer({
-    required String genetId,
+    required String genetRecordId,
     required String toOrganizationId,
     required int quantity,
     String? sourceStructureUrlPath,
@@ -29,9 +29,9 @@ extension _TransferServiceInitiation on TransferService {
           'Transfers must be sent to a different organization.',
         );
       }
-      final genet = await _provenanceRepository.getRecordForId(genetId);
+      final genet = await _provenanceRepository.getRecordForId(genetRecordId);
       if (genet == null) {
-        throw TransferWorkflowException('Genet not found: $genetId');
+        throw TransferWorkflowException('Genet not found: $genetRecordId');
       }
 
       // Pre-fetch data needed for transfer creation
@@ -61,8 +61,8 @@ extension _TransferServiceInitiation on TransferService {
 
       final draft = TransferEvent.initiate(
         id: transferId,
-        genetId: genetId,
-        recordId: genetId,
+        genetRecordId: genetRecordId,
+        recordId: genetRecordId,
         createdById: user.id,
         createdAt: nowIso,
         updatedAt: nowIso,
@@ -121,12 +121,12 @@ extension _TransferServiceInitiation on TransferService {
       // Validate inventory before creating transfer
       // Note: Reads are done outside transaction to avoid async issues inside transaction callbacks
       final sourceInventory = await getSourceInventoryCount(
-        genetId: genetId,
+        genetRecordId: genetRecordId,
         sourceStructureUrlPath: sourceStructureUrlPath,
       );
 
       final pendingOutbound = await getPendingOutboundCount(
-        genetId: genetId,
+        genetRecordId: genetRecordId,
         sourceStructureUrlPath: sourceStructureUrlPath,
       );
 
@@ -134,7 +134,7 @@ extension _TransferServiceInitiation on TransferService {
       LoggingService.instance.info(
         '🔍 Transfer validation: inventory calculation',
         {
-          'genetId': genetId,
+          'genetRecordId': genetRecordId,
           'sourceInventory': sourceInventory,
           'pendingOutbound': pendingOutbound,
           'availableQuantity': availableQuantity,
@@ -155,7 +155,7 @@ extension _TransferServiceInitiation on TransferService {
       LoggingService.instance.debug(
         'Creating transfer event',
         {
-          'genetId': genetId,
+          'genetRecordId': genetRecordId,
           'transferId': transferId,
           'organizationId': organization.id,
           'toOrganizationId': targetOrganization.id,
@@ -180,7 +180,7 @@ extension _TransferServiceInitiation on TransferService {
           'Transfer transaction started',
           {
             'transferId': transferId,
-            'genetId': genetId,
+            'genetRecordId': genetRecordId,
             'organizationId': organization.id,
             'collectionPath': docRef.path,
           },
@@ -188,7 +188,7 @@ extension _TransferServiceInitiation on TransferService {
         try {
           final locked = await lockOrganismsInTransaction(
             transaction: transaction,
-            genetId: genetId,
+            genetRecordId: genetRecordId,
             transferId: transferId,
             quantity: quantity,
             organizationId: organization.id,
@@ -356,7 +356,7 @@ extension _TransferServiceInitiation on TransferService {
   }
 
   Future<TransferEvent> performInitiateTransferToEmail({
-    required String genetId,
+    required String genetRecordId,
     required String toOrganizationEmail,
     required int quantity,
     String? sourceStructureUrlPath,
@@ -380,9 +380,9 @@ extension _TransferServiceInitiation on TransferService {
         );
       }
 
-      final genet = await _provenanceRepository.getRecordForId(genetId);
+      final genet = await _provenanceRepository.getRecordForId(genetRecordId);
       if (genet == null) {
-        throw TransferWorkflowException('Genet not found: $genetId');
+        throw TransferWorkflowException('Genet not found: $genetRecordId');
       }
 
       final organization = _provenanceRepository.organization;
@@ -410,8 +410,8 @@ extension _TransferServiceInitiation on TransferService {
       // Create draft with email instead of organization ID
       final draft = TransferEvent.initiate(
         id: transferId,
-        genetId: genetId,
-        recordId: genetId,
+        genetRecordId: genetRecordId,
+        recordId: genetRecordId,
         createdById: user.id,
         createdAt: nowIso,
         updatedAt: nowIso,
@@ -471,12 +471,12 @@ extension _TransferServiceInitiation on TransferService {
 
       // Validate inventory before creating transfer
       final sourceInventory = await getSourceInventoryCount(
-        genetId: genetId,
+        genetRecordId: genetRecordId,
         sourceStructureUrlPath: sourceStructureUrlPath,
       );
 
       final pendingOutbound = await getPendingOutboundCount(
-        genetId: genetId,
+        genetRecordId: genetRecordId,
         sourceStructureUrlPath: sourceStructureUrlPath,
       );
 
@@ -484,7 +484,7 @@ extension _TransferServiceInitiation on TransferService {
       LoggingService.instance.info(
         '🔍 Transfer validation: inventory calculation',
         {
-          'genetId': genetId,
+          'genetRecordId': genetRecordId,
           'sourceInventory': sourceInventory,
           'pendingOutbound': pendingOutbound,
           'availableQuantity': availableQuantity,
@@ -505,7 +505,7 @@ extension _TransferServiceInitiation on TransferService {
       LoggingService.instance.debug(
         'Creating email-based transfer event',
         {
-          'genetId': genetId,
+          'genetRecordId': genetRecordId,
           'transferId': transferId,
           'organizationId': organization.id,
           'toOrganizationEmail': trimmedEmail,
@@ -521,7 +521,7 @@ extension _TransferServiceInitiation on TransferService {
       ) async {
         final locked = await lockOrganismsInTransaction(
           transaction: transaction,
-          genetId: genetId,
+          genetRecordId: genetRecordId,
           transferId: transferId,
           quantity: quantity,
           organizationId: organization.id,

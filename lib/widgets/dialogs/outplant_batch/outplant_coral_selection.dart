@@ -65,7 +65,7 @@ class OutplantOrganismSelectionRow extends StatelessWidget {
           tagId: organism.tagId,
           localGenetId: organism.localGenetId,
           urlPath: organism.urlPath,
-          genetId: organism.genetId,
+          genetRecordId: organism.genetRecordId,
           showUnderline: false,
           disableNavigation: true,
         ),

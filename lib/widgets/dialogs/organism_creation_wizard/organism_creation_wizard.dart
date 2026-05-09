@@ -271,7 +271,7 @@ class OrganismCreationWizard extends StatelessWidget {
         firestore: firestore,
       );
 
-      if (record.genetId == null) {
+      if (record.genetRecordId == null) {
         final genetLocalId = record.localGenetId?.trim();
         if (genetLocalId != null && genetLocalId.isNotEmpty) {
           final isGenetUnique = await validationService.isGenetNameUnique(
@@ -290,7 +290,7 @@ class OrganismCreationWizard extends StatelessWidget {
     }
 
     var recordToSave = record;
-    if (record.genetId == null) {
+    if (record.genetRecordId == null) {
       if (genetRepository == null) {
         throw RepositoryError(
           message: 'Genet repository not available for creation.',
@@ -359,7 +359,7 @@ class OrganismCreationWizard extends StatelessWidget {
         genetDraft,
         inheritedProvenanceId: creationResult.inheritedProvenanceId,
       );
-      recordToSave = record.copyWith(genetId: createdGenet.id);
+      recordToSave = record.copyWith(genetRecordId: createdGenet.id);
     }
 
     OrganismRecordRepository? repository;

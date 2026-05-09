@@ -628,7 +628,7 @@ extension _TransferServiceManifest on TransferService {
   ///
   /// This creates the inventory holding at the destination site/group when a
   /// transfer is accepted. The organism record will be linked to the newly
-  /// created genet via [genetId].
+  /// created genet via [genetRecordId].
   ///
   /// Unlike [createGenetFromManifest], this method creates the inventory record
   /// that appears in the receiving org's inventory views.
@@ -807,7 +807,7 @@ extension _TransferServiceManifest on TransferService {
           ? PhysicalFormInstance(formId: physicalFormId, sizeBandId: sizeBandId)
           : null,
       sizeSpec: sizeSpec,
-      genetId: createdGenet.id,
+      genetRecordId: createdGenet.id,
       ownerOrganizationId: ownership['ownerOrganizationId'],
       managingOrganizationId: ownership['managingOrganizationId'],
       metadata: metadata,

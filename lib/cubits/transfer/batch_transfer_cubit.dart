@@ -149,13 +149,13 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
     ));
   }
 
-  void setFixedGenet(String genetId, String localGenetId, int availableInventory) {
+  void setFixedGenet(String genetRecordId, String localGenetId, int availableInventory) {
     // Clear cart when genet changes — items store the genet reference.
     final shouldClear = state.fixedGenetId != null &&
-        state.fixedGenetId != genetId &&
+        state.fixedGenetId != genetRecordId &&
         state.items.isNotEmpty;
     emit(state.copyWith(
-      fixedGenetId: genetId,
+      fixedGenetId: genetRecordId,
       fixedGenetLocalId: localGenetId,
       availableInventory: availableInventory,
       items: shouldClear ? const [] : null,
@@ -165,42 +165,42 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
   // -- Cart operations ------------------------------------------------------
 
   Future<AddItemResult> addItem({
-    String? genetId,
+    String? genetRecordId,
     String? genetLocalId,
     String? organizationId,
     String? organizationName,
     required int quantity,
   }) async {
     if (state.mode == BatchTransferMode.multiGenetToOneOrg) {
-      return _addGenetItem(genetId, genetLocalId, quantity);
+      return _addGenetItem(genetRecordId, genetLocalId, quantity);
     }
     return _addOrgItem(organizationId, organizationName, quantity);
   }
 
   Future<AddItemResult> _addGenetItem(
-    String? genetId,
+    String? genetRecordId,
     String? genetLocalId,
     int quantity,
   ) async {
-    if (genetId == null || genetLocalId == null) {
+    if (genetRecordId == null || genetLocalId == null) {
       return AddItemResult.missingFixedTarget;
     }
     if (state.fixedOrganization == null) return AddItemResult.missingFixedTarget;
-    if (state.items.any((i) => i.genetId == genetId)) {
+    if (state.items.any((i) => i.genetRecordId == genetRecordId)) {
       return AddItemResult.duplicateGenet;
     }
 
-    final ownership = await _detectOwnership(genetId);
+    final ownership = await _detectOwnership(genetRecordId);
     if (isClosed) return AddItemResult.closed;
 
     // Re-check after async gap
-    if (state.items.any((i) => i.genetId == genetId)) {
+    if (state.items.any((i) => i.genetRecordId == genetRecordId)) {
       return AddItemResult.duplicateGenet;
     }
 
     final items = List<BatchTransferItem>.from(state.items);
     items.add(BatchTransferItem(
-      genetId: genetId,
+      genetRecordId: genetRecordId,
       genetLocalId: genetLocalId,
       toOrganizationId: state.fixedOrganization!.id,
       toOrganizationName: state.fixedOrganization!.name,
@@ -246,7 +246,7 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
 
     final items = List<BatchTransferItem>.from(state.items);
     items.add(BatchTransferItem(
-      genetId: state.fixedGenetId!,
+      genetRecordId: state.fixedGenetId!,
       genetLocalId: state.fixedGenetLocalId!,
       toOrganizationId: organizationId,
       toOrganizationName: organizationName,
@@ -347,7 +347,7 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
 
       try {
         final event = await _transferService.initiateTransfer(
-          genetId: items[i].genetId,
+          genetRecordId: items[i].genetRecordId,
           toOrganizationId: items[i].toOrganizationId,
           quantity: items[i].quantity,
           comment: state.comment.isNotEmpty ? state.comment : null,
@@ -391,14 +391,14 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
 
   // -- Helpers --------------------------------------------------------------
 
-  Future<_OwnershipDetection> _detectOwnership(String genetId) async {
+  Future<_OwnershipDetection> _detectOwnership(String genetRecordId) async {
     try {
       final organisms = await _organismRecordRepository
-          .queryByGenet(genetId)
+          .queryByGenet(genetRecordId)
           .first;
       if (organisms.isEmpty) {
         LoggingService.instance.warning(
-          'No organisms found for genet $genetId, defaulting to fullTransfer',
+          'No organisms found for genet $genetRecordId, defaulting to fullTransfer',
         );
         return const _OwnershipDetection(TransferOwnershipType.fullTransfer);
       }
@@ -417,7 +417,7 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
       return const _OwnershipDetection(TransferOwnershipType.fullTransfer);
     } catch (e) {
       LoggingService.instance.warning(
-        'Failed to detect ownership for genet $genetId, '
+        'Failed to detect ownership for genet $genetRecordId, '
         'defaulting to fullTransfer',
         e,
       );

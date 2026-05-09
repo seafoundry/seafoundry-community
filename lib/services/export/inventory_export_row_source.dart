@@ -105,7 +105,7 @@ class InventoryExportRowSource {
         .where((record) => record.organismKind == OrganismKind.coral)
         .toList();
 
-    // Bulk-load genets to resolve provenanceIds via genetId join
+    // Bulk-load genets to resolve provenanceIds via genetRecordId join
     final provenanceByGenetId = await _buildProvenanceIdLookup(coralOrganisms);
 
     for (final organismRecord in coralOrganisms) {
@@ -113,7 +113,7 @@ class InventoryExportRowSource {
           ? groupById[organismRecord.groupId]
           : null;
       final provenanceId =
-          provenanceByGenetId[organismRecord.genetId] ?? '';
+          provenanceByGenetId[organismRecord.genetRecordId] ?? '';
 
       final rowMap = _organismRecordToMap(organismRecord, group, provenanceId);
       rows.add(InventoryExportRow.fromHoldingMap(rowMap));
@@ -122,7 +122,7 @@ class InventoryExportRowSource {
     return rows;
   }
 
-  /// Builds a lookup from genetId -> provenanceId by loading genets from
+  /// Builds a lookup from genetRecordId -> provenanceId by loading genets from
   /// the repository. Returns an empty map when no [GenetRepository] is
   /// available (graceful fallback).
   Future<Map<String, String>> _buildProvenanceIdLookup(
@@ -130,7 +130,7 @@ class InventoryExportRowSource {
   ) async {
     if (_genetRepository == null) return const {};
     final genetIds = organisms
-        .map((r) => r.genetId)
+        .map((r) => r.genetRecordId)
         .whereType<String>()
         .where((id) => id.isNotEmpty)
         .toSet();

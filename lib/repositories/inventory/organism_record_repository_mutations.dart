@@ -77,7 +77,7 @@ mixin _OrganismRecordRepositoryMutations
       fullRecord = fullRecord.copyWith(siteId: parent.id, groupId: null);
     }
 
-    // Sync foreignKeys['genetId'] from top-level genetId at write time
+    // Sync foreignKeys['genetRecordId'] from top-level genetRecordId at write time
     fullRecord = _syncGenetIdForeignKey(fullRecord);
 
     final createEvent = await eventRepository.addCreateEvent(
@@ -137,7 +137,7 @@ mixin _OrganismRecordRepositoryMutations
     // Validate before updating
     validateOrganismRecord(record);
 
-    // Sync foreignKeys['genetId'] from top-level genetId at write time
+    // Sync foreignKeys['genetRecordId'] from top-level genetRecordId at write time
     final synced = _syncGenetIdForeignKey(record);
 
     await super.updateRecord(synced, batch: batch);
@@ -646,7 +646,7 @@ mixin _OrganismRecordRepositoryMutations
       'speciesId': updatedRecord.speciesId,
       'siteId': updatedRecord.siteId,
       'groupId': updatedRecord.groupId,
-      if (resolvedGenetId != null) 'genetId': resolvedGenetId,
+      if (resolvedGenetId != null) 'genetRecordId': resolvedGenetId,
       if (updatedRecord.lifeStage.stage.id.isNotEmpty)
         'lifeStageId': updatedRecord.lifeStage.stage.id,
     };
@@ -715,16 +715,16 @@ mixin _OrganismRecordRepositoryMutations
     return reason.isMortality;
   }
 
-  /// Ensures foreignKeys['genetId'] is set with a ForeignKeyReference when
-  /// the top-level genetId is present. This is the single write-time sync
+  /// Ensures foreignKeys['genetRecordId'] is set with a ForeignKeyReference when
+  /// the top-level genetRecordId is present. This is the single write-time sync
   /// point for genet ID consistency.
   OrganismRecord _syncGenetIdForeignKey(OrganismRecord record) {
-    final topLevelGenetId = record.genetId;
+    final topLevelGenetId = record.genetRecordId;
     if (topLevelGenetId == null || topLevelGenetId.isEmpty) {
       return record;
     }
 
-    final existingRef = record.foreignKeys['genetId'];
+    final existingRef = record.foreignKeys['genetRecordId'];
     // Already synced and matches
     if (existingRef != null && existingRef.id == topLevelGenetId) {
       return record;
@@ -735,7 +735,7 @@ mixin _OrganismRecordRepositoryMutations
     final updatedForeignKeys = Map<String, ForeignKeyReference>.from(
       record.foreignKeys,
     );
-    updatedForeignKeys['genetId'] = ForeignKeyReference(
+    updatedForeignKeys['genetRecordId'] = ForeignKeyReference(
       id: topLevelGenetId,
       metadata: existingRef?.metadata ?? const <String, dynamic>{},
     );
@@ -751,16 +751,16 @@ mixin _OrganismRecordRepositoryMutations
   /// For datasets <= 500 records, uses a Firestore transaction for true
   /// atomicity. For larger datasets, uses batches with 500-operation chunks.
   Future<int> updateLocalIdGenetWide({
-    required String genetId,
+    required String genetRecordId,
     required String newLocalId,
     required String updatedById,
   }) async {
-    final trimmedGenetId = genetId.trim();
+    final trimmedGenetId = genetRecordId.trim();
     final trimmedLocalId = newLocalId.trim();
 
     if (trimmedGenetId.isEmpty) {
       LoggingService.instance.warning(
-        'updateLocalIdGenetWide called with empty genetId',
+        'updateLocalIdGenetWide called with empty genetRecordId',
       );
       return 0;
     }
@@ -773,10 +773,10 @@ mixin _OrganismRecordRepositoryMutations
     }
 
     try {
-      // Get all organism records with this genetId
+      // Get all organism records with this genetRecordId
       final snapshot = await collectionRef
           .where('organizationId', isEqualTo: organization.id)
-          .where('genetId', isEqualTo: trimmedGenetId)
+          .where('genetRecordId', isEqualTo: trimmedGenetId)
           .get();
 
       if (snapshot.docs.isEmpty) {
@@ -807,7 +807,7 @@ mixin _OrganismRecordRepositoryMutations
 
         LoggingService.instance.info(
           'Updated localGenetId to "$trimmedLocalId" for $updatedCount records '
-          '(genetId: $trimmedGenetId) using transaction',
+          '(genetRecordId: $trimmedGenetId) using transaction',
         );
 
         return updatedCount;
@@ -836,13 +836,13 @@ mixin _OrganismRecordRepositoryMutations
 
       LoggingService.instance.info(
         'Updated localGenetId to "$trimmedLocalId" for $updatedCount records '
-        '(genetId: $trimmedGenetId) using ${(totalDocs / transactionLimit).ceil()} batches',
+        '(genetRecordId: $trimmedGenetId) using ${(totalDocs / transactionLimit).ceil()} batches',
       );
 
       return updatedCount;
     } catch (e, stackTrace) {
       LoggingService.instance.error(
-        'Error updating localGenetId genet-wide for genetId: $trimmedGenetId',
+        'Error updating localGenetId genet-wide for genetRecordId: $trimmedGenetId',
         e,
         stackTrace,
       );

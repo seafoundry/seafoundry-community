@@ -13,7 +13,7 @@ import 'package:seafoundry_app/services/csv/v2/csv_v2_spec_extensions.dart';
 // Column Name           | ID Type              | Description
 // ----------------------|----------------------|----------------------------
 // organismId            | Firestore doc ID     | OrganismRecord document ID
-// genetId               | Firestore doc ID     | Genet document ID
+// genetRecordId               | Firestore doc ID     | Genet document ID
 // provenanceId          | Lineage ID (PID-)    | Genet.provenanceId
 // genetProvenanceId     | Lineage ID (PID-)    | Explicit genet lineage ID
 // holdingId             | Firestore doc ID     | Holding document ID
@@ -62,7 +62,7 @@ class CsvColumnNames {
 
   /// Firestore document ID for a Genet record.
   /// Expected format: alphanumeric Firestore auto-ID (NOT a PID- lineage ID).
-  static const String genetId = 'genetId';
+  static const String genetRecordId = 'genetRecordId';
 
   /// Firestore document ID for a Holding record.
   /// Expected format: alphanumeric Firestore auto-ID (NOT a PID- lineage ID).

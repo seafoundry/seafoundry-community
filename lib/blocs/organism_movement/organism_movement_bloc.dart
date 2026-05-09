@@ -294,7 +294,7 @@ class OrganismMovementBloc
           createdById: _organismRepository.user.id,
           updatedById: _organismRepository.user.id,
           // provenanceType and provenanceAttributes preserved via copyWith
-          // genetId and foreignKeys preserved via copyWith
+          // genetRecordId and foreignKeys preserved via copyWith
           metadata: {
             ...?organism.metadata,
             'sourceOrganismId': organism.id,

@@ -70,7 +70,7 @@ class InventoryExportRow {
     final healthStatus = organism.healthStatus;
     final size = organism.coralSize?.toString() ?? '';
     final notes = organism.notes ?? '';
-    final genetId = genet?.id ?? GenetIdResolver.resolve(organism) ?? '';
+    final genetRecordId = genet?.id ?? GenetIdResolver.resolve(organism) ?? '';
     // Provenance ID comes from the actual Genet record, not from stale FK
     // metadata. If no genet is loaded, leave empty.
     final lineageProvenanceId = genet?.provenanceId ?? '';
@@ -101,7 +101,7 @@ class InventoryExportRow {
       'size': size,
       'notes': notes,
       'lastEventAt': organism.updatedAt,
-      'genetId': genetId,
+      'genetRecordId': genetRecordId,
       'lifeStageId': lifeStage.id,
       'lifeStageName': lifeStage.displayName,
       'provenanceType': provenanceMetadata.id,

@@ -551,7 +551,7 @@ class OutplantConsolidatedCsvImporter {
       organismId: organism.id,
       tagId: row.tagId ?? organism.tagId,
       speciesId: organism.speciesId ?? '',
-      genetId: GenetIdResolver.resolve(organism),
+      genetRecordId: GenetIdResolver.resolve(organism),
       quantity: row.quantity,
       sourcePath: organism.urlPath,
       groupId: structure?.id,

@@ -35,7 +35,7 @@ class GenetIdLink extends StatelessWidget {
   const GenetIdLink({
     super.key,
     required this.localGenetId,
-    this.genetId,
+    this.genetRecordId,
     this.style,
     this.showUnderline = true,
     this.maxLines = 1,
@@ -45,7 +45,7 @@ class GenetIdLink extends StatelessWidget {
   });
 
   final String localGenetId;
-  final String? genetId;
+  final String? genetRecordId;
   final TextStyle? style;
   final bool showUnderline;
   final int? maxLines;
@@ -57,8 +57,8 @@ class GenetIdLink extends StatelessWidget {
   Widget build(BuildContext context) {
     final trimmed = localGenetId.trim();
     if (trimmed.isEmpty) return const SizedBox.shrink();
-    final resolvedId = (genetId != null && genetId!.trim().isNotEmpty)
-        ? genetId!.trim()
+    final resolvedId = (genetRecordId != null && genetRecordId!.trim().isNotEmpty)
+        ? genetRecordId!.trim()
         : trimmed;
     VoidCallback? onTapCallback;
     if (resolvedId.isNotEmpty) {
@@ -137,7 +137,7 @@ class OrganismReferenceLinks extends StatelessWidget {
     required this.tagId,
     required this.localGenetId,
     this.urlPath,
-    this.genetId,
+    this.genetRecordId,
     this.separator = ' * ',
     this.style,
     this.recordNameStyle,
@@ -154,7 +154,7 @@ class OrganismReferenceLinks extends StatelessWidget {
   final String? tagId;
   final String? localGenetId;
   final String? urlPath;
-  final String? genetId;
+  final String? genetRecordId;
   final String separator;
   final TextStyle? style;
   final TextStyle? recordNameStyle;
@@ -218,7 +218,7 @@ class OrganismReferenceLinks extends StatelessWidget {
     if (!hasRecord) {
       return GenetIdLink(
         localGenetId: localValue,
-        genetId: genetId,
+        genetRecordId: genetRecordId,
         style: resolvedLocalStyle,
         showUnderline: showUnderline,
         maxLines: maxLines,
@@ -255,7 +255,7 @@ class OrganismReferenceLinks extends StatelessWidget {
           fit: FlexFit.loose,
           child: GenetIdLink(
             localGenetId: localValue,
-            genetId: genetId,
+            genetRecordId: genetRecordId,
             style: resolvedLocalStyle,
             showUnderline: showUnderline,
             maxLines: maxLines,

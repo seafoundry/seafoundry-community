@@ -79,7 +79,7 @@ const Map<String, String> _coralFieldLabels = {
   'tagId': 'Record Name',
   'quantity': 'Quantity',
   'physicalForm.formId': 'Physical Form',
-  'genetId': 'Genet ID',
+  'genetRecordId': 'Genet ID',
   'siteId': 'Site',
   'groupId': 'Structure',
   'notes': 'Notes',
@@ -265,7 +265,7 @@ class _GeneticsEventsTableState extends State<GeneticsEventsTable>
                 eventTypeId: candidate.eventTypeId,
                 resolveUserName: (userId) =>
                     _resolveUserName(userId, recordRepository),
-                resolveGenet: (genetId) => _resolveGenet(genetId, genetRepository),
+                resolveGenet: (genetRecordId) => _resolveGenet(genetRecordId, genetRepository),
                 resolveOrganism: (organismId) =>
                     _resolveOrganism(organismId, organismRepository),
               );
@@ -346,8 +346,8 @@ class _GeneticsEventsTableState extends State<GeneticsEventsTable>
     );
   }
 
-  Future<Genet?> _resolveGenet(String? genetId, GenetRepository genetRepository) async {
-    final id = genetId?.trim();
+  Future<Genet?> _resolveGenet(String? genetRecordId, GenetRepository genetRepository) async {
+    final id = genetRecordId?.trim();
     if (id == null || id.isEmpty) return null;
     if (_genetCache.containsKey(id)) {
       return _genetCache[id];
@@ -897,7 +897,7 @@ class _GeneticsEventRow {
         recordDisplay = _asNonEmptyString(snapshot.name) ?? event.recordId;
         recordLink = GenetIdLink(
           localGenetId: snapshot.localGenetId ?? snapshot.name,
-          genetId: snapshot.id,
+          genetRecordId: snapshot.id,
           showUnderline: true,
         );
         speciesName = _speciesLabel(snapshot.speciesId);
@@ -912,13 +912,13 @@ class _GeneticsEventRow {
           tagId: snapshot.tagId,
           localGenetId: snapshot.localGenetId,
           urlPath: snapshot.urlPath,
-          genetId: snapshot.genetId,
+          genetRecordId: snapshot.genetRecordId,
           showUnderline: true,
         );
         speciesName = _speciesLabel(snapshot.speciesId);
         fallbackLifeStageId = snapshot.lifeStage.stage.id;
-        final genetId = GenetIdResolver.resolve(snapshot);
-        final genet = await resolveGenet(genetId);
+        final genetRecordId = GenetIdResolver.resolve(snapshot);
+        final genet = await resolveGenet(genetRecordId);
         provenanceTypeId = genet?.provenanceTypeId;
         applySelection(buildProvenanceSelection(organism: snapshot, provenance: genet));
         description = _describeOrganismInventoryEvent(event, snapshot);
@@ -936,7 +936,7 @@ class _GeneticsEventRow {
       if (genet != null) {
         recordLink = GenetIdLink(
           localGenetId: genet.localGenetId ?? genet.name,
-          genetId: genet.id,
+          genetRecordId: genet.id,
           showUnderline: true,
         );
       }
@@ -953,7 +953,7 @@ class _GeneticsEventRow {
         if (genet != null) {
           recordLink = GenetIdLink(
             localGenetId: genet.localGenetId ?? genet.name,
-            genetId: genet.id,
+            genetRecordId: genet.id,
             showUnderline: true,
           );
         }
@@ -978,15 +978,15 @@ class _GeneticsEventRow {
             tagId: organism.tagId,
             localGenetId: organism.localGenetId,
             urlPath: organism.urlPath,
-            genetId: organism.genetId,
+            genetRecordId: organism.genetRecordId,
             showUnderline: true,
           );
         }
         speciesName = _speciesLabel(organism?.speciesId);
         fallbackLifeStageId = organism?.lifeStage.stage.id ?? fallbackLifeStageId;
         if (organism != null) {
-          final genetId = GenetIdResolver.resolve(organism);
-          final genet = await resolveGenet(genetId);
+          final genetRecordId = GenetIdResolver.resolve(organism);
+          final genet = await resolveGenet(genetRecordId);
           provenanceTypeId = genet?.provenanceTypeId ?? provenanceTypeId;
           applySelection(buildProvenanceSelection(organism: organism, provenance: genet));
           if (genet != null) {
@@ -1003,7 +1003,7 @@ class _GeneticsEventRow {
       final manifestName =
           _asNonEmptyString(manifestGenet['name']) ??
           _asNonEmptyString(manifestGenet['localGenetId']);
-      recordDisplay = manifestName ?? event.genetId ?? event.recordId;
+      recordDisplay = manifestName ?? event.genetRecordId ?? event.recordId;
 
       final manifestSpeciesId = _asNonEmptyString(manifestGenet['speciesId']);
       if (manifestSpeciesId != null) {
@@ -1024,7 +1024,7 @@ class _GeneticsEventRow {
       applySelection(
         buildTransferProvenanceSelection(
           transfer: event,
-          provenance: await resolveGenet(event.genetId),
+          provenance: await resolveGenet(event.genetRecordId),
         ),
       );
 

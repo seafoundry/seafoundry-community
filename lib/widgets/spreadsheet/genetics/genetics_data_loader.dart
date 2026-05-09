@@ -56,13 +56,13 @@ class GeneticsSpreadsheetDataLoader {
 
     final organismsByGenet = <String, List<OrganismRecord>>{};
     for (final organism in coralOrganisms) {
-      final genetId = GenetIdResolver.resolve(organism) ?? '';
-      if (genetId.isEmpty) continue;
+      final genetRecordId = GenetIdResolver.resolve(organism) ?? '';
+      if (genetRecordId.isEmpty) continue;
       final healthStatus = organism.healthStatus;
       if (!includeInactiveCorals && !healthStatus.isActiveInventory) {
         continue;
       }
-      organismsByGenet.putIfAbsent(genetId, () => <OrganismRecord>[]).add(organism);
+      organismsByGenet.putIfAbsent(genetRecordId, () => <OrganismRecord>[]).add(organism);
     }
 
     final rows = <Map<String, dynamic>>[];

@@ -173,7 +173,7 @@ class InventoryHoldingRowBuilder {
       // Fall back to holding.id if provenanceId is not set (for round-trip compatibility)
       'provenanceId': holding.provenanceId ?? holding.id,
       'provenanceKind': resolvedProvenanceKind,
-      'genetId': holding.provenanceId ?? '',
+      'genetRecordId': holding.provenanceId ?? '',
       'cohortId': holding.cohortId ?? '',
       'notes': metadataValue(metadata, 'notes'),
       'permitType': permitType,

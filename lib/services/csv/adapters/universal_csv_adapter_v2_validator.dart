@@ -95,7 +95,7 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
         ),
       );
     }
-    final genetIdRaw = row['genetId'] ?? '';
+    final genetIdRaw = row['genetRecordId'] ?? '';
     final genetIdIsLegacy = CsvColumnNames.isLegacyProvenanceIdFormat(
       genetIdRaw,
     );
@@ -104,10 +104,10 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
       issues.add(
         CsvTranslationIssue(
           rowNumber: rowNumber,
-          field: 'genetId',
+          field: 'genetRecordId',
           value: genetIdRaw,
           message:
-              'genetId must be a Firestore document ID, not a '
+              'genetRecordId must be a Firestore document ID, not a '
               'lineage ID (PID- prefix). '
               'Use genetProvenanceId for genet lineage identifiers.',
         ),

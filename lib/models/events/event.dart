@@ -441,7 +441,7 @@ class OutplantEvent extends Event {
           organismId: organismId,
           tagId: snapshot['tagId'] ?? 'Record',
           speciesId: snapshot['speciesId'] ?? '',
-          genetId: snapshot['genetId'],
+          genetRecordId: snapshot['genetRecordId'],
           outplantTagId: json['outplantTagId'],
           tagName: json['tagName'],
           tagPath: json['tagPath'],
@@ -458,7 +458,7 @@ class OutplantEvent extends Event {
           organismId: json['recordId'] ?? '',
           tagId: 'Record',
           speciesId: '',
-          genetId: null,
+          genetRecordId: null,
           outplantTagId: json['outplantTagId'],
           tagName: json['tagName'],
           tagPath: json['tagPath'],
@@ -488,7 +488,7 @@ class OutplantAllocation {
     required this.organismId,
     required this.tagId,
     required this.speciesId,
-    this.genetId,
+    this.genetRecordId,
     this.outplantTagId,
     this.tagName,
     this.tagPath,
@@ -503,7 +503,7 @@ class OutplantAllocation {
   final String organismId;
   final String tagId;
   final String speciesId;
-  final String? genetId;
+  final String? genetRecordId;
   final String? outplantTagId;
   final String? tagName;
   final String? tagPath;
@@ -526,7 +526,7 @@ class OutplantAllocation {
       'organismId': organismId,
       'tagId': tagId,
       'speciesId': speciesId,
-      if (genetId != null) 'genetId': genetId,
+      if (genetRecordId != null) 'genetRecordId': genetRecordId,
       if (outplantTagId != null) 'outplantTagId': outplantTagId,
       if (tagName != null) 'tagName': tagName,
       if (tagPath != null) 'tagPath': tagPath,
@@ -547,7 +547,7 @@ class OutplantAllocation {
       organismId: organismId,
       tagId: tagId,
       speciesId: json['speciesId'] ?? '',
-      genetId: json['genetId'],
+      genetRecordId: json['genetRecordId'],
       outplantTagId: json['outplantTagId'],
       tagName: json['tagName'],
       tagPath: json['tagPath'],

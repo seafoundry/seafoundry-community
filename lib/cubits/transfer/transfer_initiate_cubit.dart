@@ -320,7 +320,7 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
   /// For organization mode, uses the selected organization.
   /// For email mode, uses the recipient email address.
   Future<TransferEvent> submitTransfer({
-    required String genetId,
+    required String genetRecordId,
     required int quantity,
     required ProvenanceLifeStageSelection provenanceSelection,
     required String physicalFormId,
@@ -360,7 +360,7 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
           );
         }
         transfer = await transferService.initiateTransfer(
-          genetId: genetId,
+          genetRecordId: genetRecordId,
           toOrganizationId: destination.id,
           quantity: quantity,
           sourceStructureUrlPath: sourceStructureUrlPath,
@@ -387,7 +387,7 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
           throw StateError('Recipient email required for email mode');
         }
         transfer = await transferService.initiateTransferToEmail(
-          genetId: genetId,
+          genetRecordId: genetRecordId,
           toOrganizationEmail: email,
           quantity: quantity,
           sourceStructureUrlPath: sourceStructureUrlPath,
