@@ -21,7 +21,7 @@ class CommunityProvenanceRecord {
     required this.isSR,
     this.metadata,
     required this.sources,
-    this.moteUniversalIds = const [],
+    this.partnerIds = const [],
   });
 
   final String provenanceId;
@@ -34,7 +34,7 @@ class CommunityProvenanceRecord {
   final bool isSR;
   final Map<String, dynamic>? metadata;
   final List<String> sources;
-  final List<String> moteUniversalIds;
+  final List<String> partnerIds;
 
   factory CommunityProvenanceRecord.fromJson(Map<String, dynamic> json) {
     return CommunityProvenanceRecord(
@@ -56,8 +56,8 @@ class CommunityProvenanceRecord {
               ?.map((s) => s as String)
               .toList() ??
           [],
-      moteUniversalIds:
-          (json['moteUniversalIds'] as List<dynamic>?)
+      partnerIds:
+          (json['partnerIds'] as List<dynamic>?)
               ?.map((s) => s as String)
               .toList() ??
           [],
@@ -75,7 +75,7 @@ class CommunityProvenanceRecord {
     'isSR': isSR,
     'metadata': metadata,
     'sources': sources,
-    'moteUniversalIds': moteUniversalIds,
+    'partnerIds': partnerIds,
   };
 
   /// Get all alias IDs as a flat list
