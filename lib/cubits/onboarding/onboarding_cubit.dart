@@ -613,7 +613,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
     final defaultLifeStage = _getDefaultLifeStage(organismKind);
     final defaultLocalId = _getDefaultLocalId(organismKind);
 
-    // Create and register recordName controller with localId as default.
+    // Create and register tagId controller with localId as default.
     final recordNameCtrl = _registerController(
       TextEditingController(text: defaultLocalId),
     );
@@ -685,7 +685,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
         accessionNumber: organismState.accessionNumber,
         inheritedProvenanceId:
             organismState.provenanceSearch.resolvedProvenanceId,
-        recordName:
+        tagId:
             organismState.recordNameController?.text.trim().isNotEmpty == true
             ? organismState.recordNameController!.text.trim()
             : null,
@@ -995,7 +995,7 @@ class OnboardingCubit extends Cubit<OnboardingState>
     }
   }
 
-  /// Handle local ID edits and keep recordName auto-suggested when allowed.
+  /// Handle local ID edits and keep tagId auto-suggested when allowed.
   void localIdChanged(String localId) {
     if (state is! OnboardingFirstOrganismSetup) return;
     var currentState = state as OnboardingFirstOrganismSetup;

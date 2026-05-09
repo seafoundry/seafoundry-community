@@ -46,7 +46,7 @@ class CsvV2SpecExtensions {
     'organismKind', // Taxonomy axis
     'speciesCode', // Taxonomy axis
     'localId', // Required identifier
-    'recordName', // Required record label
+    'tagId', // Required record label
     'provenanceId', // Provenance axis
     'lifeStage', // Life Stage axis
     'quantityValue', // Measurement axis
@@ -79,7 +79,7 @@ class CsvV2SpecExtensions {
     'speciesScientific',
     'speciesCode',
     'localId',
-    'recordName',
+    'tagId',
     'lifeStage',
     'eventType',
     'eventDate',
@@ -116,7 +116,7 @@ class CsvV2SpecExtensions {
     'speciesCode',
     'speciesId',
     'localId',
-    'recordName',
+    'tagId',
     'accessionId',
     'provenanceId',
     'provenanceKind',

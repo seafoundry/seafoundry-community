@@ -83,7 +83,7 @@ class GenetIdLink extends StatelessWidget {
 class RecordNameLink extends StatelessWidget {
   const RecordNameLink({
     super.key,
-    required this.recordName,
+    required this.tagId,
     this.urlPath,
     this.style,
     this.showUnderline = true,
@@ -93,7 +93,7 @@ class RecordNameLink extends StatelessWidget {
     this.onTap,
   });
 
-  final String recordName;
+  final String tagId;
   final String? urlPath;
   final TextStyle? style;
   final bool showUnderline;
@@ -104,7 +104,7 @@ class RecordNameLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trimmed = recordName.trim();
+    final trimmed = tagId.trim();
     if (trimmed.isEmpty) return const SizedBox.shrink();
     final path = urlPath?.trim() ?? '';
     VoidCallback? onTapCallback;
@@ -134,7 +134,7 @@ class RecordNameLink extends StatelessWidget {
 class OrganismReferenceLinks extends StatelessWidget {
   const OrganismReferenceLinks({
     super.key,
-    required this.recordName,
+    required this.tagId,
     required this.localId,
     this.urlPath,
     this.genetId,
@@ -151,7 +151,7 @@ class OrganismReferenceLinks extends StatelessWidget {
     this.onGenetTap,
   });
 
-  final String? recordName;
+  final String? tagId;
   final String? localId;
   final String? urlPath;
   final String? genetId;
@@ -172,7 +172,7 @@ class OrganismReferenceLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final recordValue = recordName?.trim() ?? '';
+    final recordValue = tagId?.trim() ?? '';
     final localValue = localId?.trim() ?? '';
     if (recordValue.isEmpty && localValue.isEmpty) {
       return const SizedBox.shrink();
@@ -204,7 +204,7 @@ class OrganismReferenceLinks extends StatelessWidget {
 
     if (!hasLocal) {
       return RecordNameLink(
-        recordName: recordValue,
+        tagId: recordValue,
         urlPath: urlPath,
         style: resolvedRecordStyle,
         showUnderline: showUnderline,
@@ -234,7 +234,7 @@ class OrganismReferenceLinks extends StatelessWidget {
         Flexible(
           fit: FlexFit.loose,
           child: RecordNameLink(
-            recordName: recordValue,
+            tagId: recordValue,
             urlPath: urlPath,
             style: resolvedRecordStyle,
             showUnderline: showUnderline,
@@ -376,12 +376,12 @@ NavigationCubit? _maybeNavigationCubit(BuildContext context) {
 
 String formatOrganismReferenceLabel({
   required String? localId,
-  required String? recordName,
+  required String? tagId,
   String separator = ' * ',
   String fallback = '',
 }) {
   final localValue = localId?.trim() ?? '';
-  final recordValue = recordName?.trim() ?? '';
+  final recordValue = tagId?.trim() ?? '';
   final hasLocal = localValue.isNotEmpty;
   final hasRecord = recordValue.isNotEmpty;
 
@@ -395,12 +395,12 @@ String formatOrganismReferenceLabel({
 
 class RecordDisplayInfo {
   const RecordDisplayInfo({
-    required this.recordName,
+    required this.tagId,
     this.localId,
     this.isHidden = false,
   });
 
-  final String recordName;
+  final String tagId;
   final String? localId;
   final bool isHidden;
 }
@@ -411,26 +411,26 @@ RecordDisplayInfo resolveRecordDisplayInfo({
   required bool showUuid,
   required bool showIdentifier,
   required String recordId,
-  required String? recordName,
+  required String? tagId,
   required String? localId,
   String hiddenLabel = kHiddenIdentifierLabel,
 }) {
   if (!showIdentifier) {
     final resolvedLocalId = localId?.trim();
     return RecordDisplayInfo(
-      recordName: (resolvedLocalId != null && resolvedLocalId.isNotEmpty)
+      tagId: (resolvedLocalId != null && resolvedLocalId.isNotEmpty)
           ? resolvedLocalId
           : hiddenLabel,
       isHidden: true,
     );
   }
 
-  final resolvedName = showUuid ? recordId.trim() : (recordName?.trim() ?? '');
+  final resolvedName = showUuid ? recordId.trim() : (tagId?.trim() ?? '');
   final fallbackName = resolvedName.isNotEmpty ? resolvedName : recordId.trim();
   final resolvedLocalId = localId?.trim();
 
   return RecordDisplayInfo(
-    recordName: fallbackName,
+    tagId: fallbackName,
     localId: (resolvedLocalId == null || resolvedLocalId.isEmpty)
         ? null
         : resolvedLocalId,

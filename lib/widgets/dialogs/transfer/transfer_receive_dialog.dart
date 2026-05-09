@@ -580,7 +580,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
     final ownerOrgId = _ownerOrgController.text.trim();
     final managingOrgId = _managingOrgController.text.trim();
     final uniqueOk = await _validateUniqueFields(
-      recordName: name,
+      tagId: name,
       localId: localId,
     );
     if (!uniqueOk || !mounted) return;
@@ -610,7 +610,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
   }
 
   Future<bool> _validateUniqueFields({
-    required String recordName,
+    required String tagId,
     required String localId,
   }) async {
     final service = _validationService;
@@ -629,7 +629,7 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
 
     String? localIdError;
 
-    final resolvedLocalId = localId.isEmpty ? recordName : localId;
+    final resolvedLocalId = localId.isEmpty ? tagId : localId;
     try {
       final unique = await service.isGenetLocalIdUnique(
         localId: resolvedLocalId,

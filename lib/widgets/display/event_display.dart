@@ -312,7 +312,7 @@ class EventDisplay extends StatelessWidget {
         rows.add(MapEntry('Comment', event.comment!));
       }
       for (final alloc in event.allocations.take(5)) {
-        rows.add(MapEntry('  ${alloc.recordName}', 'qty: ${alloc.quantity}'));
+        rows.add(MapEntry('  ${alloc.tagId}', 'qty: ${alloc.quantity}'));
       }
       if (event.allocations.length > 5) {
         rows.add(MapEntry('', '...and ${event.allocations.length - 5} more'));

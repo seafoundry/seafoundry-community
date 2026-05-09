@@ -89,7 +89,7 @@ class OrganismRecordEditState extends Equatable {
   /// Maps to PID and by association to clonalID/alias/accession.
   final String? localIdOverride;
 
-  /// Override for the recordName (user-friendly distinguishing name, e.g., "Fluffy").
+  /// Override for the tagId (user-friendly distinguishing name, e.g., "Fluffy").
   /// Used to distinguish between multiple organism records of the same genet.
   final String? recordNameOverride;
 
@@ -171,7 +171,7 @@ class OrganismRecordEditState extends Equatable {
   /// Whether the current user's org is a custodian (managing but not owning).
   ///
   /// A custodian can only edit location/quantity, NOT identity fields like
-  /// recordName, localId, ownership, or provenance/genetics.
+  /// tagId, localId, ownership, or provenance/genetics.
   bool get isCustodian {
     final ownerOrgId = originalRecord.ownerOrganizationId;
     final managerOrgId = originalRecord.managingOrganizationId;

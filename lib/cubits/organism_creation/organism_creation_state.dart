@@ -78,7 +78,7 @@ class OrganismCreationState extends Equatable {
     this.transferEmail,
     this.aliases = const <OrganismAlias>[],
     this.localId,
-    this.recordName,
+    this.tagId,
     this.ownerOrganizationId,
     this.managingOrganizationId,
     this.selectedGenet,
@@ -136,7 +136,7 @@ class OrganismCreationState extends Equatable {
 
   /// Required name for the individual record instance.
   /// This is separate from localId which is the genet's identifier.
-  final String? recordName;
+  final String? tagId;
 
   /// Optional owner organization ID.
   final String? ownerOrganizationId;
@@ -425,7 +425,7 @@ class OrganismCreationState extends Equatable {
     Object? transferEmail = _undefined,
     List<OrganismAlias>? aliases,
     Object? localId = _undefined,
-    Object? recordName = _undefined,
+    Object? tagId = _undefined,
     Object? ownerOrganizationId = _undefined,
     Object? managingOrganizationId = _undefined,
     Object? selectedGenet = _undefined,
@@ -518,9 +518,9 @@ class OrganismCreationState extends Equatable {
           : transferEmail as String?,
       aliases: aliases ?? this.aliases,
       localId: localId == _undefined ? this.localId : localId as String?,
-      recordName: recordName == _undefined
-          ? this.recordName
-          : recordName as String?,
+      tagId: tagId == _undefined
+          ? this.tagId
+          : tagId as String?,
       ownerOrganizationId: ownerOrganizationId == _undefined
           ? this.ownerOrganizationId
           : ownerOrganizationId as String?,
@@ -602,7 +602,7 @@ class OrganismCreationState extends Equatable {
     transferEmail,
     aliases,
     localId,
-    recordName,
+    tagId,
     ownerOrganizationId,
     managingOrganizationId,
     selectedGenet,

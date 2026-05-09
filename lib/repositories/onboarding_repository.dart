@@ -533,7 +533,7 @@ class OnboardingRepository {
     String? clonalId,
     String? accessionNumber,
     String? inheritedProvenanceId,
-    String? recordName,
+    String? tagId,
   }) async {
     final String organismId = generateId(firestore: db);
     final String organismEventId = generateId(firestore: db);
@@ -646,8 +646,8 @@ class OnboardingRepository {
     );
 
     // Resolve record name: use provided name, fall back to localId
-    final resolvedRecordName = (recordName?.trim().isNotEmpty == true)
-        ? recordName!.trim()
+    final resolvedRecordName = (tagId?.trim().isNotEmpty == true)
+        ? tagId!.trim()
         : (localId.isNotEmpty ? localId : 'Unknown');
 
     // Resolve physical form from registry, fall back to hardcoded defaults
@@ -671,7 +671,7 @@ class OnboardingRepository {
         value: quantity.toDouble(),
         unit: MeasurementUnit.count,
       ), // Measurement - Axis 5
-      recordName: resolvedRecordName,
+      tagId: resolvedRecordName,
       speciesId: species.id,
       localId: localId,
       siteId: siteId, // Location - Axis 3

@@ -50,7 +50,7 @@ class InventoryExportRow {
     final metadata = organism.metadata ?? const <String, dynamic>{};
     final ownerOrgId = (organism.ownerOrganizationId ?? '').trim();
     final managingOrgId = (organism.managingOrganizationId ?? '').trim();
-    final recordName = organism.recordName.trim();
+    final tagId = organism.tagId.trim();
 
     final aliasEntries = organism.aliases;
     final aliasJson = aliasEntries.isEmpty
@@ -87,7 +87,7 @@ class InventoryExportRow {
       'coralId': organism.id,
       'provenanceId': lineageProvenanceId,
       'localId': organism.localId ?? '',
-      'recordName': recordName,
+      'tagId': tagId,
       'organismKind': organism.organismKind.name,
       'lifeStage': lifeStage.name,
       'eventType': 'inventory_snapshot',

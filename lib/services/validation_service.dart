@@ -147,7 +147,7 @@ class ValidationService {
   // ===== Record Validators =====
 
   /// Record name validator
-  static String? recordName(String? value) {
+  static String? tagId(String? value) {
     return combine([
       required('Record name'),
       length(min: 3, max: 50, fieldName: 'Record name'),

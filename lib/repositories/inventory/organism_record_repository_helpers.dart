@@ -22,10 +22,10 @@ mixin _OrganismRecordRepositoryHelpers on _OrganismRecordRepositoryBase {
 
   /// Validate 5-axis constraints before save operations.
   void validateOrganismRecord(OrganismRecord record) {
-    final recordNameValue = record.recordName.trim();
+    final recordNameValue = record.tagId.trim();
     if (recordNameValue.isEmpty || recordNameValue == Missing.string) {
       throw RepositoryError(
-        message: 'Invalid organism record: recordName is required',
+        message: 'Invalid organism record: tagId is required',
         category: AppErrorCategory.validation,
         recoverySuggestion: 'Provide a record name for the organism.',
       );

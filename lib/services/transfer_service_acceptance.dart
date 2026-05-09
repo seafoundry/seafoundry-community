@@ -973,7 +973,7 @@ extension _TransferServiceAcceptance on TransferService {
         manifest: manifest,
         createdGenet: createdGenet,
         quantity: quantity,
-        recordName: createdGenet.displayName,
+        tagId: createdGenet.displayName,
         localId: localId ?? createdGenet.localId,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
@@ -1034,7 +1034,7 @@ extension _TransferServiceAcceptance on TransferService {
       transaction.set(docRef, organismRecord.toJson());
 
       LoggingService.instance.info(
-        'Created organism record ${organismRecord.recordName} (${organismRecord.id}) '
+        'Created organism record ${organismRecord.tagId} (${organismRecord.id}) '
         'for transfer acceptance at $urlPath',
       );
       return organismRecord;

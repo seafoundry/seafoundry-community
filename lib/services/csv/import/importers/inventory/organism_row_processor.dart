@@ -62,7 +62,7 @@ class OrganismRowProcessor {
       organism: validated.organism,
       targetGroup: validated.targetGroup,
       localId: validated.localId,
-      recordName: validated.recordName,
+      tagId: validated.tagId,
       speciesId: validated.speciesId,
       physicalFormId: validated.physicalFormId,
       quantity: validated.quantity,

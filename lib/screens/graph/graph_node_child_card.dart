@@ -55,7 +55,7 @@ abstract class GraphNodeChildCard<T extends GraphNode> extends StatelessWidget {
     return GraphNodeSafeWrapper<T>(
       node: node,
       builder: (context, state) {
-        String recordName = 'Unknown';
+        String tagId = 'Unknown';
         Widget? recordNameWidget;
         String subtitleText = 'Unknown';
 
@@ -63,17 +63,17 @@ abstract class GraphNodeChildCard<T extends GraphNode> extends StatelessWidget {
           final record = state.record;
           if (record is OrganismRecord) {
             recordNameWidget = OrganismReferenceLinks(
-              recordName: record.recordName,
+              tagId: record.tagId,
               localId: record.localId,
               urlPath: record.urlPath,
               genetId: record.genetId,
               showUnderline: true,
             );
-            recordName = record.recordName.isNotEmpty
-                ? record.recordName
+            tagId = record.tagId.isNotEmpty
+                ? record.tagId
                 : record.name;
           } else {
-            recordName = record.name;
+            tagId = record.name;
           }
         } catch (e) {
           if (kDebugMode) {
@@ -112,7 +112,7 @@ abstract class GraphNodeChildCard<T extends GraphNode> extends StatelessWidget {
                     children: [
                       recordNameWidget ??
                           Text(
-                            recordName,
+                            tagId,
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                       SizedBox(height: 4),
@@ -188,11 +188,11 @@ class GraphNodeSiteCard extends GraphNodeChildCard<SiteNode> {
       node: node,
       builder: (context, state) {
         final refreshStream = _buildSummaryRefreshStream(state);
-        String recordName = 'Unknown';
+        String tagId = 'Unknown';
         String subtitleText = 'Unknown';
 
         try {
-          recordName = state.record.name;
+          tagId = state.record.name;
         } catch (e) {
           if (kDebugMode) {
             LoggingService.instance.debug('Error getting record name', e);
@@ -234,7 +234,7 @@ class GraphNodeSiteCard extends GraphNodeChildCard<SiteNode> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            recordName,
+                            tagId,
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           SizedBox(height: 4),
@@ -307,11 +307,11 @@ class GraphNodeGroupCard extends GraphNodeChildCard<GroupNode> {
       node: node,
       builder: (context, state) {
         final refreshStream = _buildSummaryRefreshStream(state);
-        String recordName = 'Unknown';
+        String tagId = 'Unknown';
         String subtitleText = 'Unknown';
 
         try {
-          recordName = state.record.name;
+          tagId = state.record.name;
         } catch (e) {
           if (kDebugMode) {
             LoggingService.instance.debug('Error getting record name', e);
@@ -354,7 +354,7 @@ class GraphNodeGroupCard extends GraphNodeChildCard<GroupNode> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            recordName,
+                            tagId,
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           SizedBox(height: 4),
@@ -409,12 +409,12 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
 
   /// Override to show organism's record name (primary) with local ID context.
   /// The organism's `name` getter can be legacy-dependent, so we format
-  /// recordName/localId explicitly for display.
+  /// tagId/localId explicitly for display.
   String get displayName {
     final organism = node.organism;
     return formatOrganismReferenceLabel(
       localId: organism.localId,
-      recordName: organism.recordName,
+      tagId: organism.tagId,
       fallback: organism.displayLabel,
     );
   }
@@ -514,7 +514,7 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
           showUuid: prefs.showUuid,
           showIdentifier: prefs.showIdentifier,
           recordId: organism.id,
-          recordName: organism.recordName,
+          tagId: organism.tagId,
           localId: organism.localId,
         );
 
@@ -540,12 +540,12 @@ class GraphNodeOrganismCard extends GraphNodeChildCard<OrganismNode> {
                     children: [
                       if (displayInfo.isHidden)
                         Text(
-                          displayInfo.recordName,
+                          displayInfo.tagId,
                           style: TextStyle(fontWeight: FontWeight.w600),
                         )
                       else
                         OrganismReferenceLinks(
-                          recordName: displayInfo.recordName,
+                          tagId: displayInfo.tagId,
                           localId: displayInfo.localId,
                           urlPath: organism.urlPath,
                           genetId: genetId,

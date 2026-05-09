@@ -259,7 +259,7 @@ class OutplantConsolidatedCsvImporter {
       structureName:
           read('structureName').isEmpty ? null : read('structureName'),
       localId: read('localId'),
-      recordName: read('recordName').isEmpty ? null : read('recordName'),
+      tagId: read('tagId').isEmpty ? null : read('tagId'),
       quantity: quantity!,
       eventNotes: read('eventNotes').isEmpty ? null : read('eventNotes'),
       outplantTagId: read('outplantTagId').isEmpty ? null : read('outplantTagId'),
@@ -549,7 +549,7 @@ class OutplantConsolidatedCsvImporter {
 
     return OutplantAllocation(
       organismId: organism.id,
-      recordName: row.recordName ?? organism.recordName,
+      tagId: row.tagId ?? organism.tagId,
       speciesId: organism.speciesId ?? '',
       genetId: GenetIdResolver.resolve(organism),
       quantity: row.quantity,
@@ -571,7 +571,7 @@ class _ParsedAllocationRow {
     required this.siteName,
     this.structureName,
     required this.localId,
-    this.recordName,
+    this.tagId,
     required this.quantity,
     this.eventNotes,
     this.outplantTagId,
@@ -583,7 +583,7 @@ class _ParsedAllocationRow {
   final String siteName;
   final String? structureName;
   final String localId;
-  final String? recordName;
+  final String? tagId;
   final int quantity;
   final String? eventNotes;
   final String? outplantTagId;

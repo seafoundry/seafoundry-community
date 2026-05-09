@@ -439,7 +439,7 @@ class OutplantEvent extends Event {
       return [
         OutplantAllocation(
           organismId: organismId,
-          recordName: snapshot['recordName'] ?? 'Record',
+          tagId: snapshot['tagId'] ?? 'Record',
           speciesId: snapshot['speciesId'] ?? '',
           genetId: snapshot['genetId'],
           outplantTagId: json['outplantTagId'],
@@ -456,7 +456,7 @@ class OutplantEvent extends Event {
       return [
         OutplantAllocation(
           organismId: json['recordId'] ?? '',
-          recordName: 'Record',
+          tagId: 'Record',
           speciesId: '',
           genetId: null,
           outplantTagId: json['outplantTagId'],
@@ -486,7 +486,7 @@ class OutplantEvent extends Event {
 class OutplantAllocation {
   const OutplantAllocation({
     required this.organismId,
-    required this.recordName,
+    required this.tagId,
     required this.speciesId,
     this.genetId,
     this.outplantTagId,
@@ -501,7 +501,7 @@ class OutplantAllocation {
   });
 
   final String organismId;
-  final String recordName;
+  final String tagId;
   final String speciesId;
   final String? genetId;
   final String? outplantTagId;
@@ -524,7 +524,7 @@ class OutplantAllocation {
   Map<String, dynamic> toJson() {
     return {
       'organismId': organismId,
-      'recordName': recordName,
+      'tagId': tagId,
       'speciesId': speciesId,
       if (genetId != null) 'genetId': genetId,
       if (outplantTagId != null) 'outplantTagId': outplantTagId,
@@ -541,11 +541,11 @@ class OutplantAllocation {
 
   factory OutplantAllocation.fromJson(Map<String, dynamic> json) {
     final organismId = json['organismId'] ?? '';
-    final recordName = json['recordName'] ?? 'Record';
+    final tagId = json['tagId'] ?? 'Record';
 
     return OutplantAllocation(
       organismId: organismId,
-      recordName: recordName,
+      tagId: tagId,
       speciesId: json['speciesId'] ?? '',
       genetId: json['genetId'],
       outplantTagId: json['outplantTagId'],

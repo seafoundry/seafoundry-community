@@ -62,8 +62,8 @@ class OrganismSplitBloc
 
   @override
   Future<OrganismSplitState> loadInitialData() async {
-    // Default recordName for split: use source's localId or recordName
-    final suggestedName = _sourceOrganism.localId ?? _sourceOrganism.recordName;
+    // Default tagId for split: use source's localId or tagId
+    final suggestedName = _sourceOrganism.localId ?? _sourceOrganism.tagId;
 
     final sourceQuantity = _sourceOrganism.measurement.value;
     final defaultSplitQuantity = (sourceQuantity / 2).floorToDouble().clamp(
@@ -291,7 +291,7 @@ class OrganismSplitBloc
         ),
         recordedAt: DateTime.now().toUtc(),
         source: 'split',
-        notes: 'Split from ${sourceOrganism.recordName}. $formattedNotes',
+        notes: 'Split from ${sourceOrganism.tagId}. $formattedNotes',
       );
 
       final sourceMeasurementSnapshot = MeasurementSnapshot(
@@ -310,7 +310,7 @@ class OrganismSplitBloc
       final newOrganism = sourceOrganism.copyWith(
         id: newOrganismId,
         slug: newSlug,
-        recordName: newRecordName,
+        tagId: newRecordName,
         urlPath: '${sourceOrganism.urlPath.substring(0, sourceOrganism.urlPath.lastIndexOf('/'))}/$newSlug',
         internalPath: '${sourceOrganism.internalPath.substring(0, sourceOrganism.internalPath.lastIndexOf('/'))}/$newOrganismId',
         measurement: sourceOrganism.measurement.copyWith(
@@ -387,7 +387,7 @@ class OrganismSplitBloc
       );
 
       _logger.info(
-        'Split committed: created ${newOrganism.id} (${newOrganism.recordName}) '
+        'Split committed: created ${newOrganism.id} (${newOrganism.tagId}) '
         'with qty=$splitQuantity from ${sourceOrganism.id}',
       );
 

@@ -167,7 +167,7 @@ mixin _OrganismRecordRepositoryQueries
   /// Search organism records by query string with optional filters.
   ///
   /// Uses client-side filtering over in-memory collection from [getAll].
-  /// Searches across: recordName, localId, aliases, speciesId, provenance display name.
+  /// Searches across: tagId, localId, aliases, speciesId, provenance display name.
   /// Filters by: organismKind, lifeStage, physicalFormId, siteId, groupId.
   ///
   /// Results are returned in no guaranteed order when query is empty.
@@ -222,7 +222,7 @@ mixin _OrganismRecordRepositoryQueries
 
             // Build searchable tokens
             final tokens = <String>[
-              record.recordName,
+              record.tagId,
               record.localId ?? '',
               record.alias ?? '',
               record.speciesId ?? '',

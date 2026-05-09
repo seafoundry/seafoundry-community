@@ -369,7 +369,7 @@ class _CsvImportDialogState extends State<CsvImportDialog>
                 'eventNotes': '',
                 'structureName': '',
                 'localId': organism.localId,
-                'recordName': organism.recordName,
+                'tagId': organism.tagId,
                 'quantity': organism.measurement.value.round().toString(),
                 'outplantTagId': '',
               });

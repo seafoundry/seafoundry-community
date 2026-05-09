@@ -57,9 +57,9 @@ class OrganismMetadataUpdater {
     }
 
     // Apply record name change
-    final nextName = row.recordName.trim();
-    if (nextName.isNotEmpty && nextName != currentValues.recordName) {
-      updated = updated.copyWith(recordName: nextName);
+    final nextName = row.tagId.trim();
+    if (nextName.isNotEmpty && nextName != currentValues.tagId) {
+      updated = updated.copyWith(tagId: nextName);
       mutated = true;
     }
 
@@ -182,7 +182,7 @@ class OrganismMetadataUpdater {
     final healthStatus = HealthStatus.fromId(
         organism.metadata?['healthStatus'] as String? ?? 'healthy');
     final notes = organism.metadata?['notes'] as String?;
-    final recordName = organism.recordName.trim();
+    final tagId = organism.tagId.trim();
     final formId = organism.physicalForm?.formId ??
         organism.metadata?['physicalFormId'] as String?;
     final sizeBandId = organism.physicalForm?.sizeBandId;
@@ -196,7 +196,7 @@ class OrganismMetadataUpdater {
       genetId: genetId,
       healthStatus: healthStatus,
       notes: notes,
-      recordName: recordName,
+      tagId: tagId,
       formId: formId,
       sizeBandId: sizeBandId,
       sizeSpec: sizeSpec,
@@ -322,7 +322,7 @@ class _CurrentValues {
     required this.genetId,
     required this.healthStatus,
     required this.notes,
-    required this.recordName,
+    required this.tagId,
     required this.formId,
     required this.sizeBandId,
     required this.sizeSpec,
@@ -333,7 +333,7 @@ class _CurrentValues {
   final String? genetId;
   final HealthStatus healthStatus;
   final String? notes;
-  final String recordName;
+  final String tagId;
   final String? formId;
   final String? sizeBandId;
   final SizeSpec sizeSpec;

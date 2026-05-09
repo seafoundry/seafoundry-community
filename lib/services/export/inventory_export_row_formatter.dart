@@ -44,7 +44,7 @@ class InventoryExportRowFormatter {
 
     final siteName = _string(row['siteName']) ?? '';
     final siteId = _string(row['siteId']) ?? '';
-    final recordName = _string(row['recordName']);
+    final tagId = _string(row['tagId']);
     final localId = _string(row['localId']);
     final resolvedProvenanceType = _resolveProvenanceType(
       row,
@@ -53,7 +53,7 @@ class InventoryExportRowFormatter {
     final canonical = <String, dynamic>{
       'provenanceId': _string(row['provenanceId']) ?? '',
       'localId': localId ?? '',
-      'recordName': recordName ?? '',
+      'tagId': tagId ?? '',
       'speciesId': speciesId,
       'groupId': groupPath,
       'healthStatus': _string(row['healthStatus']) ?? '',

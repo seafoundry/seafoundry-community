@@ -216,7 +216,7 @@ class _InventoryHoldingsViewState extends State<InventoryHoldingsView> {
       ),
       PlutoColumn(
         title: 'Record Name',
-        field: 'recordName',
+        field: 'tagId',
         type: PlutoColumnType.text(),
         width: 140,
       ),
@@ -270,7 +270,7 @@ class _InventoryHoldingsViewState extends State<InventoryHoldingsView> {
       return PlutoRow(
         cells: {
           'localId': PlutoCell(value: row['localId'] ?? ''),
-          'recordName': PlutoCell(value: row['recordName'] ?? ''),
+          'tagId': PlutoCell(value: row['tagId'] ?? ''),
           'speciesName': PlutoCell(value: row['speciesName'] ?? ''),
           'quantity': PlutoCell(value: row['quantity'] ?? 0),
           'lifeStage': PlutoCell(value: row['lifeStage'] ?? ''),

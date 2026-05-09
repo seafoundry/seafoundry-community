@@ -285,7 +285,7 @@ class GeneticsSpreadsheetHelper {
       row.putIfAbsent('recordIds', () => organisms.map((o) => o.id).toList());
       row.putIfAbsent(
         'recordNames',
-        () => organisms.map((o) => o.recordName).toList(),
+        () => organisms.map((o) => o.tagId).toList(),
       );
     }
 

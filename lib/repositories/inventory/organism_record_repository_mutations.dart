@@ -271,7 +271,7 @@ mixin _OrganismRecordRepositoryMutations
       createdEvents.add(event);
     }
 
-    // Note: Identity change events (recordName, localId, ownership) are emitted
+    // Note: Identity change events (tagId, localId, ownership) are emitted
     // by the cubit's _emitIdentityChangeEvents() with proper EventType constants.
     // Do NOT create observation events for these changes here to avoid duplicates.
 

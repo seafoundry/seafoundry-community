@@ -106,7 +106,7 @@ class CsvV2Spec {
     'cohortId',
     'lifeStage',
     'localId',
-    'recordName',
+    'tagId',
     'accessionId',
     'measurementUnit',
     'quantityValue',

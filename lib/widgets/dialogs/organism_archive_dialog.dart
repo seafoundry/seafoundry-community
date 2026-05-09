@@ -48,7 +48,7 @@ class _OrganismArchiveDialogState extends State<OrganismArchiveDialog>
   bool _isSubmitting = false;
 
   String get _displayName {
-    final name = widget.organism.recordName.trim();
+    final name = widget.organism.tagId.trim();
     if (name.isNotEmpty) return name;
     final localId = widget.organism.localId?.trim();
     if (localId != null && localId.isNotEmpty) return localId;
