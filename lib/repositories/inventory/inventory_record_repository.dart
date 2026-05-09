@@ -459,7 +459,8 @@ abstract class InventoryRecordRepository<T extends InventoryRecord>
               }
 
               if (!hasOrgId) {
-                final orgPrefix = '${organization.slug}/';
+                final orgPrefix =
+                    organization.orgPrefix ?? '${organization.slug}/';
                 if (!(recordPath == organization.slug ||
                     recordPath.startsWith(orgPrefix))) {
                   return false;
