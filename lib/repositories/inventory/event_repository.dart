@@ -960,7 +960,7 @@ class EventRepository extends _EventRepositoryBase {
       slug: slug,
       recordId: recordId,
       recordModelType: ModelType.organismRecord,
-      organismRecordSnapshot: snapshot,
+      organismRecordSnapshot: QuantityChangeSnapshot.fromOrganismRecord(snapshot),
       oldMeasurement: oldMeasurement,
       newMeasurement: newMeasurement,
       metadata: metadata,

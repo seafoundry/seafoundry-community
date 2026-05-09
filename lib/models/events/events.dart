@@ -20,6 +20,7 @@ export 'physical_form_snapshot.dart';
 export 'population_gain_event.dart';
 export 'population_loss_event.dart';
 export 'quantity_change_event.dart';
+export 'quantity_change_snapshot.dart';
 export 'size_change_event.dart';
 export 'split_event.dart';
 export 'status_event.dart';
