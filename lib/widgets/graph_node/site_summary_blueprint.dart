@@ -1,4 +1,4 @@
-import 'package:seafoundry_app/blocs/graph_node/site_node.dart';
+import 'package:seafoundry_app/models/graph/site_node.dart';
 import 'package:seafoundry_app/models/site_capabilities.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
 import 'package:seafoundry_app/widgets/graph_node/site_summary_models.dart';

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node.dart';
 
 class NavigationState extends Equatable {
   const NavigationState({

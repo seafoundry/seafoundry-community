@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_events.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
-import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_streams.dart';
+import 'package:seafoundry_app/models/graph/graph_node_events.dart';
+import 'package:seafoundry_app/models/graph/graph_node_state.dart';
+import 'package:seafoundry_app/models/graph/organism_node.dart';
 import 'package:seafoundry_app/screens/graph/graph_node_child_card.dart';
 import 'package:seafoundry_app/theme/app_colors.dart';
 import 'package:seafoundry_app/theme/spacing.dart';

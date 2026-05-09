@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/organism_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_streams.dart';
+import 'package:seafoundry_app/models/graph/organism_node.dart';
 import 'package:seafoundry_app/models/inventory/organism_extensions.dart';
 import 'package:seafoundry_app/models/types/life_stage.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';

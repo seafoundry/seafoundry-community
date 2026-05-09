@@ -1,6 +1,6 @@
-import '../../blocs/graph_node/graph_node_bloc.dart';
-import '../../blocs/graph_node/graph_node_state.dart';
-import '../../blocs/graph_node/organism_node.dart';
+import '../../models/graph/graph_node_streams.dart';
+import '../../models/graph/graph_node_state.dart';
+import '../../models/graph/organism_node.dart';
 import '../../models/inventory/organism_record.dart';
 import '../../utils/human_sort.dart';
 

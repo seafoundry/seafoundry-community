@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_card_filter.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_filter_matcher.dart';
 import 'package:seafoundry_app/cubits/summary_statistics/summary_statistics_cubit.dart';

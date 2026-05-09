@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_events.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_event.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_step.dart';
-import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
+import 'package:seafoundry_app/models/graph/graph_node_events.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_event.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_step.dart';
+import 'package:seafoundry_app/cubits/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/types/site_type.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/organization_node.dart';
-import 'package:seafoundry_app/blocs/group_creation/group_creation_bloc.dart';
+import 'package:seafoundry_app/models/graph/graph_node_streams.dart';
+import 'package:seafoundry_app/models/graph/organization_node.dart';
+import 'package:seafoundry_app/cubits/group_creation/group_creation_bloc.dart';
 import 'package:seafoundry_app/models/group.dart';
 import 'package:seafoundry_app/models/types/group_type.dart';
 import 'package:seafoundry_app/services/structure_capacity_service.dart';

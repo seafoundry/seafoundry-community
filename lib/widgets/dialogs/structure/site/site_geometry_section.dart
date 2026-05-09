@@ -1,7 +1,7 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
+import 'package:seafoundry_app/cubits/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/events/outplant_geometry.dart';
 import 'package:seafoundry_app/services/outplant_geometry_builder.dart';
 import 'package:seafoundry_app/widgets/ui.dart';

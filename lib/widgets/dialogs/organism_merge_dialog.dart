@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_state.dart';
-import 'package:seafoundry_app/blocs/graph_node/group_node.dart';
-import 'package:seafoundry_app/blocs/organism_merge/organism_merge_bloc.dart';
-import 'package:seafoundry_app/blocs/organism_merge/organism_merge_state.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_async.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_step.dart';
+import 'package:seafoundry_app/models/graph/graph_node_state.dart';
+import 'package:seafoundry_app/models/graph/group_node.dart';
+import 'package:seafoundry_app/cubits/organism_merge/organism_merge_bloc.dart';
+import 'package:seafoundry_app/cubits/organism_merge/organism_merge_state.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_async.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_step.dart';
 import 'package:seafoundry_app/models/group.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/types/measurement_unit.dart';

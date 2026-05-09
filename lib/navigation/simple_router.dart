@@ -1,8 +1,8 @@
 import 'package:seafoundry_app/services/firebase_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/auth/auth_bloc.dart';
-import 'package:seafoundry_app/blocs/auth/auth_state.dart';
+import 'package:seafoundry_app/cubits/auth/auth_bloc.dart';
+import 'package:seafoundry_app/cubits/auth/auth_state.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
 import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
 import 'package:seafoundry_app/cubits/onboarding/onboarding_cubit.dart';

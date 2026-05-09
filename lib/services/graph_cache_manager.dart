@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
+import 'package:seafoundry_app/models/graph/graph_node_streams.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 
 /// Manages the graph node cache with improved performance and consistency

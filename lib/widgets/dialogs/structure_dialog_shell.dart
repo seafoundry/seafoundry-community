@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_async.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_bloc.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_event.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_state.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_async.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_bloc.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_event.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_state.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
 import 'components/dialog_scroll_view.dart';

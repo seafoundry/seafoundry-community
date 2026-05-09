@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seafoundry_app/blocs/record_form/record_form_event.dart';
-import 'package:seafoundry_app/blocs/site_creation/site_creation_bloc.dart';
+import 'package:seafoundry_app/cubits/record_form/record_form_event.dart';
+import 'package:seafoundry_app/cubits/site_creation/site_creation_bloc.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/site_capabilities.dart';
 import 'package:seafoundry_app/widgets/dialogs/structure/shared/supported_organisms_selector.dart';

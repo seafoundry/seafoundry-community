@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:seafoundry_app/blocs/graph_node/graph_node_bloc.dart';
-import 'package:seafoundry_app/blocs/graph_node/group_node.dart';
+import 'package:seafoundry_app/models/graph/graph_node_streams.dart';
+import 'package:seafoundry_app/models/graph/group_node.dart';
 import 'package:seafoundry_app/navigation/community_graph_scaffold.dart';
 import 'package:seafoundry_app/screens/graph/graph_node_section.dart';
 import 'package:seafoundry_app/theme/spacing.dart';
