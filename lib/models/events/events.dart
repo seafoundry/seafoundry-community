@@ -22,6 +22,7 @@ export 'population_loss_event.dart';
 export 'quantity_change_event.dart';
 export 'quantity_change_snapshot.dart';
 export 'size_change_event.dart';
+export 'size_change_snapshot.dart';
 export 'split_event.dart';
 export 'status_event.dart';
 export 'transfer_event.dart';

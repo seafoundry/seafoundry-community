@@ -1,6 +1,5 @@
 import 'package:seafoundry_app/models/events/event.dart';
-import 'package:seafoundry_app/models/events/event_snapshot_parser.dart';
-import 'package:seafoundry_app/models/inventory/organism_record.dart';
+import 'package:seafoundry_app/models/events/size_change_snapshot.dart';
 import 'package:seafoundry_app/models/inventory/size_spec.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/inventory_event_type.dart';
@@ -50,7 +49,9 @@ class SizeChangeEvent extends Event {
       recordModelType: ModelType.values.byName(
         json['recordModelType'] ?? ModelType.organismRecord.name,
       ),
-      organismRecordSnapshot: parseOrganismSnapshot(json),
+      organismRecordSnapshot: SizeChangeSnapshot.fromJson(
+        deepNormalizeMap(json['organismRecordSnapshot']),
+      ),
       oldSize: SizeSpec.fromJson(
         deepNormalizeMap(json['oldSize']),
       ),
@@ -67,7 +68,7 @@ class SizeChangeEvent extends Event {
     );
   }
 
-  final OrganismRecord organismRecordSnapshot;
+  final SizeChangeSnapshot organismRecordSnapshot;
   final SizeSpec oldSize;
   final SizeSpec newSize;
 
@@ -85,7 +86,7 @@ class SizeChangeEvent extends Event {
     String? slug,
     String? recordId,
     ModelType? recordModelType,
-    OrganismRecord? organismRecordSnapshot,
+    SizeChangeSnapshot? organismRecordSnapshot,
     SizeSpec? oldSize,
     SizeSpec? newSize,
     Map<String, dynamic>? metadata,
