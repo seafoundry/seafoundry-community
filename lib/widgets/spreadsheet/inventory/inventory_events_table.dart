@@ -12,11 +12,8 @@ import 'package:seafoundry_app/repositories/record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/pagination_service.dart';
 import 'package:seafoundry_app/utils/user_display_name.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/spreadsheet_base.dart';
+import 'package:seafoundry_app/widgets/spreadsheet/events_table_scaffold.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/spreadsheet_models.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/spreadsheet_scroll_view.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/components/responsive_filter_section.dart';
 
 part 'inventory_event_rows.dart';
 part 'inventory_event_hydration.dart';
@@ -29,8 +26,9 @@ part 'inventory_event_cells.dart';
 /// outplanting-related event types. Otherwise it shows the default set
 /// of inventory event types.
 ///
-/// Uses [EventRepository] to fetch events and [PaginationService] for
-/// client-side pagination via [SpreadsheetBase].
+/// Display chrome (load / error / empty / loaded) is owned by
+/// [EventsTableScaffoldState]; this widget only provides the inventory-
+/// specific columns, toolbar, hydration and filter logic.
 class InventoryEventsTable extends StatefulWidget {
   const InventoryEventsTable({
     super.key,
@@ -44,12 +42,11 @@ class InventoryEventsTable extends StatefulWidget {
   State<InventoryEventsTable> createState() => _InventoryEventsTableState();
 }
 
-class _InventoryEventsTableState extends State<InventoryEventsTable>
-    with
-        SafeProviderReadMixin<InventoryEventsTable>,
-        _InventoryEventHydrationMixin,
-        _InventoryEventFiltersMixin {
-  final PaginationService<_InventoryEventRow> _paginationService =
+class _InventoryEventsTableState
+    extends EventsTableScaffoldState<InventoryEventsTable, _InventoryEventRow>
+    with _InventoryEventHydrationMixin, _InventoryEventFiltersMixin {
+  @override
+  final PaginationService<_InventoryEventRow> paginationService =
       const PaginationService<_InventoryEventRow>();
 
   @override
@@ -58,109 +55,58 @@ class _InventoryEventsTableState extends State<InventoryEventsTable>
       : _defaultInventoryEventTypes;
 
   @override
-  String get _title =>
+  String get title =>
       widget.outplantingOnly ? 'Outplanting Events' : 'Inventory Events';
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadEvents());
+  IconData get emptyIcon =>
+      widget.outplantingOnly ? Icons.nature : Icons.event_note;
+
+  @override
+  List<SpreadsheetColumn> get columns => _inventoryEventColumns;
+
+  @override
+  SpreadsheetRow Function(_InventoryEventRow row) get rowBuilder =>
+      _buildInventoryEventRow;
+
+  @override
+  String currentFilterKey() {
+    return '${_selectedEventType ?? 'all'}-'
+        '${_selectedDateRange?.start}-${_selectedDateRange?.end}';
   }
 
   @override
   void _onRowsLoaded() {
-    _applyFilters(updateState: false);
+    applyFilters(updateState: false);
   }
 
   @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return _InventoryEventsLoading(
-        status: _loadingStatus,
-        progress: _loadingProgress,
-      );
-    }
-
-    if (_error != null) {
-      return _InventoryEventsError(
-        error: _error!,
-        onRetry: _loadEvents,
-      );
-    }
-
-    if (_rows.isEmpty) {
-      return _InventoryEventsEmpty(
-        title: _title,
-        icon: widget.outplantingOnly ? Icons.nature : Icons.event_note,
-      );
-    }
-
-    final headerWidgets = <Widget>[
-      Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ResponsiveFilterSection(
-              label: 'Filters',
-              initiallyExpanded: false,
-              child: _InventoryEventsToolbar(
-                allRows: _rows,
-                selectedEventType: _selectedEventType,
-                selectedDateRange: _selectedDateRange,
-                hasActiveFilters: _hasActiveFilters,
-                onEventTypeChanged: (value) {
-                  setState(() {
-                    _selectedEventType = value;
-                    _applyFilters(updateState: false);
-                  });
-                },
-                onDateRangeChanged: (range) {
-                  setState(() {
-                    _selectedDateRange = range;
-                    _applyFilters(updateState: false);
-                  });
-                },
-                onClearDateRange: () {
-                  setState(() {
-                    _selectedDateRange = null;
-                    _applyFilters(updateState: false);
-                  });
-                },
-                onRefresh: _loadEvents,
-                onReset: _clearFilters,
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
-      ),
-    ];
-
-    final body = Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      child: _filteredRows.isEmpty
-          ? const Center(
-              child: Text(
-                'No events match the current filters.',
-                style: TextStyle(color: Colors.grey),
-              ),
-            )
-          : SpreadsheetBase<_InventoryEventRow>(
-              key: ValueKey(
-                '${_selectedEventType ?? 'all'}-${_selectedDateRange?.start}-${_selectedDateRange?.end}',
-              ),
-              columns: _inventoryEventColumns,
-              rowBuilder: _buildInventoryEventRow,
-              pageLoader: _paginationService.buildListLoader(
-                () => _filteredRows,
-              ),
-              sortField: 'timestamp',
-              descending: true,
-              header: Text('$_title - ${_filteredRows.length} records'),
-            ),
+  Widget buildToolbar(BuildContext context) {
+    return _InventoryEventsToolbar(
+      allRows: rows,
+      selectedEventType: _selectedEventType,
+      selectedDateRange: _selectedDateRange,
+      hasActiveFilters: _hasActiveFilters,
+      onEventTypeChanged: (value) {
+        setState(() {
+          _selectedEventType = value;
+          applyFilters(updateState: false);
+        });
+      },
+      onDateRangeChanged: (range) {
+        setState(() {
+          _selectedDateRange = range;
+          applyFilters(updateState: false);
+        });
+      },
+      onClearDateRange: () {
+        setState(() {
+          _selectedDateRange = null;
+          applyFilters(updateState: false);
+        });
+      },
+      onRefresh: loadEvents,
+      onReset: _clearFilters,
     );
-
-    return SpreadsheetScrollView(header: headerWidgets, body: body);
   }
 }

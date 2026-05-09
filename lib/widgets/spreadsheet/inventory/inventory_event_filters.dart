@@ -1,36 +1,37 @@
 part of 'inventory_events_table.dart';
 
 /// Filtering, sorting, and search controls for the inventory events table.
-mixin _InventoryEventFiltersMixin on State<InventoryEventsTable> {
-  List<_InventoryEventRow> get _rows;
-
-  List<_InventoryEventRow> _filteredRows = const [];
-
+///
+/// Operates on the inherited [rows] and writes the result into
+/// [filteredRows] — both owned by [EventsTableScaffoldState].
+mixin _InventoryEventFiltersMixin
+    on EventsTableScaffoldState<InventoryEventsTable, _InventoryEventRow> {
   String? _selectedEventType;
   DateTimeRange? _selectedDateRange;
 
   bool get _hasActiveFilters =>
       _selectedEventType != null || _selectedDateRange != null;
 
-  void _applyFilters({bool updateState = true}) {
-    Iterable<_InventoryEventRow> rows = _rows;
+  @override
+  void applyFilters({bool updateState = true}) {
+    Iterable<_InventoryEventRow> filtered = rows;
 
     if (_selectedEventType != null && _selectedEventType!.isNotEmpty) {
-      rows = rows.where((row) => row.eventTypeId == _selectedEventType);
+      filtered = filtered.where((row) => row.eventTypeId == _selectedEventType);
     }
 
     if (_selectedDateRange != null) {
       final start = _selectedDateRange!.start;
       final end = _selectedDateRange!.end
           .add(const Duration(hours: 23, minutes: 59, seconds: 59));
-      rows = rows.where((row) {
+      filtered = filtered.where((row) {
         final createdAt = row.createdAt;
         if (createdAt == null) return false;
         return !createdAt.isBefore(start) && !createdAt.isAfter(end);
       });
     }
 
-    final sorted = rows.toList()
+    final sorted = filtered.toList()
       ..sort((a, b) {
         final aTime =
             a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
@@ -41,10 +42,10 @@ mixin _InventoryEventFiltersMixin on State<InventoryEventsTable> {
 
     if (updateState) {
       setState(() {
-        _filteredRows = sorted;
+        filteredRows = sorted;
       });
     } else {
-      _filteredRows = sorted;
+      filteredRows = sorted;
     }
   }
 
@@ -52,7 +53,7 @@ mixin _InventoryEventFiltersMixin on State<InventoryEventsTable> {
     setState(() {
       _selectedEventType = null;
       _selectedDateRange = null;
-      _applyFilters(updateState: false);
+      applyFilters(updateState: false);
     });
   }
 }
