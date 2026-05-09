@@ -59,9 +59,15 @@ abstract class HoldingRepository<T extends HoldingRecord> {
   final T Function(Map<String, dynamic>) _fromJson;
   final StructureCapacityService _structureCapacityService;
 
-  Future<T> createHolding(T holding) async {
+  Future<T> createHolding(
+    T holding, {
+    required OrganismRecord organismRecord,
+  }) async {
     _assertOrganism(holding.organismKind);
-    await _ensureOccupantCapacity(holding: holding);
+    await _ensureOccupantCapacity(
+      holding: holding,
+      holdingOrganismRecord: organismRecord,
+    );
     final docRef = holding.id.isNotEmpty
         ? collectionRef.doc(holding.id)
         : collectionRef.doc();
@@ -71,21 +77,23 @@ abstract class HoldingRepository<T extends HoldingRecord> {
     await docRef.set(payload);
     await _upsertOrganismRecordDocument(
       record: assigned,
+      organismRecord: organismRecord,
       timestamp: now,
       preserveExistingAudit: false,
     );
-    
+
     // Create audit snapshot (using synthetic event ID as creation is the event)
     await _snapshotService.createAfterSnapshot(
-      record: assigned, 
+      record: assigned,
       eventId: 'create_${assigned.id}'
     );
-    
+
     return assigned;
   }
 
   Future<T> updateHolding(
     T holding, {
+    required OrganismRecord organismRecord,
     Map<String, dynamic>? eventMetadataOverrides,
   }) async {
     if (holding.id.isEmpty) {
@@ -97,26 +105,29 @@ abstract class HoldingRepository<T extends HoldingRecord> {
     }
     _assertOrganism(holding.organismKind);
     final previousOrganismRecord = await _fetchOrganismRecord(existing);
-    final nextOrganismRecord = await _fetchOrganismRecord(holding);
-    if (previousOrganismRecord != null && nextOrganismRecord != null) {
+    if (previousOrganismRecord != null) {
       _changeService.assertImmutableFields(
         previous: previousOrganismRecord,
-        next: nextOrganismRecord,
+        next: organismRecord,
       );
     }
-    await _ensureOccupantCapacity(holding: holding, previousHolding: existing);
-    final changeSet =
-        (previousOrganismRecord != null && nextOrganismRecord != null)
-            ? _changeService.detectChanges(
-                previous: previousOrganismRecord,
-                next: nextOrganismRecord,
-              )
-            : null;
+    await _ensureOccupantCapacity(
+      holding: holding,
+      previousHolding: existing,
+      holdingOrganismRecord: organismRecord,
+    );
+    final changeSet = previousOrganismRecord != null
+        ? _changeService.detectChanges(
+            previous: previousOrganismRecord,
+            next: organismRecord,
+          )
+        : null;
     final now = DateTimeConverter.nowAsIso8601String();
     final payload = _updatePayload(holding, now);
     await collectionRef.doc(holding.id).update(payload);
     await _upsertOrganismRecordDocument(
       record: holding,
+      organismRecord: organismRecord,
       timestamp: now,
       preserveExistingAudit: true,
     );
@@ -130,10 +141,10 @@ abstract class HoldingRepository<T extends HoldingRecord> {
       eventId: 'update_${holding.id}_${DateTime.now().millisecondsSinceEpoch}'
     );
 
-    if (changeSet != null && changeSet.hasChanges && nextOrganismRecord != null) {
+    if (changeSet != null && changeSet.hasChanges) {
       await _emitOrganismRecordEvents(
         updated: holding,
-        snapshot: nextOrganismRecord,
+        snapshot: organismRecord,
         changeSet: changeSet,
         metadataOverrides: eventMetadataOverrides,
       );
@@ -176,6 +187,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
             as T;
     return updateHolding(
       aligned,
+      organismRecord: updatedOrganismRecord,
       eventMetadataOverrides: eventMetadataOverrides,
     );
   }
@@ -361,6 +373,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
 
   Future<void> _upsertOrganismRecordDocument({
     required T record,
+    required OrganismRecord organismRecord,
     required String timestamp,
     required bool preserveExistingAudit,
   }) async {
@@ -384,7 +397,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
       displayName: record.tagId,
       source: OrganismRecordSource.holding,
       sourceKind: holdingKind,
-      organismRecord: record.organismRecord,
+      organismRecord: organismRecord,
     );
     await docRef.set(entry.toJson());
   }
@@ -437,6 +450,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
 
   Future<void> _ensureOccupantCapacity({
     required T holding,
+    required OrganismRecord holdingOrganismRecord,
     T? previousHolding,
   }) async {
     if (!_structureCapacityService.isEnabled) return;
@@ -456,6 +470,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
     final currentUnits = await _sumOccupantUnits(
       groupId: group.id,
       targetHolding: holding,
+      targetOrganismRecord: holdingOrganismRecord,
       excludeHoldingId: previousHolding?.id,
     );
     final evaluation = _structureCapacityService.evaluate(
@@ -463,7 +478,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
         containerType: group.groupType,
         organismKind: holding.organismKind,
         lifeStage: holding.lifeStage,
-        physicalFormId: holding.organismRecord.lifecycleFormId,
+        physicalFormId: holdingOrganismRecord.physicalForm?.formId,
         currentUnits: currentUnits,
         deltaUnits: deltaUnits,
       ),
@@ -498,6 +513,7 @@ abstract class HoldingRepository<T extends HoldingRecord> {
   Future<int> _sumOccupantUnits({
     required String groupId,
     required HoldingRecord targetHolding,
+    required OrganismRecord targetOrganismRecord,
     String? excludeHoldingId,
   }) async {
     final snapshot = await collectionRef
@@ -505,27 +521,22 @@ abstract class HoldingRepository<T extends HoldingRecord> {
         .where('groupId', isEqualTo: groupId)
         .where('holdingKind', isEqualTo: holdingKind)
         .get();
+    final targetMorph = targetOrganismRecord.physicalForm;
     var total = 0;
     for (final doc in snapshot.docs) {
       if (excludeHoldingId != null && doc.id == excludeHoldingId) {
         continue;
       }
       final record = _fromSnapshot(doc);
-      if (!_matchesOccupantFilters(record, targetHolding)) continue;
+      if (record.organismKind != targetHolding.organismKind) continue;
+      if (record.lifeStage != targetHolding.lifeStage) continue;
+      if (targetMorph != null) {
+        final candidateRecord = await _fetchOrganismRecord(record);
+        if (candidateRecord?.physicalForm != targetMorph) continue;
+      }
       total += _unitsFromMeasurement(record.measurement);
     }
     return total;
-  }
-
-  bool _matchesOccupantFilters(HoldingRecord candidate, HoldingRecord target) {
-    if (candidate.organismKind != target.organismKind) return false;
-    if (candidate.lifeStage != target.lifeStage) return false;
-    final targetMorph = target.organismRecord.physicalForm;
-    final candidateMorph = candidate.organismRecord.physicalForm;
-    if (targetMorph != null && candidateMorph != targetMorph) {
-      return false;
-    }
-    return true;
   }
 
   int _unitsFromMeasurement(PopulationMeasurement measurement) {
