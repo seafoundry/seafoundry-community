@@ -2,35 +2,33 @@ part of 'inventory_events_table.dart';
 
 /// Hydration logic for inventory events: fetching, filtering candidates by
 /// supported types, and resolving organism + user references.
+///
+/// The lifecycle state ([isLoading], [loadingProgress], [loadingStatus],
+/// [error], [rows]) is owned by [EventsTableScaffoldState]; this mixin
+/// writes into those inherited fields directly.
 mixin _InventoryEventHydrationMixin
-    on State<InventoryEventsTable>, SafeProviderReadMixin<InventoryEventsTable> {
+    on EventsTableScaffoldState<InventoryEventsTable, _InventoryEventRow> {
   static const _eventFetchLimit = 250;
   static const _eventHydrationBatchSize = 20;
 
-  bool _isLoading = true;
-  double? _loadingProgress;
-  String? _loadingStatus;
-  String? _error;
-
-  final List<_InventoryEventRow> _rows = [];
   final Map<String, String> _userNameCache = {};
   final Map<String, OrganismRecord?> _organismCache = {};
 
   Set<String> get _eventTypeFilter;
-  String get _title;
 
   /// Hook implemented by the table state to refresh derived/filtered rows
-  /// after the canonical [_rows] list changes.
+  /// after the canonical [rows] list changes.
   void _onRowsLoaded();
 
-  Future<void> _loadEvents() async {
+  @override
+  Future<void> loadEvents() async {
     if (!mounted) return;
 
     setState(() {
-      _isLoading = true;
-      _loadingProgress = null;
-      _loadingStatus = 'Loading $_title...';
-      _error = null;
+      isLoading = true;
+      loadingProgress = null;
+      loadingStatus = 'Loading $title...';
+      error = null;
     });
 
     final providerResult = safeReadProviders(() => (
@@ -43,8 +41,8 @@ mixin _InventoryEventHydrationMixin
     if (!providerResult.success) {
       if (!mounted) return;
       setState(() {
-        _error = providerResult.errorMessage;
-        _isLoading = false;
+        error = providerResult.errorMessage;
+        isLoading = false;
       });
       return;
     }
@@ -63,10 +61,10 @@ mixin _InventoryEventHydrationMixin
     if (organizationId == null || organizationId.isEmpty) {
       if (!mounted) return;
       setState(() {
-        _error = 'Session expired. Please refresh the page.';
-        _isLoading = false;
-        _loadingProgress = null;
-        _loadingStatus = null;
+        error = 'Session expired. Please refresh the page.';
+        isLoading = false;
+        loadingProgress = null;
+        loadingStatus = null;
       });
       return;
     }
@@ -81,11 +79,11 @@ mixin _InventoryEventHydrationMixin
       );
 
       LoggingService.instance.info(
-        '$_title: Loaded ${events.length} events from EventRepository',
+        '$title: Loaded ${events.length} events from EventRepository',
       );
 
       LoggingService.instance.info(
-        '$_title: Parsed ${events.length} events from Firestore',
+        '$title: Parsed ${events.length} events from Firestore',
       );
 
       // Filter to supported event types
@@ -99,14 +97,14 @@ mixin _InventoryEventHydrationMixin
 
       if (!mounted) return;
       setState(() {
-        _loadingProgress = candidates.isEmpty ? null : 0;
-        _loadingStatus = candidates.isEmpty
+        loadingProgress = candidates.isEmpty ? null : 0;
+        loadingStatus = candidates.isEmpty
             ? 'No events to hydrate.'
             : 'Hydrating ${candidates.length} events...';
       });
 
       // Hydrate events in batches
-      final rows = <_InventoryEventRow>[];
+      final hydratedRows = <_InventoryEventRow>[];
       var hydratedCount = 0;
       for (var i = 0; i < candidates.length; i += _eventHydrationBatchSize) {
         final batch =
@@ -120,10 +118,10 @@ mixin _InventoryEventHydrationMixin
                 recordRepository,
                 organismRepository,
               );
-            } catch (error, stackTrace) {
+            } catch (err, stackTrace) {
               LoggingService.instance.error(
                 'Failed to hydrate event ${candidate.event.id}',
-                error,
+                err,
                 stackTrace,
               );
               return null;
@@ -131,44 +129,44 @@ mixin _InventoryEventHydrationMixin
           }),
         );
 
-        rows.addAll(batchRows.whereType<_InventoryEventRow>());
+        hydratedRows.addAll(batchRows.whereType<_InventoryEventRow>());
         hydratedCount += batch.length;
         if (!mounted) return;
         if (candidates.isNotEmpty) {
           setState(() {
-            _loadingProgress = hydratedCount / candidates.length;
-            _loadingStatus =
+            loadingProgress = hydratedCount / candidates.length;
+            loadingStatus =
                 'Hydrating events $hydratedCount/${candidates.length}';
           });
         }
       }
 
       LoggingService.instance.info(
-        '$_title: ${rows.length} events hydrated',
+        '$title: ${hydratedRows.length} events hydrated',
       );
 
       if (!mounted) return;
       setState(() {
-        _rows
+        rows
           ..clear()
-          ..addAll(rows);
+          ..addAll(hydratedRows);
         _onRowsLoaded();
-        _isLoading = false;
-        _loadingProgress = null;
-        _loadingStatus = null;
+        isLoading = false;
+        loadingProgress = null;
+        loadingStatus = null;
       });
-    } catch (error, stackTrace) {
+    } catch (err, stackTrace) {
       LoggingService.instance.error(
-        'Failed to load $_title',
-        error,
+        'Failed to load $title',
+        err,
         stackTrace,
       );
       if (!mounted) return;
       setState(() {
-        _error = 'Failed to load events: $error';
-        _isLoading = false;
-        _loadingProgress = null;
-        _loadingStatus = null;
+        error = 'Failed to load events: $err';
+        isLoading = false;
+        loadingProgress = null;
+        loadingStatus = null;
       });
     }
   }
@@ -233,10 +231,10 @@ mixin _InventoryEventHydrationMixin
         _organismCache[id] = organism;
       }
       return organism;
-    } catch (error, stackTrace) {
+    } catch (err, stackTrace) {
       LoggingService.instance.error(
         'Failed to resolve organism $id',
-        error,
+        err,
         stackTrace,
       );
       if (mounted) {
