@@ -16,13 +16,17 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// Neutral batch cohort record referencing a provenance record, life stage, and
 /// population measurement. Cohorts help bridge coral-specific cohorts to the
 /// organism-agnostic inventory model.
+///
+/// `organismKind`, `lifeStage`, and `population` live on the embedded
+/// [organismRecord]; top-level getters delegate to it. Cohort-specific state
+/// (placement, scheduling) remains as plain fields.
 class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   Cohort({
     required this.id,
     required this.name,
-    required this.organismKind,
-    required this.lifeStage,
-    required this.population,
+    required OrganismKind organismKind,
+    required LifeStage lifeStage,
+    required PopulationMeasurement population,
     this.provenanceId,
     this.siteId,
     this.groupId,
@@ -34,25 +38,17 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     OrganismRecord? organismRecord,
   }) : metadata = UnmodifiableMapView(_normalizeMetadata(metadata)),
        attributes = _normalizeAttributes(attributes),
-       organismRecord = _syncOrganismRecord(
-         organismRecord ??
-             OrganismRecord.inferFromMetadata(
-               organismKind: organismKind,
-               lifeStage: lifeStage,
-               measurement: population,
-               metadata: _normalizeMetadata(metadata),
-               speciesId: _normalizeAttributes(attributes).speciesId,
-             ),
-         organismKind,
-         lifeStage,
-         population,
+       organismRecord = _buildOrganismRecord(
+         base: organismRecord,
+         organismKind: organismKind,
+         lifeStage: lifeStage,
+         population: population,
+         attributes: _normalizeAttributes(attributes),
+         metadata: _normalizeMetadata(metadata),
        );
 
   final String id;
   final String name;
-  final OrganismKind organismKind;
-  final LifeStage lifeStage;
-  final PopulationMeasurement population;
   final String? provenanceId;
   final String? siteId;
   final String? groupId;
@@ -62,6 +58,14 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   final Map<String, dynamic> metadata;
   final HoldingAttributes attributes;
   final OrganismRecord organismRecord;
+
+  // Delegating getters: these axes used to live on Cohort as duplicated
+  // `final` state, kept in sync with the embedded organism record by the
+  // now-removed `_syncOrganismRecord` reconciler. They now read through
+  // to the single source of truth on [organismRecord].
+  OrganismKind get organismKind => organismRecord.organismKind;
+  LifeStage get lifeStage => organismRecord.lifeStage.stage;
+  PopulationMeasurement get population => organismRecord.measurement;
 
   String get lifeStageId => lifeStage.id;
 
@@ -113,15 +117,12 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     HoldingAttributes? attributes,
     OrganismRecord? organismRecord,
   }) {
-    final nextOrganismKind = organismKind ?? this.organismKind;
-    final nextLifeStage = lifeStage ?? this.lifeStage;
-    final nextPopulation = population ?? this.population;
     return Cohort(
       id: id ?? this.id,
       name: name ?? this.name,
-      organismKind: nextOrganismKind,
-      lifeStage: nextLifeStage,
-      population: nextPopulation,
+      organismKind: organismKind ?? this.organismKind,
+      lifeStage: lifeStage ?? this.lifeStage,
+      population: population ?? this.population,
       provenanceId: provenanceId ?? this.provenanceId,
       siteId: siteId ?? this.siteId,
       groupId: groupId ?? this.groupId,
@@ -130,12 +131,7 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
       completedAt: completedAt ?? this.completedAt,
       metadata: metadata ?? this.metadata,
       attributes: attributes ?? this.attributes,
-      organismRecord: _syncOrganismRecord(
-        organismRecord ?? this.organismRecord,
-        nextOrganismKind,
-        nextLifeStage,
-        nextPopulation,
-      ),
+      organismRecord: organismRecord ?? this.organismRecord,
     );
   }
 
@@ -321,16 +317,29 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
     return <String, dynamic>{};
   }
 
-  static OrganismRecord _syncOrganismRecord(
-    OrganismRecord record,
-    OrganismKind organismKind,
-    LifeStage lifeStage,
-    PopulationMeasurement population,
-  ) {
-    final lifeStageSpec = record.lifeStage.stage == lifeStage
-        ? record.lifeStage
-        : record.lifeStage.copyWith(stage: lifeStage);
-    return record.copyWith(
+  /// Build the embedded [OrganismRecord] from constructor inputs. Named axes
+  /// override matching fields on a supplied [base] record, preserving the
+  /// semantics of the former `_syncOrganismRecord` reconciler.
+  static OrganismRecord _buildOrganismRecord({
+    required OrganismRecord? base,
+    required OrganismKind organismKind,
+    required LifeStage lifeStage,
+    required PopulationMeasurement population,
+    required HoldingAttributes attributes,
+    required Map<String, dynamic> metadata,
+  }) {
+    final source = base ??
+        OrganismRecord.inferFromMetadata(
+          organismKind: organismKind,
+          lifeStage: lifeStage,
+          measurement: population,
+          metadata: metadata,
+          speciesId: attributes.speciesId,
+        );
+    final lifeStageSpec = source.lifeStage.stage == lifeStage
+        ? source.lifeStage
+        : source.lifeStage.copyWith(stage: lifeStage);
+    return source.copyWith(
       organismKind: organismKind,
       lifeStage: lifeStageSpec,
       measurement: population,
@@ -349,9 +358,6 @@ class Cohort extends Equatable with LifeStageProgressionMixin, MeasurableMixin {
   List<Object?> get props => [
     id,
     name,
-    organismKind,
-    lifeStage,
-    population,
     provenanceId,
     siteId,
     groupId,
