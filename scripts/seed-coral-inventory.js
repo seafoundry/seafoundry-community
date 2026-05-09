@@ -21,7 +21,8 @@ const path = require('path');
 
 const args = process.argv.slice(2);
 
-// Load CRC/HOG crosswalk data for realistic provenance associations
+// Optional crosswalk data for realistic provenance associations.
+// Community fork ships no crosswalk data; this gracefully no-ops.
 function loadCrosswalkData() {
   const bySpecies = {};
   try {

@@ -138,3 +138,8 @@ Thumbs.db
 taxonomy-images/
 
 sentry.properties
+
+# Mote HOG / CRC crosswalk data — must NEVER be committed to community fork
+History of Genotypes*.csv
+*HOG*.csv
+crc_db/

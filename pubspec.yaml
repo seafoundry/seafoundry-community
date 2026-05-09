@@ -107,9 +107,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-    - crc_db/pid_crosswalk.json
-    - crc_db/org_nomenclature_map.json
-    - crc_db/crc_numeric_genotype_map.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:
