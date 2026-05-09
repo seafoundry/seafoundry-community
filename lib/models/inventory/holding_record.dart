@@ -31,17 +31,17 @@ class HoldingRecord extends InventoryRecord
     with LifeStageProgressionMixin, MeasurableMixin {
   HoldingRecord({
     required super.id,
-    required String tagId,
-    required OrganismKind organismKind,
-    required LifeStage lifeStage,
-    required PopulationMeasurement measurement,
+    required this.tagId,
+    required this.organismKind,
+    required this.lifeStage,
+    required this.measurement,
     this.provenanceId,
     this.cohortId,
     this.siteId,
     this.groupId,
     this.structureId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
+    this.ownerOrganizationId,
+    this.managingOrganizationId,
     Map<String, ForeignKeyReference>? foreignKeys,
     HoldingAttributes? attributes,
     Map<String, dynamic> metadata = const <String, dynamic>{},
@@ -107,16 +107,16 @@ class HoldingRecord extends InventoryRecord
   /// [lifeStage], [measurement], [ownerOrganizationId], [managingOrganizationId]).
   final OrganismRecord organismRecord;
 
-  // Delegating getters: these fields previously lived on HoldingRecord as
-  // duplicated `final` state, kept in sync with the embedded organism record
-  // by the now-removed `_syncOrganismRecord` reconciler. They now read
-  // through to the single source of truth on [organismRecord].
-  String get tagId => organismRecord.tagId;
-  OrganismKind get organismKind => organismRecord.organismKind;
-  LifeStage get lifeStage => organismRecord.lifeStage.stage;
-  PopulationMeasurement get measurement => organismRecord.measurement;
-  String? get ownerOrganizationId => organismRecord.ownerOrganizationId;
-  String? get managingOrganizationId => organismRecord.managingOrganizationId;
+  // Denormalized display fields. Authoritative for synchronous reads on the
+  // holding; deep axes (aliases, physicalForm, sizeSpec, lifeStageHistory,
+  // measurementHistory, etc.) live on the canonical OrganismRecord and must
+  // be fetched via [resolveOrganismRecord].
+  final String tagId;
+  final OrganismKind organismKind;
+  final LifeStage lifeStage;
+  final PopulationMeasurement measurement;
+  final String? ownerOrganizationId;
+  final String? managingOrganizationId;
 
   @override
   ModelType get modelType => ModelType.holding;
