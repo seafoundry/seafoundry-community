@@ -110,18 +110,26 @@ class OrganismHoldingLoader {
   ) async {
     try {
       final holdings = await repository.fetchHoldings(organismKind: kind);
+
+      // Pre-fetch all required OrganismRecords in a single batched query.
+      // Previous implementation issued one Firestore .get() per holding,
+      // which became O(N) reads for CSV exports / spreadsheet loads.
+      final organismIds = <String>{
+        for (final holding in holdings)
+          if (holding.organismRecordId.isNotEmpty) holding.organismRecordId,
+      };
+      final organismLookup =
+          await organismRecordRepository.getRecordsByIds(organismIds);
+
       for (final holding in holdings) {
         final group = holding.groupId != null
             ? groupLookup[holding.groupId]
             : null;
-        // Resolve the canonical OrganismRecord (deep axes) via the FK on
-        // the holding. The row builder needs aliases, physicalForm, sizeSpec,
-        // provenanceType, foreignKeys and localGenetId, all of which live on
-        // OrganismRecord rather than the holding's denormalized fields.
+        // Row builder needs aliases, physicalForm, sizeSpec, provenanceType,
+        // foreignKeys and localGenetId — all of which live on OrganismRecord
+        // rather than the holding's denormalized fields.
         final OrganismRecord? organismRecord =
-            await holding.resolveOrganismRecord(
-          (id) => organismRecordRepository.getRecordForId(id),
-        );
+            organismLookup[holding.organismRecordId];
         if (organismRecord == null) {
           LoggingService.instance.warning(
             'OrganismHoldingLoader: missing OrganismRecord for holding ${holding.id}',
