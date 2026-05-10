@@ -302,7 +302,7 @@ extension _TransferServiceAcceptance on TransferService {
         createdGenet = result.$1;
         updatedTransfer = result.$2;
         createdOrganismRecord = result.$3;
-      } on domainErrors.RepositoryError catch (e) {
+      } on domain_errors.RepositoryError catch (e) {
         throw TransferWorkflowException(
           'Unable to accept transfer: ${e.message}',
         );

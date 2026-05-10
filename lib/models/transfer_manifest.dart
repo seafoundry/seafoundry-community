@@ -11,7 +11,7 @@ import 'transfer_status.dart';
 /// a transfer between organizations.
 ///
 /// Uses typed snapshot classes ([OrganizationSnapshot], [GenetSnapshot],
-/// [UserSnapshot]) instead of raw Map<String, dynamic> to provide type safety
+/// [UserSnapshot]) instead of raw `Map<String, dynamic>` to provide type safety
 /// and better documentation of the expected data structure.
 class TransferManifest {
   static const String currentVersion = '1.0.0';

@@ -1,6 +1,6 @@
 // @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fbAuth;
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:firebase_storage/firebase_storage.dart';
 
 /// Centralized Firebase service that wraps all Firebase instances.
@@ -15,7 +15,7 @@ class FirebaseService {
   final FirebaseFirestore firestore;
 
   /// Firebase Auth instance
-  final fbAuth.FirebaseAuth auth;
+  final fb_auth.FirebaseAuth auth;
 
   /// Firebase Storage instance
   final FirebaseStorage storage;
@@ -23,10 +23,10 @@ class FirebaseService {
   /// Create a FirebaseService with specific instances (for testing)
   FirebaseService({
     FirebaseFirestore? firestore,
-    fbAuth.FirebaseAuth? auth,
+    fb_auth.FirebaseAuth? auth,
     FirebaseStorage? storage,
   }) : firestore = firestore ?? FirebaseFirestore.instance,
-       auth = auth ?? fbAuth.FirebaseAuth.instance,
+       auth = auth ?? fb_auth.FirebaseAuth.instance,
        storage = storage ?? FirebaseStorage.instance;
 
   /// Default instance using Firebase singletons

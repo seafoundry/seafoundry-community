@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fbAuth;
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/user.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
@@ -12,17 +12,17 @@ import 'package:seafoundry_app/utils/user_identity.dart';
 
 /// Repository responsible for authentication and user/organization verification
 class AuthRepository {
-  final fbAuth.FirebaseAuth _firebaseAuth;
+  final fb_auth.FirebaseAuth _firebaseAuth;
   final FirebaseFirestore _firestore;
 
   AuthRepository({
     FirebaseService? firebaseService,
-    fbAuth.FirebaseAuth? firebaseAuth,
+    fb_auth.FirebaseAuth? firebaseAuth,
     FirebaseFirestore? firestore,
   }) : _firebaseAuth =
            firebaseAuth ??
            firebaseService?.auth ??
-           fbAuth.FirebaseAuth.instance,
+           fb_auth.FirebaseAuth.instance,
        _firestore =
            firestore ??
            firebaseService?.firestore ??
@@ -31,18 +31,18 @@ class AuthRepository {
            ));
 
   /// Stream of authentication state changes
-  Stream<fbAuth.User?> get authStateChanges =>
+  Stream<fb_auth.User?> get authStateChanges =>
       _firebaseAuth.authStateChanges();
 
   /// Current Firebase user
-  fbAuth.User? get currentFirebaseUser => _firebaseAuth.currentUser;
+  fb_auth.User? get currentFirebaseUser => _firebaseAuth.currentUser;
 
   String _resolveUserDocId(String userId) {
     return UserIdentity.normalizeUserDocId(userId);
   }
 
   /// Sign in with email and password
-  Future<fbAuth.UserCredential> signInWithEmailAndPassword({
+  Future<fb_auth.UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
@@ -53,7 +53,7 @@ class AuthRepository {
   }
 
   /// Sign up with email and password
-  Future<fbAuth.UserCredential> signUpWithEmailAndPassword({
+  Future<fb_auth.UserCredential> signUpWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
@@ -70,8 +70,8 @@ class AuthRepository {
   }
 
   /// Sign in with credential (for Google Sign In)
-  Future<fbAuth.UserCredential> signInWithCredential(
-    fbAuth.AuthCredential credential,
+  Future<fb_auth.UserCredential> signInWithCredential(
+    fb_auth.AuthCredential credential,
   ) async {
     return await _firebaseAuth.signInWithCredential(credential);
   }

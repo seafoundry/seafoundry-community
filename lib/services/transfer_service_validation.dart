@@ -61,9 +61,9 @@ extension _TransferServiceValidation on TransferService {
   Future<void> updateTransferEvent(TransferEvent transfer) async {
     // Verify the event belongs to the current organization before updating
     if (transfer.organizationId != _provenanceRepository.organization.id) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Cannot update transfer event from different organization',
-        category: domainErrors.AppErrorCategory.validation,
+        category: domain_errors.AppErrorCategory.validation,
         recoverySuggestion:
             'Ensure you are logged into the correct organization',
       );
@@ -85,9 +85,9 @@ extension _TransferServiceValidation on TransferService {
     final currentOrgId = _provenanceRepository.organization.id;
     if (transfer.organizationId != currentOrgId &&
         transfer.toOrganizationId != currentOrgId) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Cannot update transfer event from different organization',
-        category: domainErrors.AppErrorCategory.validation,
+        category: domain_errors.AppErrorCategory.validation,
         recoverySuggestion:
             'Ensure you are logged into the correct organization',
       );
