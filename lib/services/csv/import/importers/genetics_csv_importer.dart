@@ -201,7 +201,8 @@ class GeneticsCsvImporter {
                   importedGenets.add(genet);
                 }
 
-                var tagId = (row['Record Name'] ?? '').trim();
+                var tagId = (lookup.valueFor(GeneticsCsvKeys.tagIdKeys) ?? '')
+                    .trim();
                 final organismLocalId =
                     (localGenetId != null && localGenetId.trim().isNotEmpty)
                         ? localGenetId.trim()
@@ -210,10 +211,11 @@ class GeneticsCsvImporter {
                               : null);
                 if (organismLocalId == null) {
                   validation.addError(
-                    field: 'Local ID',
+                    field: 'localGenetId',
                     value: localGenetId ?? '',
                     message:
-                        'Local ID is required for coral organism rows.',
+                        'localGenetId (was "Local ID") is required for coral '
+                        'organism rows.',
                   );
                   return;
                 }
@@ -223,16 +225,17 @@ class GeneticsCsvImporter {
                 }
                 if (tagId.isEmpty) {
                   validation.addError(
-                    field: 'Record Name',
+                    field: 'tagId',
                     value: tagId,
                     message:
-                        'Record Name is required for coral organism rows.',
+                        'tagId (was "Record Name") is required for coral '
+                        'organism rows.',
                   );
                   return;
                 }
 
                 if (!validation.validateValue(
-                  'Record Name',
+                  'tagId',
                   tagId,
                   ValidationService.tagId,
                 )) {
