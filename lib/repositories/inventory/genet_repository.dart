@@ -1,7 +1,7 @@
 // @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
-import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
+import 'package:seafoundry_app/errors/domain_errors.dart' as domain_errors;
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/inventory/inventory_record_repository.dart';
@@ -150,7 +150,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
           provenanceId = genet.provenanceId.trim();
           final formatError = ValidationService.provenanceId(provenanceId);
           if (formatError != null) {
-            throw domainErrors.RepositoryError(
+            throw domain_errors.RepositoryError(
               message: 'Provenance ID "$provenanceId" has invalid format. '
                   'Expected format: PID-XXXX-XXXX (e.g., PID-ACER-0001).',
               context: {'provenanceId': provenanceId},
@@ -177,7 +177,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
               break;
             } catch (e) {
               // Use typed exception for reliable collision detection
-              if (e is domainErrors.UniqueConstraintViolationError &&
+              if (e is domain_errors.UniqueConstraintViolationError &&
                   e.fieldName == 'provenanceId' &&
                   attempts < maxAttempts) {
                 LoggingService.instance.warning(
@@ -191,7 +191,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
           
           // Safety fallback if loop exhausted without success (unlikely)
           if (provenanceId == null) {
-            throw domainErrors.RepositoryError(
+            throw domain_errors.RepositoryError(
               message: 'Failed to generate unique Provenance ID after $maxAttempts attempts.',
             );
           }
@@ -211,7 +211,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         organizationId: organization.id,
       );
       if (!isUnique) {
-        throw domainErrors.RepositoryError(
+        throw domain_errors.RepositoryError(
           message:
               'Local ID "$trimmedName" already exists in ${organization.name}. Please choose a different ID.',
         );
@@ -244,7 +244,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
 
       // Validate before saving
       if (!genet.validate()) {
-        throw domainErrors.RepositoryError(
+        throw domain_errors.RepositoryError(
           message: 'Genet is not valid: ${genet.toJson()}',
         );
       }
@@ -301,11 +301,11 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
       );
 
       // Re-throw with step context
-      if (e is domainErrors.RepositoryError) {
+      if (e is domain_errors.RepositoryError) {
         rethrow;
       }
 
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Failed to create genet at step: $currentStep',
         technicalDetails: e.toString(),
         originalError: e,
@@ -341,7 +341,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         excludeRecordId: original.id,
       );
       if (!isUnique) {
-        throw domainErrors.RepositoryError(
+        throw domain_errors.RepositoryError(
           message:
               'Local ID "$trimmedName" already exists in ${organization.name}. Please choose a different ID.',
         );
@@ -352,7 +352,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
     if (trimmedProvenanceId.isNotEmpty && trimmedProvenanceId != Missing.string) {
       final formatError = ValidationService.provenanceId(trimmedProvenanceId);
       if (formatError != null) {
-        throw domainErrors.RepositoryError(
+        throw domain_errors.RepositoryError(
           message: 'Provenance ID "$trimmedProvenanceId" has invalid format. '
               'Expected format: PID-XXXX-XXXX (e.g., PID-ACER-0001).',
           context: {'provenanceId': trimmedProvenanceId},
@@ -429,7 +429,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         excludeRecordId: excludeRecordId,
       );
     } on AliasConflictException catch (error) {
-      throw domainErrors.RepositoryError(message: error.toString());
+      throw domain_errors.RepositoryError(message: error.toString());
     }
   }
 
@@ -449,7 +449,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         localGenetId: record.name,
       );
     } on AliasConflictException catch (error) {
-      throw domainErrors.RepositoryError(message: error.toString());
+      throw domain_errors.RepositoryError(message: error.toString());
     }
   }
 
@@ -485,7 +485,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
         if (excludeRecordId != null && recordId == excludeRecordId) {
           continue;
         }
-        throw domainErrors.UniqueConstraintViolationError(
+        throw domain_errors.UniqueConstraintViolationError(
           message:
               'Provenance ID "$trimmed" already exists. Please choose a different Provenance ID.',
           fieldName: 'provenanceId',
@@ -496,11 +496,11 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
       }
     } on FirebaseException catch (error, stackTrace) {
       if (error.code == 'permission-denied' || error.code == 'unauthenticated') {
-        throw domainErrors.RepositoryError(
+        throw domain_errors.RepositoryError(
           message: 'Unable to verify provenance ID uniqueness due to authentication error. Please sign in and try again.',
           originalError: error,
           stackTrace: stackTrace,
-          category: domainErrors.AppErrorCategory.authentication,
+          category: domain_errors.AppErrorCategory.authentication,
           recoverySuggestion: 'Please sign out and sign back in, then try again.',
         );
       }
@@ -570,14 +570,14 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
     final docRef = collectionRef.doc(genetRecordId);
     final snapshot = await docRef.get();
     if (!snapshot.exists) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Genet $genetRecordId not found for archival.',
       );
     }
 
     final data = snapshot.data();
     if (data == null) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Genet $genetRecordId exists but has null data.',
       );
     }
@@ -670,7 +670,7 @@ class GenetRepository extends InventoryRecordRepository<Genet> {
     }
 
     if (genet == null) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Genet $genetRecordId not found for restore.',
       );
     }

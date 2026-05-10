@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/base/cubit_stream_subscription_mixin.dart';
 import 'package:seafoundry_app/cubits/navigation/deep_link_cubit.dart';
-import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
+import 'package:seafoundry_app/errors/domain_errors.dart' as domain_errors;
 import 'package:seafoundry_app/constants/constants.dart';
 import 'package:seafoundry_app/mixins/provenance_search_mixin.dart';
 import 'package:seafoundry_app/models/models.dart';
@@ -482,12 +482,12 @@ class OnboardingCubit extends Cubit<OnboardingState>
         stackTrace,
       );
 
-      final domainError = domainErrors.ErrorHandler.transformError(
+      final domainError = domain_errors.ErrorHandler.transformError(
         error,
         stackTrace: stackTrace,
         context: 'create organization',
       );
-      final errorMessage = domainErrors.ErrorHandler.getDisplayMessage(
+      final errorMessage = domain_errors.ErrorHandler.getDisplayMessage(
         domainError,
         includeDetails: kDebugMode,
       );
@@ -576,12 +576,12 @@ class OnboardingCubit extends Cubit<OnboardingState>
         stack,
       );
 
-      final domainError = domainErrors.ErrorHandler.transformError(
+      final domainError = domain_errors.ErrorHandler.transformError(
         e,
         stackTrace: stack,
         context: 'create site and structure',
       );
-      final errorMessage = domainErrors.ErrorHandler.getDisplayMessage(
+      final errorMessage = domain_errors.ErrorHandler.getDisplayMessage(
         domainError,
         includeDetails: kDebugMode,
       );
@@ -701,12 +701,12 @@ class OnboardingCubit extends Cubit<OnboardingState>
         e,
         stack,
       );
-      final domainError = domainErrors.ErrorHandler.transformError(
+      final domainError = domain_errors.ErrorHandler.transformError(
         e,
         stackTrace: stack,
         context: 'create first genet and organism',
       );
-      final errorMessage = domainErrors.ErrorHandler.getDisplayMessage(
+      final errorMessage = domain_errors.ErrorHandler.getDisplayMessage(
         domainError,
         includeDetails: kDebugMode,
       );

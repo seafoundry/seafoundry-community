@@ -1,7 +1,7 @@
 # Community Web CI with Quality Gates
 #
 # RECOMMENDED BRANCH PROTECTION SETTINGS:
-# Enable in GitHub Repository Settings > Branches > Branch protection rules for 'community':
+# Repository Settings > Branches > Branch protection rules for 'main':
 # - Require status checks to pass before merging: build-test-web
 # - Require pull request reviews before merging
 
@@ -9,9 +9,9 @@ name: Community Web CI
 
 on:
   push:
-    branches: [ community ]
+    branches: [ main ]
   pull_request:
-    branches: [ community ]
+    branches: [ main ]
 
 jobs:
   build-test-web:
@@ -37,20 +37,13 @@ jobs:
         run: |
           echo "Running Flutter analyze with fatal warnings..."
           flutter analyze --fatal-warnings
-          if [ $? -ne 0 ]; then
-            echo "::error::Flutter analyze found issues that must be fixed"
-            exit 1
-          fi
           echo "✓ Analysis passed"
 
       - name: Test (Flutter)
+        if: hashFiles('test/**/*_test.dart') != ''
         run: |
           echo "Running Flutter tests on Chrome..."
           flutter test --platform chrome
-          if [ $? -ne 0 ]; then
-            echo "::error::Tests failed - all tests must pass before merging"
-            exit 1
-          fi
           echo "✓ All tests passed"
 
       - name: Build Web (Community)

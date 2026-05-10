@@ -301,7 +301,7 @@ class _FilteredOrganismListSheetState extends State<FilteredOrganismListSheet> {
           controller: scrollController,
           padding: const EdgeInsets.all(Spacing.md),
           itemCount: filtered.length,
-          separatorBuilder: (_, __) => const Divider(height: 1),
+          separatorBuilder: (_, _) => const Divider(height: 1),
           itemBuilder: (context, index) {
             final record = filtered[index];
             final displayInfo = resolveRecordDisplayInfo(

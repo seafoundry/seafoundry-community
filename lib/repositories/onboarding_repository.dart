@@ -1,6 +1,6 @@
 // @tier: community
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
+import 'package:seafoundry_app/errors/domain_errors.dart' as domain_errors;
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/repositories/brand_profile_repository.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
@@ -549,7 +549,7 @@ class OnboardingRepository {
 
     final groupData = groupDoc.data();
     if (!groupDoc.exists || groupData == null) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Group not found for first organism setup.',
         recoverySuggestion:
             'Go back and re-create the site setup step, then try again.',
@@ -558,7 +558,7 @@ class OnboardingRepository {
     }
     final groupUrlPath = groupData['urlPath'];
     if (groupUrlPath is! String || groupUrlPath.trim().isEmpty) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Group location data is incomplete.',
         recoverySuggestion:
             'Go back and re-create the site setup step, then try again.',
@@ -588,7 +588,7 @@ class OnboardingRepository {
 
     final organization = await getOrganization(user.organizationId);
     if (organization == null) {
-      throw domainErrors.RepositoryError(
+      throw domain_errors.RepositoryError(
         message: 'Organization not found for onboarding genet creation.',
         recoverySuggestion: 'Please sign out and sign back in, then try again.',
         technicalDetails: 'Missing organization for id: ${user.organizationId}',

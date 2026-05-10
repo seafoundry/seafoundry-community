@@ -58,7 +58,7 @@ class OrganizationSnapshot extends Equatable {
   /// Display name: organization name if available, otherwise email.
   String get displayName => name ?? email ?? 'Unknown';
 
-  /// Provides backward compatibility with Map<String, dynamic> access patterns.
+  /// Provides backward compatibility with `Map<String, dynamic>` access patterns.
   /// Allows code to use `snapshot['id']` instead of `snapshot.id`.
   /// @Deprecated('Use typed property accessors instead')
   dynamic operator [](String key) {
@@ -118,7 +118,7 @@ class UserSnapshot extends Equatable {
   /// Display name: user name if available, otherwise email, otherwise ID.
   String get displayName => name ?? email ?? id;
 
-  /// Provides backward compatibility with Map<String, dynamic> access patterns.
+  /// Provides backward compatibility with `Map<String, dynamic>` access patterns.
   /// @Deprecated('Use typed property accessors instead')
   dynamic operator [](String key) {
     switch (key) {
@@ -263,7 +263,7 @@ class GenetSnapshot extends Equatable {
   /// Display name for UI.
   String get displayName => name ?? localGenetId ?? id;
 
-  /// Provides backward compatibility with Map<String, dynamic> access patterns.
+  /// Provides backward compatibility with `Map<String, dynamic>` access patterns.
   /// @Deprecated('Use typed property accessors instead')
   dynamic operator [](String key) {
     switch (key) {

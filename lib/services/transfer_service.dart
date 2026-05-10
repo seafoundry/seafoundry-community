@@ -4,7 +4,7 @@ import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
-import 'package:seafoundry_app/errors/domain_errors.dart' as domainErrors;
+import 'package:seafoundry_app/errors/domain_errors.dart' as domain_errors;
 import 'package:seafoundry_app/models/alias.dart';
 import 'package:seafoundry_app/models/events/event_permit_metadata.dart';
 import 'package:seafoundry_app/models/events/outplant_geometry.dart';

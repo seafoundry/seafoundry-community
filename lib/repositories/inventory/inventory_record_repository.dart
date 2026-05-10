@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' as fbAuth;
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:rxdart/rxdart.dart';
@@ -544,7 +544,7 @@ abstract class InventoryRecordRepository<T extends InventoryRecord>
       String? authUid;
       var authAvailable = true;
       try {
-        authUid = fbAuth.FirebaseAuth.instance.currentUser?.uid;
+        authUid = fb_auth.FirebaseAuth.instance.currentUser?.uid;
       } on PlatformException catch (e) {
         authAvailable = false;
         LoggingService.instance.warning(
