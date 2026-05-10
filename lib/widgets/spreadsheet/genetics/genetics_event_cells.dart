@@ -37,46 +37,6 @@ SpreadsheetRow _buildGeneticsEventRow(_GeneticsEventRow row) {
   );
 }
 
-/// No-match placeholder shown when [_GeneticsEventRow]s exist but none pass
-/// the active filter selection. Distinct from the scaffold's empty-state
-/// because it offers a "Reset Filters" affordance.
-class _GeneticsEventsNoMatches extends StatelessWidget {
-  const _GeneticsEventsNoMatches({
-    required this.hasActiveFilters,
-    required this.onReset,
-  });
-
-  final bool hasActiveFilters;
-  final VoidCallback onReset;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.filter_list, size: 64, color: Colors.blueGrey),
-            const SizedBox(height: 12),
-            const Text(
-              'No events match the current filters',
-              style: TextStyle(fontSize: 18),
-            ),
-            if (hasActiveFilters) ...[
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: onReset,
-                child: const Text('Reset Filters'),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _GeneticsEventsToolbar extends StatelessWidget {
   const _GeneticsEventsToolbar({
     required this.allRows,

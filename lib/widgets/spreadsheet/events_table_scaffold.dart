@@ -81,15 +81,50 @@ abstract class EventsTableScaffoldState<W extends StatefulWidget, TRow>
   @protected
   List<Widget> get leadingHeader => const <Widget>[];
 
+  /// Whether the subclass currently has any user-applied filters. When true,
+  /// [buildEmptyFilteredState] surfaces a Reset Filters affordance.
+  @protected
+  bool get hasActiveFilters => false;
+
+  /// Hook invoked by the default [buildEmptyFilteredState] reset button.
+  /// Subclasses with filter state should clear it here.
+  @protected
+  void resetFilters() {}
+
   /// Widget shown when [rows] is non-empty but no row matches the current
-  /// filters. Defaults to a plain message; override for a custom no-match UX
-  /// (such as a "reset filters" affordance).
+  /// filters. Default renders a centered message and — when
+  /// [hasActiveFilters] is true — a "Reset Filters" button wired to
+  /// [resetFilters]. Override for fully custom no-match UX.
   @protected
   Widget buildEmptyFilteredState(BuildContext context) {
-    return const Center(
-      child: Text(
-        'No events match the current filters.',
-        style: TextStyle(color: Colors.grey),
+    final theme = Theme.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.filter_list,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No events match the current filters',
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+            if (hasActiveFilters) ...[
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: resetFilters,
+                icon: const Icon(Icons.clear),
+                label: const Text('Reset Filters'),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -243,24 +278,26 @@ class EventsTableEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mutedColor = theme.colorScheme.onSurfaceVariant;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: Colors.grey),
+            Icon(icon, size: 64, color: mutedColor),
             const SizedBox(height: 12),
             Text(
               'No $title found',
-              style: const TextStyle(fontSize: 18, color: Colors.grey),
+              style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
             if (message != null) ...[
               const SizedBox(height: 8),
               Text(
                 message!,
-                style: const TextStyle(color: Colors.grey),
+                style: theme.textTheme.bodyMedium?.copyWith(color: mutedColor),
                 textAlign: TextAlign.center,
               ),
             ],
