@@ -222,7 +222,9 @@ mixin _GeneticsEventHydrationMixin
       if (!mounted) return null;
       final genet = await genetRepository.getRecordForId(id);
       if (!mounted) return null;
-      if (mounted) {
+      // Only cache successful, non-null lookups so a transient failure does
+      // not poison the cache for the rest of the session.
+      if (mounted && genet != null) {
         _genetCache[id] = genet;
       }
       return genet;
@@ -232,9 +234,7 @@ mixin _GeneticsEventHydrationMixin
         err,
         stackTrace,
       );
-      if (mounted) {
-        _genetCache[id] = null;
-      }
+      // Do not cache the failure — let the next attempt retry.
       return null;
     }
   }
@@ -253,7 +253,9 @@ mixin _GeneticsEventHydrationMixin
       if (!mounted) return null;
       final organism = await organismRepository.getRecordForId(id);
       if (!mounted) return null;
-      if (mounted) {
+      // Only cache successful, non-null lookups so a transient failure does
+      // not poison the cache for the rest of the session.
+      if (mounted && organism != null) {
         _organismCache[id] = organism;
       }
       return organism;
@@ -263,9 +265,7 @@ mixin _GeneticsEventHydrationMixin
         err,
         stackTrace,
       );
-      if (mounted) {
-        _organismCache[id] = null;
-      }
+      // Do not cache the failure — let the next attempt retry.
       return null;
     }
   }
