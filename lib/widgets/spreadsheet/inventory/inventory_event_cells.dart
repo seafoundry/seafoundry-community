@@ -95,7 +95,7 @@ class _InventoryEventsToolbar extends StatelessWidget {
 
     final dateRangeLabel = selectedDateRange == null
         ? 'Date Range'
-        : '${DateFormat.yMMMd().format(selectedDateRange!.start)} - '
+        : '${DateFormat.yMMMd().format(selectedDateRange!.start)} – '
             '${DateFormat.yMMMd().format(selectedDateRange!.end)}';
 
     return Wrap(
@@ -153,6 +153,10 @@ class _InventoryEventsToolbar extends StatelessWidget {
             icon: const Icon(Icons.clear),
             label: const Text('Clear Dates'),
           ),
+        QuickDateRangeChips(
+          selectedRange: selectedDateRange,
+          onRangeSelected: onDateRangeChanged,
+        ),
         FilledButton.icon(
           onPressed: onRefresh,
           icon: const Icon(Icons.refresh),

@@ -21,9 +21,8 @@ mixin _InventoryEventFiltersMixin
     }
 
     if (_selectedDateRange != null) {
-      final start = _selectedDateRange!.start;
-      final end = _selectedDateRange!.end
-          .add(const Duration(hours: 23, minutes: 59, seconds: 59));
+      final start = DateRangePresets.startOfDay(_selectedDateRange!.start);
+      final end = DateRangePresets.endOfDay(_selectedDateRange!.end);
       filtered = filtered.where((row) {
         final createdAt = row.createdAt;
         if (createdAt == null) return false;
