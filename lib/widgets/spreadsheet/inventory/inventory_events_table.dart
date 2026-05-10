@@ -65,6 +65,12 @@ class _InventoryEventsTableState
       widget.outplantingOnly ? Icons.nature : Icons.event_note;
 
   @override
+  String? get emptyMessage => widget.outplantingOnly
+      ? 'Record an outplant event from the Outplanting tab to see it here.'
+      : 'Create or edit an organism record and the change history will '
+          'appear here.';
+
+  @override
   List<SpreadsheetColumn> get columns => _inventoryEventColumns;
 
   @override
@@ -81,6 +87,12 @@ class _InventoryEventsTableState
   void _onRowsLoaded() {
     applyFilters(updateState: false);
   }
+
+  @override
+  bool get hasActiveFilters => _hasActiveFilters;
+
+  @override
+  void resetFilters() => _clearFilters();
 
   @override
   Widget buildToolbar(BuildContext context) {

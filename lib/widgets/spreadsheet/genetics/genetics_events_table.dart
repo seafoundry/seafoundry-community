@@ -107,12 +107,10 @@ class _GeneticsEventsTableState
   }
 
   @override
-  Widget buildEmptyFilteredState(BuildContext context) {
-    return _GeneticsEventsNoMatches(
-      hasActiveFilters: _hasActiveFilters,
-      onReset: _clearFilters,
-    );
-  }
+  bool get hasActiveFilters => _hasActiveFilters;
+
+  @override
+  void resetFilters() => _clearFilters();
 
   @override
   Widget buildToolbar(BuildContext context) {
