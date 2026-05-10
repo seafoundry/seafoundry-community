@@ -373,4 +373,54 @@ mixin _OrganismRecordRepositoryQueries
         .where((record) => record.pendingBatchId == batchId)
         .toList(growable: false);
   }
+
+  /// Batch-fetch organism records by document id.
+  ///
+  /// Replaces N sequential `.get()` calls (one per id) with chunked
+  /// `whereIn` queries. Firestore's `whereIn` accepts at most 30 values per
+  /// query, so longer id lists are split into 30-element chunks executed in
+  /// parallel. Missing ids simply do not appear in the returned map.
+  Future<Map<String, OrganismRecord>> getRecordsByIds(
+    Iterable<String> ids,
+  ) async {
+    final distinct = ids
+        .map((id) => id.trim())
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    if (distinct.isEmpty) return const <String, OrganismRecord>{};
+
+    const chunkSize = 30;
+    final idList = distinct.toList(growable: false);
+    final chunks = <List<String>>[];
+    for (var i = 0; i < idList.length; i += chunkSize) {
+      chunks.add(
+        idList.sublist(i, min(i + chunkSize, idList.length)),
+      );
+    }
+
+    final results = <String, OrganismRecord>{};
+    final snapshots = await Future.wait(
+      chunks.map(
+        (chunk) => collectionRef
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get(),
+      ),
+    );
+    for (final snapshot in snapshots) {
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        try {
+          final record = RecordFactory.recordFromJson<OrganismRecord>(data);
+          results[doc.id] = record;
+        } catch (e, stackTrace) {
+          LoggingService.instance.error(
+            'getRecordsByIds: Failed to parse OrganismRecord ${doc.id}',
+            e,
+            stackTrace,
+          );
+        }
+      }
+    }
+    return results;
+  }
 }
