@@ -22,7 +22,6 @@
   ],
   "exclude": [
     "node_modules",
-    "src/comments/example-test.ts",
-    "tests/visual-engagement.test.ts"
+    "src/comments/example-test.ts"
   ]
 }
