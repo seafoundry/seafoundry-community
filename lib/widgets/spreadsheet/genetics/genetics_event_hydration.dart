@@ -107,12 +107,15 @@ mixin _GeneticsEventHydrationMixin
       }
 
       if (!mounted) return;
-      setState(() {
-        loadingProgress = candidates.isEmpty ? null : 0;
-        loadingStatus = candidates.isEmpty
-            ? 'No events to hydrate.'
-            : 'Hydrating ${candidates.length} events...';
-      });
+      // When there is nothing to hydrate, skip the interim "No events to
+      // hydrate." status — it would flash for one frame inside
+      // EventsTableLoading before the final empty-state setState below.
+      if (candidates.isNotEmpty) {
+        setState(() {
+          loadingProgress = 0;
+          loadingStatus = 'Hydrating ${candidates.length} events...';
+        });
+      }
 
       var hydratedCount = 0;
       for (var i = 0; i < candidates.length; i += _eventHydrationBatchSize) {
