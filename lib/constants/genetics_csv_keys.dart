@@ -34,6 +34,15 @@ class GeneticsCsvKeys {
     'Genet Name',
   ];
 
+  /// Per-organism display tag (was "Record Name" pre-rename).
+  /// Includes legacy aliases so old templates still import cleanly.
+  static const List<String> tagIdKeys = [
+    'tagId',
+    'recordName',
+    'Record Name',
+    'Tag ID',
+  ];
+
   static const List<String> speciesKeys = [
     'speciesId',
     'Species ID',

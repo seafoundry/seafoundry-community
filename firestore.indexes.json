@@ -89,7 +89,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "genetId",
+          "fieldPath": "genetRecordId",
           "order": "ASCENDING"
         },
         {
@@ -111,7 +111,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "genetId",
+          "fieldPath": "genetRecordId",
           "order": "ASCENDING"
         },
         {
@@ -589,7 +589,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "genetId",
+          "fieldPath": "genetRecordId",
           "order": "ASCENDING"
         },
         {
@@ -625,7 +625,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "localId",
+          "fieldPath": "localGenetId",
           "order": "ASCENDING"
         }
       ]

@@ -13,8 +13,6 @@ import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 import {defineSecret} from "firebase-functions/params";
 import {Resend} from "resend";
-// Visual Engagement functions
-export * from "./visual_engagement";
 
 // Transfer functions
 export * from "./transfers";
