@@ -2,7 +2,7 @@
 
 ## Guardrails
 - Use `OrganismRecordRepository` or `InventoryRecordRepository` for writes.
-- Normalize `localId` and `recordName` via `UniqueNameValidationService` and
+- Normalize `localGenetId` and `tagId` via `UniqueNameValidationService` and
   `RecordNameDerived` before persistence.
 - Inventory events must include `snapshotData` and use
   `recordModelType: organismRecord`.
@@ -23,7 +23,7 @@
 ### GenetIdResolver
 - All genet ID resolution in inventory code must use
   `GenetIdResolver.resolve(record)` — never access
-  `record.foreignKeys['genetId']?.id` directly. This applies to event
+  `record.foreignKeys['genetRecordId']?.id` directly. This applies to event
   hydration, spreadsheet data, volume calculations, and search integrations.
 
 ### Health-Related Observations
@@ -67,19 +67,22 @@ bool get isCustodian {
 
 ### Key Files
 - `lib/models/types/transfer_ownership_type.dart` - Enum
-- `lib/blocs/organism_record_edit/organism_record_edit_state.dart` - `isCustodian` getter
+- `lib/cubits/organism_record_edit/organism_record_edit_state.dart` - `isCustodian` getter
 
 ### Identity Change Events
 Events emitted in `OrganismRecordEditCubit._emitIdentityChangeEvents()`:
-- `EventType.recordNameChange` - When `recordName` modified
-- `EventType.localIdChange` - When `localId` changed (record-level)
-- `EventType.genetIdentityChange` - When `localId` changed genet-wide
+- `EventType.recordNameChange` - When `tagId` modified
+  (Firestore-persisted id: `event_tag_id_change`)
+- `EventType.localIdChange` - When `localGenetId` changed (record-level)
+  (Firestore-persisted id: `event_local_genet_id_change`)
+- `EventType.genetIdentityChange` - When `localGenetId` changed genet-wide
+  (Firestore-persisted id: `event_local_genet_identity_change`)
 - `EventType.ownershipChange` - When owner/manager changed (source: 'manualEdit' or 'transfer')
 
 ### Custody Edit Rights
 When `isCustodian == true`, these widgets disable identity fields:
-- `ThisRecordOnlySection` - recordName field
-- `LocalIdField` - genet identifier
+- `ThisRecordOnlySection` - tagId field
+- `LocalIdField` - genet identifier (writes `localGenetId`)
 - `OwnershipFields` - owner/manager selectors
 - `AliasEditorList` - alias editing
 
@@ -128,10 +131,10 @@ Custody history is stored in `OrganismRecord.metadata['custodyHistory']` as an a
 
 ## Identity Model (Critical Distinction)
 
-### Three Identity Components
-Each organism record has three distinct identity components that MUST NOT be confused:
+### Four Identity Components
+Each organism record has four distinct identity components that MUST NOT be confused. Names are post-rename for parity with `seafoundry_app` upstream.
 
-1. **`localId`** (Genet Identifier)
+1. **`localGenetId`** (Genet Identifier — was `localId` prior to rename)
    - Format: `ACER-001`, `APAL-042`, etc.
    - This is the genet/genetic lineage identifier
    - Maps directly to a Provenance ID (PID)
@@ -139,14 +142,22 @@ Each organism record has three distinct identity components that MUST NOT be con
    - Shared by all organism records that belong to the same genet
    - Example: "ACER-001" identifies a specific genetic lineage
 
-2. **`recordName`** (Friendly Distinguishing Adjective)
+2. **`tagId`** (Friendly Distinguishing Adjective — was `recordName` prior to rename)
    - A user-friendly name to distinguish organism record instances
    - Examples: "Fluffy", "Tank 3 Fragment", "Field Colony"
    - Unique per record instance, not shared across genet
-   - Should ALWAYS differ from `localId`
+   - Should ALWAYS differ from `localGenetId`
    - Used when "show record identifiers" toggle is enabled
 
-3. **Record UUID** (`id`)
+3. **`outplantTagId`** (Per-organism outplant tag — was `tagId` prior to rename)
+   - Optional. Distinct from `tagId`.
+   - Set when an organism is outplanted with a physical tag.
+
+4. **`genetRecordId`** (Foreign-key reference to a Genet doc — was `genetId` prior to rename)
+   - Resolved through `GenetIdResolver.resolve(record)`. Never read
+     `record.foreignKeys['genetRecordId']?.id` directly.
+
+5. **Record UUID** (`id`)
    - The underlying database UUID for the organism record
    - Immutable and never changes
    - When "show number" toggle is enabled, displays last 8 characters
@@ -154,10 +165,32 @@ Each organism record has three distinct identity components that MUST NOT be con
 
 ### Edit Identity Dialog Structure
 The OrganismRecordEditDialog organizes identity editing into two sections:
-- **Section 1: "This Record Only"** - Record UUID (read-only), recordName editing
-- **Section 2: "Genet Identity"** - localId editing with scope (this record vs all genet records), PID preview, vouchers & provenance
+- **Section 1: "This Record Only"** - Record UUID (read-only), tagId editing
+- **Section 2: "Genet Identity"** - localGenetId editing with scope (this record vs all genet records), PID preview, vouchers & provenance
 
 ### Code References
-- State: `OrganismRecordEditState` has `localIdOverride` and `recordNameOverride`
+- State: `OrganismRecordEditState` (in `lib/cubits/organism_record_edit/`) has
+  `localIdOverride` and `recordNameOverride` field-name carryovers — these
+  internal cubit variables map to `organism.localGenetId` /
+  `organism.tagId` respectively. Renaming the cubit-internal vars is a
+  follow-up that does not affect persisted shape.
 - Cubit: `OrganismRecordEditCubit.setLocalId()`, `setLocalIdWithScope()`, `setRecordName()`
 - Widget: `LocalIdField` for genet identifier, `ThisRecordOnlySection` for record-specific fields
+
+## Denormalization
+
+`HoldingRecord` and `Cohort` no longer embed a full `OrganismRecord`. Each
+stores `organismRecordId` (FK) plus a small set of denormalized display
+fields synced at write time:
+- `tagId`, `organismKind`, `lifeStage`, `measurement`,
+  `ownerOrganizationId`, `managingOrganizationId` (HoldingRecord)
+- Cohort denorms `organismKind`, `lifeStage`, `population`
+
+For deep organism data (aliases, physicalForm details, lifeStageHistory),
+callers must use `await holding.resolveOrganismRecord(repo)` (returns
+`Future<OrganismRecord?>`).
+
+`OrganismRecordRepository.updateRecord` fans out denorm updates to all
+referencing holdings/cohorts via `_fanOutDenormFields` so display fields
+stay in sync after a rename / life-stage transition / measurement edit /
+ownership transfer.
