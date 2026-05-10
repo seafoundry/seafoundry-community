@@ -140,6 +140,15 @@ mixin _OrganismRecordRepositoryMutations
     final synced = _syncGenetIdForeignKey(record);
 
     await super.updateRecord(synced, batch: batch);
+
+    // Fan out denormalized fields to related HoldingRecord/Cohort docs.
+    // This is the universal hook: every mutation path in this repository
+    // (updateRecordWithEvents, updateSize, updatePopulation,
+    // updateMeasurement, updateHealthStatus, archiveOrganismRecord, etc.)
+    // funnels through updateRecord, so fan-out runs exactly once per
+    // organism mutation regardless of caller. Fire-and-forget is unsafe
+    // (callers expect the doc to be consistent on resolve), so we await.
+    await _fanOutDenormFields(synced, batch: batch);
   }
 
   /// Update record and emit appropriate events for all detected changes.
@@ -202,7 +211,9 @@ mixin _OrganismRecordRepositoryMutations
     // Create a WriteBatch for atomic record + event writes
     final batch = db.batch();
 
-    // Update record within the batch
+    // Update record within the batch. The inner updateRecord call invokes
+    // _fanOutDenormFields, which appends Holding/Cohort denorm-sync writes
+    // to the same batch so the entire mutation commits atomically.
     await updateRecord(recordToSave, batch: batch);
 
     // Emit life stage transition event
@@ -740,6 +751,116 @@ mixin _OrganismRecordRepositoryMutations
     );
 
     return record.copyWith(foreignKeys: updatedForeignKeys);
+  }
+
+  /// Fans out denormalized OrganismRecord fields to related HoldingRecord
+  /// and Cohort docs after an organism mutation.
+  ///
+  /// HoldingRecord denormalizes: tagId, organismKind, lifeStage (id),
+  /// measurement, ownerOrganizationId, managingOrganizationId.
+  /// Cohort denormalizes: organismKind, lifeStage (id), population.
+  ///
+  /// Without this fan-out, after a rename, life-stage transition,
+  /// measurement update, or ownership transfer on an OrganismRecord,
+  /// every HoldingRecord/Cohort referencing it via organismRecordId would
+  /// show stale denormalized data until its own next write.
+  ///
+  /// Strategy: always-fan-out (no diff guard). updateRecord is the universal
+  /// hook for every mutation path, so callers do not pass `previous`.
+  /// Redundant writes when no denorm field changed are accepted as the
+  /// simpler, idempotent design. The organizationId filter satisfies
+  /// Firestore security rules and uses the existing composite index
+  /// (organizationId, organismRecordId) on holdings + cohorts.
+  ///
+  /// Bounded to 500 docs per collection per fan-out as a defensive cap; if
+  /// an organism is referenced by more, a warning is logged and the rest
+  /// are skipped (current architecture has 1:1 holding<->organism so this
+  /// should never trigger in practice).
+  Future<void> _fanOutDenormFields(
+    OrganismRecord next, {
+    WriteBatch? batch,
+  }) async {
+    const fanOutLimit = 500;
+    final ownsBatch = batch == null;
+    final writeBatch = batch ?? db.batch();
+
+    final holdingsCollection = db
+        .collection(ModelType.organization.collectionPath)
+        .doc(organization.id)
+        .collection(ModelType.holding.collectionPath);
+    final cohortsCollection = db
+        .collection(ModelType.organization.collectionPath)
+        .doc(organization.id)
+        .collection(ModelType.cohort.collectionPath);
+
+    final holdingPayload = <String, dynamic>{
+      'tagId': next.tagId,
+      'organismKind': next.organismKind.name,
+      'lifeStageId': next.lifeStage.stage.id,
+      'lifeStage': next.lifeStage.stage.id, // legacy alias
+      'measurement': next.measurement.toJson(),
+      'ownerOrganizationId': next.ownerOrganizationId,
+      'managingOrganizationId': next.managingOrganizationId,
+    };
+    final cohortPayload = <String, dynamic>{
+      'organismKind': next.organismKind.name,
+      'lifeStageId': next.lifeStage.stage.id,
+      'lifeStage': next.lifeStage.stage.id, // legacy alias
+      'population': next.measurement.toJson(),
+    };
+
+    try {
+      final holdingsSnapshot = await holdingsCollection
+          .where('organizationId', isEqualTo: organization.id)
+          .where('organismRecordId', isEqualTo: next.id)
+          .limit(fanOutLimit + 1)
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      if (holdingsSnapshot.docs.length > fanOutLimit) {
+        LoggingService.instance.warning(
+          'Fan-out denorm: organism ${next.id} has more than $fanOutLimit '
+          'referencing holdings; only the first $fanOutLimit will be synced.',
+        );
+      }
+      final holdingDocs =
+          holdingsSnapshot.docs.take(fanOutLimit).toList(growable: false);
+      for (final doc in holdingDocs) {
+        writeBatch.update(doc.reference, holdingPayload);
+      }
+
+      final cohortsSnapshot = await cohortsCollection
+          .where('organizationId', isEqualTo: organization.id)
+          .where('organismRecordId', isEqualTo: next.id)
+          .limit(fanOutLimit + 1)
+          .get()
+          .timeout(const Duration(seconds: 10));
+
+      if (cohortsSnapshot.docs.length > fanOutLimit) {
+        LoggingService.instance.warning(
+          'Fan-out denorm: organism ${next.id} has more than $fanOutLimit '
+          'referencing cohorts; only the first $fanOutLimit will be synced.',
+        );
+      }
+      final cohortDocs =
+          cohortsSnapshot.docs.take(fanOutLimit).toList(growable: false);
+      for (final doc in cohortDocs) {
+        writeBatch.update(doc.reference, cohortPayload);
+      }
+
+      if (ownsBatch && (holdingDocs.isNotEmpty || cohortDocs.isNotEmpty)) {
+        await writeBatch.commit();
+      }
+    } catch (e, stackTrace) {
+      // Fan-out failures must not roll back the primary organism write that
+      // already succeeded (in the no-batch case) or the upcoming caller
+      // commit (in the batch case). Log and continue.
+      LoggingService.instance.error(
+        'Fan-out denorm sync failed for organism ${next.id}',
+        e,
+        stackTrace,
+      );
+    }
   }
 
   /// Update the localGenetId for all organism records sharing the same genet.
