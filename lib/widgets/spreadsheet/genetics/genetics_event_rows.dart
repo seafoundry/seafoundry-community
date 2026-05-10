@@ -18,6 +18,7 @@ const Map<String, String> _eventLabelOverrides = {
 
 const Map<String, String> _genetFieldLabels = {
   'name': 'Local ID',
+  'localGenetId': 'Local ID',
   'provenanceTypeId': 'Provenance Type',
   'speciesId': 'Species',
   'provenanceId': 'Provenance ID',
@@ -34,6 +35,7 @@ const Map<String, String> _genetFieldLabels = {
 const Map<String, String> _coralFieldLabels = {
   'name': 'Record Name',
   'tagId': 'Record Name',
+  'localGenetId': 'Local ID',
   'quantity': 'Quantity',
   'physicalForm.formId': 'Physical Form',
   'genetRecordId': 'Genet ID',
