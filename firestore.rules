@@ -554,26 +554,6 @@ service cloud.firestore {
     }
 
     // ========================================
-    // Transfers (cross-organization)
-    // ========================================
-
-    // Transfers are cross-org: readable/writable by both sending and receiving org
-    match /transfers/{transferId} {
-      // Helper to check if user belongs to from or to organization
-      function canAccessTransfer() {
-        return isOrgMemberOf(resource.data.fromOrganizationId) ||
-               isOrgMemberOf(resource.data.toOrganizationId);
-      }
-
-      allow read: if canAccessTransfer();
-      allow create: if isOrgMemberOf(request.resource.data.fromOrganizationId);
-      allow update: if canAccessTransfer() &&
-        // Prevent changing the from/to organization IDs
-        (resource.data.fromOrganizationId == request.resource.data.fromOrganizationId) &&
-        (resource.data.toOrganizationId == request.resource.data.toOrganizationId);
-    }
-
-    // ========================================
     // Beta Signups (Upgrade CTA)
     // ========================================
     // Public beta signup from landing page (provenance.seafoundry.com)

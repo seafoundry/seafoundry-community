@@ -8,7 +8,7 @@
     "speciesScientific",
     "speciesCode",
     "localId",
-    "record_name",
+    "tagId",
     "lifeStage",
     "eventType",
     "eventDate",
@@ -19,7 +19,7 @@
     "provenanceId",
     "cohortId",
     "localId",
-    "record_name",
+    "tagId",
     "alias:*",
     "id:*"
   ],
@@ -123,7 +123,7 @@
     "eventDate": "datetime",
     "eventTimeZone": "string",
     "localId": "string",
-    "record_name": "string",
+    "tagId": "string",
     "accessionId": "string",
     "provenanceId": "string",
     "provenanceKind": "string",
@@ -216,7 +216,7 @@
       "provenanceId",
       "lifeStage",
       "localId",
-      "record_name"
+      "tagId"
     ],
     "quantity": [
       "measurementUnit",
@@ -365,8 +365,9 @@
       "training",
       "csr_training_hours"
     ],
-    "record_name": [
+    "tagId": [
       "recordName",
+      "record_name",
       "record name"
     ]
   },

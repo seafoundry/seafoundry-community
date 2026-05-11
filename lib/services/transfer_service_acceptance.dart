@@ -397,8 +397,7 @@ extension _TransferServiceAcceptance on TransferService {
         recordId: createdGenet.id,
         recordModelType: ModelType.genet,
         urlPath: '$targetUrlPath/$slug',
-        internalPath:
-            'organizations/${organization.id}/sites/$destinationSiteId/$eventId',
+        internalPath: 'events/$eventId',
         slug: slug,
         genetRecordId: createdGenet.id,
         fromOrganizationId: transfer.fromOrganizationId,
@@ -935,16 +934,25 @@ extension _TransferServiceAcceptance on TransferService {
       // Write sourceGenet foreignKey for transfer lock detection
       // This enables IdentityEditService.checkTransferLock() to work from OrganismRecord context
       final sourceGenetId = manifest.genet['id'] as String?;
-      if (sourceGenetId != null &&
-          sourceGenetId.isNotEmpty &&
-          manifest.fromOrganization.id != null) {
-        foreignKeys['sourceGenet'] = ForeignKeyReference(
-          id: sourceGenetId,
-          metadata: {
-            'organizationId': manifest.fromOrganization.id,
-            'transferId': manifest.transferId,
-          },
-        );
+      if (sourceGenetId != null && sourceGenetId.isNotEmpty) {
+        if (manifest.fromOrganization.id != null) {
+          foreignKeys['sourceGenet'] = ForeignKeyReference(
+            id: sourceGenetId,
+            metadata: {
+              'organizationId': manifest.fromOrganization.id,
+              'transferId': manifest.transferId,
+            },
+          );
+        } else {
+          // Email-based transfers can lack a sender org. Without it, the
+          // sourceGenet foreignKey is unsafe to write (transfer-lock
+          // detection needs the org id). Log so the gap is visible.
+          LoggingService.instance.warning(
+            'Transfer accept: skipping sourceGenet foreignKey because '
+            'manifest.fromOrganization.id is null (email-based transfer?)',
+            {'transferId': manifest.transferId, 'genetId': sourceGenetId},
+          );
+        }
       }
 
       organismRecord = organismRecord.copyWith(foreignKeys: foreignKeys);
