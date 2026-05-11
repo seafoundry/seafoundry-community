@@ -27,9 +27,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     this.rowCount,
     this.colCount,
     this.groupTypeLabels,
-    this.externalHoldingOrganizationId,
-    this.externalHoldingSiteId,
-    this.externalHoldingGroupPath,
     required super.urlPath,
     required super.internalPath,
     required super.slug,
@@ -63,9 +60,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
       colCount =
           safeInt(json['colCount']) ??
           safeInt(json['createdEvent']?['colCount']),
-      externalHoldingOrganizationId = json['externalHoldingOrganizationId'] as String?,
-      externalHoldingSiteId = json['externalHoldingSiteId'] as String?,
-      externalHoldingGroupPath = json['externalHoldingGroupPath'] as String?,
       super.fromJson();
 
   Site.partial({
@@ -89,9 +83,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     OutplantGeometry? geometry,
     int? rowCount,
     int? colCount,
-    String? externalHoldingOrganizationId,
-    String? externalHoldingSiteId,
-    String? externalHoldingGroupPath,
   }) : siteTypeId = siteTypeId ?? json?['siteTypeId'] ?? Missing.string,
        name = name ?? json?['name'] ?? Missing.string,
        groupIdHierarchy =
@@ -105,12 +96,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
        geometry = geometry ?? OutplantGeometry.maybeFromJson(json?['geometry']),
        rowCount = rowCount ?? safeInt(json?['rowCount']),
        colCount = colCount ?? safeInt(json?['colCount']),
-       externalHoldingOrganizationId = externalHoldingOrganizationId ??
-           json?['externalHoldingOrganizationId'] as String?,
-       externalHoldingSiteId = externalHoldingSiteId ??
-           json?['externalHoldingSiteId'] as String?,
-       externalHoldingGroupPath = externalHoldingGroupPath ??
-           json?['externalHoldingGroupPath'] as String?,
        super.partial();
 
   final String siteTypeId;
@@ -130,22 +115,10 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
   /// Coral-only build: always returns [OrganismKind.coral].
   List<OrganismKind> get supportedOrganismKinds => const [OrganismKind.coral];
 
-  /// Organization ID where organisms are held externally (for retained ownership).
-  final String? externalHoldingOrganizationId;
-
-  /// Site ID at the external organization where organisms are held.
-  final String? externalHoldingSiteId;
-
-  /// Group path at the external organization where organisms are held.
-  final String? externalHoldingGroupPath;
-
   @override
   String get siteId => id;
 
   SiteType get siteType => _resolveSiteType(siteTypeId);
-
-  /// Whether this site represents organisms held at an external organization.
-  bool get isExternalHolding => externalHoldingOrganizationId != null;
 
   List<GroupType> get groupTypeHierarchy {
     // Primary: respect persisted hierarchy
@@ -214,12 +187,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
       if (longitude != null) "longitude": longitude,
       if (rowCount != null) "rowCount": rowCount,
       if (colCount != null) "colCount": colCount,
-      if (externalHoldingOrganizationId != null)
-        "externalHoldingOrganizationId": externalHoldingOrganizationId,
-      if (externalHoldingSiteId != null)
-        "externalHoldingSiteId": externalHoldingSiteId,
-      if (externalHoldingGroupPath != null)
-        "externalHoldingGroupPath": externalHoldingGroupPath,
       ...super.toJson(),
     };
   }
@@ -248,12 +215,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     int? rowCount,
     int? colCount,
     Map<String, dynamic>? metadata,
-    String? externalHoldingOrganizationId,
-    bool clearExternalHoldingOrganizationId = false,
-    String? externalHoldingSiteId,
-    bool clearExternalHoldingSiteId = false,
-    String? externalHoldingGroupPath,
-    bool clearExternalHoldingGroupPath = false,
   }) => Site(
     id: id ?? this.id,
     createdById: createdById ?? this.createdById,
@@ -277,15 +238,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
     internalPath: internalPath ?? this.internalPath,
     slug: slug ?? this.slug,
     metadata: metadata ?? this.metadata,
-    externalHoldingOrganizationId: clearExternalHoldingOrganizationId
-        ? null
-        : (externalHoldingOrganizationId ?? this.externalHoldingOrganizationId),
-    externalHoldingSiteId: clearExternalHoldingSiteId
-        ? null
-        : (externalHoldingSiteId ?? this.externalHoldingSiteId),
-    externalHoldingGroupPath: clearExternalHoldingGroupPath
-        ? null
-        : (externalHoldingGroupPath ?? this.externalHoldingGroupPath),
   );
 
   @override
@@ -325,9 +277,6 @@ class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
         geometry,
         rowCount,
         colCount,
-        externalHoldingOrganizationId,
-        externalHoldingSiteId,
-        externalHoldingGroupPath,
       ];
 
   bool get hasGeometry => geometry != null;
