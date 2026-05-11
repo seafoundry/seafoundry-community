@@ -35,12 +35,6 @@ class UniversalCsvAdapterV2 extends CsvTranslationAdapter {
   static const List<String> _requiredFields =
       CsvV2SpecExtensions.minimalInventoryInputs;
 
-  static const List<String> _permitFields = [
-    'permitId',
-    'issuingAuthority',
-    'validFrom',
-    'validTo',
-  ];
   static final List<String> _canonicalColumns =
       CsvV2SpecExtensions.inventoryColumns();
 
@@ -259,12 +253,6 @@ class UniversalCsvAdapterV2 extends CsvTranslationAdapter {
       return null;
     }
     return _lifeStageEnumLookup[value.trim().toLowerCase()];
-  }
-
-  bool _isProtectedArea(String? raw) {
-    if (raw == null) return false;
-    final normalized = raw.trim().toLowerCase();
-    return normalized == 'true' || normalized == '1' || normalized == 'yes';
   }
 
   static const List<String> _versionKeys = [
@@ -810,37 +798,7 @@ class _CsvSpeciesLookup {
   }
 }
 
-class _PermitMetadata {
-  const _PermitMetadata({
-    required this.id,
-    required this.authority,
-    required this.validFrom,
-    required this.validTo,
-    required this.protectedAreaFlag,
-  });
-
-  final String id;
-  final String authority;
-  final String validFrom;
-  final String validTo;
-  final String protectedAreaFlag;
-
-  static _PermitMetadata fromRow(Map<String, dynamic> row) {
-    final id = _string(row['permitId']) ?? '';
-    final authority = _string(row['issuingAuthority']) ?? '';
-    final validFrom = _string(row['validFrom']) ?? '';
-    final validTo = _string(row['validTo']) ?? '';
-    final protectedRaw = row['protectedAreaFlag'];
-    final protectedValue = _boolString(protectedRaw);
-    return _PermitMetadata(
-      id: id,
-      authority: authority,
-      validFrom: validFrom,
-      validTo: validTo,
-      protectedAreaFlag: protectedValue,
-    );
-  }
-}
+String _protectedAreaFlag(dynamic value) => _boolString(value);
 
 String _boolString(dynamic value) {
   if (value == null) return 'false';

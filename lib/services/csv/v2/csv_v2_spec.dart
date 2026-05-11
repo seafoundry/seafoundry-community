@@ -136,12 +136,7 @@ class CsvV2Spec {
     'dropperId',
   ];
 
-  static const List<String> permitColumns = [
-    'permitId',
-    'permitType',
-    'issuingAuthority',
-    'validFrom',
-    'validTo',
+  static const List<String> complianceColumns = [
     'habitatType',
     'siteJurisdiction',
     'protectedAreaFlag',

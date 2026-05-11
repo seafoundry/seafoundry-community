@@ -6,7 +6,7 @@ import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/services/csv/v2/csv_v2_spec_extensions.dart';
 
 /// Normalizes inventory rows before they flow through the CSV translation
-/// pipeline so organism-aware metadata (permits, geometry, site IDs) survives.
+/// pipeline so organism-aware metadata (geometry, site IDs) survives.
 class InventoryExportRowFormatter {
   const InventoryExportRowFormatter._();
 
@@ -104,7 +104,7 @@ class InventoryExportRowFormatter {
       source: row,
       target: canonical,
       keys: [
-        ...CsvV2SpecExtensions.permitColumns,
+        ...CsvV2SpecExtensions.complianceColumns,
         ...CsvV2SpecExtensions.geometryColumns,
         'outplantPointsCsv',
       ],
@@ -193,11 +193,6 @@ class InventoryExportRowFormatter {
         _string(row['inventoryTissueAreaCm2']) ??
         canonical['inventoryTissueAreaCm2'] ??
         '';
-    canonical['permitType'] = _string(row['permitType']) ?? '';
-    canonical['permitId'] = _string(row['permitId']) ?? '';
-    canonical['issuingAuthority'] = _string(row['issuingAuthority']) ?? '';
-    canonical['validFrom'] = _string(row['validFrom']) ?? '';
-    canonical['validTo'] = _string(row['validTo']) ?? '';
     canonical['protectedAreaFlag'] = _string(row['protectedAreaFlag']) ?? '';
     canonical['speciesScientific'] = _string(row['speciesScientific']) ?? '';
     canonical['speciesCode'] = _string(row['speciesCode']) ?? '';

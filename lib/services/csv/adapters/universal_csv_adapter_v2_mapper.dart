@@ -120,11 +120,6 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'eventDate': row['eventDate'] ?? '',
       'notes': row['notes'] ?? '',
       'structureType': row['structureType'] ?? '',
-      'permitType': row['permitType'] ?? '',
-      'permitId': row['permitId'] ?? '',
-      'issuingAuthority': row['issuingAuthority'] ?? '',
-      'validFrom': row['validFrom'] ?? '',
-      'validTo': row['validTo'] ?? '',
       'habitatType': row['habitatType'] ?? '',
       'siteJurisdiction': row['siteJurisdiction'] ?? '',
       'protectedAreaFlag': row['protectedAreaFlag'] ?? '',
@@ -432,7 +427,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
     final measurement = _ExportMeasurement.fromRow(row);
     final eventDate = _resolveEventDate(row);
     final geometry = _exportGeometry(row);
-    final permit = _PermitMetadata.fromRow(row);
+    final protectedAreaFlag = _protectedAreaFlag(row['protectedAreaFlag']);
 
     final translation = <String, String>{
       'organismKind': 'coral',
@@ -469,11 +464,7 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'provenanceKind': _resolvedProvenanceKind(row, fallback: 'genet'),
       'cohortId': '',
       'structureType': _string(row['structureType']) ?? '',
-      'permitId': permit.id,
-      'issuingAuthority': permit.authority,
-      'validFrom': permit.validFrom,
-      'validTo': permit.validTo,
-      'protectedAreaFlag': permit.protectedAreaFlag,
+      'protectedAreaFlag': protectedAreaFlag,
       'geometryFormat': geometry.format ?? '',
       'geometryWkt': geometry.wkt ?? '',
       'notes': _string(row['notes']) ?? '',
@@ -600,10 +591,6 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'cohortId': _string(row['cohortId']) ?? '',
       'notes': _string(row['notes']) ?? '',
       'holdingKind': holdingKind,
-      'permitId': _string(row['permitId']) ?? '',
-      'issuingAuthority': _string(row['issuingAuthority']) ?? '',
-      'validFrom': _string(row['validFrom']) ?? '',
-      'validTo': _string(row['validTo']) ?? '',
       'protectedAreaFlag': _string(row['protectedAreaFlag']) ?? '',
       'aliasesJson': '',
       'aliases': '',

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 /// Shows color-coded cards for each axis:
 /// - Taxonomy (organism type)
 /// - Provenance (genetic origin)
-/// - Location (site/permit)
+/// - Location (site)
 /// - Life Stage (development phase)
 /// - Measurement (counts/metrics)
 class FiveAxisEducationWidget extends StatelessWidget {
@@ -126,7 +126,7 @@ class FiveAxisEducationWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 _buildBulletPoint(context, 'Complete data ensures accurate reports and analytics'),
-                _buildBulletPoint(context, 'Required for permit compliance and grant deliverables'),
+                _buildBulletPoint(context, 'Improves traceability across restoration partners'),
                 _buildBulletPoint(context, 'Enables data exchange with other restoration systems'),
                 _buildBulletPoint(context, 'Provides full context for restoration decisions'),
               ],

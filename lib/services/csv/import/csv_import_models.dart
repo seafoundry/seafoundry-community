@@ -267,9 +267,9 @@ extension CSVImportTypeExtension on CSVImportType {
       case CSVImportType.genetics:
         return 'Import genet records with canonical provenance type, life stage, physical form/size spec metadata, and alias sets.';
       case CSVImportType.inventory:
-        return 'Import organism holdings with canonical five-axis data (provenance type, life stage, physical form, size spec) plus location, permit, and geometry context.';
+        return 'Import organism holdings with canonical five-axis data (provenance type, life stage, physical form, size spec) plus location and geometry context.';
       case CSVImportType.outplanting:
-        return 'Import outplanting records and allocation details that include organism kind, provenance/life-stage metadata, and geometry/permit information.';
+        return 'Import outplanting records and allocation details that include organism kind, provenance/life-stage metadata, and geometry information.';
     }
   }
 }

@@ -202,21 +202,6 @@ extension _UniversalCsvAdapterV2Validator on UniversalCsvAdapterV2 {
       }
     }
 
-    if (_isProtectedArea(row['protectedAreaFlag'])) {
-      for (final field in UniversalCsvAdapterV2._permitFields) {
-        if ((row[field] ?? '').trim().isEmpty) {
-          issues.add(
-            CsvTranslationIssue(
-              rowNumber: rowNumber,
-              field: field,
-              value: '',
-              message: 'Protected area rows require $field per CSV v2 spec.',
-            ),
-          );
-        }
-      }
-    }
-
     final geometryFormat = row['geometryFormat']?.toUpperCase();
     if (geometryFormat != null && geometryFormat.isNotEmpty) {
       if (geometryFormat != 'WKT' && geometryFormat != 'GEOJSON') {

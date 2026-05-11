@@ -86,15 +86,12 @@ class CsvImportPreview extends StatelessWidget {
         CsvV2SpecExtensions.provenanceColumns.join(', ');
     final siteFields =
         CsvV2SpecExtensions.siteColumns.take(3).join(', ');
-    final permitFields =
-        CsvV2SpecExtensions.permitColumns.take(3).join(', ');
     final geometryFields =
         CsvV2SpecExtensions.geometryColumns.take(2).join(', ');
     final metadataFields = [
       'Canonical axes • $axisFields',
       'Provenance • $provenanceFields',
       'Site context • $siteFields',
-      'Permits • $permitFields',
       'Geometry • $geometryFields',
     ];
     return Card(
@@ -113,7 +110,7 @@ class CsvImportPreview extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Universal CSV v2 inventory rows capture the canonical five-axis organism metadata (provenance type, life stage, physical form, size spec) alongside provenance, site, permit, and geometry columns so compliance context travels with every holding.',
+                    'Universal CSV v2 inventory rows capture the canonical five-axis organism metadata (provenance type, life stage, physical form, size spec) alongside provenance, site, and geometry columns so context travels with every holding.',
                     style: theme.textTheme.bodyMedium,
                   ),
                 ),
@@ -140,7 +137,7 @@ class CsvImportPreview extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Legacy “Universal CSV v1” files are automatically upgraded and tagged with the original version (`provenance_csv_upgraded_from`). Download a fresh template to populate the new site + permit columns before importing.',
+                    'Legacy “Universal CSV v1” files are automatically upgraded and tagged with the original version (`provenance_csv_upgraded_from`). Download a fresh template to populate the new site columns before importing.',
                     style: theme.textTheme.bodySmall,
                   ),
                 ),

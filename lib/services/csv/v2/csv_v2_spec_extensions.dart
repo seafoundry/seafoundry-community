@@ -137,7 +137,7 @@ class CsvV2SpecExtensions {
     'qualityFlag',
   ];
 
-  /// Site + enclosure metadata (minus geometry and permit sections).
+  /// Site + enclosure metadata (minus geometry sections).
   static const List<String> siteColumns = [
     'siteId',
     'siteName',
@@ -170,13 +170,8 @@ class CsvV2SpecExtensions {
     'photoUrl',
   ];
 
-  /// Permit block required for deployments/spawns tracked in CSV v2.
-  static const List<String> permitColumns = [
-    'permitId',
-    'permitType',
-    'issuingAuthority',
-    'validFrom',
-    'validTo',
+  /// Compliance/site context columns retained without permit fields.
+  static const List<String> complianceColumns = [
     'siteJurisdiction',
     'habitatType',
     'protectedAreaFlag',
@@ -217,7 +212,7 @@ class CsvV2SpecExtensions {
   };
 
   /// Canonical inventory columns (union of organism/provenance, five-axis,
-  /// site, permit, geometry, MRV/CSR).
+  /// site, geometry, MRV/CSR).
   static final List<String> inventoryBaseColumns =
       List<String>.unmodifiable(_buildInventoryBaseColumns());
 
@@ -265,7 +260,7 @@ class CsvV2SpecExtensions {
     addAll(siteColumns);
     addAll(geometryColumns);
     addAll(eventColumns);
-    addAll(permitColumns);
+    addAll(complianceColumns);
     addAll(mrvColumns);
     addAll(environmentalPanelColumns);
     addAll(['notes', 'photoUrl']);
