@@ -86,8 +86,6 @@ class InventoryExportRowFormatter {
       'inventoryVolumeCm3': _string(row['inventoryVolumeCm3']) ?? '',
       'inventoryTissueAreaCm2':
           _string(row['inventoryTissueAreaCm2']) ?? '',
-      'ownerOrganizationId': _string(row['ownerOrganizationId']) ?? '',
-      'managingOrganizationId': _string(row['managingOrganizationId']) ?? '',
       'foreignKeys': _string(row['foreignKeys']) ?? '',
       'aliasesJson': '',
       'aliases': '',
@@ -197,14 +195,6 @@ class InventoryExportRowFormatter {
     canonical['speciesScientific'] = _string(row['speciesScientific']) ?? '';
     canonical['speciesCode'] = _string(row['speciesCode']) ?? '';
     canonical['speciesId'] = _string(row['speciesId']) ?? '';
-    canonical['ownerOrganizationId'] =
-        canonical['ownerOrganizationId'] ??
-        _string(row['ownerOrganizationId']) ??
-        '';
-    canonical['managingOrganizationId'] =
-        canonical['managingOrganizationId'] ??
-        _string(row['managingOrganizationId']) ??
-        '';
     canonical['foreignKeys'] =
         canonical['foreignKeys'] ??
         _string(row['foreignKeys']) ??
@@ -240,14 +230,6 @@ class InventoryExportRowFormatter {
     canonical['lifeStageSubtype'] =
         canonical['lifeStageSubtype'] ?? _string(row['lifeStageSubtype']) ?? '';
 
-    canonical['ownerOrganizationId'] =
-        _string(row['ownerOrganizationId']) ??
-        canonical['ownerOrganizationId'] ??
-        '';
-    canonical['managingOrganizationId'] =
-        _string(row['managingOrganizationId']) ??
-        canonical['managingOrganizationId'] ??
-        '';
     canonical['foreignKeys'] =
         _string(row['foreignKeys']) ??
         canonical['foreignKeys'] ??

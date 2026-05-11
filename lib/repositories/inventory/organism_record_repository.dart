@@ -11,7 +11,6 @@ import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/organism_record_change_service.dart';
 import 'package:seafoundry_app/services/structure_capacity_service.dart';
 import 'package:seafoundry_app/services/validation_service.dart';
-import 'package:seafoundry_app/services/custody_history_service.dart';
 
 part 'organism_record_repository_helpers.dart';
 part 'organism_record_repository_queries.dart';

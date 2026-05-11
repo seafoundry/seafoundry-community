@@ -67,11 +67,6 @@ class OrganismRecordChangeService {
       previous.aliases,
       next.aliases,
     );
-    final ownershipChanged =
-        (previous.ownerOrganizationId ?? '') !=
-            (next.ownerOrganizationId ?? '') ||
-        (previous.managingOrganizationId ?? '') !=
-            (next.managingOrganizationId ?? '');
 
     return OrganismRecordChangeSet(
       lifeStageChange: lifeStageChange,
@@ -81,7 +76,6 @@ class OrganismRecordChangeService {
       quantityChange: quantityChange,
       nameChanged: (previous.name) != (next.name),
       aliasesChanged: aliasesChanged,
-      ownershipChanged: ownershipChanged,
     );
   }
 
@@ -134,7 +128,6 @@ class OrganismRecordChangeSet extends Equatable {
     this.quantityChange,
     this.nameChanged = false,
     this.aliasesChanged = false,
-    this.ownershipChanged = false,
   });
 
   final LifeStageChange? lifeStageChange;
@@ -144,7 +137,6 @@ class OrganismRecordChangeSet extends Equatable {
   final QuantityChange? quantityChange;
   final bool nameChanged;
   final bool aliasesChanged;
-  final bool ownershipChanged;
 
   bool get hasChanges =>
       lifeStageChange != null ||
@@ -153,8 +145,7 @@ class OrganismRecordChangeSet extends Equatable {
       sizeSpecChange != null ||
       quantityChange != null ||
       nameChanged ||
-      aliasesChanged ||
-      ownershipChanged;
+      aliasesChanged;
 
   @override
   List<Object?> get props => [
@@ -165,7 +156,6 @@ class OrganismRecordChangeSet extends Equatable {
     quantityChange,
     nameChanged,
     aliasesChanged,
-    ownershipChanged,
   ];
 }
 

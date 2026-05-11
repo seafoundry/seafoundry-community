@@ -181,8 +181,6 @@ class InventoryExportRowSource {
       'volumeUnit': organismRecord.sizeSpec.volumeUnit?.id ?? '',
       'quantityValue': organismRecord.measurement.value.toString(),
       'measurementUnit': organismRecord.measurement.unit.id,
-      'ownerOrganizationId': organismRecord.ownerOrganizationId,
-      'managingOrganizationId': organismRecord.managingOrganizationId,
       'createdAt': organismRecord.createdAt,
       'updatedAt': organismRecord.updatedAt,
       'metadata': organismRecord.metadata,

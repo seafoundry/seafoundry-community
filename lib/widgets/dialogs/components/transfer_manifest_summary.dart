@@ -59,11 +59,6 @@ class TransferManifestSummary extends StatelessWidget {
             : null);
     final provenanceId = manifest.genet['provenanceId']?.toString().trim();
     final aliasEntries = _manifestAliases(manifest);
-    final ownership = manifest.genet['ownership'] is Map
-        ? Map<String, dynamic>.from(manifest.genet['ownership'] as Map)
-        : const <String, dynamic>{};
-    final ownerOrg = ownership['ownerOrganizationId']?.toString();
-    final managingOrg = ownership['managingOrganizationId']?.toString();
 
     final canonicalSources = <Map<String, dynamic>>[];
     final genetMetadata = manifest.genet['metadata'];
@@ -142,10 +137,6 @@ class TransferManifestSummary extends StatelessWidget {
           ],
           if ((provenanceKindLabel ?? '').isNotEmpty)
             _SummaryRow(label: 'Provenance Kind', value: provenanceKindLabel!),
-          if ((ownerOrg ?? '').isNotEmpty)
-            _SummaryRow(label: 'Owner Org', value: ownerOrg!),
-          if ((managingOrg ?? '').isNotEmpty)
-            _SummaryRow(label: 'Managing Org', value: managingOrg!),
           if ((manifest.comment ?? '').isNotEmpty)
             _SummaryRow(label: 'Notes', value: manifest.comment!),
           if (aliasEntries.isNotEmpty) ...[

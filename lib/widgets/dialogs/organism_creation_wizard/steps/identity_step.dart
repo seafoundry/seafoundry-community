@@ -8,9 +8,6 @@ import 'package:seafoundry_app/widgets/dialogs/local_id_selection_dialog.dart';
 import 'package:seafoundry_app/widgets/forms/species_selector.dart';
 import 'package:seafoundry_app/models/species.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
-import 'package:seafoundry_app/widgets/inputs/organization_selector_field.dart';
-import 'package:seafoundry_app/repositories/organization_repository.dart';
-import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
 import 'organism_creation_step_scroll_view.dart';
 
 /// Step 2: Identity - Local ID text field + New/Org Genetic Library toggle
@@ -104,86 +101,8 @@ class IdentityStep extends StatelessWidget {
             const SizedBox(height: 24),
             ExistingGenetProvenanceSection(state: state),
           ],
-          const SizedBox(height: 24),
-          Text(
-            'Ownership (Optional)',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 12),
-          _OwnershipFields(state: state),
         ],
       ),
-    );
-  }
-}
-
-/// Ownership fields for owner and managing organization.
-/// Uses OrganizationSelectorField when repository is available,
-/// falling back to plain text fields.
-class _OwnershipFields extends StatelessWidget {
-  const _OwnershipFields({required this.state});
-
-  final OrganismCreationState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<OrganismCreationCubit>();
-    final organizationRepository = context.safeRead<OrganizationRepository>();
-
-    // If OrganizationRepository is not available, show simple text fields
-    if (organizationRepository == null) {
-      return Column(
-        children: [
-          TextFormField(
-            key: ValueKey('owner-${state.ownerOrganizationId}'),
-            initialValue: state.ownerOrganizationId,
-            decoration: const InputDecoration(
-              labelText: 'Owner Organization',
-              hintText: 'e.g., AZA-Partner-001',
-              helperText: 'Organization that owns this organism',
-              border: OutlineInputBorder(),
-            ),
-            maxLength: 100,
-            onChanged: cubit.ownerOrganizationIdChanged,
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            key: ValueKey('manager-${state.managingOrganizationId}'),
-            initialValue: state.managingOrganizationId,
-            decoration: const InputDecoration(
-              labelText: 'Managing Organization',
-              hintText: 'Custodial org for day-to-day care',
-              helperText: 'Organization responsible for daily care',
-              border: OutlineInputBorder(),
-            ),
-            maxLength: 100,
-            onChanged: cubit.managingOrganizationIdChanged,
-          ),
-        ],
-      );
-    }
-
-    // Use OrganizationSelectorField when repository is available
-    return Column(
-      children: [
-        OrganizationSelectorField(
-          label: 'Owner Organization',
-          value: state.ownerOrganizationId,
-          onChanged: cubit.ownerOrganizationIdChanged,
-          organizationRepository: organizationRepository,
-          hintText: 'e.g., AZA-Partner-001',
-          helperText: 'Organization that owns this organism',
-        ),
-        const SizedBox(height: 12),
-        OrganizationSelectorField(
-          label: 'Managing Organization',
-          value: state.managingOrganizationId,
-          onChanged: cubit.managingOrganizationIdChanged,
-          organizationRepository: organizationRepository,
-          hintText: 'Custodial org for day-to-day care',
-          helperText: 'Organization responsible for daily care',
-        ),
-      ],
     );
   }
 }

@@ -505,8 +505,6 @@ class GenetFormState with FormzMixin {
     this.diseaseTested = false,
     this.heatTestingComment = '',
     this.diseaseTestingComment = '',
-    this.ownerOrganizationId = '',
-    this.managingOrganizationId = '',
   });
 
   final GenetName name;
@@ -548,8 +546,6 @@ class GenetFormState with FormzMixin {
   final bool diseaseTested;
   final String heatTestingComment;
   final String diseaseTestingComment;
-  final String ownerOrganizationId;
-  final String managingOrganizationId;
 
   GenetFormState copyWith({
     GenetName? name,
@@ -592,8 +588,6 @@ class GenetFormState with FormzMixin {
     bool? diseaseTested,
     String? heatTestingComment,
     String? diseaseTestingComment,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) {
     return GenetFormState(
       name: name ?? this.name,
@@ -640,9 +634,6 @@ class GenetFormState with FormzMixin {
       heatTestingComment: heatTestingComment ?? this.heatTestingComment,
       diseaseTestingComment:
           diseaseTestingComment ?? this.diseaseTestingComment,
-      ownerOrganizationId: ownerOrganizationId ?? this.ownerOrganizationId,
-      managingOrganizationId:
-          managingOrganizationId ?? this.managingOrganizationId,
     );
   }
 
@@ -914,18 +905,10 @@ class GenetFormState with FormzMixin {
     }
 
     final notesValue = notes.value.trim();
-    final ownerId = ownerOrganizationId.trim();
-    final managingId = managingOrganizationId.trim();
     final metadata = <String, dynamic>{
       'provenanceTypeId': provenanceTypeValue.id,
       'lifeStageId': lifeStageValue.id,
     };
-    if (ownerId.isNotEmpty) {
-      metadata['ownerOrganizationId'] = ownerId;
-    }
-    if (managingId.isNotEmpty) {
-      metadata['managingOrganizationId'] = managingId;
-    }
     return Genet.partial(
       name: name.value,
       speciesId: species.value!.id,

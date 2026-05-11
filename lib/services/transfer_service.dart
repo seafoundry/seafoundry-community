@@ -24,7 +24,6 @@ import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/population_loss_reason.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
-import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 import 'package:seafoundry_app/models/user.dart';
 import 'package:seafoundry_app/repositories/firebase_utils.dart';
 import 'package:seafoundry_app/repositories/inventory/event_repository.dart';
@@ -36,7 +35,6 @@ import 'package:seafoundry_app/services/genet_id_resolver.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/manual_transfer_registration_service.dart';
 import 'package:seafoundry_app/services/outplant_geometry_builder.dart';
-import 'package:seafoundry_app/services/custody_history_service.dart';
 import 'package:seafoundry_app/services/provenance_crosswalk_service.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
 import 'package:seafoundry_app/services/transfer_notification_result.dart';
@@ -118,8 +116,6 @@ class TransferService implements ManualTransferRegistrationService {
     SizeSpec? sizeSpecOverride,
     OutplantGeometryInput? geometryInput,
     Map<String, int>? inventorySelection,
-    TransferOwnershipType? ownershipType,
-    String? originalOwnerOrganizationId,
   }) async {
     return PerformanceAnalyzer.measure(
       'TransferService.initiateTransfer',
@@ -135,8 +131,6 @@ class TransferService implements ManualTransferRegistrationService {
         sizeSpecOverride: sizeSpecOverride,
         geometryInput: geometryInput,
         inventorySelection: inventorySelection,
-        ownershipType: ownershipType,
-        originalOwnerOrganizationId: originalOwnerOrganizationId,
       ),
       metadata: {
         'genetRecordId': genetRecordId,
@@ -167,8 +161,6 @@ class TransferService implements ManualTransferRegistrationService {
     SizeSpec? sizeSpecOverride,
     OutplantGeometryInput? geometryInput,
     Map<String, int>? inventorySelection,
-    TransferOwnershipType? ownershipType,
-    String? originalOwnerOrganizationId,
   }) async {
     return PerformanceAnalyzer.measure(
       'TransferService.initiateTransferToEmail',
@@ -184,8 +176,6 @@ class TransferService implements ManualTransferRegistrationService {
         sizeSpecOverride: sizeSpecOverride,
         geometryInput: geometryInput,
         inventorySelection: inventorySelection,
-        ownershipType: ownershipType,
-        originalOwnerOrganizationId: originalOwnerOrganizationId,
       ),
       metadata: {
         'genetRecordId': genetRecordId,
@@ -226,8 +216,6 @@ class TransferService implements ManualTransferRegistrationService {
     String? targetUrlPath,
     String? destinationSiteId,
     String? destinationGroupId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) async {
     return performAcceptTransfer(
       transferEventId: transferEventId,
@@ -239,8 +227,6 @@ class TransferService implements ManualTransferRegistrationService {
       targetUrlPath: targetUrlPath,
       destinationSiteId: destinationSiteId,
       destinationGroupId: destinationGroupId,
-      ownerOrganizationId: ownerOrganizationId,
-      managingOrganizationId: managingOrganizationId,
     );
   }
 
@@ -485,8 +471,6 @@ class TransferService implements ManualTransferRegistrationService {
     SizeSpec sizeSpec = const SizeSpec(),
     String? comment,
     String? fromOrganizationId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
     String? sourceContactEmail,
     String? sourceProvenanceId,
     List<OrganismAlias> aliases = const [],
@@ -510,13 +494,6 @@ class TransferService implements ManualTransferRegistrationService {
     };
     if (physicalFormId != null) {
       metadata['physicalFormId'] = physicalFormId;
-    }
-    if (ownerOrganizationId != null && ownerOrganizationId.trim().isNotEmpty) {
-      metadata['ownerOrganizationId'] = ownerOrganizationId.trim();
-    }
-    if (managingOrganizationId != null &&
-        managingOrganizationId.trim().isNotEmpty) {
-      metadata['managingOrganizationId'] = managingOrganizationId.trim();
     }
     if (fromOrganizationId != null && fromOrganizationId.trim().isNotEmpty) {
       metadata['sourceOrganizationId'] = fromOrganizationId.trim();

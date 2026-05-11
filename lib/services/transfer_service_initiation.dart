@@ -17,8 +17,6 @@ extension _TransferServiceInitiation on TransferService {
     SizeSpec? sizeSpecOverride,
     OutplantGeometryInput? geometryInput,
     Map<String, int>? inventorySelection,
-    TransferOwnershipType? ownershipType,
-    String? originalOwnerOrganizationId,
   }) async {
     try {
       final sourceOrgId = _provenanceRepository.organization.id;
@@ -89,8 +87,6 @@ extension _TransferServiceInitiation on TransferService {
         selection: selection,
         physicalFormOverride: physicalFormOverride,
         sizeSpecOverride: sizeSpecOverride,
-        ownershipType: ownershipType,
-        originalOwnerOrganizationId: originalOwnerOrganizationId,
       );
 
       final manifest = manifestDraft.updateStatus(
@@ -364,8 +360,6 @@ extension _TransferServiceInitiation on TransferService {
     SizeSpec? sizeSpecOverride,
     OutplantGeometryInput? geometryInput,
     Map<String, int>? inventorySelection,
-    TransferOwnershipType? ownershipType,
-    String? originalOwnerOrganizationId,
   }) async {
     try {
       // Validate email format
@@ -438,8 +432,6 @@ extension _TransferServiceInitiation on TransferService {
         selection: selection,
         physicalFormOverride: physicalFormOverride,
         sizeSpecOverride: sizeSpecOverride,
-        ownershipType: ownershipType,
-        originalOwnerOrganizationId: originalOwnerOrganizationId,
       );
 
       final manifest = manifestDraft.updateStatus(

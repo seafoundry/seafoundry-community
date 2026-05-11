@@ -1,9 +1,7 @@
-import 'package:seafoundry_app/models/inventory/custody_history_entry.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
 import 'package:seafoundry_app/models/species.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
-import 'package:seafoundry_app/services/custody_history_service.dart';
 import 'package:seafoundry_app/utils/string_formatters.dart';
 
 /// Extension methods for OrganismRecord providing metadata access and helpers
@@ -149,38 +147,6 @@ extension OrganismRecordCapabilities on OrganismRecord {
 
   /// Formatted provenance type display name
   String? get provenanceDisplayName => provenanceType?.displayName;
-
-  // ---------------------------------------------------------------------------
-  // Chain of Custody
-  // ---------------------------------------------------------------------------
-
-  /// Returns the full chain of custody history for this organism.
-  ///
-  /// The history is ordered chronologically from original creation to current.
-  /// Returns an empty list if no custody history exists.
-  List<CustodyHistoryEntry> get custodyHistory =>
-      CustodyHistoryService.readCustodyHistory(this);
-
-  /// Whether the given organization has ever owned or managed this organism.
-  bool hasEverHadCustody(String organizationId) =>
-      CustodyHistoryService.hasOrganizationEverHadCustody(
-        this,
-        organizationId,
-      );
-
-  /// Whether the given organization has ever owned this organism.
-  bool hasEverOwned(String organizationId) =>
-      CustodyHistoryService.hasOrganizationEverOwned(
-        this,
-        organizationId,
-      );
-
-  /// Whether the given organization has ever managed this organism.
-  bool hasEverManaged(String organizationId) =>
-      CustodyHistoryService.hasOrganizationEverManaged(
-        this,
-        organizationId,
-      );
 }
 
 bool _isMeaningful(String? value) {

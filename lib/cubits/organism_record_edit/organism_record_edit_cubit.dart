@@ -70,11 +70,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
            quantityKind: QuantityChangeKind.gain,
            quantityUnit: originalRecord.measurement.unit,
            aliasEntries: _aliasEntriesFrom(originalRecord.aliases),
-           ownerOrganizationIdInput: originalRecord.ownerOrganizationId ?? '',
-           managingOrganizationIdInput:
-               originalRecord.managingOrganizationId ??
-               originalRecord.ownerOrganizationId ??
-               '',
            currentOrganizationId: organization?.id,
            minimumStageInterval: originalRecord.customMinimumStageInterval,
            lastTransitionAt: originalRecord.lifeStageHistory.isEmpty
@@ -1027,32 +1022,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
       );
     }
 
-    // ownership change
-    final ownerChanged =
-        state.ownerOrganizationIdInput != (originalRecord.ownerOrganizationId ?? '');
-    final managerChanged =
-        state.managingOrganizationIdInput !=
-        (originalRecord.managingOrganizationId ??
-            originalRecord.ownerOrganizationId ??
-            '');
-
-    if (ownerChanged || managerChanged) {
-      await _emitIdentityEvent(
-        eventType: EventType.ownershipChange,
-        recordId: savedRecord.id,
-        metadata: {
-          'previousOwner': originalRecord.ownerOrganizationId,
-          'newOwner': state.ownerOrganizationIdInput.isEmpty
-              ? null
-              : state.ownerOrganizationIdInput,
-          'previousManager': originalRecord.managingOrganizationId,
-          'newManager': state.managingOrganizationIdInput.isEmpty
-              ? null
-              : state.managingOrganizationIdInput,
-          'source': 'manualEdit',
-        },
-      );
-    }
   }
 
   List<String> _recomputeAllowedFormIds() {
@@ -1073,12 +1042,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
 
   void _rebuildPendingRecord() {
     final aliasPayload = _buildAliasPayload();
-    final ownerInput = state.ownerOrganizationIdInput.trim();
-    final managingInput = state.managingOrganizationIdInput.trim();
-    final ownerResolved = ownerInput.isEmpty ? null : ownerInput;
-    final managingResolved = managingInput.isEmpty
-        ? ownerResolved
-        : managingInput;
     final pending = state.originalRecord.copyWith(
       localGenetId: state.localIdOverride ?? state.originalRecord.localGenetId,
       tagId: state.recordNameOverride ?? state.originalRecord.tagId,
@@ -1098,8 +1061,6 @@ class OrganismRecordEditCubit extends Cubit<OrganismRecordEditState>
             state.countOverride ?? state.originalRecord.sizeSpec.countOverride,
       ),
       aliases: aliasPayload,
-      ownerOrganizationId: ownerResolved,
-      managingOrganizationId: managingResolved,
     );
 
     OrganismRecord finalPending = pending;

@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_item.dart';
 import 'package:seafoundry_app/models/organization.dart';
-import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
-import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/transfer_service.dart';
 
@@ -118,15 +116,12 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
   BatchTransferCubit({
     required BatchTransferMode mode,
     required TransferService transferService,
-    required OrganismRecordRepository organismRecordRepository,
     required Organization currentOrganization,
   })  : _transferService = transferService,
-        _organismRecordRepository = organismRecordRepository,
         _currentOrganization = currentOrganization,
         super(BatchTransferState(mode: mode));
 
   final TransferService _transferService;
-  final OrganismRecordRepository _organismRecordRepository;
   final Organization _currentOrganization;
 
   // -- Fixed target setters -------------------------------------------------
@@ -184,14 +179,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
       return AddItemResult.duplicateGenet;
     }
 
-    final ownership = await _detectOwnership(genetRecordId);
-    if (isClosed) return AddItemResult.closed;
-
-    // Re-check after async gap
-    if (state.items.any((i) => i.genetRecordId == genetRecordId)) {
-      return AddItemResult.duplicateGenet;
-    }
-
     final items = List<BatchTransferItem>.from(state.items);
     items.add(BatchTransferItem(
       genetRecordId: genetRecordId,
@@ -199,8 +186,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
       toOrganizationId: state.fixedOrganization!.id,
       toOrganizationName: state.fixedOrganization!.name,
       quantity: quantity,
-      ownershipType: ownership.type,
-      originalOwnerOrganizationId: ownership.ownerId,
     ));
     emit(state.copyWith(items: List.unmodifiable(items)));
     return AddItemResult.success;
@@ -227,17 +212,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
       return AddItemResult.exceedsInventory;
     }
 
-    final ownership = await _detectOwnership(state.fixedGenetId!);
-    if (isClosed) return AddItemResult.closed;
-
-    // Re-check after async gap
-    if (state.items.any((i) => i.toOrganizationId == organizationId)) {
-      return AddItemResult.duplicateOrganization;
-    }
-    if (state.totalQuantity + quantity > (state.availableInventory ?? 0)) {
-      return AddItemResult.exceedsInventory;
-    }
-
     final items = List<BatchTransferItem>.from(state.items);
     items.add(BatchTransferItem(
       genetRecordId: state.fixedGenetId!,
@@ -245,8 +219,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
       toOrganizationId: organizationId,
       toOrganizationName: organizationName,
       quantity: quantity,
-      ownershipType: ownership.type,
-      originalOwnerOrganizationId: ownership.ownerId,
     ));
     emit(state.copyWith(items: List.unmodifiable(items)));
     return AddItemResult.success;
@@ -342,8 +314,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
           toOrganizationId: items[i].toOrganizationId,
           quantity: items[i].quantity,
           comment: state.comment.isNotEmpty ? state.comment : null,
-          ownershipType: items[i].ownershipType,
-          originalOwnerOrganizationId: items[i].originalOwnerOrganizationId,
           inventorySelection: null,
         );
         items[i] = items[i].copyWith(
@@ -379,41 +349,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
     ));
   }
 
-  // -- Helpers --------------------------------------------------------------
-
-  Future<_OwnershipDetection> _detectOwnership(String genetRecordId) async {
-    try {
-      final organisms = await _organismRecordRepository
-          .queryByGenet(genetRecordId)
-          .first;
-      if (organisms.isEmpty) {
-        LoggingService.instance.warning(
-          'No organisms found for genet $genetRecordId, defaulting to fullTransfer',
-        );
-        return const _OwnershipDetection(TransferOwnershipType.fullTransfer);
-      }
-      final thirdPartyOrg = organisms
-          .where((o) =>
-              o.ownerOrganizationId != null &&
-              o.ownerOrganizationId!.isNotEmpty &&
-              o.ownerOrganizationId != _currentOrganization.id)
-          .firstOrNull;
-      if (thirdPartyOrg != null) {
-        return _OwnershipDetection(
-          TransferOwnershipType.thirdPartyTransfer,
-          thirdPartyOrg.ownerOrganizationId,
-        );
-      }
-      return const _OwnershipDetection(TransferOwnershipType.fullTransfer);
-    } catch (e) {
-      LoggingService.instance.warning(
-        'Failed to detect ownership for genet $genetRecordId, '
-        'defaulting to fullTransfer',
-        e,
-      );
-      return const _OwnershipDetection(TransferOwnershipType.fullTransfer);
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -429,10 +364,4 @@ enum AddItemResult {
   missingFixedTarget,
   selfTransfer,
   closed,
-}
-
-class _OwnershipDetection {
-  const _OwnershipDetection(this.type, [this.ownerId]);
-  final TransferOwnershipType type;
-  final String? ownerId;
 }

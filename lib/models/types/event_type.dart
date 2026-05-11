@@ -26,7 +26,6 @@ class EventType extends BuiltinRecordType {
     recordNameChange.id: recordNameChange,
     localIdChange.id: localIdChange,
     genetIdentityChange.id: genetIdentityChange,
-    ownershipChange.id: ownershipChange,
     ...InventoryEventType.builtins,
     ...StatusEventType.builtins,
     ...LoanEventType.builtins,
@@ -96,9 +95,5 @@ class EventType extends BuiltinRecordType {
   static const EventType genetIdentityChange = EventType(
     id: 'event_local_genet_identity_change',
     name: 'Genet Identity Change',
-  );
-  static const EventType ownershipChange = EventType(
-    id: 'event_ownership_change',
-    name: 'Ownership Change',
   );
 }

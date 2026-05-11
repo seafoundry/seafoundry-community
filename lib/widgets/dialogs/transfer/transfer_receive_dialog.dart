@@ -10,7 +10,6 @@ import 'package:seafoundry_app/models/transfer_manifest.dart';
 import 'package:seafoundry_app/repositories/inventory/group_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
 import 'package:seafoundry_app/repositories/inventory/site_repository.dart';
-import 'package:seafoundry_app/repositories/organization_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/organism_holding_loader.dart';
 import 'package:seafoundry_app/services/species_registry.dart';
@@ -18,7 +17,6 @@ import 'package:seafoundry_app/services/unique_name_validation_service.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/provenance_life_stage_selector.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/safe_dialog_mixin.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/transfer_manifest_summary.dart';
-import 'package:seafoundry_app/widgets/inputs/organization_selector_field.dart';
 import 'package:seafoundry_app/widgets/spreadsheet/safe_provider_mixin.dart';
 
 import '../components/dialog_scroll_view.dart';
@@ -61,8 +59,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
   final TextEditingController _localIdController = TextEditingController();
 
   /// Optional ownership metadata for the received record.
-  final TextEditingController _ownerOrgController = TextEditingController();
-  final TextEditingController _managingOrgController = TextEditingController();
 
   late ProvenanceLifeStageSelection _provenanceSelection;
   String? _suggestedLocalId;
@@ -140,8 +136,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
     _payloadController.dispose();
     _genetNameController.dispose();
     _localIdController.dispose();
-    _ownerOrgController.dispose();
-    _managingOrgController.dispose();
     super.dispose();
   }
 
@@ -364,20 +358,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
                 border: const OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16),
-            const Divider(),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Ownership & custody',
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
-            const SizedBox(height: 8),
-            _OwnershipFields(
-              ownerController: _ownerOrgController,
-              managingController: _managingOrgController,
-            ),
           ],
         ],
       ),
@@ -576,8 +556,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
     }
 
     final localGenetId = _localIdController.text.trim();
-    final ownerOrgId = _ownerOrgController.text.trim();
-    final managingOrgId = _managingOrgController.text.trim();
     final uniqueOk = await _validateUniqueFields(
       tagId: name,
       localGenetId: localGenetId,
@@ -593,8 +571,6 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
       targetUrlPath: _selectedGroup?.urlPath ?? _selectedSite?.urlPath,
       destinationSiteId: _selectedGroup?.siteId ?? _selectedSite?.id,
       destinationGroupId: _selectedGroup?.id,
-      ownerOrganizationId: ownerOrgId.isEmpty ? null : ownerOrgId,
-      managingOrganizationId: managingOrgId.isEmpty ? null : managingOrgId,
     );
   }
 
@@ -884,66 +860,4 @@ class _TransferReceiveDialogState extends State<TransferReceiveDialog>
   ProvenanceLifeStageSelection _deriveProvenanceSelection(
     TransferManifest manifest,
   ) => ProvenanceLifeStageSelection.fromManifest(manifest);
-}
-
-class _OwnershipFields extends StatelessWidget {
-  const _OwnershipFields({
-    required this.ownerController,
-    required this.managingController,
-  });
-
-  final TextEditingController ownerController;
-  final TextEditingController managingController;
-
-  @override
-  Widget build(BuildContext context) {
-    final organizationRepository = context.safeRead<OrganizationRepository>();
-
-    if (organizationRepository == null) {
-      return Column(
-        children: [
-          TextField(
-            controller: ownerController,
-            decoration: const InputDecoration(
-              labelText: 'Owner organization id (optional)',
-              hintText: 'e.g., AZA-Partner-001',
-              border: OutlineInputBorder(),
-            ),
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: managingController,
-            decoration: const InputDecoration(
-              labelText: 'Managing organization id (optional)',
-              hintText: 'Custodial org for day-to-day care',
-              border: OutlineInputBorder(),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return Column(
-      children: [
-        OrganizationSelectorField(
-          label: 'Owner organization (optional)',
-          value: ownerController.text,
-          onChanged: (value) => ownerController.text = value ?? '',
-          organizationRepository: organizationRepository,
-          hintText: 'e.g., AZA-Partner-001',
-          helperText: 'Organization that owns this genet/record',
-        ),
-        const SizedBox(height: 12),
-        OrganizationSelectorField(
-          label: 'Managing organization (optional)',
-          value: managingController.text,
-          onChanged: (value) => managingController.text = value ?? '',
-          organizationRepository: organizationRepository,
-          hintText: 'Custodial org for day-to-day care',
-          helperText: 'Organization responsible for daily care',
-        ),
-      ],
-    );
-  }
 }

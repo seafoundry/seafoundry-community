@@ -29,8 +29,6 @@ class OrganismRecordEditState extends Equatable {
     required this.quantityKind,
     required this.quantityUnit,
     required this.aliasEntries,
-    required this.ownerOrganizationIdInput,
-    required this.managingOrganizationIdInput,
     this.currentOrganizationId,
     this.localIdOverride,
     this.recordNameOverride,
@@ -81,8 +79,6 @@ class OrganismRecordEditState extends Equatable {
   final List<String> allowedFormIds;
   final OrganismRecordChangeSet changeSet;
   final List<GenetAliasEntry> aliasEntries;
-  final String ownerOrganizationIdInput;
-  final String managingOrganizationIdInput;
 
   /// Override for the localGenetId (genet identifier, e.g., "ACER-001").
   /// Maps to PID and by association to clonalID/alias/accession.
@@ -164,31 +160,8 @@ class OrganismRecordEditState extends Equatable {
   /// Whether identity fields are locked due to transfer metadata.
   bool get isIdentityLocked => transferLockInfo.isLocked;
 
-  /// The current user's organization ID, used for custody detection.
+  /// The current user's organization ID (kept for legacy state shape).
   final String? currentOrganizationId;
-
-  /// Whether the current user's org is a custodian (managing but not owning).
-  ///
-  /// A custodian can only edit location/quantity, NOT identity fields like
-  /// tagId, localGenetId, ownership, or provenance/genetics.
-  bool get isCustodian {
-    final ownerOrgId = originalRecord.ownerOrganizationId;
-    final managerOrgId = originalRecord.managingOrganizationId;
-
-    // Is custodian if:
-    // 1. Owner is set AND
-    // 2. Owner is different from current org AND
-    // 3. We are the manager (explicitly or by being the record's org)
-    if (ownerOrgId == null || ownerOrgId.isEmpty) return false;
-    if (currentOrganizationId == null) return false;
-    if (ownerOrgId == currentOrganizationId) return false;
-
-    // Check if we are the manager
-    final effectiveManager =
-        managerOrgId?.isNotEmpty == true ? managerOrgId : null;
-    return effectiveManager == currentOrganizationId ||
-        originalRecord.organizationId == currentOrganizationId;
-  }
 
   bool get hasLocalIdChange => localIdOverride != null;
   bool get hasRecordNameChange => recordNameOverride != null;
@@ -241,8 +214,6 @@ class OrganismRecordEditState extends Equatable {
     OrganismRecord? pendingRecord,
     List<String>? allowedFormIds,
     List<GenetAliasEntry>? aliasEntries,
-    String? ownerOrganizationIdInput,
-    String? managingOrganizationIdInput,
     Object? localIdOverride = _sentinel,
     Object? recordNameOverride = _sentinel,
     Object? lifeStageOverride = _sentinel,
@@ -292,10 +263,6 @@ class OrganismRecordEditState extends Equatable {
       pendingRecord: pendingRecord ?? this.pendingRecord,
       allowedFormIds: allowedFormIds ?? this.allowedFormIds,
       aliasEntries: aliasEntries ?? this.aliasEntries,
-      ownerOrganizationIdInput:
-          ownerOrganizationIdInput ?? this.ownerOrganizationIdInput,
-      managingOrganizationIdInput:
-          managingOrganizationIdInput ?? this.managingOrganizationIdInput,
       currentOrganizationId: currentOrganizationId,
       localIdOverride: localIdOverride == _sentinel
           ? this.localIdOverride
@@ -444,8 +411,6 @@ class OrganismRecordEditState extends Equatable {
     minimumStageInterval,
     lastTransitionAt,
     aliasEntries,
-    ownerOrganizationIdInput,
-    managingOrganizationIdInput,
     currentOrganizationId,
     localIdOverride,
     recordNameOverride,

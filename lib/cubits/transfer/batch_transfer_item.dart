@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
-import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 
 /// A single item in the batch transfer cart.
 ///
@@ -13,8 +12,6 @@ class BatchTransferItem extends Equatable {
     required this.toOrganizationId,
     required this.toOrganizationName,
     required this.quantity,
-    this.ownershipType = TransferOwnershipType.fullTransfer,
-    this.originalOwnerOrganizationId,
     this.status = BatchItemStatus.pending,
     this.errorMessage,
     this.resultTransferEventId,
@@ -35,12 +32,6 @@ class BatchTransferItem extends Equatable {
   /// Number of organisms to transfer.
   final int quantity;
 
-  /// Per-item ownership type, auto-detected from organism custody.
-  final TransferOwnershipType ownershipType;
-
-  /// Original owner org ID for third-party transfers.
-  final String? originalOwnerOrganizationId;
-
   /// Current submission status of this item.
   final BatchItemStatus status;
 
@@ -58,8 +49,6 @@ class BatchTransferItem extends Equatable {
     String? toOrganizationId,
     String? toOrganizationName,
     int? quantity,
-    TransferOwnershipType? ownershipType,
-    Object? originalOwnerOrganizationId = _sentinel,
     BatchItemStatus? status,
     Object? errorMessage = _sentinel,
     Object? resultTransferEventId = _sentinel,
@@ -70,10 +59,6 @@ class BatchTransferItem extends Equatable {
       toOrganizationId: toOrganizationId ?? this.toOrganizationId,
       toOrganizationName: toOrganizationName ?? this.toOrganizationName,
       quantity: quantity ?? this.quantity,
-      ownershipType: ownershipType ?? this.ownershipType,
-      originalOwnerOrganizationId: originalOwnerOrganizationId == _sentinel
-          ? this.originalOwnerOrganizationId
-          : originalOwnerOrganizationId as String?,
       status: status ?? this.status,
       errorMessage: errorMessage == _sentinel
           ? this.errorMessage
@@ -91,8 +76,6 @@ class BatchTransferItem extends Equatable {
         toOrganizationId,
         toOrganizationName,
         quantity,
-        ownershipType,
-        originalOwnerOrganizationId,
         status,
         errorMessage,
         resultTransferEventId,

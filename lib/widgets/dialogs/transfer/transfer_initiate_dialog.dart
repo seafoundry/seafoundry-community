@@ -265,11 +265,6 @@ class _TransferInitiateDialogState
                 },
                 recipientEmailController: _recipientEmailController,
                 recipientEmail: state.recipientEmail,
-                ownershipType: state.ownershipType,
-                isThirdPartyDetected: state.isThirdPartyDetected,
-                onOwnershipTypeChanged: (type) {
-                  context.read<TransferInitiateCubit>().setOwnershipType(type);
-                },
               ),
             ],
           ),
@@ -411,8 +406,6 @@ class _TransferInitiateDialogState
     });
     _resetSelectionControllers();
     _selectionCubit.clearSelection();
-    // Reset third-party detection when genet changes
-    context.read<TransferInitiateCubit>().resetThirdPartyDetection();
     _loadOrganismSelection();
     context
         .read<TransferInitiateCubit>()
@@ -1155,13 +1148,6 @@ class _TransferInitiateDialogState
         _excludedPendingTransfer = pendingTransferExcluded;
       });
       _selectionCubit.loadOrganisms(filtered);
-
-      // Detect if any organisms are owned by a different organization
-      final currentOrgId = context.read<Organization>().id;
-      context.read<TransferInitiateCubit>().detectThirdPartyTransfer(
-        filtered,
-        currentOrgId,
-      );
 
       unawaited(_loadGroupNames());
     } on TimeoutException {

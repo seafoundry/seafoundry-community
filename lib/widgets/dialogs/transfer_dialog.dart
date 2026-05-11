@@ -310,7 +310,6 @@ class TransferDialog extends StatelessWidget {
         create: (_) => BatchTransferCubit(
           mode: mode,
           transferService: dependencies.transferService,
-          organismRecordRepository: organismRecordRepository,
           currentOrganization: dependencies.organization,
         ),
         child: const BatchTransferDialog(),

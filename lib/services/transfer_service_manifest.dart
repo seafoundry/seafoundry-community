@@ -11,8 +11,6 @@ extension _TransferServiceManifest on TransferService {
     required ProvenanceLifeStageSelection selection,
     String? physicalFormOverride,
     SizeSpec? sizeSpecOverride,
-    TransferOwnershipType? ownershipType,
-    String? originalOwnerOrganizationId,
   }) {
     final metadata = <String, dynamic>{
       'eventSlug': transferEvent.slug,
@@ -29,12 +27,6 @@ extension _TransferServiceManifest on TransferService {
       ),
     );
 
-    metadata['ownershipType'] =
-        (ownershipType ?? TransferOwnershipType.fullTransfer).id;
-    if (originalOwnerOrganizationId != null &&
-        originalOwnerOrganizationId.isNotEmpty) {
-      metadata['originalOwnerOrganizationId'] = originalOwnerOrganizationId;
-    }
     return metadata;
   }
 
@@ -145,10 +137,6 @@ extension _TransferServiceManifest on TransferService {
       genetPayload['aliases'] = canonicalAliases;
     }
 
-    final ownership = extractOwnershipMetadata(genet.metadata);
-    if (ownership.isNotEmpty) {
-      genetPayload['ownership'] = ownership;
-    }
     if (genet.metadata.isNotEmpty) {
       genetPayload['metadata'] = genet.metadata;
     }
@@ -169,8 +157,6 @@ extension _TransferServiceManifest on TransferService {
     required ProvenanceLifeStageSelection selection,
     String? physicalFormOverride,
     SizeSpec? sizeSpecOverride,
-    TransferOwnershipType? ownershipType,
-    String? originalOwnerOrganizationId,
   }) {
     final genetPayload = _buildGenetPayload(genet);
     final metadata = _buildTransferManifestMetadata(
@@ -179,8 +165,6 @@ extension _TransferServiceManifest on TransferService {
       selection: selection,
       physicalFormOverride: physicalFormOverride,
       sizeSpecOverride: sizeSpecOverride,
-      ownershipType: ownershipType,
-      originalOwnerOrganizationId: originalOwnerOrganizationId,
     );
 
     return _buildManifestSnapshot(
@@ -215,8 +199,6 @@ extension _TransferServiceManifest on TransferService {
     required ProvenanceLifeStageSelection selection,
     String? physicalFormOverride,
     SizeSpec? sizeSpecOverride,
-    TransferOwnershipType? ownershipType,
-    String? originalOwnerOrganizationId,
   }) {
     final genetPayload = _buildGenetPayload(genet);
     final metadata = _buildTransferManifestMetadata(
@@ -225,8 +207,6 @@ extension _TransferServiceManifest on TransferService {
       selection: selection,
       physicalFormOverride: physicalFormOverride,
       sizeSpecOverride: sizeSpecOverride,
-      ownershipType: ownershipType,
-      originalOwnerOrganizationId: originalOwnerOrganizationId,
     );
 
     return _buildManifestSnapshot(
@@ -249,8 +229,6 @@ extension _TransferServiceManifest on TransferService {
     String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) {
     final genet = manifest.genet;
     final rawSpeciesId = genet.speciesId ?? genet.speciesCode;
@@ -289,13 +267,6 @@ extension _TransferServiceManifest on TransferService {
       if (genet.localGenetId != null) 'senderLocalId': genet.localGenetId,
       if (genet.name != null) 'senderRecordName': genet.name,
     };
-    if (ownerOrganizationId != null && ownerOrganizationId.trim().isNotEmpty) {
-      metadata['ownerOrganizationId'] = ownerOrganizationId.trim();
-    }
-    if (managingOrganizationId != null &&
-        managingOrganizationId.trim().isNotEmpty) {
-      metadata['managingOrganizationId'] = managingOrganizationId.trim();
-    }
     if (localGenetId != null && localGenetId.isNotEmpty) {
       provenance['localGenetId'] = localGenetId;
     }
@@ -357,18 +328,6 @@ extension _TransferServiceManifest on TransferService {
     metadata['lifeStageLabel'] = selection.lifeStage.displayName;
     metadata['provenanceKind'] =
         selection.provenanceType.defaultProvenanceKind.name;
-    final ownershipRaw = genet.ownership;
-    if (ownershipRaw != null) {
-      final ownerId = ownershipRaw['ownerOrganizationId']?.toString();
-      final managingId = ownershipRaw['managingOrganizationId']?.toString();
-      if (ownerId != null && ownerId.trim().isNotEmpty) {
-        metadata['ownerOrganizationId'] = ownerId.trim();
-      }
-      if (managingId != null && managingId.trim().isNotEmpty) {
-        metadata['managingOrganizationId'] = managingId.trim();
-      }
-    }
-
     metadata['provenanceTypeId'] =
         provenanceTypeOverride?.id ?? selection.provenanceType.id;
     // provenanceId is stored on the top-level genet record, not in metadata
@@ -609,20 +568,6 @@ extension _TransferServiceManifest on TransferService {
     return normalized.isEmpty ? null : normalized;
   }
 
-  Map<String, String> extractOwnershipMetadata(Map<String, dynamic>? metadata) {
-    if (metadata == null || metadata.isEmpty) return const {};
-    final owner = metadata['ownerOrganizationId']?.toString().trim();
-    final managing = metadata['managingOrganizationId']?.toString().trim();
-    final result = <String, String>{};
-    if (owner != null && owner.isNotEmpty) {
-      result['ownerOrganizationId'] = owner;
-    }
-    if (managing != null && managing.isNotEmpty) {
-      result['managingOrganizationId'] = managing;
-    }
-    return result;
-  }
-
   /// Builds an OrganismRecord from the manifest payload for inventory tracking.
   ///
   /// This creates the inventory holding at the destination site/group when a
@@ -639,8 +584,6 @@ extension _TransferServiceManifest on TransferService {
     String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) {
     final genet = manifest.genet;
     final rawSpeciesId = genet.speciesId ?? genet.speciesCode;
@@ -720,72 +663,15 @@ extension _TransferServiceManifest on TransferService {
 
     final organization = _provenanceRepository.organization;
 
-    // Ownership defaults to receiving organization when not explicitly set.
-    // Receiver's explicit input takes precedence, otherwise use receiving org.
-    // Note: We intentionally do NOT fall back to sender's manifest ownership -
-    // when accepting a transfer, ownership transfers to the receiving org.
-    final ownership = <String, String>{
-      'ownerOrganizationId': ownerOrganizationId?.trim().isNotEmpty == true
-          ? ownerOrganizationId!.trim()
-          : organization.id,
-      'managingOrganizationId':
-          managingOrganizationId?.trim().isNotEmpty == true
-          ? managingOrganizationId!.trim()
-          : organization.id,
-    };
-
-    // Build organism record metadata
+    // Build organism record metadata. The receiving organization becomes the
+    // new owner via the Firestore path (organizationId), so no ownership/
+    // custody bookkeeping is required at the record level.
     final metadata = <String, dynamic>{
       'transferEventId': manifest.transferId,
       'fromOrganizationId': manifest.fromOrganization.id,
       'manifestVersion': manifest.version,
       'receivedAt': manifest.receivedAt?.toIso8601String(),
     };
-
-    // Add custody history entry for this transfer
-    final ownershipTypeRaw = manifest.metadata?['ownershipType']?.toString();
-    final ownershipType =
-        TransferOwnershipTypeX.tryParse(ownershipTypeRaw) ??
-        TransferOwnershipType.fullTransfer;
-
-    // Resolve owner name based on ownership type
-    String? resolveOwnerName() {
-      final ownerId = ownership['ownerOrganizationId'];
-      if (ownerId == organization.id) {
-        return organization.name;
-      }
-      if (ownerId == manifest.fromOrganization.id) {
-        return manifest.fromOrganization.name;
-      }
-      // For third-party, check if name was included in metadata
-      final thirdPartyName = manifest.metadata?['originalOwnerOrganizationName']
-          ?.toString();
-      if (thirdPartyName != null && thirdPartyName.isNotEmpty) {
-        return thirdPartyName;
-      }
-      // Fallback to sender name (may be inaccurate for third-party)
-      return manifest.fromOrganization.name;
-    }
-
-    final custodyEntry = CustodyHistoryService.createTransferEntry(
-      transferId: manifest.transferId,
-      ownershipType: ownershipType,
-      ownerOrganizationId: ownership['ownerOrganizationId']!,
-      ownerOrganizationName: resolveOwnerName(),
-      managingOrganizationId: ownership['managingOrganizationId']!,
-      managingOrganizationName: organization.name,
-      acceptedAt: manifest.receivedAt,
-    );
-
-    // Merge any existing custody history from manifest with the new entry
-    final existingCustodyHistory = manifest.metadata?['custodyHistory'];
-    final custodyHistory = CustodyHistoryService.parseCustodyHistory(
-      existingCustodyHistory,
-    );
-    final fullCustodyHistory = [...custodyHistory, custodyEntry];
-    metadata['custodyHistory'] = CustodyHistoryService.serializeCustodyHistory(
-      fullCustodyHistory,
-    );
 
     final user = _provenanceRepository.user;
 
@@ -807,8 +693,6 @@ extension _TransferServiceManifest on TransferService {
           : null,
       sizeSpec: sizeSpec,
       genetRecordId: createdGenet.id,
-      ownerOrganizationId: ownership['ownerOrganizationId'],
-      managingOrganizationId: ownership['managingOrganizationId'],
       metadata: metadata,
     );
   }

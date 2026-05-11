@@ -235,8 +235,7 @@ class _OrganismEditDialogState extends State<OrganismEditDialog>
       },
       child: BlocBuilder<OrganismRecordEditCubit, OrganismRecordEditState>(
         builder: (context, state) {
-          final identityDisabled =
-              state.isCustodian || state.isIdentityLocked;
+          final identityDisabled = state.isIdentityLocked;
           final canSave =
               (state.canSubmit || (_healthStatusChanged && !state.changeSet.hasChanges)) &&
               !state.isSubmitting;
@@ -387,9 +386,7 @@ class _OrganismEditDialogState extends State<OrganismEditDialog>
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: Text(
-              state.isCustodian
-                  ? 'Identity fields are managed by the owner organization.'
-                  : 'Identity fields are locked due to transfer.',
+              'Identity fields are locked due to transfer.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),

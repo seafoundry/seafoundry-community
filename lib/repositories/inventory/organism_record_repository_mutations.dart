@@ -41,17 +41,7 @@ mixin _OrganismRecordRepositoryMutations
     final createdAt = DateTime.now();
     final createdAtIso = createdAt.toIso8601String();
 
-    // Add initial custody history if not already present (transfers add their own)
-    var recordMetadata = partialRecord.metadata ?? <String, dynamic>{};
-    if (recordMetadata[CustodyHistoryService.custodyHistoryKey] == null) {
-      recordMetadata = CustodyHistoryService.createMetadataWithInitialCustody(
-        existingMetadata: recordMetadata,
-        organization: organization,
-        ownerOrganizationId: partialRecord.ownerOrganizationId,
-        managingOrganizationId: partialRecord.managingOrganizationId,
-        createdAt: createdAt,
-      );
-    }
+    final recordMetadata = partialRecord.metadata ?? <String, dynamic>{};
 
     OrganismRecord fullRecord = partialRecord.copyWith(
       id: recordId,
@@ -757,13 +747,13 @@ mixin _OrganismRecordRepositoryMutations
   /// and Cohort docs after an organism mutation.
   ///
   /// HoldingRecord denormalizes: tagId, organismKind, lifeStage (id),
-  /// measurement, ownerOrganizationId, managingOrganizationId.
+  /// measurement.
   /// Cohort denormalizes: organismKind, lifeStage (id), population.
   ///
-  /// Without this fan-out, after a rename, life-stage transition,
-  /// measurement update, or ownership transfer on an OrganismRecord,
-  /// every HoldingRecord/Cohort referencing it via organismRecordId would
-  /// show stale denormalized data until its own next write.
+  /// Without this fan-out, after a rename, life-stage transition, or
+  /// measurement update on an OrganismRecord, every HoldingRecord/Cohort
+  /// referencing it via organismRecordId would show stale denormalized data
+  /// until its own next write.
   ///
   /// Strategy: always-fan-out (no diff guard). updateRecord is the universal
   /// hook for every mutation path, so callers do not pass `previous`.
@@ -799,8 +789,6 @@ mixin _OrganismRecordRepositoryMutations
       'lifeStageId': next.lifeStage.stage.id,
       'lifeStage': next.lifeStage.stage.id, // legacy alias
       'measurement': next.measurement.toJson(),
-      'ownerOrganizationId': next.ownerOrganizationId,
-      'managingOrganizationId': next.managingOrganizationId,
     };
     final cohortPayload = <String, dynamic>{
       'organismKind': next.organismKind.name,

@@ -40,12 +40,6 @@ extension ProvenanceSchema on ProvenanceRecord {
   /// Life stage identifier
   String? get lifeStageId => _strOrNull('lifeStageId') ?? _strOrNull('lifeStage');
 
-  /// Owner organization ID
-  String? get ownerOrganizationId => _strOrNull('ownerOrganizationId');
-
-  /// Managing organization ID
-  String? get managingOrganizationId => _strOrNull('managingOrganizationId');
-
   /// Provenance type as raw string ID
   String? get provenanceTypeId => _strOrNull('provenanceTypeId') ?? _strOrNull('provenanceType');
 

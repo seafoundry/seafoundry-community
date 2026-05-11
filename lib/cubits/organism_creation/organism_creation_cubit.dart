@@ -602,24 +602,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     emit(state.copyWith(tagId: normalized, error: null));
   }
 
-  /// Changes the optional owner organization ID.
-  void ownerOrganizationIdChanged(String? ownerOrganizationId) {
-    final normalized =
-        (ownerOrganizationId == null || ownerOrganizationId.trim().isEmpty)
-            ? null
-            : ownerOrganizationId.trim();
-    emit(state.copyWith(ownerOrganizationId: normalized, error: null));
-  }
-
-  /// Changes the optional managing organization ID.
-  void managingOrganizationIdChanged(String? managingOrganizationId) {
-    final normalized = (managingOrganizationId == null ||
-            managingOrganizationId.trim().isEmpty)
-        ? null
-        : managingOrganizationId.trim();
-    emit(state.copyWith(managingOrganizationId: normalized, error: null));
-  }
-
   void suggestedLocalIdChanged(String? suggestedLocalId) {
     emit(state.copyWith(suggestedLocalId: suggestedLocalId, error: null));
   }
@@ -875,8 +857,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     String? groupName,
     String? siteId,
     String? groupId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
     Map<String, dynamic>? additionalMetadata,
   }) {
     // Location is required for creation.
@@ -1001,9 +981,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
           countOverride: state.editingCount,
         ),
         aliases: state.aliases,
-        ownerOrganizationId: ownerOrganizationId ?? state.ownerOrganizationId,
-        managingOrganizationId:
-            managingOrganizationId ?? state.managingOrganizationId,
         genetRecordId: state.selectedGenet?.id,
         metadata: metadata.isNotEmpty ? metadata : null,
       );

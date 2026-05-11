@@ -21,12 +21,10 @@ import '../../common/alias_editor.dart';
 import '../../common/five_axis_editor.dart';
 import '../../common/pid_status_chip.dart';
 import '../../spreadsheet/safe_provider_mixin.dart';
-import '../base_search_dialog.dart';
 import '../components/five_axis_dialog_section.dart';
 import '../components/safe_dialog_mixin.dart';
 import '../../inputs/provenance_autocomplete_field.dart';
 import '../../notifications/toast_overlay.dart';
-import 'transfer_shared.dart';
 import '../components/dialog_scroll_view.dart';
 
 /// Dialog for manually registering a received genet
@@ -61,8 +59,6 @@ class _TransferManualRegisterDialogState
   final TextEditingController _sourceOrg = TextEditingController();
   final TextEditingController _sourceEmail = TextEditingController();
   final TextEditingController _note = TextEditingController();
-  final TextEditingController _ownerOrgId = TextEditingController();
-  final TextEditingController _managingOrgId = TextEditingController();
   List<GenetAliasEntry> _aliases = const <GenetAliasEntry>[];
   Map<int, String?> _aliasErrors = const <int, String?>{};
   bool _aliasValidationTouched = false;
@@ -110,29 +106,8 @@ class _TransferManualRegisterDialogState
     _sourceOrg.dispose();
     _sourceEmail.dispose();
     _note.dispose();
-    _ownerOrgId.dispose();
-    _managingOrgId.dispose();
     _provenanceCubit.close();
     super.dispose();
-  }
-
-  Future<void> _selectOrganizationFor(TextEditingController controller) async {
-    final repository = widget.organizationRepository;
-    if (repository == null) {
-      LoggingService.instance.warning(
-        'OrganizationRepository not available for organization search',
-      );
-      return;
-    }
-    final selected = await BaseSearchDialog.showSingle<Organization>(
-      context,
-      dialog: OrganizationSearchDialog(repository: repository),
-    );
-    if (selected == null) return;
-    if (!mounted) return;
-    setState(() {
-      controller.text = selected.id;
-    });
   }
 
   void _setAliases(List<GenetAliasEntry> updated) {
@@ -263,8 +238,6 @@ class _TransferManualRegisterDialogState
     FocusScope.of(context).unfocus();
     final service = context.read<ManualTransferRegistrationService>();
     final provenanceState = _provenanceCubit.state;
-    final ownerId = _ownerOrgId.text.trim();
-    final managerId = _managingOrgId.text.trim();
     final fromOrgId = _sourceOrg.text.trim();
     final sourceEmail = _sourceEmail.text.trim();
     final resolvedPid = provenanceState.provenanceSearch.resolvedProvenanceId;
@@ -296,8 +269,6 @@ class _TransferManualRegisterDialogState
         fromOrganizationId: fromOrgId.isEmpty ? null : fromOrgId,
         sourceContactEmail: sourceEmail.isEmpty ? null : sourceEmail,
         sourceProvenanceId: sourceProvenanceId,
-        ownerOrganizationId: ownerId.isEmpty ? null : ownerId,
-        managingOrganizationId: managerId.isEmpty ? null : managerId,
         aliases: aliasPayload,
       );
       if (!mounted) return;
@@ -677,41 +648,6 @@ class _TransferManualRegisterDialogState
                       maxLines: 3,
                       decoration: const InputDecoration(
                         labelText: 'Note (optional)',
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Divider(),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        'Ownership & custody',
-                        style: theme.textTheme.titleSmall,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _ownerOrgId,
-                      decoration: InputDecoration(
-                        labelText: 'Owner organization id (optional)',
-                        suffixIcon: IconButton(
-                          tooltip: 'Search organizations',
-                          icon: const Icon(Icons.search),
-                          onPressed: () => _selectOrganizationFor(_ownerOrgId),
-                        ),
-                      ),
-                      textInputAction: TextInputAction.next,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _managingOrgId,
-                      decoration: InputDecoration(
-                        labelText: 'Managing organization id (optional)',
-                        suffixIcon: IconButton(
-                          tooltip: 'Search organizations',
-                          icon: const Icon(Icons.search),
-                          onPressed: () =>
-                              _selectOrganizationFor(_managingOrgId),
-                        ),
                       ),
                     ),
                     const SizedBox(height: 16),

@@ -7,7 +7,7 @@ import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 
 /// Contract for services that can register a genet manually (without a
-/// transfer manifest) while preserving alias and ownership metadata.
+/// transfer manifest) while preserving alias metadata.
 abstract class ManualTransferRegistrationService {
   Future<ProvenanceRecord> registerManualGenet({
     required String name,
@@ -19,8 +19,6 @@ abstract class ManualTransferRegistrationService {
     SizeSpec sizeSpec,
     String? comment,
     String? fromOrganizationId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
     String? sourceContactEmail,
     String? sourceProvenanceId,
     List<OrganismAlias> aliases,

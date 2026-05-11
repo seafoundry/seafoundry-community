@@ -226,8 +226,6 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
     String? targetUrlPath,
     String? destinationSiteId,
     String? destinationGroupId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) async {
     final manifest = state.manifest;
     if (manifest == null) {
@@ -253,8 +251,6 @@ class TransferReceiveCubit extends SafeCubit<TransferReceiveState> {
         targetUrlPath: targetUrlPath,
         destinationSiteId: destinationSiteId,
         destinationGroupId: destinationGroupId,
-        ownerOrganizationId: ownerOrganizationId,
-        managingOrganizationId: managingOrganizationId,
       );
 
       // Check if crosswalk registration failed (best-effort, non-blocking)

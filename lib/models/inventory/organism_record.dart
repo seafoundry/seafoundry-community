@@ -56,8 +56,6 @@ class OrganismRecord extends InventoryRecord
     this.physicalFormConfigVersion,
     SizeSpec? sizeSpec,
     List<OrganismAlias>? aliases,
-    this.ownerOrganizationId,
-    this.managingOrganizationId,
     this.genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     List<LifeStageTransition>? lifeStageHistory,
@@ -109,8 +107,6 @@ class OrganismRecord extends InventoryRecord
     String? physicalFormConfigVersion,
     SizeSpec? sizeSpec,
     List<OrganismAlias>? aliases,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
     String? genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     List<LifeStageTransition>? lifeStageHistory,
@@ -153,10 +149,6 @@ class OrganismRecord extends InventoryRecord
          json: json,
        ),
        aliases = aliases ?? _parseAliases(json?['aliases']),
-       ownerOrganizationId =
-           ownerOrganizationId ?? json?['ownerOrganizationId'],
-       managingOrganizationId =
-           managingOrganizationId ?? json?['managingOrganizationId'],
        genetRecordId = genetRecordId ?? json?['genetRecordId'],
        foreignKeys = foreignKeys ?? _parseForeignKeys(json?['foreignKeys']),
        lifeStageHistory =
@@ -201,8 +193,6 @@ class OrganismRecord extends InventoryRecord
         json: json,
       ),
       aliases = _parseAliases(json['aliases']),
-      ownerOrganizationId = _asString(json['ownerOrganizationId']),
-      managingOrganizationId = _asString(json['managingOrganizationId']),
       genetRecordId = _asString(json['genetRecordId']),
       foreignKeys = _parseForeignKeys(json['foreignKeys']),
       lifeStageHistory = _parseLifeStageHistory(json['lifeStageHistory']),
@@ -231,8 +221,6 @@ class OrganismRecord extends InventoryRecord
     String? physicalFormConfigVersion,
     SizeSpec? sizeSpec,
     List<OrganismAlias>? aliases,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
     String? genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     Map<String, dynamic>? metadata,
@@ -262,8 +250,6 @@ class OrganismRecord extends InventoryRecord
       physicalFormConfigVersion: physicalFormConfigVersion,
       sizeSpec: sizeSpec,
       aliases: aliases,
-      ownerOrganizationId: ownerOrganizationId,
-      managingOrganizationId: managingOrganizationId,
       genetRecordId: genetRecordId,
       foreignKeys: foreignKeys,
       metadata: metadata,
@@ -349,8 +335,6 @@ class OrganismRecord extends InventoryRecord
   final SizeSpec sizeSpec;
   final SizeMetrics inventoryMetrics;
   final List<OrganismAlias> aliases;
-  final String? ownerOrganizationId;
-  final String? managingOrganizationId;
 
   /// Reference to the Genet record this organism belongs to.
   /// Used for five-axis provenance tracking (axis 2).
@@ -464,8 +448,6 @@ class OrganismRecord extends InventoryRecord
     PopulationMeasurement? measurement,
     SizeSpec? sizeSpec,
     List<OrganismAlias>? aliases,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
     String? genetRecordId,
     Map<String, ForeignKeyReference>? foreignKeys,
     List<LifeStageTransition>? lifeStageHistory,
@@ -500,9 +482,6 @@ class OrganismRecord extends InventoryRecord
       measurement: measurement ?? this.measurement,
       sizeSpec: sizeSpec ?? this.sizeSpec,
       aliases: aliases ?? this.aliases,
-      ownerOrganizationId: ownerOrganizationId ?? this.ownerOrganizationId,
-      managingOrganizationId:
-          managingOrganizationId ?? this.managingOrganizationId,
       genetRecordId: genetRecordId ?? this.genetRecordId,
       foreignKeys: foreignKeys ?? this.foreignKeys,
       lifeStageHistory: lifeStageHistory ?? this.lifeStageHistory,
@@ -550,8 +529,6 @@ class OrganismRecord extends InventoryRecord
     if (aliases.isNotEmpty) {
       payload['aliases'] = aliases.map((alias) => alias.toJson()).toList();
     }
-    put('ownerOrganizationId', ownerOrganizationId);
-    put('managingOrganizationId', managingOrganizationId);
     put('genetRecordId', genetRecordId);
     if (foreignKeys.isNotEmpty) {
       payload['foreignKeys'] = foreignKeys.map(
@@ -588,8 +565,6 @@ class OrganismRecord extends InventoryRecord
     ProvenanceAttributes? provenanceAttributes,
     List<OrganismAlias>? aliases,
     Map<String, ForeignKeyReference>? foreignKeys,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) {
     final normalizedMetadata = _normalizeMetadata(metadata);
     String? read(List<String> keys) {
@@ -659,13 +634,6 @@ class OrganismRecord extends InventoryRecord
       normalizedMetadata['measurementHistory'],
     );
 
-    final ownerId =
-        ownerOrganizationId ??
-        _asString(normalizedMetadata['ownerOrganizationId']);
-    final managingId =
-        managingOrganizationId ??
-        _asString(normalizedMetadata['managingOrganizationId']);
-
     // Use .partial() constructor since we don't have full InventoryRecord fields
     return OrganismRecord.partial(
       organismKind: organismKind,
@@ -678,8 +646,6 @@ class OrganismRecord extends InventoryRecord
       measurement: measurement,
       sizeSpec: resolvedSizeSpec,
       aliases: resolvedAliases,
-      ownerOrganizationId: ownerId,
-      managingOrganizationId: managingId,
       foreignKeys: resolvedForeignKeys,
       lifeStageHistory: resolvedLifeStageHistory,
       measurementHistory: resolvedMeasurementHistory,
@@ -1062,8 +1028,6 @@ class OrganismRecord extends InventoryRecord
         sizeSpec,
         inventoryMetrics,
         aliases,
-        ownerOrganizationId,
-        managingOrganizationId,
         genetRecordId,
         foreignKeys,
         lifeStageHistory,

@@ -47,8 +47,6 @@ class InventoryExportRow {
     final provenanceKind = provenanceMetadata.defaultProvenanceKind.name;
 
     final metadata = organism.metadata ?? const <String, dynamic>{};
-    final ownerOrgId = (organism.ownerOrganizationId ?? '').trim();
-    final managingOrgId = (organism.managingOrganizationId ?? '').trim();
     final tagId = organism.tagId.trim();
 
     final aliasEntries = organism.aliases;
@@ -118,8 +116,6 @@ class InventoryExportRow {
       'createdAt': organism.createdAt,
       'updatedAt': organism.updatedAt,
       'dropperId': '',
-      'ownerOrganizationId': ownerOrgId,
-      'managingOrganizationId': managingOrgId,
       'aliasesJson': aliasJson,
       'aliases': aliasLabels,
       // Five-axis: Physical Form

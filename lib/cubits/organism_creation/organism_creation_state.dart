@@ -78,8 +78,6 @@ class OrganismCreationState extends Equatable {
     this.aliases = const <OrganismAlias>[],
     this.localGenetId,
     this.tagId,
-    this.ownerOrganizationId,
-    this.managingOrganizationId,
     this.selectedGenet,
     this.editingCount,
     this.measurementFieldConfig,
@@ -129,12 +127,6 @@ class OrganismCreationState extends Equatable {
   /// Required name for the individual record instance.
   /// This is separate from localGenetId which is the genet's identifier.
   final String? tagId;
-
-  /// Optional owner organization ID.
-  final String? ownerOrganizationId;
-
-  /// Optional managing organization ID.
-  final String? managingOrganizationId;
 
   final Genet? selectedGenet;
   final int? editingCount;
@@ -403,8 +395,6 @@ class OrganismCreationState extends Equatable {
     List<OrganismAlias>? aliases,
     Object? localGenetId = _undefined,
     Object? tagId = _undefined,
-    Object? ownerOrganizationId = _undefined,
-    Object? managingOrganizationId = _undefined,
     Object? selectedGenet = _undefined,
     Object? editingCount = _undefined,
     Object? measurementFieldConfig = _undefined,
@@ -491,12 +481,6 @@ class OrganismCreationState extends Equatable {
       tagId: tagId == _undefined
           ? this.tagId
           : tagId as String?,
-      ownerOrganizationId: ownerOrganizationId == _undefined
-          ? this.ownerOrganizationId
-          : ownerOrganizationId as String?,
-      managingOrganizationId: managingOrganizationId == _undefined
-          ? this.managingOrganizationId
-          : managingOrganizationId as String?,
       selectedGenet: selectedGenet == _undefined
           ? this.selectedGenet
           : selectedGenet as Genet?,
@@ -559,8 +543,6 @@ class OrganismCreationState extends Equatable {
     aliases,
     localGenetId,
     tagId,
-    ownerOrganizationId,
-    managingOrganizationId,
     selectedGenet,
     editingCount,
     measurementFieldConfig,

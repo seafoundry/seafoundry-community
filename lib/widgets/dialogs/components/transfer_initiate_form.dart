@@ -5,7 +5,6 @@ import 'package:seafoundry_app/models/population_measurement.dart';
 import 'package:seafoundry_app/models/provenance_life_stage_selection.dart';
 import 'package:seafoundry_app/models/types/organism_kind.dart';
 import 'package:seafoundry_app/models/types/recipient_mode.dart';
-import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 import 'package:seafoundry_app/utils/validation_utils.dart';
 import 'package:seafoundry_app/widgets/common/five_axis_editor.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/five_axis_dialog_section.dart';
@@ -37,9 +36,6 @@ class TransferInitiateForm extends StatelessWidget {
     this.onRecipientModeChanged,
     this.recipientEmailController,
     this.recipientEmail = '',
-    this.ownershipType = TransferOwnershipType.fullTransfer,
-    this.isThirdPartyDetected = false,
-    this.onOwnershipTypeChanged,
   });
 
   final String genetName;
@@ -71,15 +67,6 @@ class TransferInitiateForm extends StatelessWidget {
   /// Current recipient email value (for validation display)
   final String recipientEmail;
 
-  /// Current ownership type for the transfer
-  final TransferOwnershipType ownershipType;
-
-  /// Whether a third-party transfer has been detected
-  final bool isThirdPartyDetected;
-
-  /// Callback when ownership type changes
-  final ValueChanged<TransferOwnershipType>? onOwnershipTypeChanged;
-
   @override
   Widget build(BuildContext context) {
     final hasRecordSelection = quantitySection != null;
@@ -95,8 +82,6 @@ class TransferInitiateForm extends StatelessWidget {
             const SizedBox(height: 20),
           ],
           _buildRecipientSection(context),
-          const SizedBox(height: 20),
-          _buildOwnershipTypeSection(context),
           const SizedBox(height: 20),
           if (!hasRecordSelection) ...[
             _buildQuantityField(),
@@ -127,64 +112,6 @@ class TransferInitiateForm extends StatelessWidget {
           _buildOrganizationSelector(context)
         else
           _buildEmailField(context),
-      ],
-    );
-  }
-
-  Widget _buildOwnershipTypeSection(BuildContext context) {
-    if (isThirdPartyDetected) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.orange.shade50,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.orange.shade200),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.info_outline, color: Colors.orange.shade700),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                'Third-party transfer detected. The original owner will be notified.',
-                style: TextStyle(color: Colors.orange.shade900),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Ownership', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        SegmentedButton<TransferOwnershipType>(
-          segments: const [
-            ButtonSegment(
-              value: TransferOwnershipType.fullTransfer,
-              label: Text('Full Transfer'),
-              icon: Icon(Icons.swap_horiz),
-            ),
-            ButtonSegment(
-              value: TransferOwnershipType.retainedOwnership,
-              label: Text('Retain Ownership'),
-              icon: Icon(Icons.bookmark_outline),
-            ),
-          ],
-          selected: {ownershipType},
-          onSelectionChanged: isBusy
-              ? null
-              : (selected) {
-                  onOwnershipTypeChanged?.call(selected.first);
-                },
-        ),
-        const SizedBox(height: 8),
-        Text(
-          ownershipType.description,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
       ],
     );
   }

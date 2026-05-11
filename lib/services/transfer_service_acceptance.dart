@@ -92,8 +92,6 @@ extension _TransferServiceAcceptance on TransferService {
     String? targetUrlPath,
     String? destinationSiteId,
     String? destinationGroupId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) async {
     try {
       final transfer = await requireTransferEvent(transferEventId);
@@ -177,26 +175,12 @@ extension _TransferServiceAcceptance on TransferService {
         actorId: _provenanceRepository.user.id,
       );
 
-      final ownershipType = _ownershipTypeFromMetadata(manifest.metadata);
-      final resolvedOwnerOrgId = _resolvedTransferOwnerOrganizationId(
-        ownershipType: ownershipType,
-        manifest: manifest,
-        receivingOrganization: organization,
-        ownerOrganizationId: ownerOrganizationId,
-      );
-      final resolvedManagerOrgId = _resolvedManagingOrganizationId(
-        receivingOrganizationId: organization.id,
-        managingOrganizationId: managingOrganizationId,
-      );
-
       final genetCandidate = createGenetFromManifest(
         manifest: receiptedManifest,
         overrideName: newGenetName,
         localGenetId: localGenetId,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
-        ownerOrganizationId: resolvedOwnerOrgId,
-        managingOrganizationId: resolvedManagerOrgId,
       );
       final resolvedGenetCandidate = (resolvedDestinationSiteId.isNotEmpty)
           ? genetCandidate.copyWith(siteId: resolvedDestinationSiteId)
@@ -277,8 +261,6 @@ extension _TransferServiceAcceptance on TransferService {
                 localGenetId: localGenetId,
                 provenanceTypeOverride: provenanceTypeOverride,
                 lifeStageOverride: lifeStageOverride,
-                ownerOrganizationId: resolvedOwnerOrgId,
-                managingOrganizationId: resolvedManagerOrgId,
               );
 
               // Update the transfer event within the transaction
@@ -331,17 +313,6 @@ extension _TransferServiceAcceptance on TransferService {
         'Transfer ${transfer.id} acceptance complete; '
         'source inventory is adjusted during initiation.',
       );
-
-      if (_requiresExternalHoldingMirror(ownershipType)) {
-        await _notifyOwnerOfExternalHolding(
-          ownerOrganizationId: resolvedOwnerOrgId,
-          holdingOrganizationId: organization.id,
-          holdingOrganizationName: organization.name,
-          holdingSiteId: resolvedDestinationSiteId,
-          holdingGroupPath: destinationGroupId,
-          transferId: transfer.id,
-        );
-      }
 
       // Best-effort operations outside transaction
       final notificationOutcome = await updateTransferNotificationStatus(
@@ -636,21 +607,6 @@ extension _TransferServiceAcceptance on TransferService {
       // Notify the sender organization to restore their inventory
       await _notifySenderForInventoryRestoration(transfer: transfer);
 
-      final ownershipType = _ownershipTypeFromMetadata(transfer.metadata);
-      final ownerOrganizationId = _ownerOrganizationIdForHoldingRemoval(
-        ownershipType: ownershipType,
-        senderOrganizationId: transfer.fromOrganizationId,
-        originalOwnerOrganizationId: _originalOwnerOrganizationId(
-          transfer.metadata,
-        ),
-      );
-      if (ownerOrganizationId != null) {
-        await _notifyOwnerOfHoldingRemoval(
-          ownerOrganizationId: ownerOrganizationId,
-          transferId: transfer.id,
-        );
-      }
-
       final notificationOutcome = await updateTransferNotificationStatus(
         transferEvent: updatedTransfer,
         status: TransferStatus.rejected.value,
@@ -749,28 +705,6 @@ extension _TransferServiceAcceptance on TransferService {
       // Restore inventory that was decremented at initiation (best-effort)
       // Cancel is always done by the sender, so we can restore directly
       await restoreTransferInventory(transfer);
-
-      final ownershipType = _ownershipTypeFromMetadata(transfer.metadata);
-      final ownerOrganizationId = _ownerOrganizationIdForHoldingRemoval(
-        ownershipType: ownershipType,
-        senderOrganizationId: transfer.fromOrganizationId,
-        originalOwnerOrganizationId: _originalOwnerOrganizationId(
-          transfer.metadata,
-        ),
-        actingOrganizationId: organization.id,
-        skipWhenActorIsOwner: true,
-      );
-      if (ownerOrganizationId != null) {
-        await _notifyOwnerOfHoldingRemoval(
-          ownerOrganizationId: ownerOrganizationId,
-          transferId: transfer.id,
-        );
-      } else if (ownershipType == TransferOwnershipType.retainedOwnership) {
-        LoggingService.instance.debug(
-          'Transfer ${transfer.id} cancelled with retained ownership - '
-          'no external holding notification needed (sender is owner)',
-        );
-      }
 
       // Notify recipient if exists
       if (transfer.toOrganizationId != null) {
@@ -929,8 +863,6 @@ extension _TransferServiceAcceptance on TransferService {
     String? localGenetId,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
   }) async {
     if (_organismRecordRepository == null) {
       LoggingService.instance.warning(
@@ -972,8 +904,6 @@ extension _TransferServiceAcceptance on TransferService {
         localGenetId: localGenetId ?? createdGenet.localGenetId,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
-        ownerOrganizationId: ownerOrganizationId,
-        managingOrganizationId: managingOrganizationId,
       );
 
       // Complete the record with paths and IDs
@@ -1044,159 +974,4 @@ extension _TransferServiceAcceptance on TransferService {
     }
   }
 
-  TransferOwnershipType _ownershipTypeFromMetadata(
-    Map<String, dynamic>? metadata, {
-    TransferOwnershipType fallback = TransferOwnershipType.fullTransfer,
-  }) {
-    return TransferOwnershipTypeX.tryParse(
-          metadata?['ownershipType']?.toString(),
-        ) ??
-        fallback;
-  }
-
-  String? _originalOwnerOrganizationId(Map<String, dynamic>? metadata) {
-    final value = metadata?['originalOwnerOrganizationId']?.toString().trim();
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-    return value;
-  }
-
-  bool _requiresExternalHoldingMirror(TransferOwnershipType ownershipType) {
-    return ownershipType == TransferOwnershipType.retainedOwnership ||
-        ownershipType == TransferOwnershipType.thirdPartyTransfer;
-  }
-
-  String _resolvedTransferOwnerOrganizationId({
-    required TransferOwnershipType ownershipType,
-    required TransferManifest manifest,
-    required Organization receivingOrganization,
-    String? ownerOrganizationId,
-  }) {
-    switch (ownershipType) {
-      case TransferOwnershipType.fullTransfer:
-        return ownerOrganizationId ?? receivingOrganization.id;
-      case TransferOwnershipType.retainedOwnership:
-        return manifest.fromOrganization.id ?? receivingOrganization.id;
-      case TransferOwnershipType.thirdPartyTransfer:
-        return _originalOwnerOrganizationId(manifest.metadata) ??
-            manifest.fromOrganization.id ??
-            receivingOrganization.id;
-    }
-  }
-
-  String _resolvedManagingOrganizationId({
-    required String receivingOrganizationId,
-    String? managingOrganizationId,
-  }) {
-    return managingOrganizationId ?? receivingOrganizationId;
-  }
-
-  String? _ownerOrganizationIdForHoldingRemoval({
-    required TransferOwnershipType ownershipType,
-    required String? senderOrganizationId,
-    required String? originalOwnerOrganizationId,
-    String? actingOrganizationId,
-    bool skipWhenActorIsOwner = false,
-  }) {
-    final ownerOrganizationId = switch (ownershipType) {
-      TransferOwnershipType.fullTransfer => null,
-      TransferOwnershipType.retainedOwnership => senderOrganizationId,
-      TransferOwnershipType.thirdPartyTransfer => originalOwnerOrganizationId,
-    };
-    if (skipWhenActorIsOwner &&
-        ownerOrganizationId != null &&
-        ownerOrganizationId == actingOrganizationId) {
-      return null;
-    }
-    return ownerOrganizationId;
-  }
-
-  /// Fetches the site name from Firestore for external holding notifications.
-  Future<String> _getSiteName(String siteId) async {
-    try {
-      final doc = await _db.collection('sites').doc(siteId).get();
-      final data = doc.data();
-      if (data != null && data['name'] is String) {
-        return data['name'] as String;
-      }
-      return 'Unknown Site';
-    } catch (e) {
-      LoggingService.instance.debug(
-        'Failed to fetch site name for $siteId: $e',
-      );
-      return 'Unknown Site';
-    }
-  }
-
-  /// Sends notification to owner org to create/update external holding mirror site.
-  Future<void> _notifyOwnerOfExternalHolding({
-    required String ownerOrganizationId,
-    required String holdingOrganizationId,
-    required String holdingOrganizationName,
-    required String holdingSiteId,
-    required String? holdingGroupPath,
-    required String transferId,
-  }) async {
-    try {
-      final holdingSiteName = await _getSiteName(holdingSiteId);
-
-      final notificationRef = _db
-          .collection('organizations')
-          .doc(ownerOrganizationId)
-          .collection('notifications')
-          .doc();
-
-      await notificationRef.set({
-        'type': 'externalHoldingCreated',
-        'transferId': transferId,
-        'holdingOrganizationId': holdingOrganizationId,
-        'holdingOrganizationName': holdingOrganizationName,
-        'holdingSiteId': holdingSiteId,
-        'holdingSiteName': holdingSiteName,
-        'holdingGroupPath': holdingGroupPath,
-        'createdAt': FieldValue.serverTimestamp(),
-        'processed': false,
-      });
-
-      LoggingService.instance.info(
-        'Sent external holding notification to $ownerOrganizationId '
-        'for transfer $transferId',
-      );
-    } catch (e) {
-      LoggingService.instance.warning(
-        'Failed to notify owner of external holding: $e',
-      );
-      // Best-effort - don't fail the transfer
-    }
-  }
-
-  /// Sends notification to owner org to remove external holding entry.
-  Future<void> _notifyOwnerOfHoldingRemoval({
-    required String ownerOrganizationId,
-    required String transferId,
-  }) async {
-    try {
-      final notificationRef = _db
-          .collection('organizations')
-          .doc(ownerOrganizationId)
-          .collection('notifications')
-          .doc();
-
-      await notificationRef.set({
-        'type': 'externalHoldingRemoved',
-        'transferId': transferId,
-        'createdAt': FieldValue.serverTimestamp(),
-        'processed': false,
-      });
-
-      LoggingService.instance.info(
-        'Sent external holding removal notification to $ownerOrganizationId',
-      );
-    } catch (e) {
-      LoggingService.instance.warning(
-        'Failed to send external holding removal notification: $e',
-      );
-    }
-  }
 }

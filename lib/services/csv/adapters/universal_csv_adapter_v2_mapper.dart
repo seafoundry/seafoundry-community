@@ -127,8 +127,6 @@ extension _UniversalCsvAdapterV2Mapper on UniversalCsvAdapterV2 {
       'geometryWkt': row['geometryWkt'] ?? '',
       'geometryGeojson': row['geometryGeojson'] ?? '',
       'dropperId': row['dropperId'] ?? '',
-      'ownerOrganizationId': row['ownerOrganizationId'] ?? '',
-      'managingOrganizationId': row['managingOrganizationId'] ?? '',
       'foreignKeys': row['foreignKeys'] ?? '',
       'aliasesJson': '',
       'aliases': '',

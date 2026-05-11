@@ -37,8 +37,6 @@ class HoldingRecord extends InventoryRecord
     this.siteId,
     this.groupId,
     this.structureId,
-    this.ownerOrganizationId,
-    this.managingOrganizationId,
     Map<String, ForeignKeyReference>? foreignKeys,
     HoldingAttributes? attributes,
     Map<String, dynamic> metadata = const <String, dynamic>{},
@@ -91,8 +89,6 @@ class HoldingRecord extends InventoryRecord
   final OrganismKind organismKind;
   final LifeStage lifeStage;
   final PopulationMeasurement measurement;
-  final String? ownerOrganizationId;
-  final String? managingOrganizationId;
 
   @override
   ModelType get modelType => ModelType.holding;
@@ -147,8 +143,6 @@ class HoldingRecord extends InventoryRecord
     String? siteId,
     String? groupId,
     String? structureId,
-    String? ownerOrganizationId,
-    String? managingOrganizationId,
     Map<String, ForeignKeyReference>? foreignKeys,
     Map<String, dynamic>? metadata,
     HoldingAttributes? attributes,
@@ -173,9 +167,6 @@ class HoldingRecord extends InventoryRecord
       siteId: siteId ?? this.siteId,
       groupId: groupId ?? this.groupId,
       structureId: structureId ?? this.structureId,
-      ownerOrganizationId: ownerOrganizationId ?? this.ownerOrganizationId,
-      managingOrganizationId:
-          managingOrganizationId ?? this.managingOrganizationId,
       foreignKeys: foreignKeys ?? this.foreignKeys,
       attributes: attributes ?? this.attributes,
       metadata: metadata ?? this.metadata ?? const <String, dynamic>{},
@@ -207,10 +198,6 @@ class HoldingRecord extends InventoryRecord
       if (siteId != null) 'siteId': siteId,
       if (groupId != null) 'groupId': groupId,
       if (structureId != null) 'structureId': structureId,
-      if (ownerOrganizationId != null)
-        'ownerOrganizationId': ownerOrganizationId,
-      if (managingOrganizationId != null)
-        'managingOrganizationId': managingOrganizationId,
       if (foreignKeys.isNotEmpty)
         'foreignKeys': foreignKeys.map((key, ref) => MapEntry(
               key,
@@ -260,8 +247,6 @@ class HoldingRecord extends InventoryRecord
       siteId: siteId,
       groupId: groupId,
       structureId: structureId,
-      ownerOrganizationId: organism.ownerOrganizationId,
-      managingOrganizationId: organism.managingOrganizationId,
       foreignKeys: foreignKeys,
       attributes: attributes,
       metadata: metadata,
@@ -329,8 +314,6 @@ class HoldingRecord extends InventoryRecord
       siteId: json['siteId']?.toString(),
       groupId: json['groupId']?.toString(),
       structureId: json['structureId']?.toString(),
-      ownerOrganizationId: json['ownerOrganizationId']?.toString(),
-      managingOrganizationId: json['managingOrganizationId']?.toString(),
       foreignKeys: _parseForeignKeys(json['foreignKeys']),
       attributes: mergedAttributes,
       metadata: metadata,
@@ -350,8 +333,6 @@ class HoldingRecord extends InventoryRecord
     siteId,
     groupId,
     structureId,
-    ownerOrganizationId,
-    managingOrganizationId,
     attributes,
     organismRecordId,
     foreignKeys,
@@ -440,10 +421,6 @@ class HoldingRecord extends InventoryRecord
       organismKind: record.organismKind,
       lifeStage: record.lifeStage.stage,
       measurement: record.measurement,
-      ownerOrganizationId:
-          record.ownerOrganizationId ?? ownerOrganizationId,
-      managingOrganizationId:
-          record.managingOrganizationId ?? managingOrganizationId,
       foreignKeys: mergedForeignKeys,
       metadata: mergedMetadata,
       organismRecordId: record.id.isNotEmpty ? record.id : organismRecordId,

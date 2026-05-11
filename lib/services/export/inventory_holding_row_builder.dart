@@ -58,12 +58,6 @@ class InventoryHoldingRowBuilder {
             : provenanceType?.metadata.defaultProvenanceKind.name ?? '';
     final sizeSpec = organismRecord.sizeSpec;
     final resolvedMetrics = sizeSpec.resolvedMetrics();
-    final ownerOrganizationId =
-        holding.ownerOrganizationId ?? organismRecord.ownerOrganizationId ?? '';
-    final managingOrganizationId =
-        holding.managingOrganizationId ??
-        organismRecord.managingOrganizationId ??
-        '';
     final foreignKeysJson = organismRecord.foreignKeys.isEmpty
         ? ''
         : jsonEncode(
@@ -188,8 +182,6 @@ class InventoryHoldingRowBuilder {
       'dropperId': dropperId,
       'createdAt': '',
       'updatedAt': '',
-      'ownerOrganizationId': ownerOrganizationId,
-      'managingOrganizationId': managingOrganizationId,
       'foreignKeys': foreignKeysJson,
       'aliasesJson': aliasesJson,
       'aliases': aliasLabels,

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_item.dart';
-import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 
 /// Displays the batch transfer cart items as a list with a total footer.
 ///
@@ -75,24 +74,7 @@ class BatchTransferCart extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(label, overflow: TextOverflow.ellipsis),
-                ),
-                if (item.ownershipType ==
-                    TransferOwnershipType.thirdPartyTransfer) ...[
-                  const SizedBox(width: 6),
-                  Chip(
-                    label: const Text('3rd Party'),
-                    labelStyle: const TextStyle(fontSize: 11),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    backgroundColor: Colors.orange.withValues(alpha: 0.15),
-                  ),
-                ],
-              ],
-            ),
+            child: Text(label, overflow: TextOverflow.ellipsis),
           ),
           const SizedBox(width: 8),
           Text('x${item.quantity}',

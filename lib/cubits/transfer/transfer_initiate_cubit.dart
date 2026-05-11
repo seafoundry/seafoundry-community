@@ -1,10 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/models/transfer_manifest.dart';
-import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 import 'package:seafoundry_app/repositories/organization_repository.dart';
 import 'package:seafoundry_app/services/logging_service.dart';
 import 'package:seafoundry_app/services/transfer_service.dart';
@@ -24,9 +22,6 @@ class TransferInitiateState extends Equatable {
     ProvenanceLifeStageSelection? provenanceSelection,
     this.selectedPhysicalFormId = 'fragment',
     this.sizeSpec = const SizeSpec(),
-    this.ownershipType = TransferOwnershipType.fullTransfer,
-    this.isThirdPartyDetected = false,
-    this.originalOwnerOrganizationId,
   }) : provenanceSelection = provenanceSelection ?? ProvenanceLifeStageSelection.fallback();
 
   /// How the recipient is specified (organization lookup vs direct email)
@@ -53,15 +48,6 @@ class TransferInitiateState extends Equatable {
 
   /// Size specification for the transferred organisms.
   final SizeSpec sizeSpec;
-
-  /// Ownership type for the transfer (full, retained, or third-party).
-  final TransferOwnershipType ownershipType;
-
-  /// Whether a third-party transfer has been detected (organisms owned by another org).
-  final bool isThirdPartyDetected;
-
-  /// The original owner organization ID when third-party transfer is detected.
-  final String? originalOwnerOrganizationId;
 
   bool get hasTransfer => transferEvent != null;
 
@@ -97,9 +83,6 @@ class TransferInitiateState extends Equatable {
     ProvenanceLifeStageSelection? provenanceSelection,
     String? selectedPhysicalFormId,
     SizeSpec? sizeSpec,
-    TransferOwnershipType? ownershipType,
-    bool? isThirdPartyDetected,
-    Object? originalOwnerOrganizationId = _sentinel,
   }) {
     return TransferInitiateState(
       recipientMode: recipientMode ?? this.recipientMode,
@@ -129,11 +112,6 @@ class TransferInitiateState extends Equatable {
       selectedPhysicalFormId:
           selectedPhysicalFormId ?? this.selectedPhysicalFormId,
       sizeSpec: sizeSpec ?? this.sizeSpec,
-      ownershipType: ownershipType ?? this.ownershipType,
-      isThirdPartyDetected: isThirdPartyDetected ?? this.isThirdPartyDetected,
-      originalOwnerOrganizationId: originalOwnerOrganizationId == _sentinel
-          ? this.originalOwnerOrganizationId
-          : originalOwnerOrganizationId as String?,
     );
   }
 
@@ -151,9 +129,6 @@ class TransferInitiateState extends Equatable {
         provenanceSelection,
         selectedPhysicalFormId,
         sizeSpec,
-        ownershipType,
-        isThirdPartyDetected,
-        originalOwnerOrganizationId,
       ];
 }
 
@@ -224,46 +199,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
   /// Update the size specification.
   void updateSizeSpec(SizeSpec sizeSpec) {
     emit(state.copyWith(sizeSpec: sizeSpec));
-  }
-
-  /// Sets the ownership type for the transfer.
-  /// Only allowed when third-party transfer is not detected.
-  void setOwnershipType(TransferOwnershipType type) {
-    if (!state.isThirdPartyDetected) {
-      emit(state.copyWith(ownershipType: type));
-    }
-  }
-
-  /// Detects if any organisms are owned by a different organization.
-  /// If so, sets the transfer to third-party mode automatically.
-  void detectThirdPartyTransfer(
-    List<OrganismRecord> organisms,
-    String currentOrgId,
-  ) {
-    final thirdPartyOrganism = organisms.firstWhereOrNull(
-      (o) =>
-          o.ownerOrganizationId != null &&
-          o.ownerOrganizationId!.isNotEmpty &&
-          o.ownerOrganizationId != currentOrgId,
-    );
-
-    if (thirdPartyOrganism != null) {
-      emit(state.copyWith(
-        isThirdPartyDetected: true,
-        originalOwnerOrganizationId: thirdPartyOrganism.ownerOrganizationId,
-        ownershipType: TransferOwnershipType.thirdPartyTransfer,
-      ));
-    }
-  }
-
-  /// Resets the third-party detection state.
-  /// Called when the organism selection changes.
-  void resetThirdPartyDetection() {
-    emit(state.copyWith(
-      isThirdPartyDetected: false,
-      originalOwnerOrganizationId: null,
-      ownershipType: TransferOwnershipType.fullTransfer,
-    ));
   }
 
   Future<void> _hydrateOrganization(String organizationId) async {
@@ -340,8 +275,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
           sizeSpecOverride: sizeSpec,
           geometryInput: geometryInput,
           inventorySelection: inventorySelection,
-          ownershipType: state.ownershipType,
-          originalOwnerOrganizationId: state.originalOwnerOrganizationId,
         );
         if (isClosed) return transfer;
         _emitSuccess(transfer);
@@ -366,8 +299,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
           sizeSpecOverride: sizeSpec,
           geometryInput: geometryInput,
           inventorySelection: inventorySelection,
-          ownershipType: state.ownershipType,
-          originalOwnerOrganizationId: state.originalOwnerOrganizationId,
         );
         if (isClosed) return transfer;
         _emitSuccess(transfer);
