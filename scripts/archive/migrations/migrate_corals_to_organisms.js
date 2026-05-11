@@ -205,9 +205,6 @@ function transformCoralToOrganismRecord(coralData) {
     if (coralData.groupId) {
         organismRecord.groupId = coralData.groupId;
     }
-    if (coralData.ownerOrganizationId) {
-        organismRecord.ownerOrganizationId = coralData.ownerOrganizationId;
-    }
 
     return organismRecord;
 }
