@@ -24,8 +24,6 @@ Fixed production errors where dialogs crashed with "Provider not found" due to `
 |--------|-----------------|
 | `edit_organization_profile_dialog.dart` | ImageService, OrganizationRepository, CurrentUser |
 | `funder_edit_dialog.dart` | FunderRepository, Organization, User |
-| `permit_edit_dialog.dart` | PermitRepository, Organization, User |
-| `mission_edit_dialog.dart` | SiteRepository, UserRepository, VesselRepository, PermitRepository, MissionRepository, User |
 | `mission_task_add_dialog.dart` | UserRepository, TaskEventRepository, MissionRepository |
 
 ---
@@ -60,8 +58,6 @@ All fixed dialogs use `StatefulWidget` with `setState()`, which violates the pro
 **Affected Dialogs**:
 - `EditOrganizationProfileDialog`
 - `FunderEditDialog`
-- `PermitEditDialog`
-- `MissionEditDialog`
 - `MissionTaskAddDialog`
 
 **Recommendation**: Create form-specific Cubits (e.g., `EditOrgProfileCubit`) managing:
@@ -161,8 +157,6 @@ These dialogs were found to already implement the correct pattern:
 
 - [ ] Open EditOrganizationProfileDialog and save changes
 - [ ] Open FunderEditDialog and create/edit a funder
-- [ ] Open PermitEditDialog and create/edit a permit
-- [ ] Open MissionEditDialog and create/edit a mission
 - [ ] Open MissionTaskAddDialog and create a task
 - [ ] Click "Manage Subscription" in Organization Settings (should show appropriate message)
 - [ ] Verify no "Provider not found" errors in production builds

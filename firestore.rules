@@ -6,8 +6,8 @@ rules_version = '2';
 // structure maintenance, report configurations, certifications, observation overrides
 //
 // Kept: organizations, members, sites, groups, organisms, holdings, genets,
-// events (core inventory), transfers, permits, deliverables, snapshots,
-// taxonomy, users, public holdings/visual engagement, historical data
+// events (core inventory), transfers, snapshots, taxonomy, users,
+// public holdings/visual engagement, historical data
 service cloud.firestore {
   match /databases/{database}/documents {
     // ========================================
@@ -571,22 +571,6 @@ service cloud.firestore {
         // Prevent changing the from/to organization IDs
         (resource.data.fromOrganizationId == request.resource.data.fromOrganizationId) &&
         (resource.data.toOrganizationId == request.resource.data.toOrganizationId);
-    }
-
-    // ========================================
-    // Permits & Deliverables
-    // ========================================
-
-    match /permits/{permitId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
-    }
-
-    match /deliverables/{deliverableId} {
-      allow read: if isOrgMemberOf(resource.data.organizationId);
-      allow create: if isOrgMemberOf(request.resource.data.organizationId);
-      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
     }
 
     // ========================================

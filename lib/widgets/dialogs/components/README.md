@@ -88,7 +88,6 @@ final messenger = safeDialogMessengerOf(context);
 | `dialog_barrier.dart` | Dialog barrier overlay |
 | `dialog_scroll_view.dart` | Scrollable dialog content wrapper |
 | `five_axis_dialog_section.dart` | Five-axis constraint section |
-| `permit_selector_widget.dart` | Permit selection widget |
 | `provenance_life_stage_selector.dart` | Provenance and life stage selection |
 | `transfer_initiate_form.dart` | Transfer initiation form |
 | `transfer_manifest_summary.dart` | Transfer manifest summary display |

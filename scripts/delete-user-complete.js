@@ -124,7 +124,7 @@ async function deleteUserComplete() {
     const subcollections = [
       'members', 'slugCounts', 'groups', 'genets', 'organismRecords',
       'events', 'cohorts', 'provenances', 'sites', 'structures',
-      'custom_types', 'permits', 'deliverables'
+      'custom_types'
     ];
 
     for (const sub of subcollections) {

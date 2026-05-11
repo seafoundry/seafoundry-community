@@ -675,30 +675,6 @@ async function clearInventory(orgId) {
   }
   if (deleted > 0) console.log(`  Deleted ${deleted} events.`);
 
-  // Delete deliverables
-  deleted = 0;
-  while (true) {
-    const snap = await db.collection('deliverables').where('organizationId', '==', orgId).limit(batchSize).get();
-    if (snap.empty) break;
-    const batch = db.batch();
-    snap.docs.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-    deleted += snap.docs.length;
-  }
-  if (deleted > 0) console.log(`  Deleted ${deleted} deliverables.`);
-
-  // Delete permits
-  deleted = 0;
-  while (true) {
-    const snap = await db.collection('permits').where('organizationId', '==', orgId).limit(batchSize).get();
-    if (snap.empty) break;
-    const batch = db.batch();
-    snap.docs.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-    deleted += snap.docs.length;
-  }
-  if (deleted > 0) console.log(`  Deleted ${deleted} permits.`);
-
   // Delete funders
   deleted = 0;
   while (true) {
@@ -1578,24 +1554,7 @@ async function createEvents(
     ...(organismsBySiteKey.nurseryField || []),
     ...(organismsBySiteKey.geneBank || []),
   ];
-  const deliverables = linkedData.deliverables || [];
-  const permits = linkedData.permits || [];
   const funders = linkedData.funders || [];
-  const outplantPermit = permits[0] || null;
-  const outplantDeliverable =
-    deliverables.find((d) => d.permitId === outplantPermit?.id) ||
-    deliverables[0] ||
-    null;
-  const permitMetadata = outplantPermit
-    ? {
-      permitId: outplantPermit.id,
-      permitType: outplantPermit.typeId,
-      issuingAuthority: outplantPermit.issuingAuthority,
-      validFrom: outplantPermit.validFrom,
-      validTo: outplantPermit.validTo,
-      attachmentUrls: outplantPermit.attachmentUrls || [],
-    }
-    : null;
   for (let i = 0; i < 12; i++) {
     const eventId = db.collection('events').doc().id;
     const slug = `outplant-${i + 1}`;
@@ -1647,8 +1606,6 @@ async function createEvents(
       percentBleaching,
       percentDisease,
       healthStatus,
-      ...(outplantDeliverable?.id ? { deliverableId: outplantDeliverable.id } : {}),
-      ...(permitMetadata ? { permitMetadata } : {}),
       metadata: {
         fragmentCount: allocations.reduce((sum, a) => sum + a.quantity, 0),
         genetCount: new Set(allocations.map((a) => a.genetId).filter(Boolean)).size,

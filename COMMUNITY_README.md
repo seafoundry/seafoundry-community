@@ -90,7 +90,7 @@ SeaFoundry uses a **five-axis canonical inventory model** for tracking corals:
 |------|-------------|---------|
 | **Taxonomy** | Species identification | *Acropora cervicornis* |
 | **Provenance** | Genetic lineage/origin via `ProvenanceType` | Wild, Fragment, Transfer |
-| **Location** | Physical location with permit metadata | Site -> Structure -> Position |
+| **Location** | Physical location and structure context | Site -> Structure -> Position |
 | **Life Stage** | Lifecycle stage | Larva, Juvenile, Adult, Fragment |
 | **Measurement** | Population quantity + size specification | Count, SizeSpec (XS-XL) |
 

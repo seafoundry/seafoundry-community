@@ -489,7 +489,6 @@ const provenanceSeeds: ProvenanceSeed[] = [
     metadata: {
       provenanceId: 'GENET-AP-001',
       collectionSite: 'Lower Keys Ex-situ Nursery',
-      permitId: 'FKNMS-2025-OP-112',
     },
   },
   {
@@ -501,7 +500,6 @@ const provenanceSeeds: ProvenanceSeed[] = [
     metadata: {
       provenanceId: 'GENET-AC-014',
       collectionSite: 'Upper Keys Hatchery',
-      permitId: 'FKNMS-2025-OP-112',
     },
   },
 ];

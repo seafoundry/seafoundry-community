@@ -69,8 +69,6 @@ const ORG_SCOPED_COLLECTIONS = [
   'transfers',
   'outplant_events',
   'outplant_tags',
-  'deliverables',
-  'permits',
   'invitations',
   'brand_profiles',
   'snapshots',

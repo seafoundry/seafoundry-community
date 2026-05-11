@@ -16,7 +16,7 @@ This guide helps data teams and project administrators move existing coral CSV p
 
 - **Organism metadata** is now explicit: every row includes `organismKind` plus organism-appropriate `lifeStage` values (see `lib/models/types/life_stage.dart`).
 - **Five-axis metadata** is first-class: rows can capture `provenanceType`, `physicalFormId`, `sizeBandId`, and `sizeClass` so imports preserve the canonical `OrganismRecord` payload.
-- **Permit + regulatory information** is standardized via the `permitType`, `permitId`, `issuingAuthority`, `siteJurisdiction`, `habitatType`, `validFrom`, `validTo`, and `protectedAreaFlag` columns.
+- **Site compliance context** is standardized via the `siteJurisdiction`, `habitatType`, and `protectedAreaFlag` columns.
 - **Measurement units** are encoded with `quantityValue` + `measurementUnit`, replacing legacy assumptions with explicit unit types.
 - **Geometry and structure identifiers** (site, group, enclosure, etc.) are normalized into shared columns.
 - **Provenance terminology** replaces legacy lineage fields. CSV v2 stores `provenanceId`, `provenanceKind`, and `accessionId`.
@@ -30,7 +30,6 @@ This guide helps data teams and project administrators move existing coral CSV p
 | `count`, `mass`, etc.   | `quantityValue`, `measurementUnit`       | Units must match the organism context; see spec metadata. |
 | `lineageId` / `lineage` | `provenanceId`, `provenanceKind`          | Accepts IDs from the taxonomy service (`taxonomy_provenances`). |
 | _(new)_                 | `provenanceType`, `physicalFormId`, `sizeBandId`, `sizeClass` | Optional but recommended for every row so fragments inherit the canonical five-axis payload captured in dialogs and transfer manifests. |
-| `permitNumber`          | `permitId`                                | Additional permit metadata now required when applicable. |
 | `structureType`         | `groupTypeId` / `structurePath`           | Aligns with the Site/Group enums introduced in ADR-002. |
 | `siteType` (free text)  | `siteTypeId` (enum)                       | Must match `lib/models/types/site_type.dart` identifiers. |
 
@@ -74,7 +73,7 @@ fixtures and schema guide in this document.
 
 - Run relevant CSV integration tests to ensure coral imports succeed.
 - Use the emulator to exercise the end-to-end CSV pathway locally.
-- Spot-check imported records in the app to verify measurement units, permit metadata, and organism labels render correctly.
+- Spot-check imported records in the app to verify measurement units and organism labels render correctly.
 
 ### 5. Deploy & Monitor
 
@@ -89,7 +88,6 @@ fixtures and schema guide in this document.
 | Symptom | Resolution |
 |---------|------------|
 | **`Unsupported organismKind`** | Confirm the CSV row uses one of the `OrganismKind` enum values. For legacy files, rely on the adapter’s defaulting logic or manually add the column. |
-| **Permit validation errors** | Provide the full permit block (type, ID, jurisdiction, dates). If a deployment truly has no permit, leave the fields blank *and* set `permitProtectedArea=false`. |
 | **Structure mismatch** | Ensure `groupTypeId`/`siteTypeId` are pulled from the new enums. Run the facility enum migration if existing Firestore docs still use legacy IDs. |
 | **Lineage IDs rejected** | Migrate them to taxonomy provenances (seed the collection first, then update CSV rows to reference `provenanceId`). |
 

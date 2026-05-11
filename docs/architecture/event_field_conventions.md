@@ -30,7 +30,7 @@ These events track changes to organism inventory:
 | `event_frag` | Fragmentation event | `snapshotData`, `inputOrganismIds`, `outputOrganismIds` |
 | `event_population_gain` | Population increase | `snapshotData`, `quantity` |
 | `event_population_loss` | Population decrease/mortality | `snapshotData`, `quantity`, `lossReasonId` |
-| `outplant_event` | Organisms outplanted | `snapshotData`, `siteId`, `allocations`, `deliverableId`, `attachmentMethodId` |
+| `outplant_event` | Organisms outplanted | `snapshotData`, `siteId`, `allocations`, `attachmentMethodId` |
 
 ### Observation Events
 
@@ -55,7 +55,6 @@ The `outplant_event` type has several special fields for tracking organism outpl
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `deliverableId` | String? | Links outplant event to a permit Deliverable for tracking |
 | `attachmentMethodId` | String? | Method used to attach organisms (builtin or custom) |
 
 ### Attachment Method IDs
@@ -88,7 +87,6 @@ The `outplant_event` type has several special fields for tracking organism outpl
     { organismId: 'org_002', quantity: 3 }
   ],
   // Optional enhancement fields
-  deliverableId: 'deliverable_permit_2026',  // Optional: link to permit deliverable
   attachmentMethodId: 'attachment_method_cement'  // Optional: attachment method used
 }
 ```

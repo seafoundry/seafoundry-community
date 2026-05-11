@@ -10,13 +10,11 @@ Manages organization-level configuration, taxonomy, and compliance settings.
 - Organization profile and settings (community tier only, no billing).
 - Taxonomy administration (species, provenance, morphologies, thresholds).
 - Facilities configuration (hierarchy, site types).
-- Compliance and deliverables (permits, deliverables, audits).
 - Sync conflict review and resolution.
 
 ## Data and Services
 - Repositories: `OrganizationRepository`, `CustomTypesRepository`,
-  `OrganismConfigRepository`, `PermitRepository`, `DeliverableRepository`,
-  `SiteRepository`.
+  `OrganismConfigRepository`, `SiteRepository`.
 - Services: `TaxonomyService`, `ProvenanceIdService`, `AliasUniquenessService`,
   `SiteLimitsService`.
 - Firestore access flows through `FirebaseService` + `FirestoreCollectionResolver`.

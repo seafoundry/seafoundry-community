@@ -49,8 +49,6 @@ const ORG_SCOPED_ROOT_COLLECTIONS = [
   'snapshots',
   'config',
   'media_assets',
-  'permits',
-  'deliverables',
   'brand_profiles',
   'invitations',
 ];

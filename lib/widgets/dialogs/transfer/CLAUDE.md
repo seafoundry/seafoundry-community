@@ -14,7 +14,7 @@ Genetic material transfers between organizations.
 - `batch_transfer_dialog.dart` - Multi-step wizard orchestrator (SafeDialogMixin)
 - `batch_transfer_target_step.dart` - Step 1: select fixed org (Mode A) or genet (Mode B)
 - `batch_transfer_items_step.dart` - Step 2: add items to cart
-- `batch_transfer_review_step.dart` - Step 3: review, comment, permit
+- `batch_transfer_review_step.dart` - Step 3: review and comment
 - `batch_transfer_progress_step.dart` - Step 4-5: submission progress and completion
 - `batch_transfer_cart.dart` - Reusable cart display (editable or read-only)
 

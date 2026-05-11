@@ -96,14 +96,6 @@
         "mg_per_L",
         "percent"
       ]
-    },
-    "permitMetadata": {
-      "requiredWhenProtected": [
-        "permitId",
-        "issuingAuthority",
-        "validFrom",
-        "validTo"
-      ]
     }
   },
   "geometry": {
@@ -172,11 +164,6 @@
     "geometry_updatedAt": "datetime",
     "lineId": "string",
     "dropperId": "string",
-    "permitId": "string",
-    "issuingAuthority": "string",
-    "validFrom": "date",
-    "validTo": "date",
-    "permitType": "string",
     "protectedAreaFlag": "boolean",
     "habitatType": "string",
     "siteJurisdiction": "string",
@@ -261,12 +248,7 @@
       "notes",
       "photoUrl"
     ],
-    "permits": [
-      "permitId",
-      "permitType",
-      "issuingAuthority",
-      "validFrom",
-      "validTo",
+    "compliance": [
       "siteJurisdiction",
       "habitatType",
       "protectedAreaFlag"
@@ -307,19 +289,6 @@
     }
   },
   "coherence": [
-    {
-      "if": {
-        "protectedAreaFlag": true
-      },
-      "then": {
-        "require": [
-          "permitId",
-          "issuingAuthority",
-          "validFrom",
-          "validTo"
-        ]
-      }
-    },
     {
       "if": {
         "measurementUnit": "count"
@@ -405,7 +374,6 @@
     "CSV v2 is organism-agnostic: every row must declare its organismKind, speciesScientific, speciesCode, lifeStage, and measurementUnit.",
     "When migrating coral CSV v1 files, map `quantity` → `quantity_value`, set `measurementUnit=count`, and populate `lifeStage` from `coralType`.",
     "Arrays such as `irisMetricIds[]` and `sdgTargets[]` accept comma-delimited values; adapters expand them into arrays.",
-    "Geometry accepts WKT or GeoJSON payloads; multipoint strings must be quoted.",
-    "Permit metadata is mandatory for deployments in protected areas or when `permitType` is supplied."
+    "Geometry accepts WKT or GeoJSON payloads; multipoint strings must be quoted."
   ]
 }

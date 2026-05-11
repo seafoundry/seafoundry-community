@@ -12,7 +12,7 @@ SeaFoundry's taxonomy system provides species and provenance management for cora
 
 1. **One neutral model** - Use neutral constructs (Provenance, Cohort, Holding, ReproductiveEvent) with coral-specific presets
 2. **Batch + discrete holdings** - Early life stages tracked in batches (volume/count); later stages as discrete items
-3. **Place-based & permitted** - Every deployment anchored to geometry with optional permit metadata
+3. **Place-based** - Every deployment anchored to geometry and site context
 4. **Ecosystem & social outcomes** - Align fields to biodiversity credits, carbon MRV, and CSR metrics from day one
 
 ### The Five-Axis Canonical Inventory Model
@@ -79,7 +79,7 @@ Every time one of the above fields changes we also append entries to `lifeStageH
    - `QuantityChangeEvent`: Extends existing population change events with `oldMeasurement`, `newMeasurement`, and reason metadata
 
 **Why This Matters**:
-- **Compliance**: Regulatory requirements (AZA, MRV, CSR) demand complete audit trails of organism lifecycle changes
+- **Compliance**: Reporting standards (AZA, MRV, CSR) demand complete audit trails of organism lifecycle changes
 - **Data Integrity**: Event emission ensures all changes are tracked, preventing data loss or undocumented modifications
 - **Operational Transparency**: Field operators and facility managers can review the complete history of organism development, transitions, and transformations
 - **Analytics**: Event history enables growth analysis, mortality tracking, and operational efficiency metrics
@@ -136,7 +136,7 @@ The taxonomy service (`lib/services/taxonomy_service.dart`) reads canonical `tax
 | `parentProvenanceId` | string | Optional parent reference |
 | `siteId` | string | Optional GraphNode site reference |
 | `aliases[]` | string[] | Alternate identifiers |
-| `metadata` | object | Permits, provenance notes, etc. |
+| `metadata` | object | Provenance notes and other attributes. |
 
 ##### Canonical Species Identifiers
 
@@ -247,8 +247,8 @@ static final Map<String, SiteType> builtins = {
 ### ADR-004  Universal CSV v2 Contract
 
 **Current status**
-- The code-native CSV v2 spec enumerates organism, permit, MRV, and CSR fields that adapters enforce.
-- Inventory fixtures + CSV dialog previews now highlight site/permit columns (siteId/siteName, permitType/siteJurisdiction, geometry) so compliance metadata is visible.
+- The code-native CSV v2 spec enumerates organism, MRV, and CSR fields that adapters enforce.
+- Inventory fixtures + CSV dialog previews highlight site columns (siteId/siteName, siteJurisdiction, geometry) so compliance metadata is visible.
 - `InventorySpreadsheetCubit` feeds coral holdings into inventory exports via the universal CSV template.
 
 ```6:13:lib/services/csv/v2/csv_v2_spec.dart
@@ -271,17 +271,17 @@ static final Map<String, SiteType> builtins = {
 - [ ] **CSV template updates**
   - Directory: `docs/csv/examples/`
   - Task: Update all templates to v2 format
-  - Add organismKind, measurementUnit, permit fields
+  - Add organismKind, measurementUnit fields
 ```
 
 ### ADR-005  Observation Field Registry
 
 **Current status**
-- `ObservationFieldRegistry` maps `(OrganismKind, RecordType, LifeStage)` scopes to `ObservationDialogDefinition`s, captures permit requirements + `siteCapability.*` flags, and now ingests YAML/JSON overrides through `ObservationFieldOverrideService` so a Firestore doc can reshape dialog fields at runtime.
+- `ObservationFieldRegistry` maps `(OrganismKind, RecordType, LifeStage)` scopes to `ObservationDialogDefinition`s, captures `siteCapability.*` flags, and now ingests YAML/JSON overrides through `ObservationFieldOverrideService` so a Firestore doc can reshape dialog fields at runtime.
 - `recordTypeId` values in overrides are trimmed + case-insensitive, so `"nurseryHoldings"`, `"NurseryHoldings"`, and `"NURSERYHOLDINGS"` all target the same definition. Invalid YAML no longer wipes existing overrides—the service validates the payload, logs the error, and keeps the previous definitions active until a fixed document lands.
 - The override service hydrates default presets on startup before layering organization-specific Firestore docs (stored under `observation_field_overrides/{organizationId}` with either a `yaml` string or raw `overrides[]` payload).
-- `ObservationDialogConfig` pulls definitions from the registry, caches them per organism/record type/life stage, and exposes the permit/capability metadata so dialogs, CSV adapters, and action dock gating stay in sync.
-- `ObservationTilesBuilder` reads the new metadata, rendering permit badges and disabling tiles when a site’s capabilities (frag/move/outplant/environmental adjustment/monitoring FAB) do not satisfy the registry contract. This prevents users from launching unsupported dialogs while still surfacing guidance inside the action sheet.
+- `ObservationDialogConfig` pulls definitions from the registry, caches them per organism/record type/life stage, and exposes the capability metadata so dialogs, CSV adapters, and action dock gating stay in sync.
+- `ObservationTilesBuilder` reads the new metadata and disables tiles when a site’s capabilities (frag/move/outplant/environmental adjustment/monitoring FAB) do not satisfy the registry contract. This prevents users from launching unsupported dialogs while still surfacing guidance inside the action sheet.
 - `TaxonomyAdminPanel` includes an **Overrides** tab that loads Firestore YAML, falls back to the bundled defaults, validates payloads locally, surfaces legacy JSON conversions + last updated metadata, exposes a version history timeline (load snapshot, diff vs editor, copy YAML, apply with confirmation), provides inline override audit entries with action/search filters plus drill-down sheets, offers a manual “Reload registry” action, refreshes the in-memory registry after each save, and persists changes on behalf of the signed-in organization with role-aware read-only behavior.
 
 #### CLI Compliance Bundle Exporter
@@ -314,7 +314,7 @@ Each plan entry can define an org, filters, history IDs, output directory, and m
 
 **Gaps & next steps**
 - Extend the overrides tab with Firestore version history (multiple revision diffs + rollback) so admins can safely reason about prior changes, and layer in organization-scoped history so changes can be audited outside of the raw collection viewers.
-- Extend action dock messaging with site-specific hints (e.g., link to permit upload screens).
+- Extend action dock messaging with site-specific hints (e.g., capability summaries).
 
 ## Organism-Specific Architectures
 
@@ -335,7 +335,7 @@ Each plan entry can define an org, filters, history IDs, output directory, and m
 - `lib/models/population_measurement.dart` ✅ - Value + unit wrapper for batch holdings (implemented Jan 14)
 - `lib/models/provenance_base.dart` ✅ - Interface for all provenances (implemented Jan 14)
 - `lib/models/inventory/holding_record.dart` ✅ - Neutral holding abstraction w/ coral migration helper (implemented Jan 14)
-- `lib/models/inventory/holding_attributes.dart` ✅ - Typed permit/species/geometry metadata for holdings/CSV DTOs
+- `lib/models/inventory/holding_attributes.dart` ✅ - Typed species/geometry metadata for holdings/CSV DTOs
 - `lib/models/cohort.dart` ✅ - Cohort DTO built on PopulationMeasurement (implemented Jan 14)
 
 #### Batch Holdings
@@ -365,10 +365,10 @@ The universal CSV v2 format uses canonical fields:
 
 ```
 organismKind, species, provenanceId, cohortId, lifeStage, measurementUnit, quantity,
-siteId, enclosure, inSituRow, inSituCol, geometry, eventType, eventDate, permitId,
-issuingAuthority, validFrom, validTo, habitatType, protectedAreaFlag, carbonPool.*, 
-stock_tCO2e, flux_tCO2e_yr, uncertaintyPct, permanenceRiskScore, volunteerHours, 
-trainingHours, credentialId, irisMetricIds[], sdgTargets[]
+siteId, enclosure, inSituRow, inSituCol, geometry, eventType, eventDate, habitatType,
+protectedAreaFlag, carbonPool.*, stock_tCO2e, flux_tCO2e_yr, uncertaintyPct,
+permanenceRiskScore, volunteerHours, trainingHours, credentialId, irisMetricIds[],
+sdgTargets[]
 ```
 
 **Key Features**:
@@ -422,11 +422,6 @@ The `migrationplanv2` automation (`build_seafoundry_bundle.py`) produces a refer
 
 We treat the bundle as an accelerator: the generated files are merged into the existing modules (instead of living under a separate bundle tree) and any gaps are filled by our real services (`OrganismContext`, repositories, CSV adapters).
 
-### Regulatory Compliance
-| Organism | Key Regulations | Required Fields |
-| --- | --- | --- |
-| Coral | NOAA permits, sanctuary authorizations | permitId, siteJurisdiction |
-
 ### MRV & Carbon Accounting
 - Blue carbon pools: biomass, soil, dissolved
 - Stock & flux measurements with uncertainty
@@ -443,9 +438,8 @@ We treat the bundle as an accelerator: the generated files are merged into the e
 
 ### Immediate Actions (Coral Sustainment)
 1. Add measurement units to existing coral forms
-2. Include permit fields in outplant dialogs
-3. Begin CSV v2 spec development
-4. Implement neutral types in parallel
+2. Begin CSV v2 spec development
+3. Implement neutral types in parallel
 
 ### Foundation Building
 1. Deploy OrganismKind throughout codebase

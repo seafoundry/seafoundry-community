@@ -83,12 +83,10 @@ workstreams required to reach release readiness.
     extracted UI components into:
     `lib/widgets/dialogs/outplant_batch_dialog_sections.dart`,
     `lib/widgets/dialogs/outplant_batch_dialog_site.dart`,
-    `lib/widgets/dialogs/outplant_batch_dialog_deliverable.dart`,
     `lib/widgets/dialogs/outplant_batch_dialog_attachment.dart`,
     `lib/widgets/dialogs/outplant_batch_dialog_schedule.dart`,
     `lib/widgets/dialogs/outplant_batch_dialog_organisms.dart`,
     `lib/widgets/dialogs/outplant_batch_dialog_metrics.dart`,
-    `lib/widgets/dialogs/outplant_batch_dialog_permit.dart`,
     `lib/widgets/dialogs/outplant_batch_dialog_notes.dart`
   - [x] `lib/widgets/navigation/summary_statistics.dart` (292 lines) → split tab
     components into:

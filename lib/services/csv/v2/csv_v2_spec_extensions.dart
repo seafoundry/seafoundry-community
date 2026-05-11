@@ -170,7 +170,7 @@ class CsvV2SpecExtensions {
     'photoUrl',
   ];
 
-  /// Compliance/site context columns retained without permit fields.
+  /// Compliance/site context columns.
   static const List<String> complianceColumns = [
     'siteJurisdiction',
     'habitatType',
