@@ -63,7 +63,7 @@ class GeneticsSpreadsheetCubit extends Cubit<GeneticsSpreadsheetState>
     'accession_number': 'ACC-101',
     'total_quantity': 24,
     'num_nurseries': 3,
-    'record_name': 'Example Record',
+    'tagId': 'Example Record',
     'cluster_type': 'plug',
     'physical_form': 'plug',
     'coral_size': 'M',

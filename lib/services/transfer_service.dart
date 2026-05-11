@@ -322,6 +322,12 @@ class TransferService implements ManualTransferRegistrationService {
 
   /// Returns all pending/shipped transfers created by the current organization.
   /// Used by the pending-transfers dialog to render the outbox.
+  ///
+  /// TODO(scaling): this fetches ALL outbound transfer events (any status) and
+  /// filters in-memory. Firestore caps `whereIn` at one per query (already used
+  /// for `eventTypeId`), so adding `where('status', whereIn: [pending, shipped])`
+  /// is not allowed. For orgs with large transfer histories, split into two
+  /// queries (one per status) and merge — requires composite indexes per status.
   Future<List<TransferEvent>> getOutboundPendingTransfers() async {
     try {
       final organization = _provenanceRepository.organization;
