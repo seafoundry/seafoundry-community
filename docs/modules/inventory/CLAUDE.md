@@ -47,27 +47,16 @@
 - Keep CSV schema changes aligned with `docs/csv/*` and
   `SeaFoundry_Universal_CSV_v2_spec.json`.
 
-## Ownership & Custody System
+## Ownership
 
-### Transfer Ownership Types
-Use `TransferOwnershipType` enum (`lib/models/types/transfer_ownership_type.dart`):
-- `fullTransfer` - Receiver becomes owner + manager (default)
-- `retainedOwnership` - Sender retains ownership, receiver manages
-- `thirdPartyTransfer` - Auto-detected when `organism.ownerOrganizationId != currentOrgId`
-
-### Custody Detection
-```dart
-// In OrganismRecordEditState
-bool get isCustodian {
-  // True when: owner is set, owner != current org, we are the manager
-  return ownerOrgId != null && ownerOrgId != currentOrgId &&
-         (managerOrgId == null || managerOrgId == currentOrgId);
-}
-```
-
-### Key Files
-- `lib/models/types/transfer_ownership_type.dart` - Enum
-- `lib/cubits/organism_record_edit/organism_record_edit_state.dart` - `isCustodian` getter
+The community fork has no record-level ownership/custody concept. The only
+"who owns this" signal is the inherited `organizationId` on every
+`InventoryRecord`, which matches the Firestore document path
+(`organizations/{orgId}/...`). Transfers between organizations are a
+plain document handoff: the receiver creates a new record under its own
+`organizationId`, and the sender's record is decremented/locked via the
+existing transfer flow. No `ownerOrganizationId`, `managingOrganizationId`,
+custody history, or `EventType.ownershipChange` is tracked.
 
 ### Identity Change Events
 Events emitted in `OrganismRecordEditCubit._emitIdentityChangeEvents()`:
@@ -77,53 +66,6 @@ Events emitted in `OrganismRecordEditCubit._emitIdentityChangeEvents()`:
   (Firestore-persisted id: `event_local_genet_id_change`)
 - `EventType.genetIdentityChange` - When `localGenetId` changed genet-wide
   (Firestore-persisted id: `event_local_genet_identity_change`)
-- `EventType.ownershipChange` - When owner/manager changed (source: 'manualEdit' or 'transfer')
-
-### Custody Edit Rights
-When `isCustodian == true`, these widgets disable identity fields:
-- `ThisRecordOnlySection` - tagId field
-- `LocalIdField` - genet identifier (writes `localGenetId`)
-- `OwnershipFields` - owner/manager selectors
-- `AliasEditorList` - alias editing
-
-### External Holding Sites
-- Site type: `SiteType.externalHolding` (`site_type_external_holding`)
-- Fields on Site: `externalHoldingOrganizationId`, `externalHoldingSiteId`, `externalHoldingGroupPath`
-- Displayed in: `ExternalHoldingsSection` widget
-
-### Chain of Custody Tracking
-Custody history is stored in `OrganismRecord.metadata['custodyHistory']` as an array of entries:
-
-```dart
-// Each entry contains:
-{
-  'ownerOrganizationId': 'org-a',
-  'ownerOrganizationName': 'Coral Restoration Foundation',
-  'managingOrganizationId': 'org-b',
-  'managingOrganizationName': 'Mote Marine Lab',
-  'startedAt': '2024-02-15T10:30:00.000Z',
-  'transferId': 'transfer-123', // null for original creation
-  'transferType': 'retainedOwnership', // null, fullTransfer, retainedOwnership, thirdPartyTransfer
-  'note': 'Transferred for management',
-}
-```
-
-**Key Files:**
-- `lib/models/inventory/custody_history_entry.dart` - CustodyHistoryEntry model
-- `lib/services/custody_history_service.dart` - Service for managing custody history
-- `lib/models/inventory/organism_extensions.dart` - Extension methods on OrganismRecord
-
-**Extension Methods on OrganismRecord:**
-- `record.custodyHistory` - Full custody chain
-- `record.currentCustody` - Most recent entry
-- `record.allCustodyOrganizations` - All org IDs in chain
-- `record.hasEverOwned(orgId)` / `hasEverManaged(orgId)` / `hasEverHadCustody(orgId)`
-
-### Known Limitations (Future Work)
-1. Multi-owner transfers only capture first owner (validation needed)
-2. Chain of custody notifications don't supersede previous holdings
-3. Notification handler creates log entries but full site creation requires additional work
-4. Third-party owner name may fall back to sender name if not in metadata
 
 ## Naming Conventions
 - In-app variables, identifiers, map keys, and user-facing names use camelCase.
@@ -182,8 +124,7 @@ The OrganismRecordEditDialog organizes identity editing into two sections:
 `HoldingRecord` and `Cohort` no longer embed a full `OrganismRecord`. Each
 stores `organismRecordId` (FK) plus a small set of denormalized display
 fields synced at write time:
-- `tagId`, `organismKind`, `lifeStage`, `measurement`,
-  `ownerOrganizationId`, `managingOrganizationId` (HoldingRecord)
+- `tagId`, `organismKind`, `lifeStage`, `measurement` (HoldingRecord)
 - Cohort denorms `organismKind`, `lifeStage`, `population`
 
 For deep organism data (aliases, physicalForm details, lifeStageHistory),

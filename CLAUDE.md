@@ -49,11 +49,7 @@ Module docs live in `docs/modules/` with an index at `docs/modules/README.md`. K
 - `id` (UUID): Immutable database record ID. Display last 8 chars when "show number" toggle is on.
 See `docs/modules/inventory/CLAUDE.md` for full details.
 
-**Transfer Ownership Types**: Use `TransferOwnershipType` enum for inter-org transfers:
-- `fullTransfer`: Receiver becomes owner + manager (default)
-- `retainedOwnership`: Sender keeps ownership, receiver manages (custody transfer)
-- `thirdPartyTransfer`: Auto-detected when `organism.ownerOrganizationId != currentOrgId`
-Custody detection via `OrganismRecordEditState.isCustodian`. Custodians can edit location/quantity but NOT identity fields. See `docs/modules/inventory/CLAUDE.md` for implementation details.
+**Transfers**: The community fork has no record-level ownership/custody concept. Transfers are a plain document handoff: the receiver creates a new record under its own `organizationId` (which matches the Firestore document path), and the sender's source is decremented through the existing transfer flow.
 
 **Enums over Strings**: Use `CommentTargetType.event.id` (not `'event'`), `EventType.observation.id` (not `'event_observation'`). All enums with Firestore IDs follow the `const EnumType(this.id); final String id;` pattern.
 

@@ -41,52 +41,18 @@ Inventory is the core holdings system for organisms, events, and analytics.
 - Post-audit verification: run module smoke flows and log regressions in `.github/issues/release/pre-release-audit.md`.
 - Verify coral inventory creation flows (inventory tiles/actions).
 
-## Ownership & Custody Model
+## Ownership
 
-Organism records support cross-organization ownership and custody tracking.
-
-### Ownership Fields
-- `ownerOrganizationId` - Organization that owns the organism
-- `managingOrganizationId` - Organization currently managing/caring for the organism
-
-### Transfer Ownership Types
-When transferring organisms between organizations, three ownership models are supported:
-
-| Type | Owner | Manager | Use Case |
-|------|-------|---------|----------|
-| **Full Transfer** | Receiver | Receiver | Complete ownership transfer (default) |
-| **Retained Ownership** | Sender | Receiver | Loan/temporary custody; sender keeps ownership |
-| **Third-Party** | Original Owner | Receiver | Auto-detected when sender is not the owner |
-
-### Custody Edit Rights
-When an organization is a custodian (managing but not owning):
-- **Can edit**: Location (site/group), quantity, life stage, physical form
-- **Cannot edit**: recordName, localId, ownership, provenance/genetics
-
-### External Holdings Display
-Organizations that retain ownership see their externally-held organisms in:
-- "Externally Held Organisms" section in inventory
-- Mirror sites showing where organisms are located
-
-### Chain of Custody
-Each organism record maintains a full custody history in metadata, tracking:
-- Every organization that has owned or managed the organism
-- When each custody period started
-- The transfer that caused each custody change
-- Whether it was a full transfer, retained ownership, or third-party transfer
-
-Query methods: `record.custodyHistory`, `record.hasEverOwned(orgId)`, `record.hasEverHadCustody(orgId)`
-
-### UI Indicators
-- **Custody chip** (orange): "You manage this organism on behalf of another organization"
-- **External chip** (blue): "You own this organism but it is held by another organization"
+The community fork tracks ownership only via the inherited `organizationId`
+on each record (matching the Firestore path `organizations/{orgId}/...`).
+There are no separate owner/manager fields, custody chain, or external
+holding sites - transfers are a plain document handoff between orgs.
 
 ## Identity Change Events
 The system emits events when identity fields are modified:
 - `recordNameChange` - Record name modified
 - `localIdChange` - Genet identifier changed (single record)
 - `genetIdentityChange` - Genet-wide identity update
-- `ownershipChange` - Ownership or management changed
 
 ## Related Docs
 - `docs/architecture/taxonomy/README.md`
