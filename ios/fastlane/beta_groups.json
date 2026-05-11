@@ -1,0 +1,60 @@
+{
+  "groups": {
+    "internal": {
+      "name": "Internal Team",
+      "description": "SeaFoundry development team",
+      "is_internal": true
+    },
+    "alpha": {
+      "name": "Alpha Testers",
+      "description": "Early access testers for new features",
+      "is_internal": false,
+      "auto_notify": true
+    },
+    "beta": {
+      "name": "Beta Testers",
+      "description": "General beta testing group",
+      "is_internal": false,
+      "auto_notify": true
+    },
+    "researchers": {
+      "name": "Coral Researchers",
+      "description": "Marine biologists and coral researchers",
+      "is_internal": false,
+      "auto_notify": true
+    },
+    "organizations": {
+      "name": "Partner Organizations",
+      "description": "Partner coral restoration organizations",
+      "is_internal": false,
+      "auto_notify": false
+    }
+  },
+  "default_groups": {
+    "internal_release": [
+      "internal"
+    ],
+    "alpha_release": [
+      "internal",
+      "alpha"
+    ],
+    "beta_release": [
+      "internal",
+      "alpha",
+      "beta"
+    ],
+    "production_candidate": [
+      "internal",
+      "alpha",
+      "beta",
+      "researchers",
+      "organizations"
+    ]
+  },
+  "notes": {
+    "group_creation": "Create these groups in App Store Connect before using",
+    "internal_limit": "Internal groups are limited to 100 testers",
+    "external_limit": "External groups can have up to 10,000 testers",
+    "review_required": "External distribution requires Apple review for first build"
+  }
+}

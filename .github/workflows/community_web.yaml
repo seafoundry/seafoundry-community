@@ -1,0 +1,60 @@
+# Community Web CI with Quality Gates
+#
+# RECOMMENDED BRANCH PROTECTION SETTINGS:
+# Repository Settings > Branches > Branch protection rules for 'main':
+# - Require status checks to pass before merging: build-test-web
+# - Require pull request reviews before merging
+
+name: Community Web CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SF_TIER: community
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+          cache-key: flutter-community-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Analyze with strict quality gates
+        run: |
+          echo "Running Flutter analyze with fatal warnings..."
+          flutter analyze --fatal-warnings
+          echo "✓ Analysis passed"
+
+      - name: Test (Flutter)
+        if: hashFiles('test/**/*_test.dart') != ''
+        run: |
+          echo "Running Flutter tests on Chrome..."
+          flutter test --platform chrome
+          echo "✓ All tests passed"
+
+      - name: Build Web (Community)
+        run: |
+          flutter build web \
+            --release \
+            --dart-define=SF_TIER=community \
+            --tree-shake-icons
+
+      - name: Report Build Size
+        run: |
+          echo "=== Web Build Size ==="
+          du -sh build/web/
+          ls -lh build/web/main.dart.js

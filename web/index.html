@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Provenance — field data provenance and organism tracking.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Provenance">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <!-- Google Sign-In -->
+  <meta name="google-signin-client_id"
+    content="599860030371-el0065n058habm9pqn7kuh020clphdel.apps.googleusercontent.com">
+
+  <!-- Font fallbacks for missing glyphs -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Symbols&family=Noto+Sans+Symbols+2&display=swap">
+
+  <title>Provenance</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Prevent browser back/forward gestures from horizontal overscroll -->
+  <style>
+    html, body {
+      overscroll-behavior-x: none;
+    }
+  </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+  <!-- Load Firebase compat SDKs before Flutter bootstrap -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-functions-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
+  <!-- Firestore multi-tab persistence and long-polling configuration -->
+  <script>
+    // Enable multi-tab IndexedDB persistence before Flutter initializes.
+    // This allows multiple browser tabs to share the offline cache.
+    // Also enables long-polling to avoid QUIC/WebChannel issues on restricted networks.
+    window.addEventListener('load', () => {
+      const initFirestorePersistence = () => {
+        if (typeof firebase === 'undefined' || !firebase.firestore) {
+          setTimeout(initFirestorePersistence, 50);
+          return;
+        }
+        if (!firebase.apps.length) {
+          setTimeout(initFirestorePersistence, 50);
+          return;
+        }
+
+        const db = firebase.firestore();
+
+        // Enable multi-tab persistence (must be called before any other Firestore calls)
+        // This resolves "Failed to obtain exclusive access to the persistence layer" errors
+        db.enableMultiTabIndexedDbPersistence()
+          .then(() => {
+            console.info('Firestore multi-tab persistence enabled (web).');
+          })
+          .catch((err) => {
+            if (err.code === 'failed-precondition') {
+              // Multiple tabs open, persistence can only be enabled in one tab.
+              // Fall back to memory-only mode for this tab.
+              console.warn('Firestore multi-tab persistence already active in another tab.');
+            } else if (err.code === 'unimplemented') {
+              // Browser doesn't support IndexedDB
+              console.warn('Firestore persistence not available in this browser.');
+            } else {
+              console.warn('Could not enable Firestore persistence:', err);
+            }
+          });
+
+        // Configure long-polling settings
+        try {
+          db.settings({
+            experimentalForceLongPolling: true,
+            experimentalAutoDetectLongPolling: true,
+            useFetchStreams: false,
+          });
+          console.info('Firestore long-polling configured (web).');
+        } catch (e) {
+          // Settings may already be applied by Flutter SDK
+          console.info('Firestore settings already configured.');
+        }
+      };
+      initFirestorePersistence();
+    });
+  </script>
+
+  <!-- Define hook for firebase_auth_web -->
+  <script>
+    var onGoogleLibraryLoad;
+  </script>
+
+  <!-- Then load Flutter -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+#!/bin/bash
+# Pre-commit hook to detect potential secrets
+# Install: git config core.hooksPath .githooks
+
+set -e
+
+echo "🔍 Checking for potential secrets..."
+
+# Patterns to detect
+PATTERNS=(
+  "api_key\s*[:=]\s*['\"][^'\"]{10,}"
+  "password\s*[:=]\s*['\"][^'\"]{5,}"
+  "secret\s*[:=]\s*['\"][^'\"]{10,}"
+  "token\s*[:=]\s*['\"][^'\"]{10,}"
+)
+
+# Directories to exclude
+EXCLUDE_DIRS="test|integration_test|scripts/validators|docs|node_modules"
+
+# File types to check
+FILE_TYPES="\.(dart|yaml|json|js|ts|env)$"
+
+# Get staged files
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -vE "$EXCLUDE_DIRS" | grep -E "$FILE_TYPES" || true)
+
+if [ -z "$FILES" ]; then
+  echo "✅ No relevant files to check"
+  exit 0
+fi
+
+FOUND_SECRETS=false
+
+for FILE in $FILES; do
+  if [ -f "$FILE" ]; then
+    for PATTERN in "${PATTERNS[@]}"; do
+      if grep -qiE "$PATTERN" "$FILE" 2>/dev/null; then
+        echo "❌ Potential secret detected in $FILE"
+        echo "   Pattern: $PATTERN"
+        FOUND_SECRETS=true
+      fi
+    done
+  fi
+done
+
+if [ "$FOUND_SECRETS" = true ]; then
+  echo ""
+  echo "⚠️  Secrets detected! Review the files above."
+  echo "   If this is a false positive, use: git commit --no-verify"
+  exit 1
+fi
+
+echo "✅ No secrets detected"
+exit 0

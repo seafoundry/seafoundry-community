@@ -1,0 +1,8 @@
+sf_csv_version,2025.10
+sf_csv_template,inventory
+sf_translation_adapter,universal_csv_v2
+org_domain,reef.org
+generated_at,2025-01-01T00:00:00Z
+localId,recordName,provenanceId,species,quantity,owner,holder,group,clonalSNP,notes
+INV-100,mossy-inv-100,PID-ACER-101,Acropora cervicornis,4,reef.org,reef.org,/reef/site/alpha,CLN-900,Seed record for genotype
+INV-101,brisk-inv-101,PID-ACER-102,Acropora cervicornis,3,reef.org,reef.org,/reef/site/alpha,CLN-900,ClonalSNP conflict with existing provenanceId mapping

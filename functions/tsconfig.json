@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "lib",
+    "rootDir": ".",
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2022",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "types": ["mocha"]
+  },
+  "compileOnSave": true,
+  "include": [
+    "src",
+    "scripts",
+    "tests",
+    "jest.config.js",
+    ".eslintrc.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "src/comments/example-test.ts"
+  ]
+}

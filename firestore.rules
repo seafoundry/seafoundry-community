@@ -1,0 +1,591 @@
+rules_version = '2';
+// Community fork - stripped to community-tier features only
+// Removed: Sebastian AI, channels, monitoring, husbandry, missions/tasks,
+// vessels, funders, training/SOPs, posts/feed, comments, environmental events,
+// sync conflicts, custom types, gene bank events, spawn/cross/reproductive events,
+// structure maintenance, report configurations, certifications, observation overrides
+//
+// Kept: organizations, members, sites, groups, organisms, holdings, genets,
+// events (core inventory), transfers, snapshots, taxonomy, users,
+// public holdings/visual engagement, historical data
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ========================================
+    // Helper Functions
+    // ========================================
+    //
+    // HELPER FUNCTION USAGE GUIDE:
+    // - For TOP-LEVEL collections (sites, events, etc.):
+    //   Read/Update/Delete: isOrgMemberOf(resource.data.organizationId)
+    //   Create: isOrgMemberOf(request.resource.data.organizationId)
+    //
+    // - For NESTED collections under /organizations/{orgId}/...:
+    //   Use: isOrgMemberOf(orgId)
+    //
+    // - resource.data: The EXISTING document (null for create operations)
+    // - request.resource.data: The INCOMING data being written
+    // ========================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // NOTE: User documents are keyed by Firebase Auth UID.
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // Safe UID accessor for rules comparisons.
+    function getAuthUid() {
+      return request.auth != null ? request.auth.uid : '__no_auth__';
+    }
+
+    // Check if user doc exists before calling get() to avoid evaluation errors
+    function userDocExists() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    // Organization doc helpers (creator access during onboarding).
+    function orgDocExists(orgId) {
+      return isAuthenticated() &&
+        orgId != null &&
+        exists(/databases/$(database)/documents/organizations/$(orgId));
+    }
+
+    function getOrgDoc(orgId) {
+      return get(/databases/$(database)/documents/organizations/$(orgId));
+    }
+
+    function isOrgCreatorOf(orgId) {
+      return isAuthenticated() &&
+        orgId != null &&
+        orgDocExists(orgId) &&
+        getOrgDoc(orgId).data.createdById == getAuthUid();
+    }
+
+    // UID-keyed membership check via subcollection.
+    function isMemberByUid(orgId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
+    }
+
+    // Single consolidated org membership check.
+    // Checks members subcollection first (1 read), falls back to user doc (2 more reads).
+    function isOrgMemberOf(orgId) {
+      return isAuthenticated() &&
+        orgId != null &&
+        (isMemberByUid(orgId) ||
+         (userDocExists() && getUserDoc().data.organizationId == orgId) ||
+         isOrgCreatorOf(orgId));
+    }
+
+    // Check if this is a valid onboarding batch write scenario
+    // During onboarding, user/org/membership are created atomically in a batch
+    // The user document doesn't exist yet, so we verify:
+    // - User doc does not exist yet
+    // - createdById matches the authenticated user's UID
+    // - organizationId is provided and doesn't already exist (prevents injection)
+    // - Membership doc for this user doesn't exist in target org (prevents duplicates)
+    // RACE CONDITION PROTECTION: Since batch writes are atomic and include the user doc,
+    // concurrent onboarding attempts will fail on user doc creation conflict.
+    function isOnboardingBatchWrite() {
+      return isAuthenticated() &&
+             request.resource.data.organizationId != null &&
+             request.resource.data.createdById == getAuthUid() &&
+             // Check no user doc exists yet
+             !exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             // Check org doesn't exist
+             !exists(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)) &&
+             // Check no membership doc exists for this user in target org
+             !exists(/databases/$(database)/documents/organizations/$(request.resource.data.organizationId)/members/$(request.auth.uid));
+    }
+
+    // Onboarding org setup for subcollections that don't carry organizationId fields.
+    // Used for org-scoped docs created in the onboarding batch (e.g., slugCounts).
+    function isOnboardingOrgSetup(orgId) {
+      return isAuthenticated() &&
+             orgId != null &&
+             // Check no user doc exists yet
+             !exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             // Check org doesn't exist
+             !exists(/databases/$(database)/documents/organizations/$(orgId)) &&
+             // Check no membership doc exists for this user in target org
+             !exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
+    }
+
+    // ========================================
+    // Collection Group Rules
+    // ========================================
+    // These rules enable collection group queries across all organizations
+    // Required for uniqueness validation queries that span multiple org subcollections
+
+    // Organism records collection group - enables cross-org name uniqueness checks
+    match /{path=**}/organism_records/{recordId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+    }
+    match /{path=**}/organismRecords/{recordId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    // Genets collection group - enables cross-org provenance ID uniqueness checks
+    match /{path=**}/genets/{genetId} {
+      // Permissive read to support cross-org provenance uniqueness checks during onboarding.
+      allow read: if isAuthenticated();
+    }
+
+    // ========================================
+    // Organization-Scoped Root Collections
+    // ========================================
+
+    // Organizations - authenticated users can read for discovery (e.g., transfers)
+    // Only members can write their own org
+    match /organizations/{orgId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.organizationId == orgId;
+      allow update: if isOrgMemberOf(orgId);
+      allow delete: if isOrgMemberOf(orgId);
+
+      // ----------------------------------------
+      // Nested collections within organizations
+      // All use consistent pattern: isOrgMemberOf(orgId)
+      // ----------------------------------------
+
+      // Groups (tanks, raceways, etc.)
+      match /groups/{groupId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Genets (provenance records)
+      match /genets/{genetId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Organism records
+      match /organism_records/{recordId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+      match /organismRecords/{recordId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Holdings (gamete batches, larval batches, seeded lines, etc.)
+      match /holdings/{holdingId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Cohorts
+      match /cohorts/{cohortId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Events (nested under org)
+      match /events/{eventId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Event summary aggregates (derived metrics)
+      match /event_summaries/{summaryId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Slug counts - for unique slug generation
+      match /slugCounts/{doc} {
+        allow read: if isOrgMemberOf(orgId);
+        allow create: if isOrgMemberOf(orgId) || isOnboardingOrgSetup(orgId);
+        allow update, delete: if isOrgMemberOf(orgId);
+      }
+
+      // Notifications subcollection - transfer requests and system notifications
+      // Read: org members can read their notifications
+      // Create: any authenticated user can create (for cross-org transfer notifications)
+      // Update/Delete: only org members
+      match /notifications/{notificationId} {
+        allow read: if isOrgMemberOf(orgId);
+        allow create: if isAuthenticated();
+        allow update, delete: if isOrgMemberOf(orgId);
+      }
+
+      // Membership subcollection - tracks org members with roles
+      // Member limits are enforced in the app layer, not security rules
+      // (security rule get() calls fail during onboarding batch writes)
+      match /members/{memberId} {
+        allow read: if isOrgMemberOf(orgId);
+        // Create: self-creation during onboarding OR existing members adding new members
+        allow create: if isAuthenticated() && (
+          // Self-creation (onboarding or accepting invitation)
+          (memberId == request.auth.uid &&
+           'createdById' in request.resource.data &&
+           request.resource.data.createdById == getAuthUid())
+          ||
+          // Existing org members can add new members
+          isOrgMemberOf(orgId)
+        );
+        allow update, delete: if isOrgMemberOf(orgId);
+      }
+
+      // Sites subcollection (for slug uniqueness queries)
+      // Note: Primary sites are at root /sites, this supports org-scoped queries
+      match /sites/{siteId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Zones - outplanting site zones
+      match /zones/{zoneId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+      // Visual KPI snapshots - dashboard metrics
+      match /visual_kpi_snapshots/{snapshotId} {
+        allow read, write: if isOrgMemberOf(orgId);
+      }
+
+    }
+
+
+    // Users - can read/write own profile
+    // NOTE: User documents are keyed by Firebase Auth UID.
+    match /users/{userId} {
+      allow read: if isAuthenticated() &&
+        (userId == request.auth.uid || isOrgMemberOf(resource.data.organizationId));
+      allow create: if isAuthenticated() && userId == request.auth.uid;
+      allow update: if isAuthenticated() && userId == request.auth.uid;
+      allow delete: if isAuthenticated() && userId == request.auth.uid;
+    }
+
+
+    // Sites - organization members only (root collection)
+    match /sites/{siteId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+      allow create: if isOnboardingBatchWrite() ||
+        isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+
+    // Groups - REMOVED: Root collection no longer used
+    // All groups are in /organizations/{orgId}/groups subcollection
+    match /groups/{groupId} {
+      allow read, write: if false;
+    }
+
+    // Genets - REMOVED: Root collection no longer used
+    // All genets are in /organizations/{orgId}/genets subcollection
+    match /genets/{genetId} {
+      allow read, write: if false;
+    }
+
+    // Organism Records - REMOVED: Root collection no longer used
+    // All organism records are in /organizations/{orgId}/organismRecords subcollection
+    match /organism_records/{recordId} {
+      allow read, write: if false;
+    }
+    match /organismRecords/{recordId} {
+      allow read, write: if false;
+    }
+
+    // Public playlists - Visual Engagement public content
+    match /public_playlists/{playlistId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Public digests - Visual Engagement community digests
+    match /public_digests/{digestId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Public impact points - Visual Engagement impact data
+    match /public_impact_points/{pointId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Record types - Reference data
+    match /recordTypes/{typeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+
+    // Events - organization members only (root collection)
+    // Transfer events (with toOrganizationId) are readable by recipient org
+    match /events/{eventId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId) ||
+        (userDocExists() &&
+         resource.data.toOrganizationId == getUserDoc().data.organizationId);
+      // Create: org membership or onboarding batch write.
+      allow create: if isOnboardingBatchWrite() ||
+        isOrgMemberOf(request.resource.data.organizationId);
+      allow update: if isOrgMemberOf(resource.data.organizationId) ||
+        isOrgMemberOf(resource.data.toOrganizationId);
+      allow delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+
+    // Invitations - scoped access with email verification
+    // Readable by: invited user (email match) or org members
+    // Writable by: org members (create), invited user (accept)
+    match /invitations/{invitationId} {
+      allow read: if isAuthenticated() && (
+        // Invited user can read their invitation
+        (resource.data.email != null &&
+         resource.data.email.lower() == request.auth.token.email.lower()) ||
+        // Org members can read invitations for their org
+        isOrgMemberOf(resource.data.organizationId)
+      );
+      // Member limits enforced in app layer, not security rules
+      allow create: if isAuthenticated() &&
+        request.resource.data.email is string &&
+        request.resource.data.status == 'pending' &&
+        isOrgMemberOf(request.resource.data.organizationId);
+      allow update: if isAuthenticated() &&
+        resource.data.email != null &&
+        resource.data.email.lower() == request.auth.token.email.lower() &&
+        resource.data.status == 'pending' &&
+        request.resource.data.status == 'accepted' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acceptedAt', 'updatedAt']);
+      allow delete: if isAuthenticated() &&
+        isOrgMemberOf(resource.data.organizationId);
+    }
+
+    // ========================================
+    // Public Visual Engagement Collections
+    // ========================================
+    // Write access requires membership in the corresponding organization
+    // to prevent cross-org data modification
+
+    match /public_orgs/{orgId} {
+      match /media/{doc} {
+        allow read: if true;
+        allow write: if isOrgMemberOf(orgId);
+      }
+      match /brand_profiles/{doc} {
+        allow read: if true;
+        allow write: if isOrgMemberOf(orgId);
+      }
+      match /playlists/{doc} {
+        allow read: if true;
+        allow write: if isOrgMemberOf(orgId);
+      }
+      match /digests/{doc} {
+        allow read: if resource.data.published == true;
+        allow write: if isOrgMemberOf(orgId);
+      }
+      match /impact_points/{doc} {
+        allow read: if true;
+        allow write: if isOrgMemberOf(orgId);
+      }
+    }
+
+    // Historical CRC data - public read access for map display
+    // Write access restricted to admins only (imported via scripts)
+    match /historical_impact_points/{doc} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    match /historical_outplant_events/{doc} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    match /historical_reef_aggregates/{doc} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+    match /historical_dataset_metadata/{doc} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+
+    // Media assets - organization scoped
+    match /media_assets/{assetId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+      allow create: if isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    // ========================================
+    // Additional Organization-Scoped Collections
+    // ========================================
+
+    // Messages - REMOVED: Not used by app
+    match /messages/{messageId} {
+      allow read, write: if false;
+    }
+
+    match /snapshot_records/{snapshotId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+      allow create: if isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    // Slug counts - system collection (authenticated write)
+    match /slugCounts/{doc} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Provenance ID counters - global per-species counters for Provenance ID allocation
+    // Used when creating genets to generate unique identifiers (e.g., PID-ACER-0001)
+    match /provenanceIds/{speciesId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Alias index - tracks unique aliases (Tracks, ZIMS, CSR, etc.) across all records
+    // Used by AliasUniquenessService to ensure alias uniqueness during genet/record creation
+    // Document IDs are formatted as "{sourceSystem}::{value}" (e.g., "tracks::ABC123")
+    match /alias_index/{aliasId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Intro/onboarding state - scoped to user UID
+    match /intro/{userId} {
+      allow read: if isAuthenticated() && getAuthUid() == userId;
+      allow create, update, delete: if isAuthenticated() && getAuthUid() == userId;
+    }
+
+    match /config/{configId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+      allow create: if isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    match /inventory_snapshots/{snapshotId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+      allow create: if isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    match /snapshots/{snapshotId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+      allow create: if isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    match /taxonomy_overrides/{overrideId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // Taxonomy audit logs - written by admin operations
+    match /taxonomy_audit/{auditId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // ========================================
+    // Reference Data Collections (Read-only for authenticated users)
+    // ========================================
+
+    match /species/{speciesId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /taxonomy_species/{speciesId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /taxonomy_provenances/{provenanceId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /taxonomy_lineages/{lineageId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /group_types/{typeId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /site_types/{typeId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    match /tips/{tipId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+
+    // Brand profiles - public read for Visual Engagement, org-scoped write
+    // Public read is intentional: brand profiles power public-facing org identity pages
+    // Cloud Function mirrors to public_orgs/{orgId}/brand_profiles when published
+    match /brand_profiles/{profileId} {
+      allow read: if true;
+      allow create: if isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    // User-scoped temp collection - each user can only access their own temp files
+    // userId is Firebase UID
+    match /temp/{userId}/{doc} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    match /holdings/{holdingId} {
+      allow read: if isOrgMemberOf(resource.data.organizationId);
+      allow create: if isOrgMemberOf(request.resource.data.organizationId);
+      allow update, delete: if isOrgMemberOf(resource.data.organizationId);
+    }
+
+    // ========================================
+    // Community Genetics Crosswalk (Provenance ID mapping)
+    // ========================================
+
+    // Primary provenance records - full Provenance records with aliases and metadata
+    match /community_genetics_provenances/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Quick alias lookups - keyed by {speciesCode}_{aliasId}
+    match /community_genetics_aliases/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // ========================================
+    // Transfers (cross-organization)
+    // ========================================
+
+    // Transfers are cross-org: readable/writable by both sending and receiving org
+    match /transfers/{transferId} {
+      // Helper to check if user belongs to from or to organization
+      function canAccessTransfer() {
+        return isOrgMemberOf(resource.data.fromOrganizationId) ||
+               isOrgMemberOf(resource.data.toOrganizationId);
+      }
+
+      allow read: if canAccessTransfer();
+      allow create: if isOrgMemberOf(request.resource.data.fromOrganizationId);
+      allow update: if canAccessTransfer() &&
+        // Prevent changing the from/to organization IDs
+        (resource.data.fromOrganizationId == request.resource.data.fromOrganizationId) &&
+        (resource.data.toOrganizationId == request.resource.data.toOrganizationId);
+    }
+
+    // ========================================
+    // Beta Signups (Upgrade CTA)
+    // ========================================
+    // Public beta signup from landing page (provenance.seafoundry.com)
+    // Write-only; read access restricted to admins only via Firebase Console
+
+    match /beta_signups/{signupId} {
+      allow read: if false;
+      allow create: if request.resource.data.email is string &&
+                       request.resource.data.email.size() > 0 &&
+                       request.resource.data.email.size() < 256;
+      allow update, delete: if false;
+    }
+
+  }
+}

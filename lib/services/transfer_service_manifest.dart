@@ -1,0 +1,696 @@
+part of 'transfer_service.dart';
+
+/// Manifest building and handling methods for [TransferService].
+///
+/// This part file contains methods for building, parsing, and validating
+/// transfer manifests.
+extension _TransferServiceManifest on TransferService {
+  Map<String, dynamic> _buildTransferManifestMetadata({
+    required TransferEvent transferEvent,
+    required ProvenanceRecord genet,
+    required ProvenanceLifeStageSelection selection,
+    String? physicalFormOverride,
+    SizeSpec? sizeSpecOverride,
+  }) {
+    final metadata = <String, dynamic>{
+      'eventSlug': transferEvent.slug,
+      'recordUrlPath': genet.metadata['urlPath'],
+      'recordInternalPath': genet.metadata['internalPath'],
+      'quantityUnits': 'fragments',
+      'organismKind': genet.organismKind.name,
+    };
+    metadata.addAll(
+      buildSelectionMetadata(
+        selection,
+        physicalFormOverride: physicalFormOverride,
+        sizeSpecOverride: sizeSpecOverride,
+      ),
+    );
+
+    return metadata;
+  }
+
+  TransferManifest _buildManifestSnapshot({
+    required TransferEvent transferEvent,
+    required Map<String, dynamic> genetPayload,
+    required Organization fromOrganization,
+    required OrganizationSnapshot toOrganization,
+    required int quantity,
+    String? comment,
+    String? sourceStructureUrlPath,
+    required User initiatedBy,
+    required Map<String, dynamic> metadata,
+  }) {
+    return TransferManifest(
+      transferId: transferEvent.id,
+      generatedAt: DateTime.now().toUtc(),
+      fromOrganization: OrganizationSnapshot(
+        id: fromOrganization.id,
+        name: fromOrganization.name,
+        domain: fromOrganization.domain,
+        urlPath: fromOrganization.urlPath,
+      ),
+      toOrganization: toOrganization,
+      genet: GenetSnapshot.fromJson(genetPayload),
+      requestedBy: UserSnapshot(
+        id: initiatedBy.id,
+        name: initiatedBy.name,
+        email: initiatedBy.email,
+      ),
+      quantity: quantity,
+      comment: comment,
+      sourceStructureUrlPath: sourceStructureUrlPath,
+      metadata: metadata,
+    );
+  }
+
+  /// Builds the genet payload portion of a transfer manifest.
+  ///
+  /// This private method extracts the common genet serialization logic
+  /// shared between [buildManifest] and [buildManifestForEmail].
+  Map<String, dynamic> _buildGenetPayload(ProvenanceRecord genet) {
+    final provenanceId = genet.provenanceId?.trim().isNotEmpty == true
+        ? genet.provenanceId
+        : null;
+    final resolvedSpecies = SpeciesRegistry.globalById(
+      genet.speciesId,
+      allowFallback: false,
+    );
+    if (resolvedSpecies == null) {
+      throw TransferWorkflowException(
+        'Transfer manifest cannot be created: unknown species "${genet.speciesId}". '
+        'Please ensure taxonomy data is loaded and the genet has a valid species.',
+      );
+    }
+    final resolvedSpeciesId = resolvedSpecies.id;
+    final speciesCode = resolvedSpecies.code.trim();
+    if (speciesCode.isEmpty) {
+      throw TransferWorkflowException(
+        'Transfer manifest cannot be created: species code missing for '
+        '"${resolvedSpecies.name}" (${resolvedSpecies.id}).',
+      );
+    }
+    final genetPayload = <String, dynamic>{
+      'id': genet.id,
+      'name': genet.displayName,
+      'speciesId': resolvedSpeciesId,
+      'speciesCode': speciesCode,
+      if (genet.localGenetId != null) 'localGenetId': genet.localGenetId,
+      'provenanceTypeId': genet.metadata['provenanceTypeId'],
+      if (provenanceId != null && provenanceId.isNotEmpty)
+        'provenanceId': provenanceId,
+      if (genet.metadata['clonalId'] != null)
+        'clonalId': genet.metadata['clonalId'],
+      if (genet.metadata['accessionNumber'] != null)
+        'accessionNumber': genet.metadata['accessionNumber'],
+      if (genet.metadata['notes'] != null) 'notes': genet.metadata['notes'],
+      if (genet.metadata['provenance'] != null)
+        'provenance': genet.metadata['provenance'],
+      if (genet.metadata['parentGameteIds'] != null &&
+          (genet.metadata['parentGameteIds'] as List).isNotEmpty)
+        'parentGameteIds': genet.metadata['parentGameteIds'],
+      if (genet.metadata['parentCohortId'] != null)
+        'parentCohortId': genet.metadata['parentCohortId'],
+      if (genet.metadata['donorGenotypeId'] != null)
+        'donorGenotypeId': genet.metadata['donorGenotypeId'],
+      if (genet.metadata['damGameteIds'] != null &&
+          (genet.metadata['damGameteIds'] as List).isNotEmpty)
+        'damGameteIds': genet.metadata['damGameteIds'],
+      if (genet.metadata['sireGameteIds'] != null &&
+          (genet.metadata['sireGameteIds'] as List).isNotEmpty)
+        'sireGameteIds': genet.metadata['sireGameteIds'],
+      if (genet.metadata['crossDate'] != null)
+        'crossDate': genet.metadata['crossDate'],
+      'readyForOutplant': genet.metadata['readyForOutplant'] == true,
+      'createdAt': genet.metadata['createdAt'],
+      'updatedAt': genet.metadata['updatedAt'],
+    };
+
+    final canonicalAliases =
+        (genet.metadata['aliases'] as List?)
+            ?.map((e) => e as Map<String, dynamic>)
+            .toList() ??
+        genet.aliasLabels
+            .map((label) => {'value': label, 'source': 'unknown'})
+            .toList();
+    if (canonicalAliases.isNotEmpty) {
+      genetPayload['aliases'] = canonicalAliases;
+    }
+
+    if (genet.metadata.isNotEmpty) {
+      genetPayload['metadata'] = genet.metadata;
+    }
+
+    return genetPayload;
+  }
+
+  /// Builds the canonical transfer manifest for transfer handoff.
+  TransferManifest buildManifest({
+    required TransferEvent transferEvent,
+    required ProvenanceRecord genet,
+    required Organization fromOrganization,
+    required Organization toOrganization,
+    required int quantity,
+    String? comment,
+    String? sourceStructureUrlPath,
+    required User initiatedBy,
+    required ProvenanceLifeStageSelection selection,
+    String? physicalFormOverride,
+    SizeSpec? sizeSpecOverride,
+  }) {
+    final genetPayload = _buildGenetPayload(genet);
+    final metadata = _buildTransferManifestMetadata(
+      transferEvent: transferEvent,
+      genet: genet,
+      selection: selection,
+      physicalFormOverride: physicalFormOverride,
+      sizeSpecOverride: sizeSpecOverride,
+    );
+
+    return _buildManifestSnapshot(
+      transferEvent: transferEvent,
+      genetPayload: genetPayload,
+      fromOrganization: fromOrganization,
+      toOrganization: OrganizationSnapshot(
+        id: toOrganization.id,
+        name: toOrganization.name,
+        domain: toOrganization.domain,
+        urlPath: toOrganization.urlPath,
+      ),
+      quantity: quantity,
+      comment: comment,
+      sourceStructureUrlPath: sourceStructureUrlPath,
+      initiatedBy: initiatedBy,
+      metadata: metadata,
+    );
+  }
+
+  /// Builds a manifest for email-based transfers where the recipient org
+  /// is not yet known.
+  TransferManifest buildManifestForEmail({
+    required TransferEvent transferEvent,
+    required ProvenanceRecord genet,
+    required Organization fromOrganization,
+    required String toEmail,
+    required int quantity,
+    String? comment,
+    String? sourceStructureUrlPath,
+    required User initiatedBy,
+    required ProvenanceLifeStageSelection selection,
+    String? physicalFormOverride,
+    SizeSpec? sizeSpecOverride,
+  }) {
+    final genetPayload = _buildGenetPayload(genet);
+    final metadata = _buildTransferManifestMetadata(
+      transferEvent: transferEvent,
+      genet: genet,
+      selection: selection,
+      physicalFormOverride: physicalFormOverride,
+      sizeSpecOverride: sizeSpecOverride,
+    );
+
+    return _buildManifestSnapshot(
+      transferEvent: transferEvent,
+      genetPayload: genetPayload,
+      fromOrganization: fromOrganization,
+      toOrganization: OrganizationSnapshot(email: toEmail),
+      quantity: quantity,
+      comment: comment,
+      sourceStructureUrlPath: sourceStructureUrlPath,
+      initiatedBy: initiatedBy,
+      metadata: metadata,
+    );
+  }
+
+  /// Builds a Genet model from the manifest payload.
+  ProvenanceRecord createGenetFromManifest({
+    required TransferManifest manifest,
+    required String overrideName,
+    String? localGenetId,
+    ProvenanceType? provenanceTypeOverride,
+    LifeStage? lifeStageOverride,
+  }) {
+    final genet = manifest.genet;
+    final rawSpeciesId = genet.speciesId ?? genet.speciesCode;
+    final provenanceId = genet.provenanceId;
+    final metadata = genet.metadata != null
+        ? Map<String, dynamic>.from(genet.metadata!)
+        : <String, dynamic>{};
+
+    if (rawSpeciesId == null || rawSpeciesId.isEmpty) {
+      throw TransferWorkflowException('Manifest missing speciesId');
+    }
+    final resolvedSpecies = SpeciesRegistry.globalById(
+      rawSpeciesId,
+      allowFallback: false,
+    );
+    if (resolvedSpecies == null) {
+      throw TransferWorkflowException(
+        'Transfer manifest contains unknown species "$rawSpeciesId". '
+        'Please ensure taxonomy data is loaded and retry the transfer.',
+      );
+    }
+    final speciesId = resolvedSpecies.id;
+    if (provenanceId == null || provenanceId.isEmpty) {
+      throw TransferWorkflowException('Manifest missing provenanceId');
+    }
+
+    final provenance = genet.provenance != null
+        ? Map<String, dynamic>.from(genet.provenance!)
+        : <String, dynamic>{};
+    metadata['transfer'] = {
+      'fromOrganizationId': manifest.fromOrganization.id,
+      'toOrganizationId': manifest.toOrganization.id,
+      'transferEventId': manifest.transferId,
+      'manifestVersion': manifest.version,
+      'receivedAt': manifest.receivedAt?.toIso8601String(),
+      if (genet.localGenetId != null) 'senderLocalId': genet.localGenetId,
+      if (genet.name != null) 'senderRecordName': genet.name,
+    };
+    if (localGenetId != null && localGenetId.isNotEmpty) {
+      provenance['localGenetId'] = localGenetId;
+    }
+
+    final crossDateRaw = genet.crossDate;
+    final aliasPayload = genet.aliases;
+
+    final selectionSources = <Map<String, dynamic>>[];
+    if (manifest.metadata != null && manifest.metadata!.isNotEmpty) {
+      selectionSources.add(Map<String, dynamic>.from(manifest.metadata!));
+    }
+    if (metadata.isNotEmpty) {
+      selectionSources.add(Map<String, dynamic>.from(metadata));
+    }
+    final fallbackKind =
+        manifest.metadata?['provenanceKind']?.toString() ??
+        metadata['provenanceKind']?.toString();
+    final fallbackType =
+        provenanceTypeOverride ??
+        ProvenanceTypeX.tryParse(
+          manifest.metadata?['provenanceTypeId']?.toString(),
+        ) ??
+        ProvenanceTypeX.tryParse(metadata['provenanceTypeId']?.toString());
+
+    var selection = selectionSources.isEmpty
+        ? (fallbackType != null
+              ? ProvenanceLifeStageSelection(
+                  provenanceType: fallbackType,
+                  lifeStage: fallbackType.defaultLifeStage,
+                )
+              : ProvenanceLifeStageSelection.fallback())
+        : ProvenanceLifeStageSelection.fromCanonicalSources(
+            sources: selectionSources,
+            fallbackProvenanceKind: fallbackKind,
+            fallbackProvenanceType: fallbackType,
+          );
+
+    var resolvedProvenanceType =
+        provenanceTypeOverride ?? selection.provenanceType;
+    var resolvedLifeStage = lifeStageOverride ?? selection.lifeStage;
+    final allowedStages = resolvedProvenanceType.allowedLifeStages;
+    if (allowedStages.isNotEmpty &&
+        !allowedStages.contains(resolvedLifeStage)) {
+      resolvedLifeStage =
+          allowedStages.contains(resolvedProvenanceType.defaultLifeStage)
+          ? resolvedProvenanceType.defaultLifeStage
+          : allowedStages.first;
+    }
+    selection = ProvenanceLifeStageSelection(
+      provenanceType: resolvedProvenanceType,
+      lifeStage: resolvedLifeStage,
+    );
+
+    metadata['provenanceTypeId'] = selection.provenanceType.id;
+    metadata['provenanceType'] = selection.provenanceType.name;
+    metadata['provenanceTypeLabel'] = selection.provenanceType.displayName;
+    metadata['lifeStageId'] = selection.lifeStage.id;
+    metadata['lifeStage'] = selection.lifeStage.name;
+    metadata['lifeStageLabel'] = selection.lifeStage.displayName;
+    metadata['provenanceKind'] =
+        selection.provenanceType.defaultProvenanceKind.name;
+    metadata['provenanceTypeId'] =
+        provenanceTypeOverride?.id ?? selection.provenanceType.id;
+    // provenanceId is stored on the top-level genet record, not in metadata
+    if (genet.clonalId != null) metadata['clonalId'] = genet.clonalId;
+    if (genet.accessionNumber != null) {
+      metadata['accessionNumber'] = genet.accessionNumber;
+    }
+    if (genet.notes != null) metadata['notes'] = genet.notes;
+    if (provenance.isNotEmpty) metadata['provenance'] = provenance;
+    if (genet.parentGameteIds != null) {
+      metadata['parentGameteIds'] = genet.parentGameteIds;
+    }
+    if (genet.parentCohortId != null) {
+      metadata['parentCohortId'] = genet.parentCohortId;
+    }
+    if (genet.donorGenotypeId != null) {
+      metadata['donorGenotypeId'] = genet.donorGenotypeId;
+    }
+    if (genet.damGameteIds != null) {
+      metadata['damGameteIds'] = genet.damGameteIds;
+    }
+    if (genet.sireGameteIds != null) {
+      metadata['sireGameteIds'] = genet.sireGameteIds;
+    }
+    if (crossDateRaw != null) metadata['crossDate'] = crossDateRaw;
+    metadata['readyForOutplant'] = genet.readyForOutplant;
+
+    // Build comprehensive alias list including source org's local ID
+    final transferAliases = <Map<String, dynamic>>[];
+
+    // Include all aliases from the manifest
+    if (aliasPayload != null && aliasPayload.isNotEmpty) {
+      transferAliases.addAll(aliasPayload);
+    }
+
+    // Add alias for source organization's local ID (if different from PID)
+    final sourceLocalId = genet.localGenetId?.trim();
+    final sourceOrgName = manifest.fromOrganization.name?.trim();
+    if (sourceLocalId != null &&
+        sourceLocalId.isNotEmpty &&
+        sourceOrgName != null &&
+        sourceOrgName.isNotEmpty &&
+        sourceLocalId.toLowerCase() != provenanceId.toLowerCase()) {
+      // Check if value already exists in any existing alias
+      final valueExists =
+          aliasPayload?.any(
+            (alias) =>
+                alias['value']?.toString().trim().toLowerCase() ==
+                sourceLocalId.toLowerCase(),
+          ) ??
+          false;
+      if (!valueExists) {
+        transferAliases.add({
+          'sourceSystem': sourceOrgName,
+          'value': sourceLocalId,
+          'label': '$sourceOrgName: $sourceLocalId',
+        });
+      }
+    }
+
+    // Store aliases in metadata
+    if (transferAliases.isNotEmpty) {
+      metadata['aliases'] = transferAliases;
+    }
+
+    // Build foreign keys to reference source genet (ForeignKeyReference format)
+    metadata['foreignKeys'] = {
+      'sourceGenet': {
+        'id': genet.id,
+        'metadata': {
+          if (manifest.fromOrganization.id != null)
+            'organizationId': manifest.fromOrganization.id,
+          if (manifest.fromOrganization.email != null)
+            'organizationEmail': manifest.fromOrganization.email,
+          'transferId': manifest.transferId,
+        },
+      },
+    };
+
+    const organismKind = OrganismKind.coral;
+
+    return ProvenanceRecord(
+      id: _idGenerator(), // Generate a new ID for the received record
+      organismKind: organismKind,
+      provenanceKind: selection.provenanceType.defaultProvenanceKind,
+      displayName: overrideName,
+      localGenetId: localGenetId,
+      provenanceId: provenanceId,
+      speciesId: speciesId,
+      metadata: metadata,
+      aliasLabels: transferAliases
+          .map((e) => e['value']?.toString())
+          .whereType<String>()
+          .where((v) => v.isNotEmpty)
+          .toList(),
+    );
+  }
+
+  /// Loads the manifest embedded on a transfer.
+  TransferManifest requireManifest(TransferEvent transfer) {
+    final manifestData = transfer.manifest;
+    if (manifestData == null) {
+      throw TransferWorkflowException(
+        'Transfer ${transfer.id} is missing manifest data',
+      );
+    }
+    return TransferManifest.fromJson(manifestData);
+  }
+
+  /// Clones the transfer's state history and appends the provided transition
+  /// metadata.
+  List<Map<String, dynamic>> appendStateHistory(
+    TransferEvent transfer,
+    TransferStatus status,
+    String actorId, {
+    DateTime? timestamp,
+  }) {
+    final history = List<Map<String, dynamic>>.from(
+      transfer.stateHistory ?? const [],
+    );
+    history.add({
+      'status': status.value,
+      'changedAt': (timestamp ?? DateTime.now().toUtc()).toIso8601String(),
+      'changedById': actorId,
+    });
+    return history;
+  }
+
+  ProvenanceLifeStageSelection resolveProvenanceSelection({
+    required ProvenanceRecord genet,
+    TransferEvent? transfer,
+    ProvenanceType? overrideProvenanceType,
+    LifeStage? overrideLifeStage,
+  }) {
+    final sources = <Map<String, dynamic>>[];
+    final transferMetadata = transfer?.metadata;
+    if (transferMetadata != null && transferMetadata.isNotEmpty) {
+      sources.add(Map<String, dynamic>.from(transferMetadata));
+    }
+    final manifestData = transfer?.manifest;
+    if (manifestData != null) {
+      final manifestMetadata = manifestData['metadata'];
+      if (manifestMetadata is Map<String, dynamic> &&
+          manifestMetadata.isNotEmpty) {
+        sources.add(Map<String, dynamic>.from(manifestMetadata));
+      }
+    }
+    final genetMetadata = genet.metadata;
+    if (genetMetadata.isNotEmpty) {
+      sources.add(Map<String, dynamic>.from(genetMetadata));
+    }
+
+    final baseSelection = sources.isEmpty
+        ? ProvenanceLifeStageSelection.fromProvenanceRecord(genet)
+        : ProvenanceLifeStageSelection.fromCanonicalSources(sources: sources);
+
+    var provenanceType = overrideProvenanceType ?? baseSelection.provenanceType;
+    var lifeStage = overrideLifeStage ?? baseSelection.lifeStage;
+
+    final allowedStages = provenanceType.allowedLifeStages;
+    if (allowedStages.isNotEmpty && !allowedStages.contains(lifeStage)) {
+      final preferred = allowedStages.contains(provenanceType.defaultLifeStage)
+          ? provenanceType.defaultLifeStage
+          : allowedStages.first;
+      lifeStage = preferred;
+    }
+
+    return ProvenanceLifeStageSelection(
+      provenanceType: provenanceType,
+      lifeStage: lifeStage,
+    );
+  }
+
+  Map<String, dynamic> buildSelectionMetadata(
+    ProvenanceLifeStageSelection selection, {
+    String? physicalFormOverride,
+    SizeSpec? sizeSpecOverride,
+  }) {
+    final metadata = <String, dynamic>{
+      'provenanceTypeId': selection.provenanceType.id,
+      'provenanceType': selection.provenanceType.name,
+      'provenanceTypeLabel': selection.provenanceType.displayName,
+      'lifeStageId': selection.lifeStage.id,
+      'lifeStage': selection.lifeStage.name,
+      'lifeStageLabel': selection.lifeStage.displayName,
+      'provenanceKind': selection.provenanceType.defaultProvenanceKind.name,
+    };
+    if (physicalFormOverride != null) {
+      metadata['physicalFormId'] = physicalFormOverride;
+    }
+    if (sizeSpecOverride != null && sizeSpecOverride.hasSize) {
+      metadata['size'] = sizeSpecOverride.toJson();
+    } else if (sizeSpecOverride != null && sizeSpecOverride.isEmpty) {
+      metadata.remove('size');
+    }
+    return metadata;
+  }
+
+  Map<String, dynamic> mergeSelectionMetadata(
+    Map<String, dynamic>? existing,
+    ProvenanceLifeStageSelection selection, {
+    String? physicalFormOverride,
+    SizeSpec? sizeSpecOverride,
+  }) {
+    final metadata = existing == null
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(existing);
+    metadata.addAll(
+      buildSelectionMetadata(
+        selection,
+        physicalFormOverride: physicalFormOverride,
+        sizeSpecOverride: sizeSpecOverride,
+      ),
+    );
+    if (sizeSpecOverride != null && sizeSpecOverride.isEmpty) {
+      metadata.remove('size');
+    }
+    return metadata;
+  }
+
+  Map<String, dynamic>? extractManifestMetadata(TransferEvent transfer) {
+    final manifestData = transfer.manifest;
+    if (manifestData == null) {
+      return null;
+    }
+    final metadata = manifestData['metadata'];
+    if (metadata is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(metadata);
+    }
+    return null;
+  }
+
+  String? physicalFormFromMetadata(Map<String, dynamic>? metadata) {
+    if (metadata == null || metadata.isEmpty) return null;
+    final raw = metadata['physicalFormId'];
+    if (raw == null) return null;
+    final normalized = raw.toString().trim();
+    return normalized.isEmpty ? null : normalized;
+  }
+
+  /// Builds an OrganismRecord from the manifest payload for inventory tracking.
+  ///
+  /// This creates the inventory holding at the destination site/group when a
+  /// transfer is accepted. The organism record will be linked to the newly
+  /// created genet via [genetRecordId].
+  ///
+  /// Unlike [createGenetFromManifest], this method creates the inventory record
+  /// that appears in the receiving org's inventory views.
+  OrganismRecord createOrganismRecordFromManifest({
+    required TransferManifest manifest,
+    required ProvenanceRecord createdGenet,
+    required int quantity,
+    required String tagId,
+    String? localGenetId,
+    ProvenanceType? provenanceTypeOverride,
+    LifeStage? lifeStageOverride,
+  }) {
+    final genet = manifest.genet;
+    final rawSpeciesId = genet.speciesId ?? genet.speciesCode;
+
+    if (rawSpeciesId == null || rawSpeciesId.isEmpty) {
+      throw TransferWorkflowException('Manifest missing speciesId');
+    }
+    final resolvedSpecies = SpeciesRegistry.globalById(
+      rawSpeciesId,
+      allowFallback: false,
+    );
+    if (resolvedSpecies == null) {
+      throw TransferWorkflowException(
+        'Transfer manifest contains unknown species "$rawSpeciesId". '
+        'Please ensure taxonomy data is loaded and retry the transfer.',
+      );
+    }
+    final speciesId = resolvedSpecies.id;
+
+    const organismKind = OrganismKind.coral;
+
+    // Resolve provenance type and life stage from manifest
+    final selectionSources = <Map<String, dynamic>>[];
+    if (manifest.metadata != null && manifest.metadata!.isNotEmpty) {
+      selectionSources.add(Map<String, dynamic>.from(manifest.metadata!));
+    }
+    final genetMetadata = genet.metadata;
+    if (genetMetadata != null && genetMetadata.isNotEmpty) {
+      selectionSources.add(Map<String, dynamic>.from(genetMetadata));
+    }
+
+    final fallbackType =
+        provenanceTypeOverride ??
+        ProvenanceTypeX.tryParse(
+          manifest.metadata?['provenanceTypeId']?.toString(),
+        ) ??
+        ProvenanceTypeX.tryParse(
+          genetMetadata?['provenanceTypeId']?.toString(),
+        );
+
+    var selection = selectionSources.isEmpty
+        ? (fallbackType != null
+              ? ProvenanceLifeStageSelection(
+                  provenanceType: fallbackType,
+                  lifeStage: fallbackType.defaultLifeStage,
+                )
+              : ProvenanceLifeStageSelection.fallback())
+        : ProvenanceLifeStageSelection.fromCanonicalSources(
+            sources: selectionSources,
+          );
+
+    var resolvedProvenanceType =
+        provenanceTypeOverride ?? selection.provenanceType;
+    var resolvedLifeStage = lifeStageOverride ?? selection.lifeStage;
+    final allowedStages = resolvedProvenanceType.allowedLifeStages;
+    if (allowedStages.isNotEmpty &&
+        !allowedStages.contains(resolvedLifeStage)) {
+      resolvedLifeStage =
+          allowedStages.contains(resolvedProvenanceType.defaultLifeStage)
+          ? resolvedProvenanceType.defaultLifeStage
+          : allowedStages.first;
+    }
+
+    // Extract physical form from manifest if present
+    final physicalFormId = physicalFormFromMetadata(manifest.metadata);
+    // Also try to extract sizeBandId from manifest metadata
+    final sizeBandId =
+        manifest.metadata?['sizeBandId']?.toString() ??
+        manifest.metadata?['size']?['sizeBandId']?.toString();
+
+    // Extract size spec from manifest if present
+    SizeSpec? sizeSpec;
+    final sizeData = manifest.metadata?['size'];
+    if (sizeData is Map<String, dynamic>) {
+      sizeSpec = SizeSpec.fromJson(sizeData);
+    }
+
+    final organization = _provenanceRepository.organization;
+
+    final metadata = <String, dynamic>{
+      'transferEventId': manifest.transferId,
+      'fromOrganizationId': manifest.fromOrganization.id,
+      'manifestVersion': manifest.version,
+      'receivedAt': manifest.receivedAt?.toIso8601String(),
+    };
+
+    final user = _provenanceRepository.user;
+
+    return OrganismRecord.create(
+      organismKind: organismKind,
+      organizationId: organization.id,
+      createdById: user.id,
+      lifeStage: LifeStageSpec(stage: resolvedLifeStage),
+      measurement: PopulationMeasurement(
+        value: quantity.toDouble(),
+        unit: MeasurementUnit.count,
+      ),
+      tagId: tagId,
+      speciesId: speciesId,
+      localGenetId: localGenetId ?? createdGenet.localGenetId,
+      provenanceType: resolvedProvenanceType,
+      physicalForm: physicalFormId != null && sizeBandId != null
+          ? PhysicalFormInstance(formId: physicalFormId, sizeBandId: sizeBandId)
+          : null,
+      sizeSpec: sizeSpec,
+      genetRecordId: createdGenet.id,
+      metadata: metadata,
+    );
+  }
+}

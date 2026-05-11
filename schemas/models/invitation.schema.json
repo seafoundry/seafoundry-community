@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://seafoundry.com/schemas/invitation",
+  "title": "Invitation",
+  "type": "object",
+  "required": ["id", "email", "organizationId", "invitedById", "status", "expiresAt", "createdAt"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the invitation"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address of the invitee"
+    },
+    "organizationId": {
+      "type": "string",
+      "description": "ID of the organization the user is invited to"
+    },
+    "invitedById": {
+      "type": "string",
+      "description": "ID of the user who sent the invitation"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "accepted", "declined", "expired"],
+      "description": "Current status of the invitation"
+    },
+    "role": {
+      "type": "string",
+      "enum": ["admin", "practitioner_plus", "practitioner", "view_only"],
+      "description": "Role assigned to the invitee upon acceptance"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the invitation expires"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the invitation was created"
+    },
+    "acceptedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the invitation was accepted"
+    },
+    "emailSent": {
+      "type": "boolean",
+      "description": "Whether the invitation email was sent"
+    },
+    "emailSentAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the email was sent"
+    },
+    "emailError": {
+      "type": "string",
+      "description": "Error message if email sending failed"
+    },
+    "resentAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the invitation was resent"
+    }
+  }
+}
