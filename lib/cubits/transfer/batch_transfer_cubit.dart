@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_enums.dart';
 import 'package:seafoundry_app/cubits/transfer/batch_transfer_item.dart';
-import 'package:seafoundry_app/models/events/event_permit_metadata.dart';
 import 'package:seafoundry_app/models/organization.dart';
 import 'package:seafoundry_app/models/types/transfer_ownership_type.dart';
 import 'package:seafoundry_app/repositories/inventory/organism_record_repository.dart';
@@ -23,7 +22,6 @@ class BatchTransferState extends Equatable {
     this.availableInventory,
     this.items = const [],
     this.comment = '',
-    this.permitMetadata = const EventPermitMetadata.empty(),
     this.isCancelled = false,
   });
 
@@ -35,7 +33,6 @@ class BatchTransferState extends Equatable {
   final int? availableInventory;
   final List<BatchTransferItem> items;
   final String comment;
-  final EventPermitMetadata permitMetadata;
   final bool isCancelled;
 
   // -- Computed getters -----------------------------------------------------
@@ -83,7 +80,6 @@ class BatchTransferState extends Equatable {
     Object? availableInventory = _sentinel,
     List<BatchTransferItem>? items,
     String? comment,
-    EventPermitMetadata? permitMetadata,
     bool? isCancelled,
   }) {
     return BatchTransferState(
@@ -103,7 +99,6 @@ class BatchTransferState extends Equatable {
           : availableInventory as int?,
       items: items ?? this.items,
       comment: comment ?? this.comment,
-      permitMetadata: permitMetadata ?? this.permitMetadata,
       isCancelled: isCancelled ?? this.isCancelled,
     );
   }
@@ -111,7 +106,7 @@ class BatchTransferState extends Equatable {
   @override
   List<Object?> get props => [
         mode, step, fixedOrganization, fixedGenetId, fixedGenetLocalId,
-        availableInventory, items, comment, permitMetadata, isCancelled,
+        availableInventory, items, comment, isCancelled,
       ];
 }
 
@@ -294,9 +289,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
 
   void setComment(String comment) => emit(state.copyWith(comment: comment));
 
-  void setPermit(EventPermitMetadata permit) =>
-      emit(state.copyWith(permitMetadata: permit));
-
   // -- Submission -----------------------------------------------------------
 
   Future<void> submitAll() async {
@@ -350,7 +342,6 @@ class BatchTransferCubit extends Cubit<BatchTransferState> {
           toOrganizationId: items[i].toOrganizationId,
           quantity: items[i].quantity,
           comment: state.comment.isNotEmpty ? state.comment : null,
-          permitMetadata: state.permitMetadata,
           ownershipType: items[i].ownershipType,
           originalOwnerOrganizationId: items[i].originalOwnerOrganizationId,
           inventorySelection: null,

@@ -128,7 +128,6 @@ class MergeEvent extends InventoryEvent with CommentEvent {
     String? internalPath,
     String? slug,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
     List<String>? absorbedOrganismIds,
     List<InventoryRecord>? absorbedSnapshots,
@@ -153,7 +152,6 @@ class MergeEvent extends InventoryEvent with CommentEvent {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
       absorbedOrganismIds: absorbedOrganismIds ?? this.absorbedOrganismIds,

@@ -45,7 +45,6 @@ class GenetModificationEvent extends Event {
     String? slug,
     Map<String, dynamic>? changes,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
     bool clearGeometry = false,
   }) {
@@ -63,7 +62,6 @@ class GenetModificationEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: clearGeometry ? null : geometry,
       ).copyWith(clearGeometry: clearGeometry ? true : null),
       changes: changes ?? Map<String, dynamic>.from(this.changes),

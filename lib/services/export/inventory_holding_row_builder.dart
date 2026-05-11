@@ -9,7 +9,7 @@ import 'package:seafoundry_app/models/types/measurement_unit.dart';
 import 'package:seafoundry_app/models/types/provenance_type.dart';
 
 /// Builds spreadsheet/export rows for organism holdings (gamete/larval batches)
-/// so permit/site metadata survives through the CSV pipeline.
+/// so site metadata survives through the CSV pipeline.
 ///
 /// Deep axes (aliases, physicalForm, sizeSpec, provenanceType, foreignKeys,
 /// localGenetId) live on the canonical [OrganismRecord], not on the holding
@@ -88,14 +88,6 @@ class InventoryHoldingRowBuilder {
     final siteNameAttr = attrOrMetadata(attributes.siteName, 'siteName');
     final siteName = siteNameAttr.isNotEmpty ? siteNameAttr : location.siteName;
     final structureType = _deriveStructureType(group, metadata);
-    final permitType = attrOrMetadata(attributes.permitType, 'permitType');
-    final permitId = attrOrMetadata(attributes.permitId, 'permitId');
-    final issuingAuthority = attrOrMetadata(
-      attributes.issuingAuthority,
-      'issuingAuthority',
-    );
-    final validFrom = attrOrMetadata(attributes.validFrom, 'validFrom');
-    final validTo = attrOrMetadata(attributes.validTo, 'validTo');
     final habitatType = attrOrMetadata(attributes.habitatType, 'habitatType');
     final siteJurisdiction = attrOrMetadata(
       attributes.siteJurisdiction,
@@ -181,11 +173,6 @@ class InventoryHoldingRowBuilder {
       'genetRecordId': holding.provenanceId ?? '',
       'cohortId': holding.cohortId ?? '',
       'notes': metadataValue(metadata, 'notes'),
-      'permitType': permitType,
-      'permitId': permitId,
-      'issuingAuthority': issuingAuthority,
-      'validFrom': validFrom,
-      'validTo': validTo,
       'habitatType': habitatType,
       'siteJurisdiction': siteJurisdiction,
       'protectedAreaFlag': protectedAreaFlag,

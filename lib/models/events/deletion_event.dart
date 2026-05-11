@@ -143,7 +143,6 @@ class DeletionEvent extends Event {
     String? internalPath,
     String? slug,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return DeletionEvent(
@@ -168,7 +167,6 @@ class DeletionEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
     );

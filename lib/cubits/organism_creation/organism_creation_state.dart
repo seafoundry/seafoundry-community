@@ -81,13 +81,6 @@ class OrganismCreationState extends Equatable {
     this.ownerOrganizationId,
     this.managingOrganizationId,
     this.selectedGenet,
-    this.selectedPermitId,
-    this.permitId = '',
-    this.permitType = '',
-    this.permitIssuingAuthority = '',
-    this.permitAttachmentUrls = '',
-    this.permitValidFrom,
-    this.permitValidTo,
     this.editingCount,
     this.measurementFieldConfig,
     this.suggestedLocalId,
@@ -144,13 +137,6 @@ class OrganismCreationState extends Equatable {
   final String? managingOrganizationId;
 
   final Genet? selectedGenet;
-  final String? selectedPermitId;
-  final String permitId;
-  final String permitType;
-  final String permitIssuingAuthority;
-  final String permitAttachmentUrls;
-  final DateTime? permitValidFrom;
-  final DateTime? permitValidTo;
   final int? editingCount;
   final MeasurementFieldConfig? measurementFieldConfig;
 
@@ -224,14 +210,6 @@ class OrganismCreationState extends Equatable {
   }
 
   bool get hasEffectiveLocalId => effectiveLocalId != null;
-
-  bool get hasPermitMetadata =>
-      permitId.trim().isNotEmpty ||
-      permitType.trim().isNotEmpty ||
-      permitIssuingAuthority.trim().isNotEmpty ||
-      permitAttachmentUrls.trim().isNotEmpty ||
-      permitValidFrom != null ||
-      permitValidTo != null;
 
   /// Auto-derives creation reason from provenance type.
   /// Returns null when linking to existing inventory (selectedGenet != null).
@@ -428,13 +406,6 @@ class OrganismCreationState extends Equatable {
     Object? ownerOrganizationId = _undefined,
     Object? managingOrganizationId = _undefined,
     Object? selectedGenet = _undefined,
-    Object? selectedPermitId = _undefined,
-    String? permitId,
-    String? permitType,
-    String? permitIssuingAuthority,
-    String? permitAttachmentUrls,
-    Object? permitValidFrom = _undefined,
-    Object? permitValidTo = _undefined,
     Object? editingCount = _undefined,
     Object? measurementFieldConfig = _undefined,
     Object? suggestedLocalId = _undefined,
@@ -529,20 +500,6 @@ class OrganismCreationState extends Equatable {
       selectedGenet: selectedGenet == _undefined
           ? this.selectedGenet
           : selectedGenet as Genet?,
-      selectedPermitId: selectedPermitId == _undefined
-          ? this.selectedPermitId
-          : selectedPermitId as String?,
-      permitId: permitId ?? this.permitId,
-      permitType: permitType ?? this.permitType,
-      permitIssuingAuthority:
-          permitIssuingAuthority ?? this.permitIssuingAuthority,
-      permitAttachmentUrls: permitAttachmentUrls ?? this.permitAttachmentUrls,
-      permitValidFrom: permitValidFrom == _undefined
-          ? this.permitValidFrom
-          : permitValidFrom as DateTime?,
-      permitValidTo: permitValidTo == _undefined
-          ? this.permitValidTo
-          : permitValidTo as DateTime?,
       editingCount: editingCount == _undefined
           ? this.editingCount
           : editingCount as int?,
@@ -605,13 +562,6 @@ class OrganismCreationState extends Equatable {
     ownerOrganizationId,
     managingOrganizationId,
     selectedGenet,
-    selectedPermitId,
-    permitId,
-    permitType,
-    permitIssuingAuthority,
-    permitAttachmentUrls,
-    permitValidFrom,
-    permitValidTo,
     editingCount,
     measurementFieldConfig,
     suggestedLocalId,

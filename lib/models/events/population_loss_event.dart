@@ -77,7 +77,6 @@ class PopulationLossEvent extends InventoryEvent with CommentEvent {
     int? oldPopulation,
     int? newPopulation,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return PopulationLossEvent(
@@ -99,7 +98,6 @@ class PopulationLossEvent extends InventoryEvent with CommentEvent {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
       eventTypeId: eventTypeId ?? this.eventTypeId,

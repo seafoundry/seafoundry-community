@@ -442,7 +442,6 @@ extension _TransferServiceAcceptance on TransferService {
         receivedAt: manifest.receivedAt?.toIso8601String(),
         receivedById: manifest.receivedById,
         stateHistory: stateHistory,
-        permitMetadata: updatedTransfer.permitMetadata,
         metadata: metadata,
         geometry: updatedTransfer.geometry,
       );
@@ -515,7 +514,6 @@ extension _TransferServiceAcceptance on TransferService {
         receivedAt: manifest.receivedAt?.toIso8601String(),
         receivedById: manifest.receivedById,
         stateHistory: stateHistory,
-        permitMetadata: updatedTransfer.permitMetadata,
         metadata: metadata,
         geometry: updatedTransfer.geometry,
       );
@@ -801,7 +799,6 @@ extension _TransferServiceAcceptance on TransferService {
     required String transferEventId,
     required int quantity,
     String? comment,
-    EventPermitMetadata? permitMetadata,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? physicalFormOverride,
@@ -884,7 +881,6 @@ extension _TransferServiceAcceptance on TransferService {
         updatedById: user.id,
         manifest: updatedManifest.toJson(),
         manifestVersion: updatedManifest.version,
-        permitMetadata: permitMetadata ?? transfer.permitMetadata,
         metadata: nextMetadata.isEmpty ? null : nextMetadata,
         geometry: geometry ?? transfer.geometry,
       );

@@ -78,7 +78,6 @@ class StatusEvent extends Event {
     ModelType? recordModelType,
     List<String>? subEventIds,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
     bool clearGeometry = false,
   }) {
@@ -98,7 +97,6 @@ class StatusEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: clearGeometry ? null : geometry,
       ).copyWith(clearGeometry: clearGeometry ? true : null),
       subEventIds: subEventIds ?? this.subEventIds,

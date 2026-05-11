@@ -60,9 +60,6 @@ class SizeChangeEvent extends Event {
       ),
       metadata: safeMapCast(json['metadata']),
       base: EventBaseParams(
-        permitMetadata: EventPermitMetadata.fromJson(
-          safeMapCast(json['permitMetadata']),
-        ),
         geometry: OutplantGeometry.maybeFromJson(json['geometry']),
       ),
     );
@@ -90,7 +87,6 @@ class SizeChangeEvent extends Event {
     SizeSpec? oldSize,
     SizeSpec? newSize,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return SizeChangeEvent(
@@ -112,7 +108,6 @@ class SizeChangeEvent extends Event {
       newSize: newSize ?? this.newSize,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
     );

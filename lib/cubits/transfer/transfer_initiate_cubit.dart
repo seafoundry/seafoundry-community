@@ -24,8 +24,6 @@ class TransferInitiateState extends Equatable {
     ProvenanceLifeStageSelection? provenanceSelection,
     this.selectedPhysicalFormId = 'fragment',
     this.sizeSpec = const SizeSpec(),
-    this.permitValidFrom,
-    this.permitValidTo,
     this.ownershipType = TransferOwnershipType.fullTransfer,
     this.isThirdPartyDetected = false,
     this.originalOwnerOrganizationId,
@@ -55,12 +53,6 @@ class TransferInitiateState extends Equatable {
 
   /// Size specification for the transferred organisms.
   final SizeSpec sizeSpec;
-
-  /// Permit valid-from date (optional).
-  final DateTime? permitValidFrom;
-
-  /// Permit valid-to date (optional).
-  final DateTime? permitValidTo;
 
   /// Ownership type for the transfer (full, retained, or third-party).
   final TransferOwnershipType ownershipType;
@@ -105,8 +97,6 @@ class TransferInitiateState extends Equatable {
     ProvenanceLifeStageSelection? provenanceSelection,
     String? selectedPhysicalFormId,
     SizeSpec? sizeSpec,
-    Object? permitValidFrom = _sentinel,
-    Object? permitValidTo = _sentinel,
     TransferOwnershipType? ownershipType,
     bool? isThirdPartyDetected,
     Object? originalOwnerOrganizationId = _sentinel,
@@ -139,12 +129,6 @@ class TransferInitiateState extends Equatable {
       selectedPhysicalFormId:
           selectedPhysicalFormId ?? this.selectedPhysicalFormId,
       sizeSpec: sizeSpec ?? this.sizeSpec,
-      permitValidFrom: permitValidFrom == _sentinel
-          ? this.permitValidFrom
-          : permitValidFrom as DateTime?,
-      permitValidTo: permitValidTo == _sentinel
-          ? this.permitValidTo
-          : permitValidTo as DateTime?,
       ownershipType: ownershipType ?? this.ownershipType,
       isThirdPartyDetected: isThirdPartyDetected ?? this.isThirdPartyDetected,
       originalOwnerOrganizationId: originalOwnerOrganizationId == _sentinel
@@ -167,8 +151,6 @@ class TransferInitiateState extends Equatable {
         provenanceSelection,
         selectedPhysicalFormId,
         sizeSpec,
-        permitValidFrom,
-        permitValidTo,
         ownershipType,
         isThirdPartyDetected,
         originalOwnerOrganizationId,
@@ -199,8 +181,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
              initialPhysicalFormId,
            ),
            sizeSpec: _initialSizeSpec(originalEvent, initialSizeSpec),
-           permitValidFrom: originalEvent?.permitMetadata.validFrom,
-           permitValidTo: originalEvent?.permitMetadata.validTo,
          ),
        ) {
     if (originalEvent != null && originalEvent!.toOrganizationId != null) {
@@ -244,14 +224,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
   /// Update the size specification.
   void updateSizeSpec(SizeSpec sizeSpec) {
     emit(state.copyWith(sizeSpec: sizeSpec));
-  }
-
-  /// Update permit dates.
-  void updatePermitDates({DateTime? validFrom, DateTime? validTo}) {
-    emit(state.copyWith(
-      permitValidFrom: validFrom,
-      permitValidTo: validTo,
-    ));
   }
 
   /// Sets the ownership type for the transfer.
@@ -325,7 +297,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
     required String physicalFormId,
     required SizeSpec sizeSpec,
     String? comment,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometryInput? geometryInput,
     Map<String, int>? inventorySelection,
   }) async {
@@ -335,7 +306,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
         transferEventId: originalEvent!.id,
         quantity: quantity,
         comment: comment?.isEmpty == true ? null : comment,
-        permitMetadata: permitMetadata,
         provenanceTypeOverride: provenanceSelection.provenanceType,
         lifeStageOverride: provenanceSelection.lifeStage,
         physicalFormOverride: physicalFormId,
@@ -364,7 +334,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
           quantity: quantity,
           sourceStructureUrlPath: sourceStructureUrlPath,
           comment: comment?.isEmpty == true ? null : comment,
-          permitMetadata: permitMetadata ?? const EventPermitMetadata.empty(),
           provenanceTypeOverride: provenanceSelection.provenanceType,
           lifeStageOverride: provenanceSelection.lifeStage,
           physicalFormOverride: physicalFormId,
@@ -391,7 +360,6 @@ class TransferInitiateCubit extends Cubit<TransferInitiateState> {
           quantity: quantity,
           sourceStructureUrlPath: sourceStructureUrlPath,
           comment: comment?.isEmpty == true ? null : comment,
-          permitMetadata: permitMetadata ?? const EventPermitMetadata.empty(),
           provenanceTypeOverride: provenanceSelection.provenanceType,
           lifeStageOverride: provenanceSelection.lifeStage,
           physicalFormOverride: physicalFormId,

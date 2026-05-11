@@ -102,7 +102,6 @@ class ActivityEvent extends Event {
     String? description,
     Map<String, dynamic>? parameters,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return ActivityEvent(
@@ -119,7 +118,6 @@ class ActivityEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
 

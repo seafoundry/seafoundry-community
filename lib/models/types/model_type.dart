@@ -13,8 +13,6 @@ enum ModelType {
   invitation(collectionPath: 'invitations'),
   organismRecord(collectionPath: 'organismRecords'),
   brandProfile(collectionPath: 'brand_profiles'),
-  permit(collectionPath: 'permits'),
-  deliverable(collectionPath: 'deliverables'),
   unknown(collectionPath: '');
 
   final String collectionPath;
@@ -51,10 +49,6 @@ enum ModelType {
         return 'organism record';
       case ModelType.brandProfile:
         return 'brand profile';
-      case ModelType.permit:
-        return 'permit';
-      case ModelType.deliverable:
-        return 'deliverable';
       case ModelType.unknown:
         return 'unknown';
     }
@@ -92,10 +86,6 @@ enum ModelType {
     'organismrecord': ModelType.organismRecord,
     'brand_profiles': ModelType.brandProfile,
     'brand_profile': ModelType.brandProfile,
-    'permits': ModelType.permit,
-    'permit': ModelType.permit,
-    'deliverables': ModelType.deliverable,
-    'deliverable': ModelType.deliverable,
   };
 
   static ModelType fromPath(String path) {

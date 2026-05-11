@@ -150,7 +150,6 @@ class MoveInEvent extends Event with MoveEvent {
     int? quantity,
     String? reason,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return MoveInEvent(
@@ -167,7 +166,6 @@ class MoveInEvent extends Event with MoveEvent {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
 

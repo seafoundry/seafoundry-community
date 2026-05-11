@@ -40,7 +40,6 @@ class TransferEvent extends Event {
     required super.slug,
     super.metadata,
     required super.recordModelType,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     OutplantGeometry? geometry,
     EventBaseParams base = const EventBaseParams(),
     this.genetRecordId,
@@ -64,7 +63,6 @@ class TransferEvent extends Event {
   }) : super(
          eventTypeId: LoanEventType.loanId,
          base: EventBaseParams(
-           permitMetadata: base.permitMetadata ?? permitMetadata,
            geometry: base.clearGeometry ? null : base.geometry ?? geometry,
            clearGeometry: base.clearGeometry,
          ),
@@ -103,11 +101,6 @@ class TransferEvent extends Event {
       super.partial(
         json: json,
         base: EventBaseParams(
-          permitMetadata: EventPermitMetadata.fromJson(
-            json['permitMetadata'] is Map<String, dynamic>
-                ? Map<String, dynamic>.from(json['permitMetadata'] as Map)
-                : null,
-          ),
           geometry: OutplantGeometry.maybeFromJson(json['geometry']),
         ),
       );
@@ -129,7 +122,6 @@ class TransferEvent extends Event {
     String? sourceStructureUrlPath,
     int quantity = 0,
     String? comment,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     Map<String, dynamic>? metadata,
     OutplantGeometry? geometry,
   }) {
@@ -163,7 +155,6 @@ class TransferEvent extends Event {
       targetUrlPath: toOrganizationId,
       stateHistory: history,
       manifestVersion: TransferManifest.currentVersion,
-      permitMetadata: permitMetadata,
       metadata: metadata,
       geometry: geometry,
     );
@@ -184,7 +175,6 @@ class TransferEvent extends Event {
     String? fromOrganizationId,
     int quantity = 0,
     String? comment,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     Map<String, dynamic>? metadata,
   }) {
     return TransferEvent(
@@ -215,7 +205,6 @@ class TransferEvent extends Event {
         },
       ],
       manifestVersion: TransferManifest.currentVersion,
-      permitMetadata: permitMetadata,
       metadata: metadata,
     );
   }
@@ -321,7 +310,6 @@ class TransferEvent extends Event {
     String? trackingNumber,
     List<Map<String, dynamic>>? stateHistory,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return TransferEvent(
@@ -337,7 +325,6 @@ class TransferEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
 

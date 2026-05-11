@@ -56,7 +56,6 @@ class OutplantSubmissionService {
   /// - [percentDisease]: Optional percent disease measurement
   /// - [comment]: Optional comment/notes
   /// - [attachmentUrls]: Optional attachment URLs (unused, kept for API compatibility)
-  /// - [permitMetadata]: Optional permit metadata
   ///
   /// Returns [OutplantSubmissionResult] with created event and affected organisms.
   ///
@@ -75,7 +74,6 @@ class OutplantSubmissionService {
     double? percentDisease,
     String? comment,
     List<String>? attachmentUrls,
-    EventPermitMetadata? permitMetadata,
   }) async {
     // Validation
     final trimmedEventName = eventName.trim();
@@ -160,7 +158,6 @@ class OutplantSubmissionService {
       healthStatus: healthStatus?.id,
       comment: comment?.trim().isEmpty ?? true ? null : comment!.trim(),
       geometry: geometry,
-      permitMetadata: permitMetadata ?? const EventPermitMetadata.empty(),
       batch: batch,
     );
 

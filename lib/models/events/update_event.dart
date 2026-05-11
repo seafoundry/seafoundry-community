@@ -96,7 +96,6 @@ class UpdateEvent extends Event {
     Map<String, dynamic>? fieldUpdates,
     String? notes,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return UpdateEvent(
@@ -113,7 +112,6 @@ class UpdateEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
 

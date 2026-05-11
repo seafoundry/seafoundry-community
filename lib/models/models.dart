@@ -22,8 +22,6 @@ export 'movement/partial_move_selection.dart';
 export 'organization.dart';
 export 'outplant/outplant.dart';
 export 'payloads/organism_record_payloads.dart';
-export 'permits/deliverable.dart';
-export 'permits/permit.dart';
 export 'population_measurement.dart';
 export 'provenance_base.dart';
 export 'provenance_life_stage_selection.dart';

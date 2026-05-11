@@ -124,7 +124,6 @@ class ObservationEvent extends Event with ImageEvent {
     String? internalPath,
     String? slug,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return ObservationEvent(
@@ -146,7 +145,6 @@ class ObservationEvent extends Event with ImageEvent {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
       eventTypeId: eventTypeId ?? this.eventTypeId,

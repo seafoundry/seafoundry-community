@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seafoundry_app/constants/constants.dart';
-import 'package:seafoundry_app/cubits/current_user/current_user_cubit.dart';
-import 'package:seafoundry_app/cubits/current_user/current_user_state.dart';
 import 'package:seafoundry_app/cubits/outplant/organism_selection_cubit.dart';
 import 'package:seafoundry_app/cubits/outplant/organism_selection_state.dart';
 import 'package:seafoundry_app/cubits/transfer/transfer_initiate_cubit.dart';
@@ -23,7 +21,6 @@ import 'package:seafoundry_app/widgets/common/five_axis_editor.dart';
 import 'package:seafoundry_app/widgets/common/step_progress_indicator.dart';
 import 'package:seafoundry_app/widgets/dialogs/base_async_dialog.dart';
 import 'package:seafoundry_app/widgets/dialogs/base_search_dialog.dart';
-import 'package:seafoundry_app/widgets/dialogs/components/permit_selector_widget.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/transfer_initiate_form.dart';
 import 'package:seafoundry_app/widgets/dialogs/components/transfer_manifest_summary.dart';
 import 'package:seafoundry_app/widgets/dialogs/outplant_batch/outplant_coral_selection.dart';
@@ -74,12 +71,7 @@ class _TransferInitiateDialogState
   late final TextEditingController _quantityController;
   late final TextEditingController _commentController;
   late final TextEditingController _recipientEmailController;
-  late final TextEditingController _permitIdController;
-  late final TextEditingController _permitTypeController;
-  late final TextEditingController _issuingAuthorityController;
-  late final TextEditingController _attachmentUrlsController;
   late final TextEditingController _selectionSearchController;
-  late final bool _hadInitialPermit;
   late final OrganismSelectionCubit _selectionCubit;
   final Map<String, TextEditingController> _selectionQuantityControllers = {};
   late String _selectedGenetId;
@@ -118,7 +110,7 @@ class _TransferInitiateDialogState
   }
 
   /// Step labels for the multi-step transfer workflow
-  static const List<String> _stepLabels = ['Selection', 'Permits'];
+  static const List<String> _stepLabels = ['Selection'];
 
   @override
   void initState() {
@@ -136,20 +128,6 @@ class _TransferInitiateDialogState
     _recipientEmailController = TextEditingController(
       text: widget.originalEvent?.toOrganizationEmail ?? '',
     )..addListener(_onRecipientEmailChanged);
-    final permit =
-        widget.originalEvent?.permitMetadata ??
-        const EventPermitMetadata.empty();
-    _permitIdController = TextEditingController(text: permit.permitId ?? '');
-    _permitTypeController = TextEditingController(
-      text: permit.permitType ?? '',
-    );
-    _issuingAuthorityController = TextEditingController(
-      text: permit.issuingAuthority ?? '',
-    );
-    _attachmentUrlsController = TextEditingController(
-      text: permit.attachmentUrls.join('\n'),
-    );
-    _hadInitialPermit = !permit.isEmpty;
     _selectionSearchController = TextEditingController()
       ..addListener(_onSelectionSearchChanged);
     if (_allowsLocalIdSelection) {
@@ -170,10 +148,6 @@ class _TransferInitiateDialogState
     _recipientEmailController
       ..removeListener(_onRecipientEmailChanged)
       ..dispose();
-    _permitIdController.dispose();
-    _permitTypeController.dispose();
-    _issuingAuthorityController.dispose();
-    _attachmentUrlsController.dispose();
     _selectionSearchController
       ..removeListener(_onSelectionSearchChanged)
       ..dispose();
@@ -297,8 +271,6 @@ class _TransferInitiateDialogState
                   context.read<TransferInitiateCubit>().setOwnershipType(type);
                 },
               ),
-              const SizedBox(height: 20),
-              _buildPermitSection(context),
             ],
           ),
         );
@@ -962,7 +934,6 @@ class _TransferInitiateDialogState
         genetRecordId: _selectedGenetId,
         quantity: quantity,
         comment: _commentController.text.trim(),
-        permitMetadata: _buildPermitMetadata(currentState),
         provenanceSelection: currentState.provenanceSelection,
         physicalFormId: currentState.selectedPhysicalFormId,
         sizeSpec: currentState.sizeSpec,
@@ -1311,146 +1282,8 @@ class _TransferInitiateDialogState
     return resolved == genetRecordId;
   }
 
-  EventPermitMetadata? _buildPermitMetadata(TransferInitiateState state) {
-    return buildPermitMetadataFromTextInputs(
-      permitIdText: _permitIdController.text,
-      permitTypeText: _permitTypeController.text,
-      issuingAuthorityText: _issuingAuthorityController.text,
-      attachmentsText: _attachmentUrlsController.text,
-      validFrom: state.permitValidFrom,
-      validTo: state.permitValidTo,
-      hadInitialPermit: _hadInitialPermit,
-      isEditMode: _isEditMode,
-    );
-  }
-
-  Widget _buildPermitSection(BuildContext context) {
-    final organizationId = context.read<Organization>().id;
-    final cubit = context.read<TransferInitiateCubit>();
-    final cubitState = cubit.state;
-    final permitId = _permitIdController.text;
-
-    // Capture user context for permit creation
-    final currentUserState = context.read<CurrentUser>().state;
-    final userId = currentUserState is CurrentUserLoaded
-        ? currentUserState.user.id
-        : null;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Permit (Optional)',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        PermitSelectorWidget(
-          organizationId: organizationId,
-          userId: userId,
-          selectedPermitId: permitId.isNotEmpty ? permitId : null,
-          enabled: !isLoading,
-          displayOptions: PermitSelectorDisplayOptions.compact,
-          onPermitSelected: (permit) {
-            if (permit == null) {
-              // Clear all permit fields
-              _permitIdController.text = '';
-              _permitTypeController.text = '';
-              _issuingAuthorityController.text = '';
-              _attachmentUrlsController.text = '';
-              cubit.updatePermitDates(validFrom: null, validTo: null);
-            } else {
-              // Populate all fields from the selected permit
-              _permitIdController.text = permit.permitNumber;
-              _permitTypeController.text = permit.type.displayName;
-              _issuingAuthorityController.text = permit.issuingAuthority;
-              _attachmentUrlsController.text = permit.attachmentUrls.join(
-                '\n',
-              );
-              cubit.updatePermitDates(
-                validFrom: permit.validFrom,
-                validTo: permit.validTo,
-              );
-            }
-          },
-        ),
-        // Show selected permit details if one is selected
-        if (permitId.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _buildSelectedPermitDetails(cubitState),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildSelectedPermitDetails(TransferInitiateState state) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.green.shade200),
-        borderRadius: BorderRadius.circular(4),
-        color: Colors.green.shade50,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.verified, color: Colors.green.shade700, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                'Selected Permit',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green.shade700,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _buildPermitDetailRow('Permit #', _permitIdController.text),
-          if (_permitTypeController.text.isNotEmpty)
-            _buildPermitDetailRow('Type', _permitTypeController.text),
-          if (_issuingAuthorityController.text.isNotEmpty)
-            _buildPermitDetailRow(
-              'Authority',
-              _issuingAuthorityController.text,
-            ),
-          if (state.permitValidFrom != null && state.permitValidTo != null)
-            _buildPermitDetailRow(
-              'Valid',
-              '${_formatPermitDate(state.permitValidFrom!)} - ${_formatPermitDate(state.permitValidTo!)}',
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPermitDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-            ),
-          ),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
-        ],
-      ),
-    );
-  }
-
-  String _formatPermitDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
-  }
-
   /// Determines the current step based on form completion state.
   /// Step 0: Selection (recipient + quantity)
-  /// Step 1: Permits (permit metadata)
   int _getCurrentStep(
     TransferInitiateState state,
     OrganismSelectionState selectionState,
@@ -1458,12 +1291,9 @@ class _TransferInitiateDialogState
     if (_allowsLocalIdSelection && _selectedGenetId.isEmpty) {
       return 0;
     }
-    // If recipient not valid, still on step 0
     if (!state.hasValidRecipient) {
       return 0;
     }
-
-    // If quantity is empty or invalid, still on step 0
     if (_isEditMode) {
       final quantity = double.tryParse(_quantityController.text.trim());
       if (quantity == null || quantity <= 0) {
@@ -1472,18 +1302,7 @@ class _TransferInitiateDialogState
     } else if (!selectionState.isValid) {
       return 0;
     }
-
-    // If any permit field has content, on step 1
-    if (_permitIdController.text.isNotEmpty ||
-        _permitTypeController.text.isNotEmpty ||
-        _issuingAuthorityController.text.isNotEmpty ||
-        state.permitValidFrom != null ||
-        state.permitValidTo != null) {
-      return 1;
-    }
-
-    // Default: all basic details complete, ready for permits (step 1)
-    return 1;
+    return 0;
   }
 
   @override

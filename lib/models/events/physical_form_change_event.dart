@@ -54,9 +54,6 @@ class PhysicalFormChangeEvent extends Event {
       newFormId: json['newFormId']?.toString(),
       metadata: safeMapCast(json['metadata']),
       base: EventBaseParams(
-        permitMetadata: EventPermitMetadata.fromJson(
-          safeMapCast(json['permitMetadata']),
-        ),
         geometry: OutplantGeometry.maybeFromJson(json['geometry']),
       ),
     );
@@ -84,7 +81,6 @@ class PhysicalFormChangeEvent extends Event {
     String? oldFormId,
     String? newFormId,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return PhysicalFormChangeEvent(
@@ -106,7 +102,6 @@ class PhysicalFormChangeEvent extends Event {
       newFormId: newFormId ?? this.newFormId,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
     );

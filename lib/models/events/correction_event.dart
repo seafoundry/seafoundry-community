@@ -61,7 +61,6 @@ class CorrectionEvent extends Event {
     String? correctedEventId,
     String? notes,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return CorrectionEvent(
@@ -76,7 +75,6 @@ class CorrectionEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
 

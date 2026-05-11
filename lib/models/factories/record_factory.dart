@@ -101,10 +101,6 @@ class RecordFactory {
           return OrganismRecord.fromJson(normalizedJson) as T;
         case (ModelType.brandProfile):
           return BrandProfile.fromJson(normalizedJson) as T;
-        case (ModelType.permit):
-          return Permit.fromJson(normalizedJson) as T;
-        case (ModelType.deliverable):
-          return Deliverable.fromJson(normalizedJson) as T;
         case (ModelType.unknown):
           throw RecordFactoryError(
             message: 'Empty model type',
@@ -212,10 +208,6 @@ class RecordFactory {
           return OrganismRecord.fromJson(normalizedJson) as T;
         case ModelType.brandProfile:
           return BrandProfile.partial(json: normalizedJson) as T;
-        case ModelType.permit:
-          return Permit.partial(json: normalizedJson) as T;
-        case ModelType.deliverable:
-          return Deliverable.partial(json: normalizedJson) as T;
         case ModelType.unknown:
           throw RecordFactoryError(
             message: 'Empty model type',

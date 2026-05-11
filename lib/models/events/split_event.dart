@@ -116,7 +116,6 @@ class SplitEvent extends InventoryEvent with CommentEvent {
     String? internalPath,
     String? slug,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
     InventoryRecord? sourceSnapshotBefore,
     String? targetOrganismId,
@@ -142,7 +141,6 @@ class SplitEvent extends InventoryEvent with CommentEvent {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
       sourceSnapshotBefore: sourceSnapshotBefore ?? this.sourceSnapshotBefore,

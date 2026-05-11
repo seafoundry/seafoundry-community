@@ -70,7 +70,6 @@ class CreateEvent extends InventoryEvent {
     ModelType? recordModelType,
     InventoryRecord? snapshot,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) => CreateEvent(
     id: id ?? this.id,
@@ -85,7 +84,7 @@ class CreateEvent extends InventoryEvent {
     internalPath: internalPath ?? this.internalPath,
     slug: slug ?? this.slug,
     metadata: metadata ?? this.metadata,
-    base: resolveBaseParams(permitMetadata: permitMetadata, geometry: geometry),
+    base: resolveBaseParams(geometry: geometry),
     snapshot: snapshot ?? this.snapshot,
   );
 }

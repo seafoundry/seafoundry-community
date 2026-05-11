@@ -22,7 +22,6 @@ class SiteCapabilities {
     required this.allowMoveActions,
     required this.defaultVisibleEventTypes,
     this.supportsGeometry = false,
-    this.supportsPermitUpload = true,
     this.canReceiveTransfers = true,
   });
 
@@ -34,7 +33,6 @@ class SiteCapabilities {
   final bool allowMoveActions;
   final Set<EventType> defaultVisibleEventTypes;
   final bool supportsGeometry;
-  final bool supportsPermitUpload;
   final bool canReceiveTransfers;
 
   /// Coral-only build.
@@ -81,7 +79,6 @@ class SiteCapabilities {
       allowMoveActions: false,
       canReceiveTransfers: false,
       supportsGeometry: true,
-      supportsPermitUpload: true,
       defaultVisibleEventTypes: {
         EventType.activity,
         EventType.observation,

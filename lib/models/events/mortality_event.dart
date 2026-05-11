@@ -49,7 +49,6 @@ class MortalityEvent extends PopulationLossEvent {
          newPopulation: event.newPopulation,
          lossReasonId: PopulationLossReason.mortality.id,
          base: EventBaseParams(
-           permitMetadata: event.permitMetadata,
            geometry: event.geometry,
          ),
        );
@@ -91,7 +90,6 @@ class MortalityEvent extends PopulationLossEvent {
     int? oldPopulation,
     int? newPopulation,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return MortalityEvent(
@@ -114,7 +112,6 @@ class MortalityEvent extends PopulationLossEvent {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
 

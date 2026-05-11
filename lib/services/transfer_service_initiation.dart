@@ -11,7 +11,6 @@ extension _TransferServiceInitiation on TransferService {
     required int quantity,
     String? sourceStructureUrlPath,
     String? comment,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? physicalFormOverride,
@@ -74,7 +73,6 @@ extension _TransferServiceInitiation on TransferService {
         sourceStructureUrlPath: sourcePath,
         quantity: quantity,
         comment: comment,
-        permitMetadata: permitMetadata,
         metadata: selectionMetadata.isEmpty ? null : selectionMetadata,
         geometry: geometry,
       );
@@ -360,7 +358,6 @@ extension _TransferServiceInitiation on TransferService {
     required int quantity,
     String? sourceStructureUrlPath,
     String? comment,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? physicalFormOverride,
@@ -424,7 +421,6 @@ extension _TransferServiceInitiation on TransferService {
         sourceStructureUrlPath: sourcePath,
         quantity: quantity,
         comment: comment,
-        permitMetadata: permitMetadata,
         metadata: selectionMetadata.isEmpty ? null : selectionMetadata,
         geometry: geometry,
       );

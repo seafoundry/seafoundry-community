@@ -11,5 +11,4 @@ export 'inventory/provenance_repository.dart';
 export 'invitation_repository.dart';
 export 'onboarding_repository.dart';
 export 'organization_repository.dart';
-export 'permit_repository.dart';
 export 'record_repository.dart';

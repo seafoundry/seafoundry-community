@@ -308,8 +308,6 @@ class _RepositoriesProviderState extends State<RepositoriesProvider> {
       firestore: firestore,
     );
 
-    final permitRepository = PermitRepository(firestore: firestore);
-
     final transferService = TransferService(
       provenanceRepository: provenanceRepository,
       eventRepository: eventRepository,
@@ -327,9 +325,6 @@ class _RepositoriesProviderState extends State<RepositoriesProvider> {
       ),
       RepositoryProvider<InvitationRepository>(
         create: (_) => invitationRepository,
-      ),
-      RepositoryProvider<PermitRepository>(
-        create: (_) => permitRepository,
       ),
       RepositoryProvider<EventRepository>(
         create: (_) => eventRepository,

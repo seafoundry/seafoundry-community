@@ -658,92 +658,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
     emit(state.copyWith(aliases: aliases, error: null));
   }
 
-  void permitIdChanged(String value) {
-    emit(state.copyWith(permitId: value, error: null));
-  }
-
-  void permitTypeChanged(String value) {
-    emit(state.copyWith(permitType: value, error: null));
-  }
-
-  void permitIssuingAuthorityChanged(String value) {
-    emit(state.copyWith(permitIssuingAuthority: value, error: null));
-  }
-
-  void permitAttachmentUrlsChanged(String value) {
-    emit(state.copyWith(permitAttachmentUrls: value, error: null));
-  }
-
-  void permitValidFromChanged(DateTime? date) {
-    DateTime? adjustedEnd = state.permitValidTo;
-    if (date != null && adjustedEnd != null && date.isAfter(adjustedEnd)) {
-      adjustedEnd = date;
-    }
-    emit(
-      state.copyWith(
-        permitValidFrom: date,
-        permitValidTo: adjustedEnd,
-        error: null,
-      ),
-    );
-  }
-
-  void permitValidToChanged(DateTime? date) {
-    DateTime? adjustedStart = state.permitValidFrom;
-    if (date != null && adjustedStart != null && date.isBefore(adjustedStart)) {
-      adjustedStart = date;
-    }
-    emit(
-      state.copyWith(
-        permitValidFrom: adjustedStart,
-        permitValidTo: date,
-        error: null,
-      ),
-    );
-  }
-
-  /// Select a permit and auto-fill permit metadata fields from the permit record
-  void selectedPermitChanged(String? permitId) {
-    emit(state.copyWith(selectedPermitId: permitId, error: null));
-  }
-
-  /// Auto-fill permit metadata from a permit record
-  void autoFillPermitFromRecord({
-    required String permitNumber,
-    required String permitName,
-    required String issuingAuthority,
-    required DateTime validFrom,
-    required DateTime validTo,
-    required String typeId,
-  }) {
-    emit(
-      state.copyWith(
-        permitId: permitNumber,
-        permitType: typeId,
-        permitIssuingAuthority: issuingAuthority,
-        permitValidFrom: validFrom,
-        permitValidTo: validTo,
-        error: null,
-      ),
-    );
-  }
-
-  /// Clear permit selection and metadata
-  void clearPermit() {
-    emit(
-      state.copyWith(
-        selectedPermitId: null,
-        permitId: '',
-        permitType: '',
-        permitIssuingAuthority: '',
-        permitAttachmentUrls: '',
-        permitValidFrom: null,
-        permitValidTo: null,
-        error: null,
-      ),
-    );
-  }
-
   // ==========================================================================
   // PROVENANCE ID SEARCH (only active when isNewGenet == true)
   // ==========================================================================
@@ -1010,7 +924,7 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
         wildCollectionMethod: state.wildCollectionMethod,
       );
 
-      // Build metadata with permit information and creation/gain reason
+      // Build metadata with creation/gain reason
       final metadata = <String, dynamic>{...?additionalMetadata};
 
       // Add creation reason based on mode:
@@ -1047,22 +961,6 @@ class OrganismCreationCubit extends Cubit<OrganismCreationState>
         if (transferEmail != null && transferEmail.isNotEmpty) {
           metadata['sourceOrganizationEmail'] = transferEmail;
         }
-      }
-
-      if (state.hasPermitMetadata) {
-        metadata['permit'] = <String, dynamic>{
-          if (state.permitId.trim().isNotEmpty) 'id': state.permitId.trim(),
-          if (state.permitType.trim().isNotEmpty)
-            'type': state.permitType.trim(),
-          if (state.permitIssuingAuthority.trim().isNotEmpty)
-            'issuingAuthority': state.permitIssuingAuthority.trim(),
-          if (state.permitAttachmentUrls.trim().isNotEmpty)
-            'attachmentUrls': state.permitAttachmentUrls.trim(),
-          if (state.permitValidFrom != null)
-            'validFrom': state.permitValidFrom!.toIso8601String(),
-          if (state.permitValidTo != null)
-            'validTo': state.permitValidTo!.toIso8601String(),
-        };
       }
 
       // Genet's local ID: selected genet name, explicit local ID, or suggested ID.

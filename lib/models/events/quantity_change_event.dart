@@ -73,9 +73,6 @@ class QuantityChangeEvent extends Event {
       newTissueAreaCm2: safeDouble(json['newTissueAreaCm2']),
       metadata: safeMapCast(json['metadata']),
       base: EventBaseParams(
-        permitMetadata: EventPermitMetadata.fromJson(
-          safeMapCast(json['permitMetadata']),
-        ),
         geometry: OutplantGeometry.maybeFromJson(json['geometry']),
       ),
     );
@@ -138,7 +135,6 @@ class QuantityChangeEvent extends Event {
     double? oldTissueAreaCm2,
     double? newTissueAreaCm2,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return QuantityChangeEvent(
@@ -166,7 +162,6 @@ class QuantityChangeEvent extends Event {
       newTissueAreaCm2: newTissueAreaCm2 ?? this.newTissueAreaCm2,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
     );

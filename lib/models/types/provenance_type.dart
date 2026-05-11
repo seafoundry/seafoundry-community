@@ -4,7 +4,7 @@ import 'package:seafoundry_app/models/types/provenance_kind.dart';
 
 /// Canonical provenance taxonomy used by the OrganismRecord DTO.
 ///
-/// * `wild` -- stocks collected in the wild (permits required, keeps method).
+/// * `wild` -- stocks collected in the wild (keeps collection method).
 /// * `cohort` -- organisms from a nursery-reared cohort (asexual propagation batch).
 /// * `graduatedIndividual` -- individual promoted from a cohort to its own genet identity.
 /// * `transfer` -- organisms received from another facility or external source.

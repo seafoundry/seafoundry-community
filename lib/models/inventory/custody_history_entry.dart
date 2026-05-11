@@ -14,7 +14,7 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 /// - The type of ownership arrangement
 ///
 /// The history is append-only and provides a complete audit trail for
-/// regulatory compliance and provenance tracking.
+/// provenance tracking.
 class CustodyHistoryEntry extends Equatable {
   const CustodyHistoryEntry({
     required this.ownerOrganizationId,

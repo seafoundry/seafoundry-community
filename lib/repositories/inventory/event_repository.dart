@@ -592,8 +592,6 @@ class EventRepository extends _EventRepositoryBase {
     double? percentDisease,
     String? healthStatus,
     OutplantGeometry? geometry,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
-    String? deliverableId,
     String? attachmentMethodId,
     WriteBatch? batch,
   }) async {
@@ -622,8 +620,6 @@ class EventRepository extends _EventRepositoryBase {
       percentDisease: percentDisease,
       healthStatus: healthStatus,
       geometry: geometry,
-      permitMetadata: permitMetadata,
-      deliverableId: deliverableId,
       attachmentMethodId: attachmentMethodId,
     );
 

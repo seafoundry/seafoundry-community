@@ -10,7 +10,7 @@ import 'package:seafoundry_app/models/utils/json_casts.dart';
 ///
 /// This is the preferred event type for recording when organisms transition between
 /// life stages. It extends the Event base class and integrates with the inventory
-/// event system, providing full support for permits, metadata, and organism snapshots.
+/// event system, providing full support for metadata and organism snapshots.
 ///
 /// Use EventRepository.createLifeStageTransitionEvent() to create instances.
 ///
@@ -75,9 +75,6 @@ class LifeStageTransitionEvent extends Event {
       transitionReason: json['transitionReason']?.toString(),
       metadata: safeMapCast(json['metadata']),
       base: EventBaseParams(
-        permitMetadata: EventPermitMetadata.fromJson(
-          safeMapCast(json['permitMetadata']),
-        ),
         geometry: OutplantGeometry.maybeFromJson(json['geometry']),
       ),
     );
@@ -111,7 +108,6 @@ class LifeStageTransitionEvent extends Event {
     String? newSubtype,
     String? transitionReason,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     return LifeStageTransitionEvent(
@@ -136,7 +132,6 @@ class LifeStageTransitionEvent extends Event {
       transitionReason: transitionReason ?? this.transitionReason,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ),
     );

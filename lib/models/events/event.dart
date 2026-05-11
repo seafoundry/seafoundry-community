@@ -1,34 +1,27 @@
-import 'package:meta/meta.dart';
 import 'package:seafoundry_app/models/records/inventory_record.dart';
 import 'package:seafoundry_app/models/records/record.dart';
 import 'package:seafoundry_app/models/types/event_type.dart';
 import 'package:seafoundry_app/models/types/model_type.dart';
 import 'package:seafoundry_app/models/utils/json_casts.dart';
 
-import 'event_permit_metadata.dart';
 import 'outplant_geometry.dart';
 
-export 'event_permit_metadata.dart';
 export 'outplant_geometry.dart';
 
 class EventBaseParams {
   const EventBaseParams({
-    this.permitMetadata,
     this.geometry,
     this.clearGeometry = false,
   });
 
-  final EventPermitMetadata? permitMetadata;
   final OutplantGeometry? geometry;
   final bool clearGeometry;
 
   EventBaseParams copyWith({
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
     bool? clearGeometry,
   }) {
     return EventBaseParams(
-      permitMetadata: permitMetadata ?? this.permitMetadata,
       geometry: clearGeometry == true ? null : (geometry ?? this.geometry),
       clearGeometry: clearGeometry ?? this.clearGeometry,
     );
@@ -50,21 +43,14 @@ class Event extends InventoryRecord {
     required this.eventTypeId,
     required this.recordId,
     required this.recordModelType,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     OutplantGeometry? geometry,
     EventBaseParams base = const EventBaseParams(),
-  }) : permitMetadata = base.permitMetadata ?? permitMetadata,
-       geometry = base.clearGeometry ? null : (base.geometry ?? geometry);
+  }) : geometry = base.clearGeometry ? null : (base.geometry ?? geometry);
 
   Event.fromJson(super.json)
     : eventTypeId = json['eventTypeId'],
       recordId = json['recordId'],
       recordModelType = json['recordModelType'] != null ? ModelType.fromSlug(json['recordModelType'] as String) : ModelType.unknown,
-      permitMetadata = EventPermitMetadata.fromJson(
-        json['permitMetadata'] is Map<String, dynamic>
-            ? Map<String, dynamic>.from(json['permitMetadata'])
-            : null,
-      ),
       geometry = OutplantGeometry.maybeFromJson(json['geometry']),
       super.fromJson();
 
@@ -83,7 +69,6 @@ class Event extends InventoryRecord {
     String? eventTypeId,
     String? recordId,
     ModelType? recordModelType,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
     EventBaseParams base = const EventBaseParams(),
   }) : eventTypeId = eventTypeId ?? json?['eventTypeId'] ?? Missing.string,
@@ -92,14 +77,6 @@ class Event extends InventoryRecord {
            recordModelType ??
            ModelType.values.byName(
              json?['recordModelType'] ?? ModelType.unknown.name,
-           ),
-       permitMetadata =
-           base.permitMetadata ??
-           permitMetadata ??
-           EventPermitMetadata.fromJson(
-             json?['permitMetadata'] is Map<String, dynamic>
-                 ? Map<String, dynamic>.from(json?['permitMetadata'])
-                 : null,
            ),
        geometry = base.clearGeometry
            ? null
@@ -114,7 +91,6 @@ class Event extends InventoryRecord {
       'eventTypeId': eventTypeId,
       'recordId': recordId,
       'recordModelType': recordModelType.name,
-      if (!permitMetadata.isEmpty) 'permitMetadata': permitMetadata.toJson(),
       if (geometry != null) 'geometry': geometry!.toJson(),
       ...super.toJson(),
     };
@@ -135,11 +111,9 @@ class Event extends InventoryRecord {
     String? slug,
     String? id,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
     final resolvedBase = resolveBaseParams(
-      permitMetadata: permitMetadata,
       geometry: geometry,
     );
     return Event(
@@ -160,15 +134,11 @@ class Event extends InventoryRecord {
     );
   }
 
-  @protected
   EventBaseParams resolveBaseParams({
-    EventPermitMetadata? permitMetadata,
     OutplantGeometry? geometry,
   }) {
-    final resolvedPermit = permitMetadata ?? this.permitMetadata;
     final resolvedGeometry = geometry ?? this.geometry;
     return EventBaseParams(
-      permitMetadata: resolvedPermit,
       geometry: resolvedGeometry,
     );
   }
@@ -183,12 +153,11 @@ class Event extends InventoryRecord {
   final String recordId;
   final ModelType recordModelType;
 
-  final EventPermitMetadata permitMetadata;
   final OutplantGeometry? geometry;
 
   @override
   List<Object?> get props =>
-      super.props + [eventTypeId, recordId, recordModelType, permitMetadata, geometry];
+      super.props + [eventTypeId, recordId, recordModelType, geometry];
 
   @override
   String toString() {
@@ -218,10 +187,8 @@ class OutplantEvent extends Event {
     this.percentBleaching,
     this.percentDisease,
     this.healthStatus,
-    this.deliverableId,
     this.attachmentMethodId,
     super.geometry,
-    super.permitMetadata,
     super.base,
   }) : super(eventTypeId: 'outplant_event');
 
@@ -234,7 +201,6 @@ class OutplantEvent extends Event {
       percentBleaching = safeDouble(json['percentBleaching']),
       percentDisease = safeDouble(json['percentDisease']),
       healthStatus = json['healthStatus'],
-      deliverableId = json['deliverableId'] as String?,
       attachmentMethodId = json['attachmentMethodId'] as String?,
       super.fromJson();
 
@@ -262,10 +228,8 @@ class OutplantEvent extends Event {
     double? percentBleaching,
     double? percentDisease,
     String? healthStatus,
-    String? deliverableId,
     String? attachmentMethodId,
     OutplantGeometry? geometry,
-    EventPermitMetadata? permitMetadata,
     super.base,
   }) : name =
            name ??
@@ -285,7 +249,6 @@ class OutplantEvent extends Event {
        percentDisease =
            percentDisease ?? safeDouble(json?['percentDisease']),
        healthStatus = healthStatus ?? json?['healthStatus'],
-       deliverableId = deliverableId ?? json?['deliverableId'] as String?,
        attachmentMethodId = attachmentMethodId ?? json?['attachmentMethodId'] as String?,
        super.partial(eventTypeId: eventTypeId ?? 'outplant_event');
 
@@ -297,9 +260,6 @@ class OutplantEvent extends Event {
   final double? percentBleaching;
   final double? percentDisease;
   final String? healthStatus;
-
-  /// Optional link to a Deliverable for permit tracking
-  final String? deliverableId;
 
   /// Attachment method used for this outplant (builtin or custom ID)
   final String? attachmentMethodId;
@@ -326,7 +286,6 @@ class OutplantEvent extends Event {
       if (percentBleaching != null) 'percentBleaching': percentBleaching,
       if (percentDisease != null) 'percentDisease': percentDisease,
       if (healthStatus != null) 'healthStatus': healthStatus,
-      if (deliverableId != null) 'deliverableId': deliverableId,
       if (attachmentMethodId != null) 'attachmentMethodId': attachmentMethodId,
       'totalQuantity': totalQuantity,
       ...super.toJson(),
@@ -364,14 +323,11 @@ class OutplantEvent extends Event {
     double? percentBleaching,
     double? percentDisease,
     String? healthStatus,
-    String? deliverableId,
     String? attachmentMethodId,
-    bool clearDeliverableId = false,
     bool clearAttachmentMethodId = false,
     OutplantGeometry? geometry,
     bool clearGeometry = false,
     Map<String, dynamic>? metadata,
-    EventPermitMetadata? permitMetadata,
   }) {
     return OutplantEvent(
       id: id ?? this.id,
@@ -386,7 +342,6 @@ class OutplantEvent extends Event {
       slug: slug ?? this.slug,
       metadata: metadata ?? this.metadata,
       base: resolveBaseParams(
-        permitMetadata: permitMetadata,
         geometry: geometry,
       ).copyWith(clearGeometry: clearGeometry),
 
@@ -399,7 +354,6 @@ class OutplantEvent extends Event {
       percentBleaching: percentBleaching ?? this.percentBleaching,
       percentDisease: percentDisease ?? this.percentDisease,
       healthStatus: healthStatus ?? this.healthStatus,
-      deliverableId: clearDeliverableId ? null : (deliverableId ?? this.deliverableId),
       attachmentMethodId: clearAttachmentMethodId ? null : (attachmentMethodId ?? this.attachmentMethodId),
       geometry: clearGeometry ? null : (geometry ?? this.geometry),
     );
@@ -417,7 +371,6 @@ class OutplantEvent extends Event {
         percentBleaching,
         percentDisease,
         healthStatus,
-        deliverableId,
         attachmentMethodId,
       ];
 

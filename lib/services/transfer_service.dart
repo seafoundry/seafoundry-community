@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:collection/collection.dart';
 import 'package:seafoundry_app/errors/domain_errors.dart' as domain_errors;
 import 'package:seafoundry_app/models/alias.dart';
-import 'package:seafoundry_app/models/events/event_permit_metadata.dart';
 import 'package:seafoundry_app/models/events/outplant_geometry.dart';
 import 'package:seafoundry_app/models/events/transfer_event.dart';
 import 'package:seafoundry_app/models/inventory/organism_record.dart';
@@ -113,7 +112,6 @@ class TransferService implements ManualTransferRegistrationService {
     required int quantity,
     String? sourceStructureUrlPath,
     String? comment,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? physicalFormOverride,
@@ -131,7 +129,6 @@ class TransferService implements ManualTransferRegistrationService {
         quantity: quantity,
         sourceStructureUrlPath: sourceStructureUrlPath,
         comment: comment,
-        permitMetadata: permitMetadata,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
         physicalFormOverride: physicalFormOverride,
@@ -164,7 +161,6 @@ class TransferService implements ManualTransferRegistrationService {
     required int quantity,
     String? sourceStructureUrlPath,
     String? comment,
-    EventPermitMetadata permitMetadata = const EventPermitMetadata.empty(),
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? physicalFormOverride,
@@ -182,7 +178,6 @@ class TransferService implements ManualTransferRegistrationService {
         quantity: quantity,
         sourceStructureUrlPath: sourceStructureUrlPath,
         comment: comment,
-        permitMetadata: permitMetadata,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
         physicalFormOverride: physicalFormOverride,
@@ -281,7 +276,6 @@ class TransferService implements ManualTransferRegistrationService {
     required String transferEventId,
     required int quantity,
     String? comment,
-    EventPermitMetadata? permitMetadata,
     ProvenanceType? provenanceTypeOverride,
     LifeStage? lifeStageOverride,
     String? physicalFormOverride,
@@ -294,7 +288,6 @@ class TransferService implements ManualTransferRegistrationService {
         transferEventId: transferEventId,
         quantity: quantity,
         comment: comment,
-        permitMetadata: permitMetadata,
         provenanceTypeOverride: provenanceTypeOverride,
         lifeStageOverride: lifeStageOverride,
         physicalFormOverride: physicalFormOverride,

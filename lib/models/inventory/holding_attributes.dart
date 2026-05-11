@@ -9,11 +9,6 @@ class HoldingAttributes extends Equatable {
     this.speciesId,
     this.speciesCode,
     this.speciesScientific,
-    this.permitType,
-    this.permitId,
-    this.issuingAuthority,
-    this.validFrom,
-    this.validTo,
     this.habitatType,
     this.siteJurisdiction,
     this.protectedAreaFlag,
@@ -28,11 +23,6 @@ class HoldingAttributes extends Equatable {
   final String? speciesId;
   final String? speciesCode;
   final String? speciesScientific;
-  final String? permitType;
-  final String? permitId;
-  final String? issuingAuthority;
-  final String? validFrom;
-  final String? validTo;
   final String? habitatType;
   final String? siteJurisdiction;
   final String? protectedAreaFlag;
@@ -47,11 +37,6 @@ class HoldingAttributes extends Equatable {
       speciesId == null &&
       speciesCode == null &&
       speciesScientific == null &&
-      permitType == null &&
-      permitId == null &&
-      issuingAuthority == null &&
-      validFrom == null &&
-      validTo == null &&
       habitatType == null &&
       siteJurisdiction == null &&
       protectedAreaFlag == null &&
@@ -73,11 +58,6 @@ class HoldingAttributes extends Equatable {
     put('speciesId', speciesId);
     put('speciesCode', speciesCode);
     put('speciesScientific', speciesScientific);
-    put('permitType', permitType);
-    put('permitId', permitId);
-    put('issuingAuthority', issuingAuthority);
-    put('validFrom', validFrom);
-    put('validTo', validTo);
     put('habitatType', habitatType);
     put('siteJurisdiction', siteJurisdiction);
     put('protectedAreaFlag', protectedAreaFlag);
@@ -94,11 +74,6 @@ class HoldingAttributes extends Equatable {
     String? speciesId,
     String? speciesCode,
     String? speciesScientific,
-    String? permitType,
-    String? permitId,
-    String? issuingAuthority,
-    String? validFrom,
-    String? validTo,
     String? habitatType,
     String? siteJurisdiction,
     String? protectedAreaFlag,
@@ -113,11 +88,6 @@ class HoldingAttributes extends Equatable {
       speciesId: speciesId ?? this.speciesId,
       speciesCode: speciesCode ?? this.speciesCode,
       speciesScientific: speciesScientific ?? this.speciesScientific,
-      permitType: permitType ?? this.permitType,
-      permitId: permitId ?? this.permitId,
-      issuingAuthority: issuingAuthority ?? this.issuingAuthority,
-      validFrom: validFrom ?? this.validFrom,
-      validTo: validTo ?? this.validTo,
       habitatType: habitatType ?? this.habitatType,
       siteJurisdiction: siteJurisdiction ?? this.siteJurisdiction,
       protectedAreaFlag: protectedAreaFlag ?? this.protectedAreaFlag,
@@ -135,11 +105,6 @@ class HoldingAttributes extends Equatable {
       speciesId: speciesId ?? fallback.speciesId,
       speciesCode: speciesCode ?? fallback.speciesCode,
       speciesScientific: speciesScientific ?? fallback.speciesScientific,
-      permitType: permitType ?? fallback.permitType,
-      permitId: permitId ?? fallback.permitId,
-      issuingAuthority: issuingAuthority ?? fallback.issuingAuthority,
-      validFrom: validFrom ?? fallback.validFrom,
-      validTo: validTo ?? fallback.validTo,
       habitatType: habitatType ?? fallback.habitatType,
       siteJurisdiction: siteJurisdiction ?? fallback.siteJurisdiction,
       protectedAreaFlag: protectedAreaFlag ?? fallback.protectedAreaFlag,
@@ -165,11 +130,6 @@ class HoldingAttributes extends Equatable {
       speciesId: read('speciesId'),
       speciesCode: read('speciesCode'),
       speciesScientific: read('speciesScientific'),
-      permitType: read('permitType'),
-      permitId: read('permitId'),
-      issuingAuthority: read('issuingAuthority'),
-      validFrom: read('validFrom'),
-      validTo: read('validTo'),
       habitatType: read('habitatType'),
       siteJurisdiction: read('siteJurisdiction'),
       protectedAreaFlag: read('protectedAreaFlag'),
@@ -192,11 +152,6 @@ class HoldingAttributes extends Equatable {
     speciesId,
     speciesCode,
     speciesScientific,
-    permitType,
-    permitId,
-    issuingAuthority,
-    validFrom,
-    validTo,
     habitatType,
     siteJurisdiction,
     protectedAreaFlag,
