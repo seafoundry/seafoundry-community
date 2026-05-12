@@ -1,7 +1,7 @@
 # Community Web Deployment Guide
 
 **Tier:** Community (OSS web-only)
-**Updated:** 2025-11-20
+**Updated:** 2026-05-11
 **Branch:** `main` (Community tier deployments)
 
 This guide covers deploying the SeaFoundry Community tier, a web-only, open-source platform for basic marine restoration workflows with Visual Engagement features.
