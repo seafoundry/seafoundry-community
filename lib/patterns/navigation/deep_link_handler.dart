@@ -28,18 +28,31 @@ class DeepLinkHandler {
 
   static const String _defaultCustomScheme = 'seafoundry';
   static const String _universalScheme = 'https';
-  static const List<String> _defaultUniversalHosts = <String>[
-    'seafoundry.app',
-    'www.seafoundry.app',
-    'app.seafoundry.dev',
-    'app.seafoundry.com',
-    'staging.seafoundry.app',
-    'beta.seafoundry.app',
-    'seafoundryapp.web.app',
-    'seafoundryapp.firebaseapp.com',
-    'provenance.seafoundry.com',
-    'localhost',
-  ];
+
+  /// Comma-separated list of universal-link hosts the app should treat as
+  /// "its own". Forks can override this via
+  /// `--dart-define=DEEP_LINK_HOSTS=app.example.org,www.example.org`.
+  /// `localhost` is always permitted so local development works without
+  /// configuration.
+  static const String _hostOverride = String.fromEnvironment(
+    'DEEP_LINK_HOSTS',
+    defaultValue: '',
+  );
+
+  static final List<String> _defaultUniversalHosts =
+      _parseHosts(_hostOverride);
+
+  static List<String> _parseHosts(String raw) {
+    final hosts = raw
+        .split(',')
+        .map((e) => e.trim().toLowerCase())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (!hosts.contains('localhost')) {
+      hosts.add('localhost');
+    }
+    return List.unmodifiable(hosts);
+  }
 
   /// Attempts to resolve a raw deep link string into a [GraphNode].
   static Future<GraphNode?> parseDeepLink(
