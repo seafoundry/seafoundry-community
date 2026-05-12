@@ -50,19 +50,29 @@ function getAppDomain(): string {
 
   const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "";
 
-  const domainMap: Record<string, string> = {
-    "seafoundry-app": "https://provenance.seafoundry.com",
-    "seafoundryapp": "https://provenance.seafoundry.com",
-    "seafoundry-staging": "https://seafoundry-staging.web.app",
-    "seafoundry-dev": "https://seafoundry-dev.web.app",
-  };
+  // Allow forks to override the project -> public domain mapping by setting
+  // APP_DOMAIN_MAP to a JSON object, e.g.
+  //   APP_DOMAIN_MAP='{"my-project":"https://app.example.org"}'.
+  // Falls back to APP_DOMAIN, then to the project's default Firebase Hosting
+  // domain, then to a relative path.
+  let domainMap: Record<string, string> = {};
+  if (process.env.APP_DOMAIN_MAP) {
+    try {
+      domainMap = JSON.parse(process.env.APP_DOMAIN_MAP) as Record<string, string>;
+    } catch (err) {
+      console.warn("[getAppDomain] Invalid APP_DOMAIN_MAP JSON; ignoring", err);
+    }
+  }
 
-  return domainMap[projectId] || "https://provenance.seafoundry.com";
+  const fallback =
+    process.env.APP_DOMAIN ||
+    (projectId ? `https://${projectId}.web.app` : "");
+  return domainMap[projectId] || fallback;
 }
 
 // Email configuration using Resend
 const EMAIL_FROM = "SeaFoundry <invites@email.seafoundry.com>";
-const FEEDBACK_EMAIL_TO = "dev@seafoundry.com";
+const FEEDBACK_EMAIL_TO = process.env.FEEDBACK_EMAIL_TO || "dev@example.com";
 
 const ALLOWED_FEEDBACK_TYPES = [
   "bug_report",

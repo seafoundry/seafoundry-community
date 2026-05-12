@@ -3,13 +3,16 @@
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
+import '../firebase_options.dart';
+
 /// Clears the Firestore persistence cache on web platforms.
 ///
 /// Firestore on web uses IndexedDB for persistence. This function
-/// deletes the IndexedDB database to clear the cache.
+/// deletes the IndexedDB databases that match the Firestore naming
+/// pattern for the configured project.
 ///
-/// Note: The database name pattern is 'firestore/[DEFAULT]/{project-id}/main'
-/// We use a pattern that matches common Firestore database names.
+/// The database name pattern is `firestore/[DEFAULT]/{project-id}/main`,
+/// so we derive the project ID at runtime from `firebase_options.dart`.
 ///
 /// Returns true if the deletion was initiated.
 Future<bool> clearFirestorePersistenceCache() async {
@@ -18,16 +21,11 @@ Future<bool> clearFirestorePersistenceCache() async {
     return false;
   }
 
-  // Firestore IndexedDB database names follow this pattern:
-  // firestore/[DEFAULT]/{project-id}/main
-  // We'll delete databases matching common patterns
-  final databaseNames = [
-    'firestore/[DEFAULT]/seafoundryapp/main',
-    'firestore/[DEFAULT]/seafoundry-app/main',
-    'firestore/[DEFAULT]/seafoundry/main',
-    // Add the demo database as well
-    'firestore/[DEFAULT]/seafoundryapp-demo/main',
-  ];
+  final projectId = DefaultFirebaseOptions.web.projectId;
+  final databaseNames = <String>{
+    'firestore/[DEFAULT]/$projectId/main',
+    'firestore/[DEFAULT]/$projectId-demo/main',
+  };
 
   var deleted = false;
   for (final dbName in databaseNames) {

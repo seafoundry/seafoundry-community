@@ -7,6 +7,14 @@ import 'package:seafoundry_app/models/types/site_type.dart';
 class OrganizationSetupPage extends StatelessWidget {
   const OrganizationSetupPage({super.key});
 
+  /// Public URL prefix used in the slug field. Configurable via
+  /// `--dart-define=PUBLIC_URL_PREFIX=...` so forks can swap in their
+  /// own host without code changes. Defaults to a generic placeholder.
+  static const _publicUrlPrefix = String.fromEnvironment(
+    'PUBLIC_URL_PREFIX',
+    defaultValue: 'app.example.org/',
+  );
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<OnboardingCubit, OnboardingState>(
@@ -70,7 +78,7 @@ class OrganizationSetupPage extends StatelessWidget {
                 _buildSectionHeader(
                   context,
                   'Organization Domain',
-                  'This will be used for your organization\'s public URL. The slug after provenance.app/ is limited to 20 characters.',
+                  "This will be used for your organization's public URL. The slug after $_publicUrlPrefix is limited to 20 characters.",
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -79,13 +87,13 @@ class OrganizationSetupPage extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'organization-slug',
                     border: const OutlineInputBorder(),
-                    prefixText: 'provenance.app/',
+                    prefixText: _publicUrlPrefix,
                     prefixStyle: Theme.of(context).textTheme.bodyLarge
                         ?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                     helperText:
-                        'Max 20 characters for the URL slug (the part after provenance.app/). '
+                        'Max 20 characters for the URL slug (the part after $_publicUrlPrefix). '
                         'Auto-generated from your organization name.',
                     helperMaxLines: 2,
                     errorText: state.slug.isEmpty && !state.isPure

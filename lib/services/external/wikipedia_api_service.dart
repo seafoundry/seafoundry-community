@@ -45,6 +45,15 @@ class WikipediaApiService {
   static const _baseUrl = 'https://en.wikipedia.org/api/rest_v1/page/summary';
   static const _timeout = Duration(seconds: 10);
 
+  /// User-Agent sent with Wikipedia API requests. Per the Wikimedia
+  /// User-Agent policy, this should identify the client and provide a
+  /// contact address. Forks should override via dart-define so the
+  /// contact address routes to their own maintainer.
+  static const _userAgent = String.fromEnvironment(
+    'WIKIPEDIA_USER_AGENT',
+    defaultValue: 'SeaFoundryCommunityApp/1.0 (https://github.com/seafoundry/seafoundry-community)',
+  );
+
   /// Fetches a summary for the given species name.
   ///
   /// Tries the scientific name first, then falls back to common name if provided.
@@ -76,8 +85,9 @@ class WikipediaApiService {
         uri,
         headers: {
           'Accept': 'application/json',
-          // Include a user-agent as required by Wikipedia API policy
-          'User-Agent': 'SeaFoundryApp/1.0 (https://seafoundry.org; contact@seafoundry.org)',
+          // Include a user-agent as required by Wikipedia API policy.
+          // Configurable via WIKIPEDIA_USER_AGENT dart-define.
+          'User-Agent': _userAgent,
         },
       ).timeout(_timeout);
 

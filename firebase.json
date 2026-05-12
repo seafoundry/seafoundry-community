@@ -75,15 +75,6 @@
           "destination": "/index.html"
         }
       ]
-    },
-    {
-      "site": "seafoundry-landing",
-      "public": "landing",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ]
     }
   ],
   "emulators": {
