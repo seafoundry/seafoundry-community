@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:seafoundry_app/models/graph/graph_node.dart';
 import 'package:seafoundry_app/models/models.dart';
 import 'package:seafoundry_app/repositories/graph_repository.dart';
@@ -8,7 +9,7 @@ import 'package:seafoundry_app/services/logging_service.dart';
 /// Centralized deep link parsing and building utilities.
 ///
 /// The handler supports both custom scheme links (`seafoundry://…`) and universal
-/// links (`https://seafoundry.app/…`). When parsing a link the handler will try
+/// links (`https://app.example.org/…`). When parsing a link the handler will try
 /// to resolve it to the current organization's graph hierarchy and return the
 /// matching [GraphNode]. When building a link from a node you can generate
 /// either a custom scheme or universal link URI.
@@ -16,8 +17,8 @@ import 'package:seafoundry_app/services/logging_service.dart';
 /// Supported inbound formats:
 /// - `seafoundry://reefco/outplant-zone-a` (host represents the org domain)
 /// - `seafoundry://site/site123` (type + identifier)
-/// - `https://seafoundry.app/reefco/outplant-zone-a`
-/// - `https://seafoundry.app/site/site123?org=reefco`
+/// - `https://app.example.org/reefco/outplant-zone-a`
+/// - `https://app.example.org/site/site123?org=reefco`
 /// - `/reefco/outplant-zone-a` (bare path)
 ///
 /// For type-based links (`site/{id}`, `group/{id}`, `coral/{id}`) the handler
@@ -42,12 +43,36 @@ class DeepLinkHandler {
   static final List<String> _defaultUniversalHosts =
       _parseHosts(_hostOverride);
 
+  static bool _missingHostWarned = false;
+
   static List<String> _parseHosts(String raw) {
     final hosts = raw
         .split(',')
         .map((e) => e.trim().toLowerCase())
         .where((e) => e.isNotEmpty)
         .toList();
+    if (hosts.isEmpty) {
+      // In release builds with no configured host, fall back to the running
+      // deployment's actual host on web (so universal links use the real
+      // origin instead of `localhost`). For non-web release builds the
+      // fallback is still `localhost`, but we surface a one-time warning so
+      // misconfigured deployments are visible in logs.
+      if (kReleaseMode) {
+        if (kIsWeb) {
+          final webHost = Uri.base.host.toLowerCase();
+          if (webHost.isNotEmpty) {
+            hosts.add(webHost);
+          }
+        } else if (!_missingHostWarned) {
+          _missingHostWarned = true;
+          LoggingService.instance.warning(
+            'DeepLinkHandler: DEEP_LINK_HOSTS is not configured for this '
+            'release build; universal links will fall back to `localhost`. '
+            'Set --dart-define=DEEP_LINK_HOSTS=app.example.org to fix.',
+          );
+        }
+      }
+    }
     if (!hosts.contains('localhost')) {
       hosts.add('localhost');
     }
@@ -147,7 +172,7 @@ class DeepLinkHandler {
   /// Builds a deep link string for the provided [GraphNode].
   ///
   /// When [asUniversalLink] is true the resulting link will use HTTPS with the
-  /// provided or default host (`https://seafoundry.app/...`). Otherwise a
+  /// provided or default host (`https://app.example.org/...`). Otherwise a
   /// custom-scheme link (`seafoundry://...`) is produced.
   static String buildDeepLink(
     GraphNode node, {
@@ -530,7 +555,7 @@ extension DeepLinkExtension on GraphNode {
   /// Returns a custom-scheme deep link (e.g. `seafoundry://org/site`).
   String get deepLink => DeepLinkHandler.buildDeepLink(this);
 
-  /// Returns a universal HTTPS deep link (e.g. `https://seafoundry.app/org/site`).
+  /// Returns a universal HTTPS deep link (e.g. `https://app.example.org/org/site`).
   String get universalDeepLink =>
       DeepLinkHandler.buildDeepLink(this, asUniversalLink: true);
 
