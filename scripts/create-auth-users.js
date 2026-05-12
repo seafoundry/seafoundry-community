@@ -54,17 +54,17 @@ async function createAuthUsers() {
         // Create test users from sample data
         const testUsers = [
             {
-                email: 'john.smith@sfri.com',
+                email: 'john.smith@example.com',
                 password: 'password123',
                 displayName: 'John Smith'
             },
             {
-                email: 'sarah.johnson@sfri.com',
+                email: 'sarah.johnson@example.com',
                 password: 'password123',
                 displayName: 'Sarah Johnson'
             },
             {
-                email: 'mike.chen@sfri.com',
+                email: 'mike.chen@example.com',
                 password: 'password123',
                 displayName: 'Mike Chen'
             }
@@ -92,9 +92,9 @@ async function createAuthUsers() {
         console.log('\n📋 Login Credentials:');
         console.log('Admin: admin@seafoundry.com / admin123456');
         console.log('Test Users:');
-        console.log('  - john.smith@sfri.com / password123');
-        console.log('  - sarah.johnson@sfri.com / password123');
-        console.log('  - mike.chen@sfri.com / password123');
+        console.log('  - john.smith@example.com / password123');
+        console.log('  - sarah.johnson@example.com / password123');
+        console.log('  - mike.chen@example.com / password123');
         
     } catch (error) {
         console.error('❌ Error creating authentication users:', error.message);

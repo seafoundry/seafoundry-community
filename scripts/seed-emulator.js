@@ -17,7 +17,7 @@ if (!process.env.FIRESTORE_EMULATOR_HOST) {
 
 // Initialize Firebase Admin for emulator
 const app = initializeApp({
-  projectId: 'seafoundryapp',
+  projectId: process.env.FIREBASE_PROJECT_ID || 'demo-seafoundry',
 });
 
 const db = getFirestore(app);

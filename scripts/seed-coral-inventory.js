@@ -789,36 +789,38 @@ async function createSites(
     Array.isArray(nurserySiteKeys) && nurserySiteKeys.length > 0
       ? new Set(nurserySiteKeys)
       : null;
+  // Demo coordinates intentionally placed in the open Pacific Ocean to make
+  // it obvious these are fictional sample sites, not real partner locations.
   const siteData = [
-    { key: 'nurseryLand', name: 'Land Based Nursery', typeId: SITE_TYPES.nurseryExSitu, lat: 25.7617, lng: -80.1918, groupIdHierarchy: [GROUP_TYPES.tank, GROUP_TYPES.tray] },
-    { key: 'nurseryField', name: 'In-Water Nursery', typeId: SITE_TYPES.nurseryInSitu, lat: 25.0343, lng: -80.4115, groupIdHierarchy: [GROUP_TYPES.tree, GROUP_TYPES.treeBranch] },
+    { key: 'nurseryLand', name: 'Demo Land Based Nursery', typeId: SITE_TYPES.nurseryExSitu, lat: 0.0, lng: -160.0, groupIdHierarchy: [GROUP_TYPES.tank, GROUP_TYPES.tray] },
+    { key: 'nurseryField', name: 'Demo In-Water Nursery', typeId: SITE_TYPES.nurseryInSitu, lat: 0.0, lng: -160.1, groupIdHierarchy: [GROUP_TYPES.tree, GROUP_TYPES.treeBranch] },
     ...(includeGeneBank
       ? [
-        { key: 'geneBank', name: 'Gene Bank', typeId: SITE_TYPES.geneBank, lat: 25.7489, lng: -80.2564, groupIdHierarchy: [GROUP_TYPES.tank, GROUP_TYPES.tray] },
+        { key: 'geneBank', name: 'Demo Gene Bank', typeId: SITE_TYPES.geneBank, lat: 0.0, lng: -160.2, groupIdHierarchy: [GROUP_TYPES.tank, GROUP_TYPES.tray] },
       ]
       : []),
-    { key: 'outplant', name: 'Coral Reef Outplant Site', typeId: SITE_TYPES.outplantSite, lat: 25.0865, lng: -80.3728, groupIdHierarchy: [GROUP_TYPES.grid, GROUP_TYPES.gridCell] },
+    { key: 'outplant', name: 'Demo Outplant Site 1', typeId: SITE_TYPES.outplantSite, lat: 0.05, lng: -160.05, groupIdHierarchy: [GROUP_TYPES.grid, GROUP_TYPES.gridCell] },
     ...(includeMonitoringSites
       ? [
-        { key: 'outplant2', name: 'Secondary Outplant Site', typeId: SITE_TYPES.outplantSite, lat: 25.1012, lng: -80.3825, groupIdHierarchy: [GROUP_TYPES.grid, GROUP_TYPES.gridCell] },
+        { key: 'outplant2', name: 'Demo Outplant Site 2', typeId: SITE_TYPES.outplantSite, lat: 0.06, lng: -160.06, groupIdHierarchy: [GROUP_TYPES.grid, GROUP_TYPES.gridCell] },
       ]
       : []),
     ...(includeMonitoringSites
       ? [
         {
           key: 'baseline',
-          name: 'Baseline Reef Site',
+          name: 'Demo Baseline Site',
           typeId: SITE_TYPES.baselineSite,
-          lat: 25.0911,
-          lng: -80.3881,
+          lat: 0.07,
+          lng: -160.07,
           groupIdHierarchy: [GROUP_TYPES.grid, GROUP_TYPES.tag],
         },
         {
           key: 'reference',
-          name: 'Reference Reef Site',
+          name: 'Demo Reference Site',
           typeId: SITE_TYPES.referenceSite,
-          lat: 25.0782,
-          lng: -80.3564,
+          lat: 0.08,
+          lng: -160.08,
           groupIdHierarchy: [GROUP_TYPES.grid, GROUP_TYPES.tag],
         },
       ]

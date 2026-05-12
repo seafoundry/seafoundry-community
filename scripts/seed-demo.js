@@ -26,6 +26,39 @@
  */
 
 require('dotenv').config();
+
+// Safety check: prevent running against production projects.
+// Demo seeding is destructive — only allow against emulators or demo-* project IDs.
+function checkSafeEnvironment() {
+  const isEmulator = !!(
+    process.env.FIRESTORE_EMULATOR_HOST ||
+    process.env.FIREBASE_AUTH_EMULATOR_HOST
+  );
+  const projectId = process.env.GCLOUD_PROJECT || process.env.FIREBASE_PROJECT_ID || '';
+  const isDemoProject = projectId.startsWith('demo-');
+
+  if (!isEmulator && !isDemoProject) {
+    console.error('❌ SAFETY: seed-demo.js only runs against emulators or demo projects.');
+    console.error('   Detected project:', projectId || '(unknown)');
+    console.error('');
+    console.error('   To run against emulator:');
+    console.error('     FIRESTORE_EMULATOR_HOST=localhost:8080 \\');
+    console.error('     FIREBASE_AUTH_EMULATOR_HOST=localhost:9099 \\');
+    console.error('     node scripts/seed-demo.js');
+    console.error('');
+    console.error('   Or set FIREBASE_PROJECT_ID to a project starting with "demo-".');
+    process.exit(1);
+  }
+
+  if (isEmulator) {
+    console.log('✓ Running against emulator');
+  } else {
+    console.log(`✓ Running against demo project: ${projectId}`);
+  }
+}
+
+checkSafeEnvironment();
+
 const { admin, db } = require('./config-json');
 const { spawnSync } = require('child_process');
 
