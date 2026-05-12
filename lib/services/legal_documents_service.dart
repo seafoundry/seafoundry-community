@@ -43,15 +43,15 @@ class LegalDocumentsService {
   // To override at build time: flutter build --dart-define=LEGAL_TOS_URL=https://...
   static String get _tosUrl => const String.fromEnvironment(
     'LEGAL_TOS_URL',
-    defaultValue: 'https://www.seafoundry.com/terms',
+    defaultValue: 'https://example.com/terms',
   );
   static String get _privacyUrl => const String.fromEnvironment(
     'LEGAL_PRIVACY_URL',
-    defaultValue: 'https://www.seafoundry.com/privacy',
+    defaultValue: 'https://example.com/privacy',
   );
   static String get _slaUrl => const String.fromEnvironment(
     'LEGAL_SLA_URL',
-    defaultValue: 'https://www.seafoundry.com/sla',
+    defaultValue: 'https://example.com/sla',
   );
 
   /// Get the current Terms of Service
@@ -170,7 +170,7 @@ We reserve the right to terminate or suspend access to the Service for violation
 
 ## 10. Contact
 
-For questions about these Terms of Service, please contact us at [support@seafoundry.com](mailto:support@seafoundry.com).
+For questions about these Terms of Service, please contact us at [your-support-email].
 
 ---
 
@@ -234,7 +234,7 @@ Depending on your location, you may have rights to:
 - Object to certain processing
 - Data portability
 
-To exercise these rights, contact us at [privacy@seafoundry.com](mailto:privacy@seafoundry.com).
+To exercise these rights, contact us at [your-privacy-email].
 
 ## 7. Children's Privacy
 
@@ -251,8 +251,8 @@ We may update this Privacy Policy. Material changes will be communicated, and co
 ## 10. Contact Us
 
 For privacy questions or concerns, contact us at:
-- Email: [privacy@seafoundry.com](mailto:privacy@seafoundry.com)
-- Data Protection Officer: [dpo@seafoundry.com](mailto:dpo@seafoundry.com)
+- Email: [your-privacy-email]
+- Data Protection Officer: [your-dpo-email]
 
 ---
 
@@ -343,7 +343,7 @@ This SLA does not apply to:
 
 ## 7. Monitoring and Reporting
 
-- Public status page: [status.seafoundry.com](https://status.seafoundry.com)
+- Public status page: [your-status-page]
 - Real-time incident notifications
 - Monthly uptime reports available on request
 
@@ -354,8 +354,8 @@ This SLA may be updated with 60 days notice. Continued use after changes constit
 ## 9. Contact
 
 For SLA-related questions or credit claims:
-- Email: [sla@seafoundry.com](mailto:sla@seafoundry.com)
-- Support Portal: [support.seafoundry.com](https://support.seafoundry.com)
+- Email: [your-sla-email]
+- Support Portal: [your-support-portal]
 
 ---
 
