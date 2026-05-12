@@ -5,7 +5,7 @@
 # Prerequisites:
 #   - Firebase CLI installed (npm install -g firebase-tools)
 #   - Logged in to Firebase (firebase login)
-#   - Valid firebase.community.json configuration
+#   - Valid firebase.json configuration
 #   - Built web app in build/web/ (unless using --skip-validation)
 #
 # Usage:
@@ -27,7 +27,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-FIREBASE_CONFIG="firebase.community.json"
+FIREBASE_CONFIG="firebase.json"
 
 # Validate Firebase config exists
 if [ ! -f "$FIREBASE_CONFIG" ]; then
@@ -104,7 +104,7 @@ fi
 case $DEPLOY_TARGET in
   "rules")
     echo -e "${YELLOW}Deploying Firestore rules only...${NC}"
-    firebase deploy --only firestore:rules --config "$FIREBASE_CONFIG"
+    firebase deploy --only firestore:rules
     ;;
   "hosting")
     echo -e "${YELLOW}Deploying hosting only...${NC}"
@@ -113,11 +113,11 @@ case $DEPLOY_TARGET in
         echo -e "${YELLOW}Run: flutter build web --release${NC}"
         exit 1
     fi
-    firebase deploy --only hosting --config "$FIREBASE_CONFIG"
+    firebase deploy --only hosting
     ;;
   "all")
     echo -e "${YELLOW}Deploying Firestore rules and hosting...${NC}"
-    firebase deploy --only firestore:rules,hosting --config "$FIREBASE_CONFIG"
+    firebase deploy --only firestore:rules,hosting
     ;;
 esac
 
@@ -127,10 +127,12 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}DEPLOYMENT COMPLETE${NC}"
 echo -e "${BLUE}========================================${NC}"
 
-# Get project info
-PROJECT_ID=$(grep -o '"projectId": "[^"]*"' "$FIREBASE_CONFIG" | sed 's/"projectId": "\([^"]*\)"/\1/')
-if [ -n "$PROJECT_ID" ]; then
-    echo -e "${GREEN}Deployed to: https://$PROJECT_ID.web.app${NC}"
+# Get project info from .firebaserc
+if [ -f ".firebaserc" ]; then
+    PROJECT_ID=$(grep -o '"default": "[^"]*"' .firebaserc | sed 's/"default": "\([^"]*\)"/\1/')
+    if [ -n "$PROJECT_ID" ]; then
+        echo -e "${GREEN}Deployed to: https://$PROJECT_ID.web.app${NC}"
+    fi
 fi
 
 echo ""
