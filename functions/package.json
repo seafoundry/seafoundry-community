@@ -9,8 +9,6 @@
     "start": "npm run shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "sign:license": "SF_LICENSE_SECRET=${SF_LICENSE_SECRET:-} ts-node ./scripts/sign_license.ts",
-    "sign:batch": "SF_LICENSE_SECRET=${SF_LICENSE_SECRET:-} ts-node ./scripts/batch_resign_licenses.ts",
     "test:unit": "npm run build && mocha --require ts-node/register 'tests/**/*.test.ts'",
     "test": "firebase emulators:exec --only firestore --project demo-seafoundry \"npm run test:unit\"",
     "test:watch": "npm run build && mocha --require ts-node/register --watch --timeout 10000 'tests/**/*.test.ts'",
@@ -29,8 +27,7 @@
     "firebase-functions": "^7.0.5",
     "nodemailer": "^7.0.11",
     "resend": "^6.6.0",
-    "sharp": "^0.33.5",
-    "stripe": "^17.7.0"
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",
