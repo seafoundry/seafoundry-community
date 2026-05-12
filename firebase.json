@@ -62,7 +62,6 @@
   ],
   "hosting": [
     {
-      "site": "seafoundry-community",
       "public": "build/web",
       "ignore": [
         "firebase.json",

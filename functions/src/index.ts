@@ -71,7 +71,7 @@ function getAppDomain(): string {
 }
 
 // Email configuration using Resend
-const EMAIL_FROM = "SeaFoundry <invites@email.seafoundry.com>";
+const EMAIL_FROM = process.env.EMAIL_FROM || "Community <noreply@example.com>";
 const FEEDBACK_EMAIL_TO = process.env.FEEDBACK_EMAIL_TO || "dev@example.com";
 
 const ALLOWED_FEEDBACK_TYPES = [
