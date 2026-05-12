@@ -89,7 +89,7 @@ class GeneticsSpreadsheetCubit extends Cubit<GeneticsSpreadsheetState>
     'settlement_date': '2023-08-21',
     'cohort_size': '120',
     'cohort_notes': 'Example cohort notes',
-    'sending_organization': 'Mote Marine Laboratory',
+    'sending_organization': 'Example Sender Org',
     'transfer_date': '2024-01-12',
     'transfer_notes': 'Example transfer notes',
     'genet_notes': 'Example genet notes',

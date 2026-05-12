@@ -161,7 +161,7 @@ class AliasLookupResult {
 ///
 /// // Look up an alias
 /// final results = await service.lookupAlias('Apal-025');
-/// // Returns: [AliasLookupResult(provenanceId: 'PID-APAL-0007', org: 'CRF', ...)]
+/// // Returns: [AliasLookupResult(provenanceId: 'PID-APAL-0007', org: 'PartnerOrg', ...)]
 ///
 /// // Get full Provenance record
 /// final record = await service.getProvenanceRecord('PID-APAL-0007');

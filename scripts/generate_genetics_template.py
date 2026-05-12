@@ -136,7 +136,7 @@ COLUMNS = [
         "clonalId",
         18,
         False,
-        "Clonal identifier from a naming system (CRC, Mote, CRF, etc.)",
+        "Clonal identifier from a partner naming system (free text)",
         "AC-1",
         "Free text. Used to cross-reference genets across organizations. "
         "No format restriction.",
@@ -155,10 +155,10 @@ COLUMNS = [
         30,
         False,
         "Alternative identifiers from other organizations",
-        "K2; NOVA-ACER-001; AC-1-Mote",
+        "K2; PARTNER-ACER-001; AC-1",
         "Semicolon-separated list of alias values. Each value becomes "
         "an alias record. For structured aliases use JSON: "
-        '[{"sourceSystem":"CRF","value":"K2"}]',
+        '[{"sourceSystem":"PartnerOrg","value":"K2"}]',
     ),
     (
         "notes",
@@ -642,12 +642,12 @@ def _build_reference_sheet(wb, all_columns):
     row += 1
 
     alias_notes = [
-        "Simple format: Semicolon-separated values   e.g.  K2; NOVA-001; AC-1-Mote",
+        "Simple format: Semicolon-separated values   e.g.  K2; PARTNER-001; AC-1",
         "Each value becomes an alias with sourceSystem='custom'.",
         "",
         "JSON format (for structured aliases with source tracking):",
-        '[{"sourceSystem": "CRF", "value": "K2"}, '
-        '{"sourceSystem": "Mote", "value": "AC-1"}]',
+        '[{"sourceSystem": "PartnerOrgA", "value": "K2"}, '
+        '{"sourceSystem": "PartnerOrgB", "value": "AC-1"}]',
         "",
         "Fields: sourceSystem (optional, default: custom), value (required),",
         "        label (optional, display name), isPrimary (optional, boolean)",

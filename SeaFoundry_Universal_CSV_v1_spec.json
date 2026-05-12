@@ -259,9 +259,9 @@
       "location holder"
     ],
     "accession": [
-      "crf accession",
+      "partner accession",
       "coral sample registry",
-      "crf id"
+      "partner id"
     ],
     "clonalSNP": [
       "snp id",

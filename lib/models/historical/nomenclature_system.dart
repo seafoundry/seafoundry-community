@@ -8,34 +8,34 @@ enum NomenclatureSystem {
   /// Universal Provenance ID format (PID-APAL-001)
   provenanceId,
 
-  /// Org A (Mote Marine Laboratory)
+  /// Organization A
   orgA,
 
-  /// Org B (Coral Restoration Foundation)
+  /// Organization B
   orgB,
 
-  /// Org C (Florida Aquarium)
+  /// Organization C
   orgC,
 
-  /// Org D (Reef Renewal)
+  /// Organization D
   orgD,
 
-  /// Org E (University of the Virgin Islands)
+  /// Organization E
   orgE,
 
-  /// Org F (The Nature Conservancy)
+  /// Organization F
   orgF,
 
-  /// Org G (UM-RSMAS)
+  /// Organization G
   orgG,
 
-  /// Org H (ISER Caribe)
+  /// Organization H
   orgH,
 
-  /// Org I (Nova Southeastern University)
+  /// Organization I
   orgI,
 
-  /// Org J (Sea Ventures MRU)
+  /// Organization J
   orgJ;
 
   /// Display name for UI
@@ -56,16 +56,16 @@ enum NomenclatureSystem {
   /// Full organization name (for tooltips/details)
   String get fullName => switch (this) {
         provenanceId => 'Universal Provenance ID',
-        orgA => 'Mote Marine Laboratory',
-        orgB => 'Coral Restoration Foundation',
-        orgC => 'Florida Aquarium',
-        orgD => 'Reef Renewal',
-        orgE => 'University of the Virgin Islands',
-        orgF => 'The Nature Conservancy',
-        orgG => 'UM-RSMAS',
-        orgH => 'ISER Caribe',
-        orgI => 'Nova Southeastern University',
-        orgJ => 'Sea Ventures MRU',
+        orgA => 'Organization A',
+        orgB => 'Organization B',
+        orgC => 'Organization C',
+        orgD => 'Organization D',
+        orgE => 'Organization E',
+        orgF => 'Organization F',
+        orgG => 'Organization G',
+        orgH => 'Organization H',
+        orgI => 'Organization I',
+        orgJ => 'Organization J',
       };
 
   /// Key used in the aliases map.

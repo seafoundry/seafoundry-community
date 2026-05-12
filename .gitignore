@@ -139,10 +139,18 @@ taxonomy-images/
 
 sentry.properties
 
-# Mote HOG / CRC crosswalk data — must NEVER be committed to community fork
+# Partner crosswalk data — must NEVER be committed to community fork
 History of Genotypes*.csv
 *HOG*.csv
 crc_db/
+
+# Non-web platform dirs (community fork is web-only).
+# Flutter analyzer may regenerate stub directories; never commit them.
+/android/
+/ios/
+/macos/
+/linux/
+/windows/
 
 # Internal docs — only basic setup instructions are tracked publicly.
 # All Claude-context files, architecture deep-dives, module docs,

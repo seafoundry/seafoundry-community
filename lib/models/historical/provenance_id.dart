@@ -52,10 +52,10 @@ class ProvenanceId extends Equatable {
   /// Site name of first outplant
   final String? firstOutplantSite;
 
-  /// Mote HOG accession number (if available)
+  /// External accession number (if available)
   final String? accessionNumber;
 
-  /// Mote clonal ID (if available)
+  /// Partner clonal ID (if available)
   final String? clonalId;
 
   /// Organization-specific aliases (orgA: "AP5", orgB: null, etc.)
