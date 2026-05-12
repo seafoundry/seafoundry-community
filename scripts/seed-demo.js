@@ -6,14 +6,14 @@
  * Seeds a single community demo org with sample users and coral inventory data.
  * Uses Node.js Firebase Admin SDK for seeding (no Dart dependency).
  *
- * Demo user: community@provenance.app (password: demo123)
+ * Demo user: demo@example.com (password: demo123)
  *
  * Usage:
  *   # Standard community seeding (recommended for fresh setup)
  *   node scripts/seed-demo.js --reset
  *
  *   # Seed with explicit overrides
- *   node scripts/seed-demo.js --reset --user=community@provenance.app --org=demo_org_community
+ *   node scripts/seed-demo.js --reset --user=demo@example.com --org=demo_org_community
  *
  * Optional flags:
  *   --name=ORG_NAME
@@ -91,7 +91,7 @@ const DEFAULT_DEMO_PASSWORD = 'demo123';
 const COMMUNITY_CONFIG = {
   orgId: 'demo_org_community',
   orgName: 'SeaFoundry Demo Organization',
-  primaryEmail: 'community@provenance.app',
+  primaryEmail: 'demo@example.com',
   teamSizeLimit: 2,
 };
 

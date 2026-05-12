@@ -488,7 +488,7 @@ const provenanceSeeds: ProvenanceSeed[] = [
     speciesId: 'apal',
     metadata: {
       provenanceId: 'GENET-AP-001',
-      collectionSite: 'Lower Keys Ex-situ Nursery',
+      collectionSite: 'Demo Nursery A',
     },
   },
   {
@@ -499,7 +499,7 @@ const provenanceSeeds: ProvenanceSeed[] = [
     speciesId: 'acer',
     metadata: {
       provenanceId: 'GENET-AC-014',
-      collectionSite: 'Upper Keys Hatchery',
+      collectionSite: 'Demo Hatchery B',
     },
   },
 ];

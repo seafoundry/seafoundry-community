@@ -72,9 +72,6 @@ ios/fastlane/test_output
 .firebase/
 test_output*.txt
 
-# Data exports (large CSV files)
-crc_db/mote_exports/
-
 # Secrets and credentials
 secrets/
 *.key

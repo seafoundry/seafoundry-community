@@ -236,11 +236,6 @@ service cloud.firestore {
         allow read, write: if isOrgMemberOf(orgId);
       }
 
-      // Visual KPI snapshots - dashboard metrics
-      match /visual_kpi_snapshots/{snapshotId} {
-        allow read, write: if isOrgMemberOf(orgId);
-      }
-
     }
 
 
@@ -283,24 +278,6 @@ service cloud.firestore {
     }
     match /organismRecords/{recordId} {
       allow read, write: if false;
-    }
-
-    // Public playlists - Visual Engagement public content
-    match /public_playlists/{playlistId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    // Public digests - Visual Engagement community digests
-    match /public_digests/{digestId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    // Public impact points - Visual Engagement impact data
-    match /public_impact_points/{pointId} {
-      allow read: if true;
-      allow write: if false;
     }
 
     // Record types - Reference data
