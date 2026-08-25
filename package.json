@@ -1,0 +1,46 @@
+{
+    "name": "seafoundry-db-seeder",
+    "version": "1.0.0",
+    "description": "Database seeder for SeaFoundry app using Firebase Admin SDK",
+    "main": "scripts/seed-demo.js",
+    "scripts": {
+        "seed:demo": "node scripts/seed-demo.js --reset",
+        "seed:taxonomy": "ts-node --project tsconfig.scripts.json scripts/firestore/seed_taxonomy_data.ts",
+        "seed:taxonomy:emulator": "FIRESTORE_EMULATOR_HOST=localhost:58080 ts-node --project tsconfig.scripts.json scripts/firestore/seed_taxonomy_data.ts",
+        "seed:coral-inventory": "node scripts/seed-coral-inventory.js",
+        "seed:emulator": "FIRESTORE_EMULATOR_HOST=localhost:58080 FIREBASE_AUTH_EMULATOR_HOST=localhost:9555 node scripts/seed-emulator.js",
+        "generate-dart-env": "node scripts/generate-dart-env.js",
+        "deploy:community": "./scripts/deploy-community.sh",
+        "validate:community-build": "./scripts/validate-community-build.sh",
+        "deploy:firestore": "firebase deploy --only firestore",
+        "deploy:indexes": "firebase deploy --only firestore:indexes",
+        "deploy:rules": "firebase deploy --only firestore:rules",
+        "flutter:build:web": "npm run generate-dart-env && flutter build web --dart-define-from-file=dart_defines.json --dart-define=SF_TIER=community",
+        "emulator:start": "firebase emulators:start --only auth,firestore",
+        "emulator:start:ui": "firebase emulators:start --only auth,firestore,ui",
+        "emulator:kill": "firebase emulators:exec --only auth,firestore 'echo Emulator stopped'",
+        "test:rules": "firebase emulators:exec --project=demo-seafoundry --only firestore \"node --test 'test/rules/*.test.mjs'\""
+    },
+    "dependencies": {
+        "dotenv": "^16.4.7",
+        "firebase-admin": "^13.0.0",
+        "js-yaml": "^4.1.1",
+        "uuid": "^11.0.3"
+    },
+    "devDependencies": {
+        "@firebase/rules-unit-testing": "^4.0.1",
+        "firebase": "^11.0.0",
+        "json-schema-to-typescript": "^15.0.4",
+        "nodemon": "^3.0.2",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.3"
+    },
+    "keywords": [
+        "firebase",
+        "firestore",
+        "seeding",
+        "database"
+    ],
+    "author": "SeaFoundry Team",
+    "license": "MIT"
+}

@@ -1,0 +1,49 @@
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "seafoundry-community-oss",
+          "configurations": {
+            "web": "1:128847943875:web:7478e8158567b0ea23aa76"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "us-east1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "emulators": {
+    "auth": {
+      "host": "localhost",
+      "port": 9555
+    },
+    "firestore": {
+      "host": "localhost",
+      "port": 58080
+    },
+    "ui": {
+      "enabled": true,
+      "host": "localhost",
+      "port": 54001
+    }
+  }
+}

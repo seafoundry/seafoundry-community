@@ -1,0 +1,380 @@
+{
+  "template": "SeaFoundry Universal CSV v2",
+  "version": "2.0.0-beta",
+  "inputFormat": "CSV-only",
+  "defaultOrganization": "current-session",
+  "required": [
+    "organismKind",
+    "speciesScientific",
+    "speciesCode",
+    "localId",
+    "tagId",
+    "lifeStage",
+    "eventType",
+    "eventDate",
+    "quantity_value",
+    "measurementUnit"
+  ],
+  "mergePrecedence": [
+    "provenanceId",
+    "cohortId",
+    "localId",
+    "tagId",
+    "alias:*",
+    "id:*"
+  ],
+  "hardFailOnIdConflict": true,
+  "examples": {
+    "coral": "docs/csv/fixtures/v2/coral_inventory_sample.csv"
+  },
+  "lookups": {
+    "organismKinds": [
+      "coral"
+    ],
+    "lifeStages": {
+      "coral": [
+        "gamete",
+        "larvae",
+        "recruit",
+        "juvenile",
+        "colony",
+        "fragment"
+      ]
+    },
+    "structureTypes": {
+      "shared": [
+        "tank",
+        "tray",
+        "group",
+        "plot",
+        "grid",
+        "gridCell",
+        "tag"
+      ],
+      "coral": [
+        "raceway",
+        "tree",
+        "dome",
+        "reebarTable",
+        "cradle",
+        "aframe"
+      ],
+      "reef": [
+        "reefPatch",
+        "quadrat"
+      ]
+    },
+    "measurementUnits": {
+      "count": [
+        "count",
+        "colonies",
+        "fragments",
+        "individuals"
+      ],
+      "length": [
+        "mm",
+        "cm",
+        "m"
+      ],
+      "area": [
+        "m2",
+        "ha"
+      ],
+      "volume": [
+        "L",
+        "m3"
+      ],
+      "mass": [
+        "g",
+        "kg",
+        "kg_per_m"
+      ],
+      "environmental": [
+        "degC",
+        "ppt",
+        "psu",
+        "mg_per_L",
+        "percent"
+      ]
+    }
+  },
+  "geometry": {
+    "acceptedFormats": [
+      "WKT",
+      "GeoJSON"
+    ],
+    "storeAs": "GeoJSON",
+    "columns": [
+      "geometry_format",
+      "geometry_wkt",
+      "geometry_geojson",
+      "geometry_source",
+      "geometry_updatedAt"
+    ]
+  },
+  "types": {
+    "organismKind": {
+      "enumRef": "organismKinds"
+    },
+    "speciesScientific": "string",
+    "speciesCode": "string",
+    "speciesId": "string",
+    "eventType": "string",
+    "eventDate": "datetime",
+    "eventTimeZone": "string",
+    "localId": "string",
+    "tagId": "string",
+    "accessionId": "string",
+    "provenanceId": "string",
+    "provenanceKind": "string",
+    "provenanceLabel": "string",
+    "cohortId": "string",
+    "lifeStage": {
+      "enumRef": "lifeStages"
+    },
+    "measurementUnit": {
+      "enumRef": "measurementUnits"
+    },
+    "quantity_value": "number",
+    "quality_flag": {
+      "enum": [
+        "measured",
+        "estimated",
+        "modeled"
+      ]
+    },
+    "siteId": "string",
+    "siteName": "string",
+    "enclosureId": "string",
+    "groupId": "string",
+    "structureType": {
+      "enumRef": "structureTypes"
+    },
+    "inSituRow": "string",
+    "inSituCol": "string",
+    "geometry_format": {
+      "enum": [
+        "WKT",
+        "GeoJSON"
+      ]
+    },
+    "geometry_wkt": "string",
+    "geometry_geojson": "string",
+    "geometry_source": "string",
+    "geometry_updatedAt": "datetime",
+    "lineId": "string",
+    "dropperId": "string",
+    "protectedAreaFlag": "boolean",
+    "habitatType": "string",
+    "siteJurisdiction": "string",
+    "carbonPool.total": "number",
+    "carbonPool.aboveGround": "number",
+    "carbonPool.belowGround": "number",
+    "stock_tCO2e": "number",
+    "flux_tCO2e_yr": "number",
+    "uncertaintyPct": "number",
+    "permanenceRiskScore": "number",
+    "volunteerHours": "number",
+    "trainingHours": "number",
+    "credentialId": "string",
+    "irisMetricIds[]": {
+      "type": "array",
+      "items": "string"
+    },
+    "sdgTargets[]": {
+      "type": "array",
+      "items": "string"
+    },
+    "observer": "string",
+    "sourceSystem": "string",
+    "notes": "string",
+    "photoUrl": "string",
+    "environmentalPanel.temperature_c": "number",
+    "environmentalPanel.salinity_psu": "number",
+    "environmentalPanel.dissolvedOxygen_mgL": "number",
+    "environmentalPanel.ammonia_mgL": "number",
+    "environmentalPanel.nitrite_mgL": "number",
+    "environmentalPanel.nitrate_mgL": "number",
+    "environmentalPanel.alkalinity_mgL_as_CaCO3": "number",
+    "environmentalPanel.pH": "number",
+    "bleachingState": "string",
+    "diseaseCode": "string",
+    "partialMortality_pct": "number",
+    "benthicCover_pct": "number",
+    "mortality_pct": "number"
+  },
+  "sections": {
+    "identity": [
+      "organismKind",
+      "speciesScientific",
+      "speciesCode",
+      "speciesId",
+      "provenanceId",
+      "provenanceKind",
+      "provenanceLabel",
+      "cohortId",
+      "provenanceId",
+      "lifeStage",
+      "localId",
+      "tagId"
+    ],
+    "quantity": [
+      "measurementUnit",
+      "quantity_value",
+      "quality_flag"
+    ],
+    "site": [
+      "siteId",
+      "siteName",
+      "enclosureId",
+      "groupId",
+      "structureType",
+      "inSituRow",
+      "inSituCol",
+      "geometry_format",
+      "geometry_wkt",
+      "geometry_geojson",
+      "geometry_source",
+      "geometry_updatedAt",
+      "lineId",
+      "dropperId"
+    ],
+    "event": [
+      "eventType",
+      "eventDate",
+      "eventTimeZone",
+      "observer",
+      "sourceSystem",
+      "notes",
+      "photoUrl"
+    ],
+    "compliance": [
+      "siteJurisdiction",
+      "habitatType",
+      "protectedAreaFlag"
+    ],
+    "mrv": [
+      "carbonPool.total",
+      "carbonPool.aboveGround",
+      "carbonPool.belowGround",
+      "stock_tCO2e",
+      "flux_tCO2e_yr",
+      "uncertaintyPct",
+      "permanenceRiskScore"
+    ],
+    "csr": [
+      "volunteerHours",
+      "trainingHours",
+      "credentialId",
+      "irisMetricIds[]",
+      "sdgTargets[]"
+    ],
+    "environmentalPanel": [
+      "environmentalPanel.temperature_c",
+      "environmentalPanel.salinity_psu",
+      "environmentalPanel.dissolvedOxygen_mgL",
+      "environmentalPanel.ammonia_mgL",
+      "environmentalPanel.nitrite_mgL",
+      "environmentalPanel.nitrate_mgL",
+      "environmentalPanel.alkalinity_mgL_as_CaCO3",
+      "environmentalPanel.pH"
+    ],
+    "organismSpecific": {
+      "coral": [
+        "bleachingState",
+        "diseaseCode",
+        "partialMortality_pct",
+        "benthicCover_pct"
+      ]
+    }
+  },
+  "coherence": [
+    {
+      "if": {
+        "measurementUnit": "count"
+      },
+      "then": {
+        "ensureNumeric": [
+          "quantity_value"
+        ]
+      }
+    },
+    {
+      "if": {
+        "carbonPool.total": {
+          ">": 0
+        }
+      },
+      "then": {
+        "require": [
+          "stock_tCO2e",
+          "flux_tCO2e_yr",
+          "uncertaintyPct"
+        ]
+      }
+    },
+    {
+      "dateFormat": [
+        "eventDate",
+        "validFrom",
+        "validTo",
+        "geometry_updatedAt"
+      ]
+    }
+  ],
+  "synonyms": {
+    "organismKind": [
+      "organism",
+      "speciesGroup"
+    ],
+    "speciesScientific": [
+      "species",
+      "taxon",
+      "latinName"
+    ],
+    "speciesCode": [
+      "speciesCode",
+      "taxonCode"
+    ],
+    "measurementUnit": [
+      "quantityUnit",
+      "unit"
+    ],
+    "quantity_value": [
+      "quantity",
+      "count",
+      "qty"
+    ],
+    "eventDate": [
+      "dateTime",
+      "timestamp"
+    ],
+    "geometry_wkt": [
+      "geometry",
+      "wkt"
+    ],
+    "notes": [
+      "comments",
+      "remarks"
+    ],
+    "volunteerHours": [
+      "volHours",
+      "csr_volunteer_hours"
+    ],
+    "trainingHours": [
+      "training",
+      "csr_training_hours"
+    ],
+    "tagId": [
+      "recordName",
+      "record_name",
+      "record name"
+    ]
+  },
+  "notes": [
+    "CSV v2 is organism-agnostic: every row must declare its organismKind, speciesScientific, speciesCode, lifeStage, and measurementUnit.",
+    "When migrating coral CSV v1 files, map `quantity` → `quantity_value`, set `measurementUnit=count`, and populate `lifeStage` from `coralType`.",
+    "Arrays such as `irisMetricIds[]` and `sdgTargets[]` accept comma-delimited values; adapters expand them into arrays.",
+    "Geometry accepts WKT or GeoJSON payloads; multipoint strings must be quoted."
+  ]
+}

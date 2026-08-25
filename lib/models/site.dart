@@ -1,0 +1,324 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:seafoundry_community/models/events/outplant_geometry.dart';
+import 'package:seafoundry_community/services/logging_service.dart';
+import 'package:seafoundry_community/models/model_interfaces.dart';
+import 'package:seafoundry_community/models/records/records.dart';
+import 'package:seafoundry_community/models/types/group_type.dart';
+import 'package:seafoundry_community/models/types/model_type.dart';
+import 'package:seafoundry_community/models/types/organism_kind.dart';
+import 'package:seafoundry_community/models/types/site_type.dart';
+import 'package:seafoundry_community/models/utils/json_casts.dart';
+
+class Site extends InventoryRecord with GraphNodeRecord, GroupParent {
+  Site({
+    required super.id,
+    required super.createdById,
+    required super.createdAt,
+    required super.updatedAt,
+    required super.updatedById,
+    required super.organizationId,
+    required this.siteTypeId,
+    required this.name,
+    required this.groupIdHierarchy,
+    this.geometry,
+    this.description,
+    this.latitude,
+    this.longitude,
+    this.rowCount,
+    this.colCount,
+    this.groupTypeLabels,
+    required super.urlPath,
+    required super.internalPath,
+    required super.slug,
+    super.metadata,
+  });
+
+  Site.fromJson(super.json)
+    : siteTypeId = _readSiteTypeId(json),
+      name = json['name'] ??
+          json['createdEvent']?['name'] ??
+          Missing.string,
+      groupIdHierarchy = List<String>.from(
+        json['groupIdHierarchy'] ??
+            json['createdEvent']?['groupIdHierarchy'] ??
+            [],
+      ),
+      groupTypeLabels = _parseGroupTypeLabels(json['groupTypeLabels']),
+      description = json['description'] ?? json['createdEvent']?['description'],
+      latitude =
+          safeDouble(json['latitude']) ??
+          safeDouble(json['createdEvent']?['latitude']),
+      longitude =
+          safeDouble(json['longitude']) ??
+          safeDouble(json['createdEvent']?['longitude']),
+      geometry = OutplantGeometry.maybeFromJson(
+        json['geometry'] ?? json['createdEvent']?['geometry'],
+      ),
+      rowCount =
+          safeInt(json['rowCount']) ??
+          safeInt(json['createdEvent']?['rowCount']),
+      colCount =
+          safeInt(json['colCount']) ??
+          safeInt(json['createdEvent']?['colCount']),
+      super.fromJson();
+
+  Site.partial({
+    super.json,
+    super.id,
+    super.internalPath,
+    super.slug,
+    super.urlPath,
+    super.createdById,
+    super.createdAt,
+    super.updatedAt,
+    super.updatedById,
+    super.organizationId,
+    String? siteTypeId,
+    String? name,
+    List<String>? groupIdHierarchy,
+    Map<String, String>? groupTypeLabels,
+    String? description,
+    double? latitude,
+    double? longitude,
+    OutplantGeometry? geometry,
+    int? rowCount,
+    int? colCount,
+  }) : siteTypeId = siteTypeId ?? json?['siteTypeId'] ?? Missing.string,
+       name = name ?? json?['name'] ?? Missing.string,
+       groupIdHierarchy =
+           groupIdHierarchy ??
+           List<String>.unmodifiable(json?['groupIdHierarchy'] ?? const []),
+       groupTypeLabels =
+           groupTypeLabels ?? _parseGroupTypeLabels(json?['groupTypeLabels']),
+       description = description ?? json?['description'],
+       latitude = latitude ?? safeDouble(json?['latitude']),
+       longitude = longitude ?? safeDouble(json?['longitude']),
+       geometry = geometry ?? OutplantGeometry.maybeFromJson(json?['geometry']),
+       rowCount = rowCount ?? safeInt(json?['rowCount']),
+       colCount = colCount ?? safeInt(json?['colCount']),
+       super.partial();
+
+  final String siteTypeId;
+  final List<String> groupIdHierarchy;
+
+  /// Custom display labels for group types within this site.
+  /// Maps group type ID to custom label (e.g., 'group_type_tank' -> 'Grow Tank').
+  final Map<String, String>? groupTypeLabels;
+
+  final OutplantGeometry? geometry;
+  final String? description;
+  final double? latitude;
+  final double? longitude;
+  final int? rowCount;
+  final int? colCount;
+
+  /// Coral-only build: always returns [OrganismKind.coral].
+  List<OrganismKind> get supportedOrganismKinds => const [OrganismKind.coral];
+
+  @override
+  String get siteId => id;
+
+  SiteType get siteType => _resolveSiteType(siteTypeId);
+
+  List<GroupType> get groupTypeHierarchy {
+    // Primary: respect persisted hierarchy
+    final resolved = groupIdHierarchy
+        .map((id) => GroupType.builtins[id])
+        .whereType<GroupType>()
+        .toList(growable: false);
+    if (resolved.isNotEmpty) return resolved;
+
+    // Log warning if groupIdHierarchy was provided but couldn't be resolved
+    if (groupIdHierarchy.isNotEmpty) {
+      if (kDebugMode) {
+        LoggingService.instance.warning(
+          'Could not resolve groupIdHierarchy $groupIdHierarchy, using defaults',
+        );
+      }
+    }
+
+    // Fallback: use built-in defaults for this site type so creation dialogs
+    // never render empty when legacy data omitted hierarchy.
+    return siteType.groupTypes;
+  }
+
+  /// Get the display label for a group type within this site.
+  /// Returns custom label if configured, otherwise the group type's default name.
+  String getGroupTypeLabel(GroupType groupType) {
+    return groupTypeLabels?[groupType.id] ?? groupType.name;
+  }
+
+  /// Get group types from the hierarchy filtered by category.
+  List<GroupType> getGroupTypesByCategory(GroupTypeCategory category) {
+    return groupTypeHierarchy
+        .where((t) => t.category == category)
+        .toList(growable: false);
+  }
+
+  /// Get superstructure types available in this site.
+  List<GroupType> get superstructureTypes =>
+      getGroupTypesByCategory(GroupTypeCategory.superstructure);
+
+  /// Get structure types available in this site.
+  List<GroupType> get structureTypes =>
+      getGroupTypesByCategory(GroupTypeCategory.structure);
+
+  /// Get substructure types available in this site.
+  List<GroupType> get substructureTypes =>
+      getGroupTypesByCategory(GroupTypeCategory.substructure);
+
+  @override
+  ModelType get modelType => ModelType.site;
+
+  @override
+  final String name;
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      "siteTypeId": siteTypeId,
+      "name": name,
+      "groupIdHierarchy": groupIdHierarchy,
+      if (groupTypeLabels != null && groupTypeLabels!.isNotEmpty)
+        "groupTypeLabels": groupTypeLabels,
+      if (description != null) "description": description,
+      if (geometry != null) "geometry": geometry!.toJson(),
+      if (latitude != null) "latitude": latitude,
+      if (longitude != null) "longitude": longitude,
+      if (rowCount != null) "rowCount": rowCount,
+      if (colCount != null) "colCount": colCount,
+      ...super.toJson(),
+    };
+  }
+
+  @override
+  Site copyWith({
+    String? id,
+    String? siteTypeId,
+    String? name,
+    List<String>? groupIdHierarchy,
+    Map<String, String>? groupTypeLabels,
+    bool clearGroupTypeLabels = false,
+    OutplantGeometry? geometry,
+    bool clearGeometry = false,
+    String? description,
+    double? latitude,
+    double? longitude,
+    String? createdById,
+    String? createdAt,
+    String? updatedAt,
+    String? updatedById,
+    String? organizationId,
+    String? urlPath,
+    String? internalPath,
+    String? slug,
+    int? rowCount,
+    int? colCount,
+    Map<String, dynamic>? metadata,
+  }) => Site(
+    id: id ?? this.id,
+    createdById: createdById ?? this.createdById,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    updatedById: updatedById ?? this.updatedById,
+    organizationId: organizationId ?? this.organizationId,
+    siteTypeId: siteTypeId ?? this.siteTypeId,
+    name: name ?? this.name,
+    groupIdHierarchy: groupIdHierarchy ?? this.groupIdHierarchy,
+    groupTypeLabels: clearGroupTypeLabels
+        ? null
+        : (groupTypeLabels ?? this.groupTypeLabels),
+    geometry: clearGeometry ? null : (geometry ?? this.geometry),
+    description: description ?? this.description,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    rowCount: rowCount ?? this.rowCount,
+    colCount: colCount ?? this.colCount,
+    urlPath: urlPath ?? this.urlPath,
+    internalPath: internalPath ?? this.internalPath,
+    slug: slug ?? this.slug,
+    metadata: metadata ?? this.metadata,
+  );
+
+  @override
+  // ignore: must_call_super
+  bool validate() {
+    // Check required fields explicitly
+    if (siteTypeId.isEmpty || name.isEmpty) {
+      return false;
+    }
+
+    // Check base record validation (required fields only)
+    final baseValid =
+        id.isNotEmpty &&
+        createdAt.isNotEmpty &&
+        createdById.isNotEmpty &&
+        updatedAt.isNotEmpty &&
+        updatedById.isNotEmpty &&
+        organizationId.isNotEmpty &&
+        urlPath.isNotEmpty &&
+        internalPath.isNotEmpty &&
+        slug.isNotEmpty;
+
+    return baseValid;
+  }
+
+  @override
+  List<Object?> get props =>
+      super.props +
+      [
+        siteTypeId,
+        name,
+        groupIdHierarchy,
+        groupTypeLabels,
+        description,
+        latitude,
+        longitude,
+        geometry,
+        rowCount,
+        colCount,
+      ];
+
+  bool get hasGeometry => geometry != null;
+
+  GeoCoordinate? get centroid => geometry?.centroid;
+
+  /// Always returns true in the coral-only build.
+  bool supportsOrganism(OrganismKind kind) => kind == OrganismKind.coral;
+
+  GeoBounds? get bounds => geometry?.bounds;
+
+  List<GeoCoordinate> get placements =>
+      geometry?.coordinates ?? const <GeoCoordinate>[];
+
+  static SiteType _resolveSiteType(String siteTypeId) {
+    return SiteType.fromId(siteTypeId);
+  }
+
+  static Map<String, String>? _parseGroupTypeLabels(dynamic raw) {
+    if (raw is! Map) return null;
+    final labels = <String, String>{};
+    for (final entry in raw.entries) {
+      if (entry.key is String && entry.value is String) {
+        labels[entry.key as String] = entry.value as String;
+      }
+    }
+    return labels.isEmpty ? null : labels;
+  }
+
+  static String _readSiteTypeId(Map<String, dynamic>? json) {
+    if (json == null) return SiteType.nursery.id;
+    final direct = json['siteTypeId'];
+    if (direct is String && direct.isNotEmpty) {
+      return direct;
+    }
+    final createdEvent = json['createdEvent'];
+    if (createdEvent is Map<String, dynamic>) {
+      final createdType = createdEvent['siteTypeId'];
+      if (createdType is String && createdType.isNotEmpty) {
+        return createdType;
+      }
+    }
+    return SiteType.nursery.id;
+  }
+}

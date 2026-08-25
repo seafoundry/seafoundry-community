@@ -1,0 +1,7 @@
+sf_csv_version,2.0.0
+sf_csv_template,SeaFoundry Universal CSV v2
+sf_translation_adapter,universal_csv_v2
+org_domain,reef.org
+generated_at,2025-01-02T00:00:00Z
+organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,lifeStageSubtype,provenanceType,physicalFormId,physicalForm,sizeBandId,measuredDimension,dimensionUnit,organismsPerUnit,volumeAmount,volumeUnit,eventType,eventDate,measurementUnit,quantityValue,groupId,siteId,siteName,enclosureId,provenanceId,provenanceKind,cohortId,structureType,habitatType,siteJurisdiction,protectedAreaFlag,geometryFormat,geometryWkt,geometryGeojson,notes
+coral,Acropora palmata,AcPa,APAL-001,fuzzy-apal-001,fragment,,wild,fragment,Fragment,small,4,cm,,,,inventory_create,2025-01-03T15:45:00Z,count,24,/reef/sites/site-a/tray-01,site-reef-a,Demo Nursery,,PID-APAL-001,genet,,tray,reef_patch,DEMO_JURISDICTION,false,WKT,POINT(-160.0 0.0),"{""type"":""Point"",""coordinates"":[-160.0,0.0]}",Fragments staged for outplant after thermal stress monitoring.

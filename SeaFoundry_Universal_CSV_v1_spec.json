@@ -1,0 +1,305 @@
+{
+  "template": "SeaFoundry Universal CSV v1",
+  "version": "1.3.0",
+  "inputFormat": "CSV-only",
+  "defaultOrganization": "current-session",
+  "required": [
+    "localId",
+    "species",
+    "quantity"
+  ],
+  "mergePrecedence": [
+    "ClonalSNP",
+    "provenanceId",
+    "Accession",
+    "PlugLabel",
+    "AvidID",
+    "alias:*",
+    "id:*"
+  ],
+  "hardFailOnIdConflict": true,
+  "geometry": {
+    "storeAs": "GeoJSON",
+    "columns": [
+      "siteCenterLat",
+      "siteCenterLng",
+      "siteBboxNWLat",
+      "siteBboxNWLng",
+      "siteBboxSELat",
+      "siteBboxSELng",
+      "outplantPoints"
+    ]
+  },
+  "types": {
+    "organizationDomain": "string",
+    "localId": "string",
+    "provenanceId": {
+      "type": "string",
+      "accept": [
+        {
+          "name": "Provenance ID",
+          "pattern": "^SF-[A-Za-z]{4}-\\d+$"
+        },
+        {
+          "name": "ULID",
+          "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+        },
+        {
+          "name": "UUIDv7",
+          "pattern": "^[0-9a-fA-F-]{36}$"
+        }
+      ],
+      "defaultGeneration": "ProvenanceId"
+    },
+    "species": "string",
+    "genetId": "string",
+    "genetType": {
+      "enum": [
+        "founder",
+        "cohort",
+        "sexualRecruit",
+        "gameteEggs",
+        "gameteSperm"
+      ]
+    },
+    "quantity": "integer",
+    "sex": {
+      "enum": [
+        "male",
+        "female",
+        "hermaphrodite",
+        "unknown"
+      ]
+    },
+    "mountType": {
+      "enum": [
+        "plug",
+        "tile",
+        "tag",
+        "rack",
+        "rope",
+        "settlementSubstrate"
+      ]
+    },
+    "owner": "string",
+    "holder": "string",
+    "enclosure": "string",
+    "group": "string",
+    "inSituRow": "string",
+    "inSituCol": "string",
+    "originType": {
+      "enum": [
+        "opportunity",
+        "sexualRecruit",
+        "cryo",
+        "transferIn",
+        "wildCollection",
+        "unknown"
+      ]
+    },
+    "acquisitionDate": "date",
+    "previousOwner": "string",
+    "previousHolder": "string",
+    "accession": "string",
+    "clonalSNP": "string",
+    "avidId": "string",
+    "plugLabel": "string",
+    "legacyGenotype": "string",
+    "partnerLocalId": "string",
+    "alias:pastName": "string",
+    "id:TubeID": "string",
+    "role": "string",
+    "training": "string",
+    "readyForOutplant": "boolean",
+    "siteCenterLat": "number",
+    "siteCenterLng": "number",
+    "siteBboxNWLat": "number",
+    "siteBboxNWLng": "number",
+    "siteBboxSELat": "number",
+    "siteBboxSELng": "number",
+    "outplantPoints": "string",
+    "notes": "string"
+  },
+  "coherence": [
+    {
+      "if": {
+        "genetId": ""
+      },
+      "then": {
+        "requireOneOf": [
+          "genetType"
+        ]
+      }
+    },
+    {
+      "if": {
+        "genetType": "cohort"
+      },
+      "then": {
+        "minQuantity": 2
+      }
+    },
+    {
+      "if": {
+        "genetType": {
+          "not": "cohort"
+        }
+      },
+      "then": {
+        "warnIf": {
+          "quantity": {
+            ">": 1
+          }
+        },
+        "message": "Non-cohort with quantity>1 will be treated as ramet cluster (allowed)."
+      }
+    },
+    {
+      "if": {
+        "mountType": "settlementSubstrate"
+      },
+      "then": {
+        "suggest": {
+          "originType": "sexualRecruit"
+        }
+      }
+    },
+    {
+      "requireTogether": [
+        [
+          "owner",
+          "holder"
+        ]
+      ]
+    },
+    {
+      "dateFormat": "acquisitionDate"
+    },
+    {
+      "taxonomy": {
+        "species": {
+          "mode": "blockOnUnknown",
+          "source": "docs/csv_templates/species_taxonomy.csv"
+        }
+      }
+    },
+    {
+      "orgResolution": {
+        "resolveUnknownOrgs": "block"
+      }
+    },
+    {
+      "structureResolution": {
+        "resolveUnknownEnclosures": "block",
+        "resolveUnknownGroups": "block"
+      }
+    }
+  ],
+  "synonyms": {
+    "inSituRow": [
+      "row",
+      "grid row",
+      "tree row"
+    ],
+    "inSituCol": [
+      "col",
+      "column",
+      "grid col",
+      "grid column"
+    ],
+    "outplantPoints": [
+      "placements",
+      "points",
+      "latlngs",
+      "latlng pairs"
+    ],
+    "localId": [
+      "local id",
+      "accession number",
+      "accession",
+      "id",
+      "specimen id",
+      "specimenid"
+    ],
+    "quantity": [
+      "qty",
+      "count",
+      "number",
+      "n"
+    ],
+    "species": [
+      "taxon",
+      "taxa",
+      "latin",
+      "latin name",
+      "binomial"
+    ],
+    "enclosure": [
+      "tank",
+      "enclosure name",
+      "location",
+      "structure",
+      "site"
+    ],
+    "group": [
+      "tray",
+      "branch",
+      "substructure",
+      "grid",
+      "plot",
+      "tag"
+    ],
+    "owner": [
+      "legal owner",
+      "current owner"
+    ],
+    "holder": [
+      "custodian",
+      "current holder",
+      "location holder"
+    ],
+    "accession": [
+      "partner accession",
+      "coral sample registry",
+      "partner id"
+    ],
+    "clonalSNP": [
+      "snp id",
+      "snp",
+      "clonal id snp 2024"
+    ],
+    "plugLabel": [
+      "label",
+      "plug read",
+      "plug label"
+    ],
+    "alias:pastName": [
+      "alias",
+      "previous name",
+      "past name"
+    ],
+    "id:TubeID": [
+      "tube id",
+      "tube",
+      "sample tube"
+    ],
+    "role": [
+      "user role",
+      "permission role"
+    ],
+    "training": [
+      "training",
+      "certification",
+      "cert"
+    ]
+  },
+  "notes": [
+    "If provenanceId is blank, a new CoralUnit will be created with a generated ID (default semantic provenance ID).",
+    "If genetId is blank, genetType must be provided to establish lineage.",
+    "organizationDomain defaults to the current org if blank.",
+    "Use ISO dates (YYYY-MM-DD).",
+    "Arbitrary 'id:*' and 'alias:*' columns are accepted and stored in externalIds/aliases.",
+    "Role/training columns are captured as freeform metadata.",
+    "Geometry: Multiple lat/lng will be converted to MultiPoint and a bounding box."
+  ]
+}

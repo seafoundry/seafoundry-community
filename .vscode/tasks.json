@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Generate Dart Environment",
+            "type": "shell",
+            "command": "npm",
+            "args": ["run", "generate-dart-env"],
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "silent"
+            }
+        }
+    ]
+}

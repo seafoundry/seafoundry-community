@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="SeaFoundry Community — an open-source app for tracking coral restoration genetics, inventory, and outplanting.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="SeaFoundry Community">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png" />
+
+  <!--
+    Google Sign-In: no OAuth Web client id ships with the OSS release. To enable
+    Google sign-in, a deployer must supply their own OAuth Web client id (from
+    their own GCP/Firebase project) either via the google_sign_in Dart config
+    (clientId / GoogleSignIn params) or by re-adding a meta tag here:
+      <meta name="google-signin-client_id" content="YOUR_ID.apps.googleusercontent.com">
+    See docs/deployment/community_web_deployment.md.
+  -->
+
+  <!-- Font fallbacks for missing glyphs -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Noto+Sans+Symbols&family=Noto+Sans+Symbols+2&display=swap">
+
+  <title>SeaFoundry Community</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Prevent browser back/forward gestures from horizontal overscroll -->
+  <style>
+    html, body {
+      overscroll-behavior-x: none;
+    }
+  </style>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+  <!--
+    Firestore is owned entirely by the Flutter cloud_firestore SDK (initialized in
+    lib/main.dart). No separate Firebase JS client is loaded here — a second client
+    would contend for the IndexedDB persistence lock. Offline persistence and
+    transport settings, if needed, are configured on the Dart side.
+  -->
+
+  <!-- Define hook for firebase_auth_web / google_sign_in_web -->
+  <script>
+    var onGoogleLibraryLoad;
+  </script>
+
+  <!-- Then load Flutter -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+
+</html>

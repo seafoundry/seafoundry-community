@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "SBZCR8XXAS.com.seafoundry.mobile",
+        "paths": [
+          "/invite/*",
+          "/org/*",
+          "/site/*",
+          "/group/*"
+        ]
+      }
+    ]
+  }
+}

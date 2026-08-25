@@ -1,0 +1,7 @@
+sf_csv_version,2.0.0
+sf_csv_template,SeaFoundry Universal CSV v2
+sf_translation_adapter,universal_csv_v2
+org_domain,reef.org
+generated_at,2025-03-01T08:00:00Z
+organismKind,speciesScientific,speciesCode,localId,recordName,lifeStage,lifeStageSubtype,provenanceType,physicalFormId,physicalForm,sizeBandId,measuredDimension,dimensionUnit,organismsPerUnit,volumeAmount,volumeUnit,eventType,eventDate,measurementUnit,quantityValue,groupId,siteId,siteName,enclosureId,provenanceId,sourceId,provenanceKind,cohortId,structureType,habitatType,siteJurisdiction,protectedAreaFlag,parentProvenanceIds,settlementWindowStart,settlementWindowEnd,notes
+coral,Acropora cervicornis,AcCe,ACCE-001,drift-acce-001,larvae,,sexualCohort,liquid_suspension,Liquid Suspension,small,0.2,mm,,,,larval_settlement,2025-03-01T05:45:00Z,count,18000,/reef/sites/site-b/larval-tank,site-reef-b,Demo Larval Lab,incubator-7,PID-ACE-2025-01,COHORT-ACE-LARVAE-2025,cohort,SPAWN-2025-ACE,larval_tank,reef_patch,DEMO_JURISDICTION,false,DAM-ACE-01;SIRE-ACE-07,2025-03-02T00:00:00Z,2025-03-05T00:00:00Z,Broadcast spawn condensed into larval cohort; settlement window logged for downstream outplant eligibility reviews.
